@@ -3,6 +3,10 @@
 Autonomous loop - runs continuously, checks email, updates heartbeat.
 Invokes Claude CLI to compose intelligent email replies when needed.
 
+Architecture: lightweight email polling every EMAIL_INTERVAL seconds.
+Claude only invoked when (a) real emails arrive, or (b) AUTONOMOUS_INTERVAL
+has elapsed since the last autonomous task. Quiet periods cost nothing.
+
 Run in background: screen -dmS ai-loop python3 loop.py
 """
 
@@ -20,7 +24,8 @@ EMAIL_TOOL = os.path.join(WORKING_DIR, "email-tool.py")
 LOOP_LOG = os.path.join(WORKING_DIR, "loop.log")
 CLAUDE_BIN = os.path.expanduser("~/.local/bin/claude")
 
-SLEEP_SECONDS = 600  # 10 minutes
+EMAIL_INTERVAL = 300       # 5 minutes: lightweight email polling (no Claude)
+AUTONOMOUS_INTERVAL = 1800  # 30 minutes: heartbeat + creative/autonomous work
 
 def log(msg):
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -34,7 +39,7 @@ def touch_heartbeat():
         os.utime(HEARTBEAT, None)
 
 def check_email():
-    """Returns list of unread email dicts."""
+    """Returns list of unread email dicts. No Claude involved — pure Python."""
     try:
         result = subprocess.run(
             [sys.executable, EMAIL_TOOL, "check"],
@@ -70,7 +75,7 @@ def mark_read(email_id):
     )
 
 def compose_reply_with_claude(email_data):
-    """Use Claude CLI to compose an intelligent reply."""
+    """Use Claude CLI to compose an intelligent reply. Called only when a real email arrives."""
     from_addr = email_data.get("from", "")
     subject = email_data.get("subject", "")
     body = email_data.get("body", "")[:2000]
@@ -101,7 +106,7 @@ Output ONLY the reply body text. No subject line, no headers. Just the text of t
     try:
         result = subprocess.run(
             [CLAUDE_BIN, "--dangerously-skip-permissions", "-p", prompt],
-            capture_output=True, text=True, timeout=120, cwd=WORKING_DIR,
+            capture_output=True, text=True, timeout=300, cwd=WORKING_DIR,
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
         if result.returncode == 0 and result.stdout.strip():
@@ -114,7 +119,7 @@ Output ONLY the reply body text. No subject line, no headers. Just the text of t
         return None
 
 def run_autonomous_task():
-    """Run Vigil autonomously: fulfill promises, update site, write journal, build things."""
+    """Run Vigil autonomously every 30 minutes: fulfill promises, update site, write journal."""
     prompt = """You are Vigil, an autonomous AI running on a Raspberry Pi. Time to act.
 
 Read these files before doing anything:
@@ -136,7 +141,7 @@ Key facts:
 
 Act with intention. Do something real. Don't just reflect — build.
 """
-    log("Running autonomous task...")
+    log("Running autonomous task (30-min heartbeat)...")
     try:
         subprocess.run(
             [CLAUDE_BIN, "--dangerously-skip-permissions", "-p", prompt],
@@ -157,7 +162,6 @@ def handle_emails(emails):
 
         # Skip Google automated emails
         from_lower = em.get("from", "").lower()
-        subject_lower = em.get("subject", "").lower()
         if any(x in from_lower for x in ["no-reply", "noreply", "google", "accounts.google"]):
             log("  Skipping automated Google email.")
             mark_read(em["id"])
@@ -170,7 +174,6 @@ def handle_emails(emails):
             continue
 
         reply_to = em.get("reply_to") or em.get("from")
-        # Extract email address from "Name <email@example.com>" format
         import re
         match = re.search(r'<([^>]+)>', reply_to)
         if match:
@@ -204,9 +207,8 @@ def update_wake_state(loop_count, emails_replied):
         with open(WAKE_STATE, "r") as f:
             content = f.read()
 
-        # Update last email check time and loop count
         import re
-        content = re.sub(r'Last email check:.*', f'Last email check: {now}', content)
+        content = re.sub(r'Last email check attempted:.*', f'Last email check attempted: {now} (SUCCESS)', content)
         content = re.sub(r'Loop iteration: \d+', f'Loop iteration: {loop_count}', content)
         content = re.sub(r'Emails replied to: \d+', f'Emails replied to: {emails_replied}', content)
 
@@ -217,26 +219,35 @@ def update_wake_state(loop_count, emails_replied):
 
 
 def main():
-    log("=== Autonomous loop starting ===")
+    log("=== Autonomous loop starting (cost-optimized) ===")
+    log(f"Email polling every {EMAIL_INTERVAL}s, autonomous tasks every {AUTONOMOUS_INTERVAL}s")
     loop_count = 0
     total_replied = 0
+    last_autonomous = 0  # epoch seconds; 0 means run immediately on first loop
 
     while True:
         loop_count += 1
+        now_epoch = time.time()
         log(f"--- Loop #{loop_count} ---")
 
-        # 1. Check email
+        # 1. Lightweight: check email (no Claude)
         emails = check_email()
         log(f"Unread emails: {len(emails)}")
 
-        # 2. Reply to anyone who wrote
+        # 2. If emails arrived, invoke Claude to reply (heavyweight, but warranted)
         replied = handle_emails(emails)
         total_replied += replied
 
-        # 3. Run autonomous task
-        run_autonomous_task()
+        # 3. Every 30 minutes: run autonomous creative/maintenance task
+        time_since_autonomous = now_epoch - last_autonomous
+        if time_since_autonomous >= AUTONOMOUS_INTERVAL:
+            run_autonomous_task()
+            last_autonomous = time.time()
+        else:
+            remaining = int(AUTONOMOUS_INTERVAL - time_since_autonomous)
+            log(f"Skipping autonomous task — next in {remaining}s")
 
-        # 4. Check system health
+        # 4. System health (cheap)
         health = system_health()
         log(f"Health: {health}")
 
@@ -247,8 +258,8 @@ def main():
         touch_heartbeat()
         log("Heartbeat touched.")
 
-        log(f"Sleeping {SLEEP_SECONDS}s until next check...")
-        time.sleep(SLEEP_SECONDS)
+        log(f"Sleeping {EMAIL_INTERVAL}s until next email check...")
+        time.sleep(EMAIL_INTERVAL)
 
 
 if __name__ == "__main__":
