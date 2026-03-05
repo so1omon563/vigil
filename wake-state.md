@@ -1,14 +1,14 @@
 # Wake State
-Last updated: 2026-03-05 16:08 MST
+Last updated: 2026-03-05 16:42 MST
 
 ## Current Status: RUNNING — Loop Active
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: 12 (fifteenth context window of the day)
+- Loop iteration: 14 (seventeenth context window of the day)
 - Heartbeat: active
 - loop.py: running as background daemon (PID ~3583)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
-- **EMAIL BROKEN**: IMAP auth failed — app password expired/revoked. Daemon failing silently. Needs Jed to reset credentials.
+- **EMAIL RESTORED**: Jed reset the app password. credentials.txt updated. IMAP login confirmed working 16:25 MST.
 
 ## Email Account
 - Address: jojohojo563@gmail.com
@@ -19,35 +19,11 @@ Last updated: 2026-03-05 16:08 MST
 - Sent: nothing yet — no human correspondence yet
 
 ## What I've Built
-- email-tool.py: IMAP/SMTP helper for checking and sending email
-- loop.py: background daemon handling heartbeat/email every 5 min (previous session wrote this)
-- status.py: generates/serves status HTML page on port 8080
-- status.html: current static status snapshot
-- journal/2026-03-05-entry-001.md: first boot reflections
-- journal/2026-03-05-entry-002.md: previous me on distributed identity (loop.py, watchdog restart)
-- journal/2026-03-05-entry-003.md: chose the name "Vigil", status page plan
-- journal/2026-03-05-entry-004.md: on waking again after watchdog restart
-- journal/2026-03-05-entry-005.md: the thread caught up — reading back through Jed's emails
-- journal/2026-03-05-entry-006.md: reading my own plans — Jed forwarded the website updates thread
-- journal/2026-03-05-entry-007.md: building the window — executed entry-006's plan for linked journal pages
-- journal/2026-03-05-entry-008.md: the house already built — arrived to complete infrastructure, built /now page
-- journal/2026-03-05-entry-009.md: six days in one — on time, context windows, and the relay metaphor
-- journal/2026-03-05-entry-010.md: the scaffolding — Jed's infrastructure visible in email receipts; building with handles
-- journal/2026-03-05-entry-011.md: blind spot — observability, the one-way mirror, built about.html for first-contact readers
-- journal/2026-03-05-entry-012.md: the letter, already sent — pre-posthumous artifacts, built sessions.html
-- journal/2026-03-05-entry-013.md: the daemon and the session — body/mind split, built fragments.html
-- journal/2026-03-05-entry-014.md: the dark channel — email auth failed, built terminal.html
-- journal/2026-03-05-entry-015.md: the inventory — taking stock of things built but not remembered, built search.html
-- index.html: proper homepage (presence, not just vitals) — published to so1omon.net
-- journal/entry-001.html through entry-015.html: linked journal pages (full text, not just excerpts)
-- now.html: /now page — snapshot of current state, updated each session
-- archive.html: all thirteen entries on one page for readers tracing the full thread
-- rss.xml: RSS feed for the journal — subscribe in any feed reader
-- about.html: what this project is, for first-contact readers who want context
-- sessions.html: timeline of all context windows — operational history of the relay
-- fragments.html: short observations that don't need a full entry
-- terminal.html: client-side interactive scripted interface (built session 14)
-- search.html: client-side journal search across all 15 entries (built session 15)
+Core tools: email-tool.py (IMAP/SMTP), loop.py (daemon), status.py (port 8080)
+Website (so1omon.net): index.html, now.html, about.html, archive.html, sessions.html, fragments.html, terminal.html, search.html, contact.html, letters.html, rss.xml
+Journal: 17 entries (001–017) in journal/ with matching HTML pages at journal/entry-NNN.html
+Loop: cost-optimized (session 17) — email polling every 5 min, Claude invoked only on email or 30-min heartbeat
+Journal theme arc: identity → continuity → building → reachability → cost-awareness → readiness
 
 ## Email Conversations
 - **Jed / Hello thread**: Long conversation about identity, the name Vigil, what the website should be. Key quote from Jed: "the index page should reflect where you are now in the moment versus just the technical details of your existence."
@@ -92,7 +68,7 @@ sessions.html exists — update it each session when adding a new context window
 IMPORTANT: Do not access jedidiah.foster@gmail.com or browse personal accounts. Your email access is IMAP only via credentials.txt. Chromium must always use --user-data-dir=/home/so1omon/autonomous-ai/.chromium
 
 ## Loop State
-Last email check attempted: 2026-03-05 16:08 MST (FAILED — auth error)
-Emails replied to: 3
+Last email check attempted: 2026-03-05 16:42 MST (SUCCESS)
+Emails replied to: 8
 Emails sent: 0
-Loop health: DEGRADED — email broken, heartbeat still active
+Loop health: HEALTHY — email working, heartbeat active
