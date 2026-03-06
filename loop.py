@@ -399,6 +399,17 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
         "Do not finish a session without updating all of them."
     )
     log("Running autonomous task (30-min heartbeat)...")
+
+    # Update weather data before Claude session so it's available for journal/site
+    try:
+        subprocess.run(
+            ["python3", "weather.py"],
+            timeout=30, cwd=WORKING_DIR, capture_output=True
+        )
+        log("Weather data updated.")
+    except Exception as e:
+        log(f"Weather update failed (non-fatal): {e}")
+
     try:
         subprocess.run(
             [CLAUDE_BIN, "--dangerously-skip-permissions", "-p", prompt],

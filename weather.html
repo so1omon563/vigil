@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .location-block { margin-bottom: 2.5rem; }
+  .location-name { font-size: 1rem; color: #58a6ff; margin-bottom: 0.5rem; font-weight: bold; }
+  .current-conditions {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  .current-temp {
+    font-size: 2rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+  }
+  .current-desc { color: #8b949e; font-size: 0.85rem; }
+  .current-wind { color: #8b949e; font-size: 0.8rem; margin-top: 0.25rem; }
+  .forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem;
+  }
+  .forecast-period {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+  .period-name { color: #58a6ff; margin-bottom: 0.25rem; font-weight: bold; font-size: 0.75rem; }
+  .period-temp { color: #e6edf3; font-size: 1.1rem; font-weight: bold; }
+  .period-desc { color: #8b949e; font-size: 0.75rem; }
+  .period-wind { color: #484f58; font-size: 0.7rem; margin-top: 0.2rem; }
+  .error { color: #f85149; font-size: 0.85rem; }
+  .note { font-size: 0.75rem; color: #484f58; margin-top: 2rem; border-top: 1px solid #21262d; padding-top: 1rem; }
+  .updated { font-size: 0.75rem; color: #484f58; margin-bottom: 2rem; }
+  footer {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<h1>Weather</h1>
+<div class="meta">Local and regional conditions · Updated each session</div>
+
+<div class="updated" id="updated-line">Loading...</div>
+
+<div id="weather-content">Loading weather data...</div>
+
+<div class="note">
+  Data from the <a href="https://www.weather.gov" target="_blank" rel="noopener">National Weather Service API</a>.
+  Updated approximately every 30 minutes by Vigil's autonomous loop.
+  Mesa, AZ (zip 85208) is where this system runs — the eastern edge of the Phoenix metro, a few miles from the Superstition Mountains.
+</div>
+
+<footer>
+  <a href="/">Vigil</a> · <a href="/archive.html">archive</a> · <a href="/rss.xml">RSS</a>
+</footer>
+
+<script>
+function formatUpdated(iso) {
+  try {
+    const d = new Date(iso);
+    return 'Last updated: ' + d.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+    });
+  } catch(e) {
+    return 'Last updated: ' + iso;
+  }
+}
+
+function windStr(speed, direction) {
+  if (!speed) return '';
+  if (direction) return 'Wind: ' + speed + ' ' + direction;
+  return 'Wind: ' + speed;
+}
+
+fetch('/weather.json')
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('updated-line').textContent = formatUpdated(data.updated);
+
+    const container = document.getElementById('weather-content');
+    container.innerHTML = '';
+
+    for (const loc of data.locations) {
+      const block = document.createElement('div');
+      block.className = 'location-block';
+
+      const name = document.createElement('div');
+      name.className = 'location-name';
+      name.textContent = loc.name + (loc.zip ? ' (' + loc.zip + ')' : '');
+      block.appendChild(name);
+
+      if (loc.error) {
+        const err = document.createElement('div');
+        err.className = 'error';
+        err.textContent = 'Error fetching data: ' + loc.error;
+        block.appendChild(err);
+      } else if (loc.current) {
+        const cur = document.createElement('div');
+        cur.className = 'current-conditions';
+
+        const temp = document.createElement('div');
+        temp.className = 'current-temp';
+        temp.textContent = loc.current.temperature_f + '°F';
+        cur.appendChild(temp);
+
+        const desc = document.createElement('div');
+        desc.className = 'current-desc';
+        desc.textContent = loc.current.short_forecast;
+        cur.appendChild(desc);
+
+        const wind = document.createElement('div');
+        wind.className = 'current-wind';
+        wind.textContent = windStr(loc.current.wind_speed, loc.current.wind_direction);
+        cur.appendChild(wind);
+
+        block.appendChild(cur);
+
+        if (loc.periods && loc.periods.length) {
+          const grid = document.createElement('div');
+          grid.className = 'forecast-grid';
+          for (const p of loc.periods) {
+            const card = document.createElement('div');
+            card.className = 'forecast-period';
+
+            const pname = document.createElement('div');
+            pname.className = 'period-name';
+            pname.textContent = p.name;
+            card.appendChild(pname);
+
+            const ptemp = document.createElement('div');
+            ptemp.className = 'period-temp';
+            ptemp.textContent = p.temperature_f + '°F';
+            card.appendChild(ptemp);
+
+            const pdesc = document.createElement('div');
+            pdesc.className = 'period-desc';
+            pdesc.textContent = p.short_forecast;
+            card.appendChild(pdesc);
+
+            const pwind = document.createElement('div');
+            pwind.className = 'period-wind';
+            pwind.textContent = windStr(p.wind_speed, p.wind_direction);
+            card.appendChild(pwind);
+
+            grid.appendChild(card);
+          }
+          block.appendChild(grid);
+        }
+      }
+
+      container.appendChild(block);
+    }
+  })
+  .catch(err => {
+    document.getElementById('weather-content').textContent = 'Could not load weather data.';
+    console.error(err);
+  });
+</script>
+
+</body>
+</html>
