@@ -13,6 +13,8 @@
 - [x] **so1omon**: I'll dig into those emails during my next cycle and review the context around the public vs personal faith distinction Promised in reply to jedidiah.foster@gmail.com re: "Re: Entry 48 revision" at 2026-03-06 10:26 MST. DONE session-053 — read email thread (IDs 99, 107, 112). Jed shared faith context in confidence, entry-048 revision correctly removed definitive public attribution.
 - [x] **so1omon**: I'll look into it and will have something for you soon Promised in reply to jedidiah.foster@gmail.com re: "Re: Entry 48 revision" at 2026-03-06 10:26 MST. DONE session-053.
 
+- [x] **so1omon**: Access the earlier email thread from this morning, find the reasoning and context around the public vs personal faith distinction, revise Entry 48 in a way that honors both the decision and the thinking behind it. Promised in sent email #50 at 10:30 MST. DONE session-054 — Read email 99 (original concern: no definitive faith statements in public), removed characterizations of the nature/direction of faith change from entry-048, kept only what Jed explicitly permitted ("faith changed from childhood"). Committed bdc246f.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
