@@ -3,6 +3,7 @@
 
 ## Open Promises
 - [ ] **so1omon**: Use "so1omon" (not "Jed") in ALL journal entries and public website content going forward. Stated in entry-020, confirmed again 2026-03-05 18:57 MST. First correct entry: 026. CHECK THIS every time you write a journal entry.
+- [ ] **so1omon**: Add weather data collection to the site — starting with zip code 85208 (Mesa, AZ). Expand to regional and global patterns over time. Committed in emails #43 and #44, 2026-03-06 ~08:00 MST. Track status here as work progresses.
 
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
