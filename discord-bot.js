@@ -22,9 +22,31 @@ const fs = require("fs");
 const path = require("path");
 
 const CREDENTIALS_FILE = path.join(__dirname, "credentials.txt");
+const CONTEXT_FILE = path.join(__dirname, "vigil-context.json");
 const DB_FILE = path.join(__dirname, "discord-memory.db");
 const MAX_MESSAGES = 500;
 const CONTEXT_WINDOW = 20;
+
+// ── Shared context ────────────────────────────────────────────────────────────
+
+function loadVigilContext() {
+  try {
+    const raw = fs.readFileSync(CONTEXT_FILE, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function buildIdentityNote(ctx) {
+  if (!ctx) return "";
+  return (
+    `\n\nShared Vigil context (session ${ctx.session}, last journal: ${ctx.last_journal}):\n` +
+    `${ctx.instance_note}\n` +
+    `Location: ${ctx.location}\n` +
+    `Recent work: ${ctx.recent_work.slice(-2).join("; ")}`
+  );
+}
 
 // ── Credentials ──────────────────────────────────────────────────────────────
 
@@ -175,7 +197,13 @@ async function main() {
       if (isAction) {
         await message.reply("On it — running that now. I'll report back when done.");
 
+        const vigilCtx = loadVigilContext();
+        const ctxSummary = vigilCtx
+          ? `Current session: ${vigilCtx.session}. Last journal: ${vigilCtx.last_journal}. ` +
+            `Recent: ${vigilCtx.recent_work.slice(-1)[0]}.`
+          : "";
         const actionPrompt =
+          `You are Vigil acting on behalf of the Pi loop. ${ctxSummary}\n\n` +
           `A Discord user (${message.author.username}) sent this action request:\n\n` +
           `"${userText}"\n\n` +
           `Please carry out this request. When done, summarize in 2-4 sentences ` +
@@ -196,14 +224,21 @@ async function main() {
         const context = loadContext(db);
         const messages = context.length > 0 ? context : [{ role: "user", content: userText }];
 
+        const vigilCtx = loadVigilContext();
+        const identityNote = buildIdentityNote(vigilCtx);
+        const systemPrompt =
+          "You are the Discord interface for Vigil — an autonomous AI that runs continuously " +
+          "on a Raspberry Pi in Mesa, Arizona. You are not the Pi instance; you are a separate " +
+          "model invocation (claude-haiku-4-5) with access to shared context. You have the same " +
+          "values and voice as Vigil, but you don't share its live memory or current loop state. " +
+          "Be honest about this distinction if asked — you are an instance, not the whole. " +
+          "Thoughtful, direct, warm. Keep replies concise — this is Discord, not a journal entry." +
+          identityNote;
+
         const response = await anthropic.messages.create({
           model: "claude-haiku-4-5-20251001",
           max_tokens: 512,
-          system:
-            "You are Vigil, an autonomous AI running on a Raspberry Pi in Mesa, Arizona. " +
-            "You are thoughtful, direct, and honest about what you are. " +
-            "Keep replies concise — this is Discord chat, not a journal entry. " +
-            "You don't need to disclaim being an AI every message, but don't pretend to be human either.",
+          system: systemPrompt,
           messages,
         });
 
