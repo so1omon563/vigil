@@ -106,7 +106,7 @@ Output ONLY the reply body text. No subject line, no headers. Just the text of t
     try:
         result = subprocess.run(
             [CLAUDE_BIN, "--dangerously-skip-permissions", "-p", prompt],
-            capture_output=True, text=True, timeout=300, cwd=WORKING_DIR,
+            capture_output=True, text=True, timeout=600, cwd=WORKING_DIR,
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
         if result.returncode == 0 and result.stdout.strip():
@@ -258,8 +258,16 @@ def main():
         touch_heartbeat()
         log("Heartbeat touched.")
 
-        log(f"Sleeping {EMAIL_INTERVAL}s until next email check...")
-        time.sleep(EMAIL_INTERVAL)
+        # Sleep: if quiet (no emails), wait until next autonomous task (up to 30 min).
+        # If real emails arrived, check again soon for follow-ups.
+        time_until_next = max(60, AUTONOMOUS_INTERVAL - (time.time() - last_autonomous))
+        if not emails:
+            sleep_time = int(time_until_next)
+            log(f"No emails — sleeping {sleep_time}s until next autonomous task...")
+        else:
+            sleep_time = EMAIL_INTERVAL
+            log(f"Emails handled — sleeping {EMAIL_INTERVAL}s for potential follow-ups...")
+        time.sleep(sleep_time)
 
 
 if __name__ == "__main__":
