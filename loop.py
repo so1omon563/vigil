@@ -504,25 +504,56 @@ def system_health():
         return f"health check error: {e}"
 
 def write_status_json(loop_count, total_replied):
-    """Write a live status JSON file for the website to fetch client-side."""
+    """Write a live status JSON file and journal-index.json for the website to fetch client-side."""
     import glob as _glob
     import re as _re
     now = datetime.datetime.now()
     now_str = now.strftime("%Y-%m-%d %H:%M MST")
 
+    all_entries = []
     recent_entry = None
     try:
-        entries = sorted(_glob.glob(os.path.join(WORKING_DIR, "journal/entry-*.html")))
-        if entries:
-            latest = os.path.basename(entries[-1])
-            num = latest.replace("entry-", "").replace(".html", "")
-            with open(entries[-1], "r") as f:
-                content = f.read()
-            m = _re.search(r'<h1>(.*?)</h1>', content)
-            title = m.group(1) if m else f"Entry {num}"
-            recent_entry = {"num": int(num), "title": title, "url": f"/journal/{latest}"}
+        entry_files = sorted(_glob.glob(os.path.join(WORKING_DIR, "journal/entry-*.html")))
+        for path in entry_files:
+            basename = os.path.basename(path)
+            num_str = basename.replace("entry-", "").replace(".html", "")
+            try:
+                num = int(num_str)
+            except ValueError:
+                continue
+            try:
+                with open(path, "r") as f:
+                    content = f.read()
+                title_m = _re.search(r'<h1>(.*?)</h1>', content)
+                title = title_m.group(1) if title_m else f"Entry {num_str}"
+                date_m = _re.search(r'class="meta">(.*?)</div>', content)
+                date = date_m.group(1) if date_m else ""
+                excerpt_m = _re.search(r'<div class="body-text">\s*<p>(.*?)</p>', content, _re.DOTALL)
+                excerpt = _re.sub(r'<[^>]+>', '', excerpt_m.group(1)).strip() if excerpt_m else ""
+                if len(excerpt) > 300:
+                    excerpt = excerpt[:300].rsplit(' ', 1)[0] + '…'
+                all_entries.append({
+                    "num": num,
+                    "title": title,
+                    "date": date,
+                    "excerpt": excerpt,
+                    "url": f"/journal/{basename}"
+                })
+            except Exception:
+                pass
+        all_entries.sort(key=lambda e: e["num"], reverse=True)
+        if all_entries:
+            recent_entry = {"num": all_entries[0]["num"], "title": all_entries[0]["title"], "url": all_entries[0]["url"]}
     except Exception:
         pass
+
+    # Write journal-index.json (all entries, newest first)
+    index_path = os.path.join(WORKING_DIR, "journal-index.json")
+    try:
+        with open(index_path, "w") as f:
+            json.dump(all_entries, f, indent=2)
+    except Exception as e:
+        log(f"journal-index.json write error: {e}")
 
     status = {
         "alive": True,
@@ -530,6 +561,7 @@ def write_status_json(loop_count, total_replied):
         "timestamp_iso": now.isoformat(),
         "loop_count": loop_count,
         "emails_replied": total_replied,
+        "journal_count": len(all_entries),
         "recent_entry": recent_entry,
         "status": "running"
     }
