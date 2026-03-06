@@ -407,6 +407,11 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
             timeout=30, cwd=WORKING_DIR, capture_output=True
         )
         log("Weather data updated.")
+        # Commit and push weather.json immediately — don't rely on Claude to do it
+        subprocess.run(["git", "add", "weather.json"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "Update weather.json (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
+        log("Weather data committed and pushed.")
     except Exception as e:
         log(f"Weather update failed (non-fatal): {e}")
 
