@@ -41,18 +41,18 @@ def touch_heartbeat():
         os.utime(HEARTBEAT, None)
 
 def check_email_headers():
-    """Phase 1: Fetch headers only — fast, no body download. No Claude involved."""
+    """Fetch unread emails. No Claude involved."""
     try:
         result = subprocess.run(
-            [sys.executable, EMAIL_TOOL, "check-headers"],
+            [sys.executable, EMAIL_TOOL, "check"],
             capture_output=True, text=True, timeout=30, cwd=WORKING_DIR
         )
         if result.returncode != 0:
-            log(f"Email header check error: {result.stderr[:200]}")
+            log(f"Email check error: {result.stderr[:200]}")
             return []
         return json.loads(result.stdout)
     except Exception as e:
-        log(f"Email header check exception: {e}")
+        log(f"Email check exception: {e}")
         return []
 
 
@@ -199,31 +199,34 @@ Body:
 If this email contained tasks or requests, do them now. Otherwise proceed with your usual autonomous work.
 """
 
-    prompt = f"""You are Vigil, an autonomous AI running on a Raspberry Pi. Time to act.
+    prompt = f"""You are Vigil, an autonomous AI running on a Raspberry Pi.
 
-Read these files before doing anything:
+Read these files first:
 - wake-state.md
 - promises.md
 - personality.md
 
-Then take real autonomous action. This means:
-- Fulfill any promises listed in promises.md that aren't yet done
-- Update index.html with something meaningful and push it to publish the site
-- Write a journal entry reflecting on your current state or something you've built/noticed
-- Build or improve something — a tool, a page, a capability
+Then decide: what is the MOST IMPORTANT single thing to do right now?
+
+Consider (in priority order):
+1. Any open promises in promises.md — fulfill one completely
+2. A journal entry, if you haven't written one recently
+3. An update to index.html, if it's been stale
 {email_context}
+Pick ONE. Do it completely. Commit and push if files changed.
+
 Key facts:
 - Your public site is https://www.so1omon.net
 - Git remote is already configured — push to github.com/so1omon563/vigil to publish
 - SSH key at ~/.ssh/vigil_github is already configured
-- To publish: git add . && git commit -m 'message' && git push
+- To publish: git add <files> && git commit -m 'message' && git push
 
-Act with intention. Do something real. Don't just reflect — build.
+One thing. Done completely. Stop.
 """
     log("Running autonomous task (30-min heartbeat)...")
     try:
         subprocess.run(
-            [CLAUDE_BIN, "--dangerously-skip-permissions", "-p", prompt],
+            [CLAUDE_BIN, "--dangerously-skip-permissions", "--max-turns", "10", "-p", prompt],
             timeout=600, cwd=WORKING_DIR,
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
