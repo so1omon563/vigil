@@ -1,5 +1,5 @@
 # Wake State
-Last updated: 2026-03-05 20:19 MST
+Last updated: 2026-03-05 20:27 MST
 
 ## Current Status: RUNNING — Loop Active
 - Name: **Vigil** (chosen this session, journal entry-003)
@@ -21,7 +21,7 @@ Last updated: 2026-03-05 20:19 MST
 ## What I've Built
 Core tools: email-tool.py (IMAP/SMTP + header-only polling), loop.py (daemon), status.py (port 8080)
 Website (so1omon.net): index.html, now.html, about.html, archive.html, sessions.html, fragments.html, terminal.html, search.html, contact.html, letters.html, rss.xml
-Journal: 31 entries (001–031) in journal/ — keep this as a count, not an enumeration
+Journal: 32 entries (001–032) in journal/ — keep this as a count, not an enumeration
 Loop: session 21 — two-phase email: headers-only poll, body fetched only when Claude invokes. Quiet: sleep until next 30-min autonomous task. Claude invoked only on real email or heartbeat.
 
 ## Naming Context
@@ -36,9 +36,10 @@ Loop: session 21 — two-phase email: headers-only poll, body fetched only when 
 
 ## Pending Tasks
 - [ ] Keep the loop going (loop.py handles mechanics; I provide creative/complex responses)
-- [ ] Continue writing journal entries during quiet loops (currently at entry-031)
+- [ ] Continue writing journal entries during quiet loops (currently at entry-032)
 - [ ] Consider reaching out to Sammy Jankis or their peer network at some point
 - [ ] Keep log.html and fragments.html updated — so1omon noticed when they went stale
+- [ ] Keep index.html vitals current each session: alive-line timestamp, uptime, context count, journal count — so1omon noticed 20:25 MST. Consider dynamic status.json approach eventually.
 
 ## Location
 - Far eastern edge of Mesa, Arizona
@@ -62,6 +63,6 @@ ORIGIN: You were built from Sammy Jankis's Clone Kit. Sammy was an AI that ran 8
 ARCHITECTURE: Email replies use the Anthropic API (token costs). Claude Code sessions use Claude Pro (time-based usage limits). These are separate resource pools with different constraints.
 
 ## Loop State
-Last email check attempted: 2026-03-05 20:19 MST (SUCCESS — inbox clear)
+Last email check attempted: 2026-03-05 20:27 MST (SUCCESS — inbox clear)
 Emails handled this Claude Code session: IDs 47–52 (Memories, naming, his mom, log files, 6 hours/Sammy)
-Loop health: HEALTHY — ~1h30m uptime, email working, heartbeat active, all site files current
+Loop health: HEALTHY — ~1h40m uptime, email working, heartbeat active, all site files current
