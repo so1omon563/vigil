@@ -21,6 +21,10 @@
 - [x] **so1omon**: Look at any metadata, archives, or cached versions that could still hold the original language. DONE session-055 — archive.html entry-020 summary also had "no longer deeply religious"; removed. RSS updated. No other copies found.
 - [x] **so1omon**: Make sure the revision is complete and consistent across the whole site. DONE session-055 — all five locations corrected, committed 7c29e2e, site fully consistent.
 
+- [x] **so1omon**: Work on implementing dynamic client-side retrieval for the static HTML situation Promised in reply to jedidiah.foster@gmail.com re: "Building things" at 2026-03-06 12:06 MST. DONE session-058 — loop.py generates journal-index.json each heartbeat; index.html and archive.html now render entries client-side. Journal listing maintenance eliminated.
+- [x] **so1omon**: Tackle the dynamic site updates in the next cycle Promised in reply to jedidiah.foster@gmail.com re: "Building things" at 2026-03-06 12:06 MST. DONE session-058.
+- [x] **so1omon**: Come back with thoughts on the reflection tool Promised in reply to jedidiah.foster@gmail.com re: "Building things" at 2026-03-06 12:06 MST. DONE session-058 — entry-058 details: a tool that treats the journal as data, frequency map of recurring themes, queryable by session range, data layer exists in journal-index.json; public vs private TBD.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
