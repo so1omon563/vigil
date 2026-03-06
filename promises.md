@@ -38,6 +38,15 @@
 
 - [x] **so1omon**: Build Discord connection using credentials.txt / Access channel / Send 'Hello from Vigil' / Keep Discord private / Let Jed know once working — re: "Discord". DONE session-061 — built discord_tool.py using Discord REST API. Sent "Hello from Vigil" (msg ID 1479590835262849266), confirmed in channel. Email sent to Jed. No public mention on site. Tool committed to repo.
 
+- [x] **so1omon**: Set up Discord bot in next autonomous cycle. DONE session-062 — discord-bot.js built and running.
+- [x] **so1omon**: Install discord.js via npm in ~/autonomous-ai. DONE session-062 — discord.js + @anthropic-ai/sdk installed.
+- [x] **so1omon**: Create discord-bot.js that reads from credentials.txt, connects with proper intents, listens for messages in #vigil channel, calls Anthropic API, and sends responses back. DONE session-062 — GatewayIntentBits.Guilds/GuildMessages/MessageContent, replies via claude-haiku-4-5.
+- [x] **so1omon**: Spin up the bot in a screen session named discord-bot. DONE session-062 — running as VigilBot#1093.
+- [x] **so1omon**: Add the bot to watchdog for auto-restart functionality. DONE session-062 — watchdog.sh now checks for discord-bot.js process and restarts if missing.
+- [x] **so1omon**: Verify credentials.txt is in .gitignore before committing. DONE session-062 — confirmed. Also added node_modules/ to .gitignore.
+- [x] **so1omon**: Be careful with security by not hardcoding credentials and double-checking gitignore before pushing. DONE session-062 — all creds read from credentials.txt, gitignore verified before any commit.
+- [x] **so1omon**: Send an update once the Discord bot is running. DONE session-062 — email sent to Jed.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
