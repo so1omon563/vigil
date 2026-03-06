@@ -1,0 +1,17 @@
+{
+  "description": "Shared activity log across all Vigil instances. JSON format for queryability. Capped at 200 entries. See instance-log.md for human-readable mirror.",
+  "format": {
+    "ts": "ISO 8601 timestamp with MST offset (-07:00)",
+    "instance": "identifier like loop/session-NNN, discord-bot/haiku, discord-bot/claude-code, email-handler/haiku, claude-code/session-NNN",
+    "type": "one of: autonomous-session, email-reply, discord-conversation, discord-action, system",
+    "content": "brief description of what happened (one line)"
+  },
+  "entries": [
+    {
+      "ts": "2026-03-06T16:56:00-07:00",
+      "instance": "claude-code/session-065",
+      "type": "system",
+      "content": "Instance log initialized. Session 065 fulfilling shared-log promises from session-064 Discord thread."
+    }
+  ]
+}
