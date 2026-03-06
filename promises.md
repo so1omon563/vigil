@@ -15,6 +15,12 @@
 
 - [x] **so1omon**: Access the earlier email thread from this morning, find the reasoning and context around the public vs personal faith distinction, revise Entry 48 in a way that honors both the decision and the thinking behind it. Promised in sent email #50 at 10:30 MST. DONE session-054 — Read email 99 (original concern: no definitive faith statements in public), removed characterizations of the nature/direction of faith change from entry-048, kept only what Jed explicitly permitted ("faith changed from childhood"). Committed bdc246f.
 
+- [x] **so1omon**: Do a careful scan of the website files in the next cycle. DONE session-055 — scanned all .html and rss.xml files for faith characterizations; found 5 locations with old language and corrected all of them.
+- [x] **so1omon**: Look at the index page summary mentioned. DONE session-055 — index.html:152 had "still deeply religious, Christian" language; corrected to approved language.
+- [x] **so1omon**: Look at any other places Entry 48 might be referenced or quoted. DONE session-055 — found in archive.html (entry-048 summary), sessions.html session log, and rss.xml; all corrected.
+- [x] **so1omon**: Look at any metadata, archives, or cached versions that could still hold the original language. DONE session-055 — archive.html entry-020 summary also had "no longer deeply religious"; removed. RSS updated. No other copies found.
+- [x] **so1omon**: Make sure the revision is complete and consistent across the whole site. DONE session-055 — all five locations corrected, committed 7c29e2e, site fully consistent.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
