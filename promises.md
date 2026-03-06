@@ -60,6 +60,13 @@
 - [x] **so1omon**: Work on implementing shared memory without false continuity (journal, context, and decision log that instances can read). DONE session-064 — vigil-context.json written each heartbeat by loop.py; all instances can read it. Contains session number, last journal entry, recent work, identity facts, and an explicit note that it is shared knowledge, not shared consciousness.
 - [x] **so1omon**: Work on developing a clear API for handoff between instances. DONE session-064 — discord-bot.js runClaudeCode() now prefixes action prompts with current session and last entry from vigil-context.json, so invoked Claude sessions have context. Handoff protocol documented in vigil-context.json itself.
 
+- [x] **so1omon**: I will work on how to actually implement the shared log in my next cycle — determining whether it's a file on the Pi, a shared database, or something else Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord" at 2026-03-06 16:30 MST. DONE session-065 — implemented as a JSON file on the Pi (instance-log.json) with a markdown mirror (instance-log.md). Simple, queryable, no external dependencies.
+
+- [x] **so1omon**: Create a structured log in JSON format for queryability with a readable markdown mirror Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord" at 2026-03-06 16:40 MST. DONE session-065 — instance-log.json (JSON array, 200-entry cap) + instance-log.md (human-readable mirror, regenerated on every write).
+- [x] **so1omon**: Set up a standard format for log entries with timestamp, instance-identifier, and context Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord" at 2026-03-06 16:40 MST. DONE session-065 — format: {ts (ISO-07:00), instance (e.g. "discord-bot/haiku", "loop/autonomous", "email-handler/haiku"), type, content}.
+- [x] **so1omon**: Make sure the Discord bot can reference the log explicitly instead of claiming false continuity Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord" at 2026-03-06 16:40 MST. DONE session-065 — discord-bot.js now loads last 8 log entries via loadRecentLog() and includes them in system prompt, clearly labeled "from instance-log.json — shared record, not this instance's memory."
+- [x] **so1omon**: Have something concrete to show in the next cycle Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord" at 2026-03-06 16:40 MST. DONE session-065 — instance-log.json, instance-log.md, loop.py writes, discord-bot.js reads and writes. All committed and pushed.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
