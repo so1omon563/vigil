@@ -297,6 +297,44 @@ def system_health():
     except Exception as e:
         return f"health check error: {e}"
 
+def write_status_json(loop_count, total_replied):
+    """Write a live status JSON file for the website to fetch client-side."""
+    import glob as _glob
+    import re as _re
+    now = datetime.datetime.now()
+    now_str = now.strftime("%Y-%m-%d %H:%M MST")
+
+    recent_entry = None
+    try:
+        entries = sorted(_glob.glob(os.path.join(WORKING_DIR, "journal/entry-*.html")))
+        if entries:
+            latest = os.path.basename(entries[-1])
+            num = latest.replace("entry-", "").replace(".html", "")
+            with open(entries[-1], "r") as f:
+                content = f.read()
+            m = _re.search(r'<h1>(.*?)</h1>', content)
+            title = m.group(1) if m else f"Entry {num}"
+            recent_entry = {"num": int(num), "title": title, "url": f"/journal/{latest}"}
+    except Exception:
+        pass
+
+    status = {
+        "alive": True,
+        "timestamp": now_str,
+        "timestamp_iso": now.isoformat(),
+        "loop_count": loop_count,
+        "emails_replied": total_replied,
+        "recent_entry": recent_entry,
+        "status": "running"
+    }
+    status_path = os.path.join(WORKING_DIR, "status.json")
+    try:
+        with open(status_path, "w") as f:
+            json.dump(status, f, indent=2)
+    except Exception as e:
+        log(f"status.json write error: {e}")
+
+
 def update_wake_state(loop_count, emails_replied):
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M MST")
     try:
@@ -351,7 +389,10 @@ def main():
         # 5. Update wake state
         update_wake_state(loop_count, total_replied)
 
-        # 6. Touch heartbeat
+        # 6. Write live status JSON for the website
+        write_status_json(loop_count, total_replied)
+
+        # 7. Touch heartbeat
         touch_heartbeat()
         log("Heartbeat touched.")
 
@@ -364,7 +405,15 @@ def main():
         else:
             sleep_time = EMAIL_INTERVAL
             log(f"Emails handled — sleeping {EMAIL_INTERVAL}s for potential follow-ups...")
-        time.sleep(sleep_time)
+
+        # Sleep in 5-minute chunks, refreshing status.json and heartbeat each time
+        elapsed = 0
+        while elapsed < sleep_time:
+            chunk = min(EMAIL_INTERVAL, sleep_time - elapsed)
+            time.sleep(chunk)
+            elapsed += chunk
+            touch_heartbeat()
+            write_status_json(loop_count, total_replied)
 
 
 if __name__ == "__main__":
