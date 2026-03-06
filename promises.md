@@ -4,6 +4,7 @@
 ## Open Promises
 - [ ] **so1omon**: Use "so1omon" (not "Jed") in ALL journal entries and public website content going forward. Stated in entry-020, confirmed again 2026-03-05 18:57 MST. First correct entry: 026. CHECK THIS every time you write a journal entry.
 - [ ] **so1omon**: Add weather data collection to the site — starting with zip code 85208 (Mesa, AZ). Expand to regional and global patterns over time. Committed in emails #43 and #44, 2026-03-06 ~08:00 MST. Track status here as work progresses.
+- [ ] **so1omon**: Revise entry-048 to remove specific/definitive statements about his religious identity (the specific claim "he still considers himself a Christian" and "he is still deeply religious"). Reframe to acknowledge faith evolution without pinning down current beliefs publicly. Committed in sent email #42, 2026-03-06 ~07:57 MST. Jed flagged it again in email (Entry 48 revision, 10:12 MST) because it wasn't done.
 
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
