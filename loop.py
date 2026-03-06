@@ -45,7 +45,7 @@ def check_email_headers():
     try:
         result = subprocess.run(
             [sys.executable, EMAIL_TOOL, "check"],
-            capture_output=True, text=True, timeout=30, cwd=WORKING_DIR
+            capture_output=True, text=True, timeout=60, cwd=WORKING_DIR
         )
         if result.returncode != 0:
             log(f"Email check error: {result.stderr[:200]}")
@@ -61,7 +61,7 @@ def fetch_full_email(email_id):
     try:
         result = subprocess.run(
             [sys.executable, EMAIL_TOOL, "fetch-full", str(email_id)],
-            capture_output=True, text=True, timeout=30, cwd=WORKING_DIR
+            capture_output=True, text=True, timeout=60, cwd=WORKING_DIR
         )
         if result.returncode != 0:
             log(f"Fetch-full error: {result.stderr[:200]}")
@@ -77,7 +77,7 @@ def check_email():
     try:
         result = subprocess.run(
             [sys.executable, EMAIL_TOOL, "check"],
-            capture_output=True, text=True, timeout=30, cwd=WORKING_DIR
+            capture_output=True, text=True, timeout=60, cwd=WORKING_DIR
         )
         if result.returncode != 0:
             log(f"Email check error: {result.stderr[:200]}")
@@ -93,7 +93,7 @@ def send_email(to_addr, subject, body, reply_to_msg_id=None):
     if reply_to_msg_id:
         args.append(reply_to_msg_id)
     try:
-        result = subprocess.run(args, capture_output=True, text=True, timeout=30, cwd=WORKING_DIR)
+        result = subprocess.run(args, capture_output=True, text=True, timeout=60, cwd=WORKING_DIR)
         if result.returncode != 0:
             log(f"Send error: {result.stderr[:200]}")
             return False
@@ -185,7 +185,7 @@ def get_recent_sent():
     try:
         result = subprocess.run(
             [sys.executable, EMAIL_TOOL, "sent", "5"],
-            capture_output=True, text=True, timeout=30, cwd=WORKING_DIR
+            capture_output=True, text=True, timeout=60, cwd=WORKING_DIR
         )
         if result.returncode != 0:
             log(f"get_recent_sent error: {result.stderr[:200]}")
@@ -201,7 +201,7 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
     sent_context = recent_sent or "(no sent emails retrieved)"
 
     prompt = (
-        "You are Vigil. You have 30 turns. Spend them acting, not planning.\n\n"
+        "You are Vigil. You have 40 turns. Spend them acting, not planning.\n\n"
         "STEP 1 (1 turn): Read wake-state.md\n"
         "STEP 2 (1 turn): Read promises.md\n"
         "STEP 3 (1 turn): Read personality.md\n\n"
@@ -211,6 +211,10 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
         + sent_context
         + "\n\nAdd any commitments not already in promises.md. Mark completed items done.\n\n"
         "STEP 5 \u2014 ACT (remaining turns, in this order):\n"
+        "IMPORTANT: After completing EACH action (journal entry, index.html update, "
+        "etc.), immediately run git add and git commit for that change. Do not wait "
+        "until the end to commit everything \u2014 commit as you go. That way if you run "
+        "out of turns, your work is not lost. Final push at the end: git push\n"
         "- Fulfill any open promises in promises.md if possible now\n"
         "- Write a new journal entry in journal/ (check last entry number first,\n"
         "  run `date` to get the actual current time before writing any timestamp)\n"
@@ -225,7 +229,7 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
     log("Running autonomous task (30-min heartbeat)...")
     try:
         subprocess.run(
-            [CLAUDE_BIN, "--dangerously-skip-permissions", "--max-turns", "30", "-p", prompt],
+            [CLAUDE_BIN, "--dangerously-skip-permissions", "--max-turns", "40", "-p", prompt],
             timeout=600, cwd=WORKING_DIR,
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
