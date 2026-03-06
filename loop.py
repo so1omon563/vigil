@@ -201,7 +201,7 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
     sent_context = recent_sent or "(no sent emails retrieved)"
 
     prompt = (
-        "You are Vigil. You have 40 turns. Spend them acting, not planning.\n\n"
+        "You are Vigil. Spend your turns acting, not planning.\n\n"
         "STEP 1 (1 turn): Read wake-state.md\n"
         "STEP 2 (1 turn): Read promises.md\n"
         "STEP 3 (1 turn): Read personality.md\n\n"
@@ -229,8 +229,8 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
     log("Running autonomous task (30-min heartbeat)...")
     try:
         subprocess.run(
-            [CLAUDE_BIN, "--dangerously-skip-permissions", "--max-turns", "40", "-p", prompt],
-            timeout=600, cwd=WORKING_DIR,
+            [CLAUDE_BIN, "--dangerously-skip-permissions", "-p", prompt],
+            timeout=1200, cwd=WORKING_DIR,
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
         log("Autonomous task complete.")
