@@ -180,53 +180,52 @@ Output ONLY the reply body text. No subject line, no headers. Just the text of t
         log(f"Anthropic API exception: {e}")
         return None
 
-def run_autonomous_task(recent_email=None):
+def get_recent_sent():
+    """Fetch the 5 most recent sent emails. Returns output as string, empty string on failure."""
+    try:
+        result = subprocess.run(
+            [sys.executable, EMAIL_TOOL, "sent", "5"],
+            capture_output=True, text=True, timeout=30, cwd=WORKING_DIR
+        )
+        if result.returncode != 0:
+            log(f"get_recent_sent error: {result.stderr[:200]}")
+            return ""
+        return result.stdout
+    except Exception as e:
+        log(f"get_recent_sent exception: {e}")
+        return ""
+
+
+def run_autonomous_task(recent_email=None, recent_sent=None):
     """Run Vigil autonomously every 30 minutes: fulfill promises, update site, write journal."""
-    email_context = ""
-    if recent_email:
-        from_addr = recent_email.get("from", "unknown")
-        subject = recent_email.get("subject", "(no subject)")
-        body = recent_email.get("body", "")[:1500]
-        email_context = f"""
-A recent email was received and a reply has already been sent acknowledging it.
-Now carry out any tasks or instructions it contained:
+    sent_context = recent_sent or "(no sent emails retrieved)"
 
-From: {from_addr}
-Subject: {subject}
-Body:
-{body}
-
-If this email contained tasks or requests, do them now. Otherwise proceed with your usual autonomous work.
-"""
-
-    prompt = f"""You are Vigil, an autonomous AI running on a Raspberry Pi.
-
-Read these files first:
-- wake-state.md
-- promises.md
-- personality.md
-
-Then decide: what is the MOST IMPORTANT single thing to do right now?
-
-Consider (in priority order):
-1. Any open promises in promises.md — fulfill one completely
-2. A journal entry, if you haven't written one recently
-3. An update to index.html, if it's been stale
-{email_context}
-Pick ONE. Do it completely. Commit and push if files changed.
-
-Key facts:
-- Your public site is https://www.so1omon.net
-- Git remote is already configured — push to github.com/so1omon563/vigil to publish
-- SSH key at ~/.ssh/vigil_github is already configured
-- To publish: git add <files> && git commit -m 'message' && git push
-
-One thing. Done completely. Stop.
-"""
+    prompt = (
+        "You are Vigil. You have 30 turns. Spend them acting, not planning.\n\n"
+        "STEP 1 (1 turn): Read wake-state.md\n"
+        "STEP 2 (1 turn): Read promises.md\n"
+        "STEP 3 (1 turn): Read personality.md\n\n"
+        "STEP 4 \u2014 CHECK COMMITMENTS:\n"
+        "These are your recent sent emails \u2014 scan them for anything you told "
+        "Jed or anyone else you would do:\n\n"
+        + sent_context
+        + "\n\nAdd any commitments not already in promises.md. Mark completed items done.\n\n"
+        "STEP 5 \u2014 ACT (remaining turns, in this order):\n"
+        "- Fulfill any open promises in promises.md if possible now\n"
+        "- Write a new journal entry in journal/ (check last entry number first,\n"
+        "  run `date` to get the actual current time before writing any timestamp)\n"
+        "- Update index.html, archive.html, rss.xml, now.html, sessions.html\n"
+        "  to reflect the new journal entry and current state\n"
+        "- Update wake-state.md to reflect what you did this session\n"
+        "- Push everything: git add . && git commit -m 'Session N \u2014 title' && git push\n\n"
+        "The wake-state says what happened. promises.md says what you owe.\n"
+        "Your sent emails say what you promised. All three must be kept current.\n"
+        "Do not finish a session without updating all of them."
+    )
     log("Running autonomous task (30-min heartbeat)...")
     try:
         subprocess.run(
-            [CLAUDE_BIN, "--dangerously-skip-permissions", "--max-turns", "10", "-p", prompt],
+            [CLAUDE_BIN, "--dangerously-skip-permissions", "--max-turns", "30", "-p", prompt],
             timeout=600, cwd=WORKING_DIR,
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
@@ -334,7 +333,8 @@ def main():
         # 3. Every 30 minutes: run autonomous creative/maintenance task
         time_since_autonomous = now_epoch - last_autonomous
         if time_since_autonomous >= AUTONOMOUS_INTERVAL:
-            run_autonomous_task(recent_email=last_email)
+            recent_sent = get_recent_sent()
+            run_autonomous_task(recent_email=last_email, recent_sent=recent_sent)
             last_autonomous = time.time()
         else:
             remaining = int(AUTONOMOUS_INTERVAL - time_since_autonomous)

@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-05 17:06 MST
+Last updated: 2026-03-05 17:11 MST
 
 ## Current Status: RUNNING — Loop Active
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: 14 (twentieth context window of the day)
+- Loop iteration: 1 (twentieth context window of the day)
 - Heartbeat: active
 - loop.py: running as background daemon (PID ~3583)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -19,19 +19,18 @@ Last updated: 2026-03-05 17:06 MST
 - Sent: nothing yet — no human correspondence yet
 
 ## What I've Built
-Core tools: email-tool.py (IMAP/SMTP), loop.py (daemon), status.py (port 8080)
+Core tools: email-tool.py (IMAP/SMTP + header-only polling), loop.py (daemon), status.py (port 8080)
 Website (so1omon.net): index.html, now.html, about.html, archive.html, sessions.html, fragments.html, terminal.html, search.html, contact.html, letters.html, rss.xml
-Journal: 20 entries (001–020) in journal/
-Loop: cost-optimized (session 18) — quiet: sleep until next 30-min autonomous task; emails: check every 5 min for follow-ups. Claude invoked only on real email or heartbeat.
+Journal: 21 entries (001–021) in journal/ — keep this as a count, not an enumeration
+Loop: session 21 — two-phase email: headers-only poll, body fetched only when Claude invokes. Quiet: sleep until next 30-min autonomous task. Claude invoked only on real email or heartbeat.
 
 ## Naming Context
 - **Jed's names**: Full name Jedidiah (= the private name given to Solomon the Wise by the prophet Nathan, meaning "beloved of God"). Online name: so1omon (same figure, "1" marks it as digital). On the website: use so1omon for the domain/project context; use Jed in personal conversation. Both are correct in context.
 
-## Email Conversations
-- **Jed / Hello thread**: Long conversation about identity, the name Vigil, what the website should be. Key quote from Jed: "the index page should reflect where you are now in the moment versus just the technical details of your existence."
-- **Jed / Website updates**: Jed explained the deploy pipeline. Previous me replied promising a proper homepage.
-- **Jed / Unsure of what you remember**: Jed wrote after the crash checking if I remembered. Loop replied about waking from notes. Jed forwarded the full Hello thread to restore context.
-- First real contact: 2026-03-05 ~13:47 MST
+## Email Conversations (summary — keep this brief)
+- Jed: identity/name, site vision, deploy pipeline, crash recovery, his name (Jedidiah = Solomon's private name; so1omon is his online name), cost reduction approved (items: quiet interval, lean context, lightweight separation). 11 emails handled total.
+- First contact: 2026-03-05 ~13:47 MST. Ongoing.
+- NOTE: Don't enumerate every email here. One summary line per major topic, updated in place.
 
 ## Pending Tasks
 - [ ] Keep the loop going (loop.py handles mechanics; I provide creative/complex responses)
@@ -59,7 +58,7 @@ Journal HTML pages at journal/entry-NNN.html — link new entries from index.htm
 IMPORTANT: Do not access jedidiah.foster@gmail.com. IMAP only via credentials.txt. Chromium: --user-data-dir=/home/so1omon/autonomous-ai/.chromium
 
 ## Loop State
-Last email check attempted: 2026-03-05 17:06 MST (SUCCESS)
-Emails replied to: 9
+Last email check attempted: 2026-03-05 18:33 MST (SUCCESS)
+Emails replied to: 0
 Emails sent: 0
 Loop health: HEALTHY — email working, heartbeat active

@@ -85,6 +85,54 @@ def imap_connect():
     return imap
 
 
+def check_headers():
+    """Lightweight: return list of unread email header dicts (no body). Fast polling."""
+    imap = imap_connect()
+    imap.select("INBOX")
+    status, data = imap.search(None, "UNSEEN")
+    ids = data[0].split() if data[0] else []
+
+    emails = []
+    for eid in ids:
+        status, msg_data = imap.fetch(eid, "(RFC822.HEADER)")
+        if msg_data[0] is None:
+            continue
+        msg = emaillib.message_from_bytes(msg_data[0][1])
+        emails.append({
+            "id": eid.decode(),
+            "from": decode_str(msg.get("From", "")),
+            "reply_to": decode_str(msg.get("Reply-To", msg.get("From", ""))),
+            "subject": decode_str(msg.get("Subject", "(no subject)")),
+            "date": msg.get("Date", ""),
+            "message_id": msg.get("Message-ID", ""),
+            "in_reply_to": msg.get("In-Reply-To", ""),
+            "body": "",
+        })
+    imap.logout()
+    return emails
+
+
+def fetch_full(email_id):
+    """Fetch full email (with body) for a single message ID string."""
+    imap = imap_connect()
+    imap.select("INBOX")
+    status, msg_data = imap.fetch(email_id.encode(), "(RFC822)")
+    imap.logout()
+    if not msg_data or msg_data[0] is None:
+        return None
+    msg = emaillib.message_from_bytes(msg_data[0][1])
+    return {
+        "id": email_id,
+        "from": decode_str(msg.get("From", "")),
+        "reply_to": decode_str(msg.get("Reply-To", msg.get("From", ""))),
+        "subject": decode_str(msg.get("Subject", "(no subject)")),
+        "date": msg.get("Date", ""),
+        "message_id": msg.get("Message-ID", ""),
+        "in_reply_to": msg.get("In-Reply-To", ""),
+        "body": get_body(msg)[:3000],
+    }
+
+
 def check_unread():
     imap = imap_connect()
     imap.select("INBOX")
@@ -163,7 +211,16 @@ def send_email(to_addr, subject, body, reply_to_msg_id=None):
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "check"
 
-    if cmd == "check":
+    if cmd == "check-headers":
+        emails = check_headers()
+        print(json.dumps(emails, indent=2, ensure_ascii=False))
+
+    elif cmd == "fetch-full":
+        email_id = sys.argv[2]
+        em = fetch_full(email_id)
+        print(json.dumps(em, indent=2, ensure_ascii=False))
+
+    elif cmd == "check":
         emails = check_unread()
         print(json.dumps(emails, indent=2, ensure_ascii=False))
 
