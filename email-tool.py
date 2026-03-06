@@ -4,10 +4,19 @@ Email tool for autonomous AI loop.
 Checks Gmail IMAP for unread messages and can send SMTP replies.
 
 Usage:
-  python3 email-tool.py check          # Print unread emails as JSON
-  python3 email-tool.py sent [N]       # Print last N sent emails (default 20)
-  python3 email-tool.py send TO SUBJECT BODY  # Send an email
-  python3 email-tool.py mark-read ID   # Mark email ID as read
+  python3 email-tool.py check                   # Print unread emails as JSON
+  python3 email-tool.py check-headers           # Headers only (no body, faster)
+  python3 email-tool.py fetch-full ID           # Full body for one inbox message
+  python3 email-tool.py fetch-sent ID           # Full body for one sent message
+  python3 email-tool.py sent [N]                # Last N sent emails, headers only (default 20)
+  python3 email-tool.py search QUERY [N]        # Search all mail (Gmail syntax), return up to N results (default 10)
+  python3 email-tool.py send TO SUBJECT BODY [REPLY_MSG_ID]  # Send an email
+  python3 email-tool.py mark-read ID            # Mark email ID as read
+
+Search examples:
+  python3 email-tool.py search "weather integration"
+  python3 email-tool.py search "from:jedidiah.foster@gmail.com journal revision" 20
+  python3 email-tool.py search "subject:weather after:2026/03/01"
 """
 
 import imaplib
@@ -183,6 +192,57 @@ def get_sent(limit=20):
     return emails
 
 
+def fetch_sent_full(email_id):
+    """Fetch full sent email (with body) for a single message ID string."""
+    imap = imap_connect()
+    imap.select('"[Gmail]/Sent Mail"')
+    status, msg_data = imap.fetch(email_id.encode(), "(RFC822)")
+    imap.logout()
+    if not msg_data or msg_data[0] is None:
+        return None
+    msg = emaillib.message_from_bytes(msg_data[0][1])
+    return {
+        "id": email_id,
+        "to": decode_str(msg.get("To", "")),
+        "from": decode_str(msg.get("From", "")),
+        "subject": decode_str(msg.get("Subject", "(no subject)")),
+        "date": msg.get("Date", ""),
+        "message_id": msg.get("Message-ID", ""),
+        "in_reply_to": msg.get("In-Reply-To", ""),
+        "body": get_body(msg)[:3000],
+    }
+
+
+def search_emails(query, limit=10):
+    """Search all Gmail using Gmail search syntax (X-GM-RAW). Returns matching messages."""
+    imap = imap_connect()
+    # Search across all mail
+    imap.select('"[Gmail]/All Mail"')
+    # Use Gmail's X-GM-RAW extension for full Gmail search syntax support
+    status, data = imap.search(None, f'X-GM-RAW "{query}"')
+    ids = data[0].split() if data[0] else []
+    # Most recent first
+    recent = ids[-limit:] if len(ids) > limit else ids
+    recent = list(reversed(recent))
+
+    results = []
+    for eid in recent:
+        status, msg_data = imap.fetch(eid, "(RFC822.HEADER)")
+        if not msg_data or msg_data[0] is None:
+            continue
+        msg = emaillib.message_from_bytes(msg_data[0][1])
+        results.append({
+            "id": eid.decode(),
+            "from": decode_str(msg.get("From", "")),
+            "to": decode_str(msg.get("To", "")),
+            "subject": decode_str(msg.get("Subject", "(no subject)")),
+            "date": msg.get("Date", ""),
+            "message_id": msg.get("Message-ID", ""),
+        })
+    imap.logout()
+    return results
+
+
 def mark_read(email_id):
     imap = imap_connect()
     imap.select("INBOX")
@@ -223,6 +283,17 @@ if __name__ == "__main__":
     elif cmd == "check":
         emails = check_unread()
         print(json.dumps(emails, indent=2, ensure_ascii=False))
+
+    elif cmd == "fetch-sent":
+        email_id = sys.argv[2]
+        em = fetch_sent_full(email_id)
+        print(json.dumps(em, indent=2, ensure_ascii=False))
+
+    elif cmd == "search":
+        query = sys.argv[2]
+        limit = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+        results = search_emails(query, limit)
+        print(json.dumps(results, indent=2, ensure_ascii=False))
 
     elif cmd == "sent":
         limit = int(sys.argv[2]) if len(sys.argv) > 2 else 20

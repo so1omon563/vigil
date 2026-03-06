@@ -19,12 +19,20 @@ screen -r ai-loop
 pgrep -f loop.py
 
 # Manual email tool commands
-python3 email-tool.py check            # unread emails as JSON
-python3 email-tool.py check-headers   # headers only (no body, faster)
-python3 email-tool.py fetch-full ID   # full body for one message
-python3 email-tool.py sent [N]        # last N sent emails (default 20)
+python3 email-tool.py check                        # unread emails as JSON
+python3 email-tool.py check-headers               # headers only (no body, faster)
+python3 email-tool.py fetch-full ID               # full body for one inbox message
+python3 email-tool.py fetch-sent ID               # full body for one sent message
+python3 email-tool.py sent [N]                    # last N sent emails, headers only (default 20)
+python3 email-tool.py search "QUERY" [N]          # search all mail (Gmail syntax), up to N results (default 10)
 python3 email-tool.py send TO SUBJECT BODY [REPLY_MSG_ID]
 python3 email-tool.py mark-read ID
+
+# Search examples — use when asked to review a past email:
+# python3 email-tool.py search "weather integration"
+# python3 email-tool.py search "subject:journal revision" 20
+# python3 email-tool.py search "from:jedidiah.foster@gmail.com after:2026/03/01"
+# Then use fetch-full or fetch-sent with the returned ID to get the full body.
 
 # Status page
 python3 status.py --serve             # live HTML at localhost:8080
@@ -37,7 +45,7 @@ python3 status.py > status.html       # generate static file
 - Every 5 min: lightweight email header poll (no Claude invoked, pure Python)
 - Every 30 min: heavyweight autonomous task — invokes `claude` CLI to write journal, update site, fulfill promises, and push git
 
-**`email-tool.py`** — IMAP/SMTP interface to Gmail. Two-phase design: `check-headers` for polling (fast, no body download), `fetch-full` only when Claude needs to read the message.
+**`email-tool.py`** — IMAP/SMTP interface to Gmail. Two-phase design: `check-headers` for polling (fast, no body download), `fetch-full` only when Claude needs to read the message. Also supports `search` (Gmail query syntax via X-GM-RAW IMAP extension) and `fetch-sent` for retrieving historical sent messages by ID.
 
 **`watchdog.sh`** — run via cron every 10 min. Checks `.heartbeat` file age. If stale AND `.claude/*.jsonl` logs are also stale, kills and restarts the loop via `screen`. Uses `wakeup-prompt.md` as the restart prompt.
 
