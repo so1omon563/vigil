@@ -293,9 +293,21 @@ def extract_and_save_promises(reply_body, from_addr, subject):
         with urllib.request.urlopen(req, timeout=60) as resp:
             result = json.loads(resp.read())
             raw = result["content"][0]["text"].strip()
-            commitments = json.loads(raw)
+    except urllib.error.HTTPError as e:
+        log(f"Promise extraction error: HTTP {e.code} {e.read()[:200]}")
+        return
     except Exception as e:
         log(f"Promise extraction error: {e}")
+        return
+
+    # Strip markdown fences if the model wrapped its response despite instructions
+    if raw.startswith("```"):
+        raw = raw.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+
+    try:
+        commitments = json.loads(raw)
+    except json.JSONDecodeError as e:
+        log(f"Promise extraction error: could not parse JSON: {e} — raw: {raw!r:.200}")
         return
 
     if not commitments:
