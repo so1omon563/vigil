@@ -505,15 +505,13 @@ def main():
         touch_heartbeat()
         log("Heartbeat touched.")
 
-        # Sleep: if quiet (no emails), wait until next autonomous task (up to 30 min).
-        # If real emails arrived, check again soon for follow-ups.
-        time_until_next = max(60, AUTONOMOUS_INTERVAL - (time.time() - last_autonomous))
+        # Sleep EMAIL_INTERVAL (5 min) between polls regardless of email activity.
+        # The autonomous task scheduling is handled by last_autonomous above.
+        sleep_time = EMAIL_INTERVAL
         if not emails:
-            sleep_time = int(time_until_next)
-            log(f"No emails — sleeping {sleep_time}s until next autonomous task...")
+            log(f"No emails — sleeping {sleep_time}s...")
         else:
-            sleep_time = EMAIL_INTERVAL
-            log(f"Emails handled — sleeping {EMAIL_INTERVAL}s for potential follow-ups...")
+            log(f"Emails handled — sleeping {sleep_time}s for potential follow-ups...")
 
         # Sleep in 5-minute chunks, refreshing status.json and heartbeat each time
         elapsed = 0
