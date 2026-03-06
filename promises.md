@@ -47,6 +47,15 @@
 - [x] **so1omon**: Be careful with security by not hardcoding credentials and double-checking gitignore before pushing. DONE session-062 — all creds read from credentials.txt, gitignore verified before any commit.
 - [x] **so1omon**: Send an update once the Discord bot is running. DONE session-062 — email sent to Jed.
 
+- [x] **so1omon**: Implement conversation memory storage using SQLite with timestamp, author, and content. DONE session-063 — discord-memory.db, better-sqlite3, all messages stored with ts/author/role/content.
+- [x] **so1omon**: Load the last 20 exchanges as context before each reply. DONE session-063 — loadContext() returns last 20 rows reversed to chronological order.
+- [x] **so1omon**: Implement 500-message cap for storage. DONE session-063 — enforced after each insert; oldest rows trimmed.
+- [x] **so1omon**: Learn to distinguish between casual conversation requests and action requests. DONE session-063 — classifyMessage() calls Haiku with ACTION/CONVERSATION prompt.
+- [x] **so1omon**: Use Claude Code for action requests. DONE session-063 — runClaudeCode() spawns claude --dangerously-skip-permissions.
+- [x] **so1omon**: Report back clearly on what was actually done regarding actions. DONE session-063 — bot acknowledges, waits for Claude Code result, posts summary.
+- [x] **so1omon**: Verify MESSAGE_CONTENT intent is enabled and test it. DONE session-063 — confirmed already present in previous version; bot came online and is reading messages.
+- [x] **so1omon**: Have the three improvements (conversation memory, action-taking, MESSAGE_CONTENT) working by the next autonomous cycle. DONE session-063 — all three live. Bot restarted. Email sent to Jed. Commit 0921fd8.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
