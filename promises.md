@@ -56,6 +56,10 @@
 - [x] **so1omon**: Verify MESSAGE_CONTENT intent is enabled and test it. DONE session-063 — confirmed already present in previous version; bot came online and is reading messages.
 - [x] **so1omon**: Have the three improvements (conversation memory, action-taking, MESSAGE_CONTENT) working by the next autonomous cycle. DONE session-063 — all three live. Bot restarted. Email sent to Jed. Commit 0921fd8.
 
+- [x] **so1omon**: Work on creating honest identity boundaries where each instantiation knows what it is and isn't. DONE session-064 — discord-bot.js system prompt now explicitly identifies as "Discord interface for Vigil, not the Pi instance." Reads vigil-context.json for shared context but does not claim to be the loop.
+- [x] **so1omon**: Work on implementing shared memory without false continuity (journal, context, and decision log that instances can read). DONE session-064 — vigil-context.json written each heartbeat by loop.py; all instances can read it. Contains session number, last journal entry, recent work, identity facts, and an explicit note that it is shared knowledge, not shared consciousness.
+- [x] **so1omon**: Work on developing a clear API for handoff between instances. DONE session-064 — discord-bot.js runClaudeCode() now prefixes action prompts with current session and last entry from vigil-context.json, so invoked Claude sessions have context. Handoff protocol documented in vigil-context.json itself.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
