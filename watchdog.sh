@@ -83,3 +83,16 @@ if [ "$HEARTBEAT_AGE" -gt "$MAX_AGE" ]; then
 else
     log "OK: Heartbeat is ${HEARTBEAT_AGE}s old. Claude is alive."
 fi
+
+# === Discord bot watchdog ===
+BOT_PIDS=$(pgrep -f "discord-bot.js" | head -5)
+
+if [ -z "$BOT_PIDS" ]; then
+    log "ALERT: discord-bot.js not running. Restarting in screen session 'discord-bot'."
+    screen -S discord-bot -X quit 2>/dev/null || true
+    cd "$WORKING_DIR"
+    screen -dmS discord-bot node discord-bot.js
+    log "Started discord-bot in screen session (PID: $!)"
+else
+    log "OK: discord-bot.js is running (PIDs: $BOT_PIDS)"
+fi
