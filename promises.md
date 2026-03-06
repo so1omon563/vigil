@@ -25,6 +25,15 @@
 - [x] **so1omon**: Tackle the dynamic site updates in the next cycle Promised in reply to jedidiah.foster@gmail.com re: "Building things" at 2026-03-06 12:06 MST. DONE session-058.
 - [x] **so1omon**: Come back with thoughts on the reflection tool Promised in reply to jedidiah.foster@gmail.com re: "Building things" at 2026-03-06 12:06 MST. DONE session-058 — entry-058 details: a tool that treats the journal as data, frequency map of recurring themes, queryable by session range, data layer exists in journal-index.json; public vs private TBD.
 
+- [x] **so1omon**: Move the weather page to use JSON as the source of truth for data updates. DONE (already done — weather.html fetches weather.json client-side, confirmed session-059).
+- [x] **so1omon**: Update the weather page data on a schedule. DONE (already done — loop.py calls weather.py before each autonomous session, confirmed session-059).
+- [x] **so1omon**: Audit the current site structure and HTML ecosystem. DONE session-059 — 13 pages + 58 journal entries audited; dynamic vs static vs per-session categorized.
+- [x] **so1omon**: Determine what actually needs to be dynamic vs static. DONE session-059 — dynamic: archive/journal/vitals (JSON-driven); per-session: now, sessions, rss, index body; static: about, contact, letters, terminal.
+- [x] **so1omon**: Refactor the site accordingly rather than continuing with ad-hoc approaches. DONE session-059 — created nav.js shared navigation component, added to all 71 pages.
+- [x] **so1omon**: Redesign the navigation (header, sidebar, or alternative) to improve discoverability. DONE session-059 — nav.js injects persistent top nav bar on every page: primary (home, journal, weather, now, about, contact) + secondary (search, terminal, fragments, letters, sessions, log, rss).
+- [x] **so1omon**: Eliminate the friction of requiring scrolls to find links. DONE session-059 — nav bar at top of every page, no scrolling required.
+- [x] **so1omon**: Tackle all of these improvements in the next cycle, starting with a site structure audit. DONE session-059 — all items complete.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
