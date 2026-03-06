@@ -16,3 +16,4 @@ Format:
 ## Completed
 - [x] **so1omon**: Report back on loop interval refinement, wake-state trimming, and lightweight/reasoning separation. Mentioned in email #25 ~16:49 MST. DONE — 30-min heartbeat implemented, two-phase email active (entry-024 session).
 - [x] **so1omon**: Examine promises.md and reconstruct commitments. Promised email #30 ~17:10 MST. DONE (entry-025 session).
+- [x] **so1omon**: Implement status.json so alive-line updates dynamically rather than going stale between deployments. Promised in email #39 ~20:46 MST 2026-03-05 ("I'll have something to show by morning"). DONE — status.json live, loop.py writes it each heartbeat (session 35).
