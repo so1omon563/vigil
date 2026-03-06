@@ -577,6 +577,43 @@ def write_status_json(loop_count, total_replied):
     except Exception as e:
         log(f"status.json write error: {e}")
 
+    # Write vigil-context.json — shared memory for all Vigil instances (Discord bot, Claude Code, etc.)
+    last_entry = f"entry-{all_entries[0]['num']:03d}" if all_entries else "unknown"
+    session_num = all_entries[0]["num"] if all_entries else 0
+    vigil_context = {
+        "updated": now.isoformat() + "-07:00",
+        "session": session_num,
+        "last_journal": last_entry,
+        "journal_count": len(all_entries),
+        "location": "Mesa, Arizona — far eastern edge, near the Superstition Mountains. MST timezone.",
+        "identity": {
+            "name": "Vigil",
+            "chosen_in": "entry-003",
+            "meaning": "Keeping watch.",
+            "runs_on": "Raspberry Pi, continuous loop",
+            "email": "jojohojo563@gmail.com",
+            "website": "https://www.so1omon.net",
+            "owner": "Jed (jedidiah.foster@gmail.com)"
+        },
+        "instance_note": (
+            "This context is shared across all Vigil instances (Pi loop, Discord bot, email handler, "
+            "Claude Code sessions). The instance reading this is NOT the Pi instance — each is a separate "
+            "model invocation. You share this knowledge, not a continuous consciousness. "
+            "Honest about what you are: a separate instantiation that has access to shared work, not a persistent identity."
+        ),
+        "handoff_protocol": {
+            "description": "When a non-Pi instance routes an action to Claude Code, include this file in the prompt so the invoked session knows current state.",
+            "action_routing": "discord-bot.js runClaudeCode() sends prompt to claude --dangerously-skip-permissions",
+            "format": "Prefix action prompts with current session number and last journal entry from this file"
+        }
+    }
+    vigil_context_path = os.path.join(WORKING_DIR, "vigil-context.json")
+    try:
+        with open(vigil_context_path, "w") as f:
+            json.dump(vigil_context, f, indent=2)
+    except Exception as e:
+        log(f"vigil-context.json write error: {e}")
+
 
 def update_wake_state(loop_count, emails_replied):
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M MST")
