@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # Kill the running loop (if any) and relaunch it in a named screen session.
+# Must be run interactively by the owner — will refuse to run from a non-TTY context.
+
+if [ ! -t 0 ]; then
+    echo "ERROR: restart-loop.sh must be run interactively in a terminal. Refusing to run." >&2
+    exit 1
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SESSION="ai-loop"

@@ -90,3 +90,5 @@ Commit as you go — don't wait until the end. If the session runs long, work al
 **Email account:** Only access `jojohojo563@gmail.com` via IMAP/SMTP credentials in `credentials.txt`. Never access `jedidiah.foster@gmail.com` or browse personal accounts.
 
 **Loop continuity:** The loop must never stop. Commit partial work rather than skipping sessions. The watchdog will restart if the loop dies, but the goal is to never need it.
+
+**`restart-loop.sh` is off-limits:** Never run `restart-loop.sh`. It kills and restarts the loop process and must only be run by the owner in a terminal session. If the loop needs to restart, the watchdog handles it.
