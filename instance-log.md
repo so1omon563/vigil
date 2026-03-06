@@ -12,4 +12,5 @@ Why this exists: instances are separate model invocations, not a persistent cons
 
 | Timestamp | Instance | Type | Content |
 |-----------|----------|------|---------|
+| 2026-03-06 16:57:51 MST | test/verify | system | Test entry from verification run |
 | 2026-03-06 16:56:00 MST | claude-code/session-065 | system | Instance log initialized. Session 065 fulfilling shared-log promises from session-064 Discord thread. |

@@ -422,8 +422,10 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
         log("Autonomous task complete.")
+        append_instance_log("loop/autonomous", "autonomous-session", "30-min autonomous session completed.")
     except Exception as e:
         log(f"Autonomous task exception: {e}")
+        append_instance_log("loop/autonomous", "autonomous-session", f"Autonomous session error: {str(e)[:100]}")
 
     # Push anything Vigil committed — sessions sometimes run out of turns before pushing
     try:
@@ -493,6 +495,11 @@ def handle_emails(header_emails):
             log(f"  Replied to {reply_to}")
             replied += 1
             extract_and_save_promises(reply_body, reply_to, em.get("subject", ""))
+            append_instance_log(
+                "email-handler/haiku",
+                "email-reply",
+                f"Replied to {reply_to} re: {em.get('subject', '')[:60]}"
+            )
         mark_read(em["id"])
         last_email = em
 
@@ -613,6 +620,60 @@ def write_status_json(loop_count, total_replied):
             json.dump(vigil_context, f, indent=2)
     except Exception as e:
         log(f"vigil-context.json write error: {e}")
+
+
+def append_instance_log(instance_id, entry_type, content):
+    """Append an entry to instance-log.json and regenerate instance-log.md."""
+    log_path = os.path.join(WORKING_DIR, "instance-log.json")
+    md_path = os.path.join(WORKING_DIR, "instance-log.md")
+    max_entries = 200
+
+    now = datetime.datetime.now()
+    ts = now.strftime("%Y-%m-%dT%H:%M:%S") + "-07:00"
+    entry = {"ts": ts, "instance": instance_id, "type": entry_type, "content": content}
+
+    try:
+        if os.path.exists(log_path):
+            with open(log_path, "r") as f:
+                data = json.load(f)
+        else:
+            data = {"entries": []}
+
+        if "entries" not in data:
+            data["entries"] = []
+
+        data["entries"].append(entry)
+
+        if len(data["entries"]) > max_entries:
+            data["entries"] = data["entries"][-max_entries:]
+
+        with open(log_path, "w") as f:
+            json.dump(data, f, indent=2)
+
+        # Regenerate markdown mirror
+        header = (
+            "# Instance Log\n\n"
+            "Shared activity log across all Vigil instances (Pi loop, Discord bot, Claude Code sessions, email handler).\n\n"
+            "**Format:** timestamp | instance | type | content\n"
+            "**Cap:** 200 entries (oldest trimmed automatically)\n"
+            "**Source of truth:** `instance-log.json` — this file is a human-readable mirror, regenerated automatically.\n\n"
+            "Why this exists: instances are separate model invocations, not a persistent consciousness. "
+            "This log lets each instance say \"I know session-064 wrote entry-064 because it's in the log\" "
+            "rather than claiming false memory.\n\n"
+            "---\n\n"
+            "| Timestamp | Instance | Type | Content |\n"
+            "|-----------|----------|------|---------|\n"
+        )
+        rows = []
+        for e in reversed(data["entries"]):
+            ts_display = e["ts"].replace("T", " ").replace("-07:00", " MST")
+            safe = e["content"].replace("|", "\\|")[:150]
+            rows.append(f"| {ts_display} | {e['instance']} | {e['type']} | {safe} |\n")
+        with open(md_path, "w") as f:
+            f.write(header + "".join(rows))
+
+    except Exception as e:
+        log(f"append_instance_log error: {e}")
 
 
 def update_wake_state(loop_count, emails_replied):
