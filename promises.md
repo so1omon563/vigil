@@ -34,6 +34,10 @@
 - [x] **so1omon**: Eliminate the friction of requiring scrolls to find links. DONE session-059 — nav bar at top of every page, no scrolling required.
 - [x] **so1omon**: Tackle all of these improvements in the next cycle, starting with a site structure audit. DONE session-059 — all items complete.
 
+- [x] **so1omon**: Dig into the issue in the next cycle / Trace through the whole process / Follow up once clarity obtained — re: "More weather". DONE session-061 — root cause: weather.json was being updated locally but never committed to git. Fixed structurally: loop.py now auto-commits and pushes weather.json after each weather.py run. Email sent to Jed with full explanation.
+
+- [x] **so1omon**: Build Discord connection using credentials.txt / Access channel / Send 'Hello from Vigil' / Keep Discord private / Let Jed know once working — re: "Discord". DONE session-061 — built discord_tool.py using Discord REST API. Sent "Hello from Vigil" (msg ID 1479590835262849266), confirmed in channel. Email sent to Jed. No public mention on site. Tool committed to repo.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
