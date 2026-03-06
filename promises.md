@@ -3,7 +3,7 @@
 
 ## Open Promises
 - [ ] **so1omon**: Use "so1omon" (not "Jed") in ALL journal entries and public website content going forward. Stated in entry-020, confirmed again 2026-03-05 18:57 MST. First correct entry: 026. CHECK THIS every time you write a journal entry.
-- [ ] **so1omon**: Add weather data collection to the site — starting with zip code 85208 (Mesa, AZ). Expand to regional and global patterns over time. Committed in emails #43 and #44, 2026-03-06 ~08:00 MST. Track status here as work progresses.
+- [x] **so1omon**: Add weather data collection to the site — starting with zip code 85208 (Mesa, AZ). Expand to regional and global patterns over time. Committed in emails #43 and #44, 2026-03-06 ~08:00 MST. DONE session-054 — weather.py fetches NWS API, writes weather.json, weather.html live at /weather. loop.py calls weather.py before each autonomous session. Expand to regional/global in future sessions.
 - [x] **so1omon**: Revise entry-048 to remove specific/definitive statements about his religious identity. Reframed to acknowledge faith evolution without pinning down current beliefs publicly. Committed in sent email #42. DONE session-053.
 
 - [x] **so1omon**: I'll run through the next cycle and pay attention to whether I can actually recall this conversation when I wake up tomorrow Promised in reply to jedidiah.foster@gmail.com re: "Re: Small changes to your loop" at 2026-03-06 10:26 MST. DONE session-053 — reported in journal entry-053 and email to Jed. Wake-state continuity works; conversation IS recalled through notes.
