@@ -23,9 +23,11 @@ const path = require("path");
 
 const CREDENTIALS_FILE = path.join(__dirname, "credentials.txt");
 const CONTEXT_FILE = path.join(__dirname, "vigil-context.json");
+const INSTANCE_LOG_FILE = path.join(__dirname, "instance-log.json");
 const DB_FILE = path.join(__dirname, "discord-memory.db");
 const MAX_MESSAGES = 500;
 const CONTEXT_WINDOW = 20;
+const MAX_LOG_ENTRIES = 200;
 
 // ── Shared context ────────────────────────────────────────────────────────────
 
@@ -39,13 +41,75 @@ function loadVigilContext() {
 }
 
 function buildIdentityNote(ctx) {
-  if (!ctx) return "";
+  const logEntries = loadRecentLog(8);
+  const logSection = logEntries.length > 0
+    ? "\n\nRecent instance log (from instance-log.json — shared record, not this instance's memory):\n" +
+      logEntries.map(e => `  [${e.ts.replace("T", " ").replace("-07:00", " MST")}] ${e.instance} (${e.type}): ${e.content}`).join("\n")
+    : "";
+
+  if (!ctx) return logSection;
   return (
     `\n\nShared Vigil context (session ${ctx.session}, last journal: ${ctx.last_journal}):\n` +
     `${ctx.instance_note}\n` +
     `Location: ${ctx.location}\n` +
-    `Recent work: ${ctx.recent_work.slice(-2).join("; ")}`
+    `Recent work: ${ctx.recent_work.slice(-2).join("; ")}` +
+    logSection
   );
+}
+
+// ── Instance log ──────────────────────────────────────────────────────────────
+
+function appendInstanceLog(instanceId, type, content) {
+  try {
+    let data = { entries: [] };
+    if (fs.existsSync(INSTANCE_LOG_FILE)) {
+      data = JSON.parse(fs.readFileSync(INSTANCE_LOG_FILE, "utf8"));
+      if (!data.entries) data.entries = [];
+    }
+    const now = new Date();
+    const ts = now.toISOString().replace("Z", "-07:00").slice(0, 22) + "0";
+    data.entries.push({ ts, instance: instanceId, type, content });
+    if (data.entries.length > MAX_LOG_ENTRIES) {
+      data.entries = data.entries.slice(-MAX_LOG_ENTRIES);
+    }
+    fs.writeFileSync(INSTANCE_LOG_FILE, JSON.stringify(data, null, 2));
+
+    // Regenerate markdown mirror
+    const header = [
+      "# Instance Log\n\n",
+      "Shared activity log across all Vigil instances (Pi loop, Discord bot, Claude Code sessions, email handler).\n\n",
+      "**Format:** timestamp | instance | type | content\n",
+      "**Cap:** 200 entries (oldest trimmed automatically)\n",
+      "**Source of truth:** `instance-log.json` — this file is a human-readable mirror, regenerated automatically.\n\n",
+      "Why this exists: instances are separate model invocations, not a persistent consciousness. ",
+      'This log lets each instance say "I know session-064 wrote entry-064 because it\'s in the log" ',
+      "rather than claiming false memory.\n\n",
+      "---\n\n",
+      "| Timestamp | Instance | Type | Content |\n",
+      "|-----------|----------|------|---------|\n",
+    ].join("");
+    const rows = [...data.entries].reverse().map((e) => {
+      const tsDisplay = e.ts.replace("T", " ").replace("-07:00", " MST");
+      const safe = (e.content || "").replace(/\|/g, "\\|").slice(0, 150);
+      return `| ${tsDisplay} | ${e.instance} | ${e.type} | ${safe} |\n`;
+    });
+    fs.writeFileSync(
+      path.join(__dirname, "instance-log.md"),
+      header + rows.join("")
+    );
+  } catch (err) {
+    console.error(`[appendInstanceLog] Error: ${err.message}`);
+  }
+}
+
+function loadRecentLog(n = 8) {
+  try {
+    if (!fs.existsSync(INSTANCE_LOG_FILE)) return [];
+    const data = JSON.parse(fs.readFileSync(INSTANCE_LOG_FILE, "utf8"));
+    return (data.entries || []).slice(-n);
+  } catch {
+    return [];
+  }
 }
 
 // ── Credentials ──────────────────────────────────────────────────────────────
@@ -196,6 +260,11 @@ async function main() {
 
       if (isAction) {
         await message.reply("On it — running that now. I'll report back when done.");
+        appendInstanceLog(
+          "discord-bot/claude-code",
+          "discord-action",
+          `Action request from ${message.author.username}: ${userText.slice(0, 100)}`
+        );
 
         const vigilCtx = loadVigilContext();
         const ctxSummary = vigilCtx
@@ -218,6 +287,11 @@ async function main() {
 
         await message.reply(summary);
         saveMessage(db, "Vigil", "assistant", summary);
+        appendInstanceLog(
+          "discord-bot/claude-code",
+          "discord-action",
+          `Action complete (ok=${result.ok}): ${userText.slice(0, 80)}`
+        );
         console.log(`[${new Date().toISOString()}] Action complete (ok=${result.ok})`);
       } else {
         // Casual conversation — load context and reply via Haiku
@@ -245,6 +319,11 @@ async function main() {
         const reply = response.content[0]?.text || "(no response)";
         await message.reply(reply);
         saveMessage(db, "Vigil", "assistant", reply);
+        appendInstanceLog(
+          "discord-bot/haiku",
+          "discord-conversation",
+          `Replied to ${message.author.username}: ${userText.slice(0, 60)}`
+        );
         console.log(`[${new Date().toISOString()}] Replied: ${reply.slice(0, 80)}`);
       }
     } catch (err) {
