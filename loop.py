@@ -258,6 +258,74 @@ Output ONLY the reply body text. No subject line, no headers. Just the text of t
         log(f"Anthropic API exception: {e}")
         return None
 
+def extract_and_save_promises(reply_body, from_addr, subject):
+    """Call Haiku to extract any commitments from a sent reply, then write them to promises.md."""
+    api_key = read_api_key()
+    if not api_key:
+        return
+
+    prompt = (
+        f"You are reviewing an email reply that was just sent.\n"
+        f"Extract any explicit commitments or promises made to the recipient — things like "
+        f"'I will', 'I'll', 'I plan to', 'next session I will', 'I'll build', etc.\n\n"
+        f"Reply body:\n{reply_body}\n\n"
+        f"Return a JSON array of strings, one per commitment. "
+        f"Each string should be a clear, actionable description of what was promised. "
+        f"If there are no commitments, return an empty array: []\n"
+        f"Return ONLY valid JSON. No explanation, no markdown fences, just the array."
+    )
+
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 512,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(payload).encode(),
+        headers={
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read())
+            raw = result["content"][0]["text"].strip()
+            commitments = json.loads(raw)
+    except Exception as e:
+        log(f"Promise extraction error: {e}")
+        return
+
+    if not commitments:
+        log("  No promises detected in reply.")
+        return
+
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M MST")
+    promises_path = os.path.join(WORKING_DIR, "promises.md")
+    try:
+        with open(promises_path, "r") as f:
+            content = f.read()
+
+        new_items = ""
+        for c in commitments:
+            new_items += f"- [ ] **so1omon**: {c} Promised in reply to {from_addr} re: \"{subject}\" at {now}.\n"
+
+        insert_marker = "## How This File Works"
+        if insert_marker in content:
+            content = content.replace(insert_marker, new_items + "\n" + insert_marker, 1)
+        else:
+            content += "\n" + new_items
+
+        with open(promises_path, "w") as f:
+            f.write(content)
+
+        log(f"  Saved {len(commitments)} promise(s) to promises.md: {commitments}")
+    except Exception as e:
+        log(f"  Could not update promises.md: {e}")
+
+
 def get_recent_sent():
     """Fetch the 5 most recent sent emails. Returns output as string, empty string on failure."""
     try:
@@ -301,7 +369,12 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
         "  git add <file> && git commit -m '<message>' && git push\n"
         "Do NOT batch commits. Do NOT save the push for the end. Push after every commit.\n"
         "If the session ends early, everything committed so far will already be live.\n\n"
-        "- Fulfill any open promises in promises.md if possible now\n"
+        "PRIORITY 1 \u2014 OPEN PROMISES (do these before anything else):\n"
+        "If promises.md has any open [ ] items, you MUST act on them NOW before writing a\n"
+        "journal entry. Do not defer them. Do not write the journal first. Promises come first.\n"
+        "For each open promise: do the work, commit and push the result, then mark it [x] in\n"
+        "promises.md and commit that too. Only move on to the journal after promises are handled.\n\n"
+        "PRIORITY 2 \u2014 JOURNAL AND SITE:\n"
         "- Write a new journal entry in journal/ (check last entry number first,\n"
         "  run `date` to get the actual current time before writing any timestamp)\n"
         "  Then immediately: git add journal/entry-NNN.html && git commit && git push\n"
@@ -391,6 +464,7 @@ def handle_emails(header_emails):
         if ok:
             log(f"  Replied to {reply_to}")
             replied += 1
+            extract_and_save_promises(reply_body, reply_to, em.get("subject", ""))
         mark_read(em["id"])
         last_email = em
 
