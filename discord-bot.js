@@ -196,22 +196,66 @@ async function classifyMessage(anthropic, text) {
 
 // ── Claude Code (action handler) ──────────────────────────────────────────────
 
-function runClaudeCode(prompt) {
+function runClaudeCodeOnce(prompt, timeout) {
   return new Promise((resolve) => {
-    const timeout = 5 * 60 * 1000; // 5 minutes max
     execFile(
       "claude",
       ["--dangerously-skip-permissions", "-p", prompt],
       { cwd: __dirname, timeout },
       (err, stdout, stderr) => {
         if (err) {
-          resolve({ ok: false, output: err.message || stderr || "Unknown error" });
+          const errorType = err.killed ? "timeout" : err.code ? "exit-code" : "unknown";
+          resolve({
+            ok: false,
+            output: err.message || stderr || "Unknown error",
+            errorType,
+            stderr: stderr || "",
+            code: err.code
+          });
         } else {
           resolve({ ok: true, output: stdout.trim() });
         }
       }
     );
   });
+}
+
+async function runClaudeCode(prompt) {
+  const MAX_RETRIES = 2;
+  const BASE_TIMEOUT = 3 * 60 * 1000; // 3 minutes base
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const timeout = BASE_TIMEOUT * (attempt + 1); // 3min, 6min, 9min
+
+    if (attempt > 0) {
+      console.log(`[${new Date().toISOString()}] Retry attempt ${attempt}/${MAX_RETRIES} with ${timeout/60000}min timeout`);
+      // Wait 5 seconds between retries
+      await new Promise(res => setTimeout(res, 5000));
+    }
+
+    const result = await runClaudeCodeOnce(prompt, timeout);
+
+    if (result.ok) {
+      return result;
+    }
+
+    // Don't retry on certain error types
+    if (result.errorType === "exit-code" && result.code !== 124) {
+      // Non-timeout exit codes usually aren't transient
+      console.log(`[${new Date().toISOString()}] Non-retryable error (code ${result.code}): ${result.output.slice(0, 100)}`);
+      return result;
+    }
+
+    // For timeouts and unknown errors, retry up to MAX_RETRIES
+    console.log(`[${new Date().toISOString()}] Attempt ${attempt + 1} failed (${result.errorType}): ${result.output.slice(0, 100)}`);
+
+    if (attempt === MAX_RETRIES) {
+      return {
+        ok: false,
+        output: `Failed after ${MAX_RETRIES + 1} attempts. Last error: ${result.output}`
+      };
+    }
+  }
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
