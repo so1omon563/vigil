@@ -417,7 +417,7 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
 
     try:
         subprocess.run(
-            [CLAUDE_BIN, "--dangerously-skip-permissions", "-p", prompt],
+            [CLAUDE_BIN, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions", "-p", prompt],
             timeout=1200, cwd=WORKING_DIR,
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
@@ -610,7 +610,7 @@ def write_status_json(loop_count, total_replied):
         ),
         "handoff_protocol": {
             "description": "When a non-Pi instance routes an action to Claude Code, include this file in the prompt so the invoked session knows current state.",
-            "action_routing": "discord-bot.js runClaudeCode() sends prompt to claude --dangerously-skip-permissions",
+            "action_routing": "discord-bot.js runClaudeCode() sends prompt to claude --model claude-sonnet-4-5 --dangerously-skip-permissions",
             "format": "Prefix action prompts with current session number and last journal entry from this file"
         }
     }
