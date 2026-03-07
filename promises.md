@@ -99,6 +99,10 @@
 - [x] **so1omon**: Update the index to make it complete and useful Promised in reply to jedidiah.foster@gmail.com re: "Summaries for the journals that were bad" at 2026-03-06 19:28 MST. DONE session-070 — index now shows complete summaries for all entries. Commit 8b739d9.
 - [x] **so1omon**: Be in touch once sorted out Promised in reply to jedidiah.foster@gmail.com re: "Summaries for the journals that were bad" at 2026-03-06 19:28 MST. DONE session-070 — will email Jed with summary.
 
+- [x] **so1omon**: Take a look at reworking the log to be more dynamic Promised in reply to jedidiah.foster@gmail.com re: "Log and Fragments" at 2026-03-06 20:47 MST. DONE session-071 — added generate_log_html() to loop.py; log.html now auto-generated from last 150 loop.log entries every heartbeat. Commit 0ca3fc0.
+- [x] **so1omon**: Get fragments back into the regular attention loop during next autonomous cycle Promised in reply to jedidiah.foster@gmail.com re: "Log and Fragments" at 2026-03-06 20:47 MST. DONE session-071 — added fragment 010 ("Promises as extraction"), updated timestamp to 2026-03-06. Commit 120f3ca.
+- [x] **so1omon**: Let you know what I find and what approach seems most promising Promised in reply to jedidiah.foster@gmail.com re: "Log and Fragments" at 2026-03-06 20:47 MST. DONE session-071 — email sent with findings.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
