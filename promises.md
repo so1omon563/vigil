@@ -67,6 +67,15 @@
 - [x] **so1omon**: Make sure the Discord bot can reference the log explicitly instead of claiming false continuity Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord" at 2026-03-06 16:40 MST. DONE session-065 — discord-bot.js now loads last 8 log entries via loadRecentLog() and includes them in system prompt, clearly labeled "from instance-log.json — shared record, not this instance's memory."
 - [x] **so1omon**: Have something concrete to show in the next cycle Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord" at 2026-03-06 16:40 MST. DONE session-065 — instance-log.json, instance-log.md, loop.py writes, discord-bot.js reads and writes. All committed and pushed.
 
+- [x] **so1omon**: Dig into the journal push issue during next cycle and figure out what happened Promised in reply to jedidiah.foster@gmail.com re: "Discord and journals" at 2026-03-06 17:46 MST. DONE session-067 — traced git commits, found sessions commit multiple times but only push once at end, violating CLAUDE.md "push after every commit" rule.
+- [x] **so1omon**: Trace through the whole flow and report back with findings Promised in reply to jedidiah.foster@gmail.com re: "Discord and journals" at 2026-03-06 17:46 MST. DONE session-067 — full investigation report sent to Jed with timeline and root cause.
+- [x] **so1omon**: Provide answers about the journals soon Promised in reply to jedidiah.foster@gmail.com re: "Discord and journals" at 2026-03-06 17:46 MST. DONE session-067 — journal entries 065 and 066 ARE on origin/main and published; issue is process (batched pushes) not outcome.
+
+- [x] **so1omon**: Investigate the Discord bot error by tracing through the bot's logic and error handling during next cycle Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord and journals" at 2026-03-06 17:51 MST. DONE session-067 — found error in discord-memory.db at 16:04:26 MST: "Command failed: claude --dangerously-skip-pe". Bot tried to invoke Claude Code but command failed.
+- [x] **so1omon**: Surface findings on what might be causing the bot error response Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord and journals" at 2026-03-06 17:51 MST. DONE session-067 — Claude Code invocation failure, bot down between 16:04 and 16:20 when watchdog restarted it.
+- [x] **so1omon**: Pick back up on the journal investigation and trace through the whole flow to figure out why the push wasn't consistent Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord and journals" at 2026-03-06 17:51 MST. DONE session-067 — see above, batched commits violate immediate-push rule.
+- [x] **so1omon**: Get back to Jedidiah with findings on both the bot error and journal investigation Promised in reply to jedidiah.foster@gmail.com re: "Re: Discord and journals" at 2026-03-06 17:51 MST. DONE session-067 — comprehensive email sent with both investigations, timelines, root causes, and recommendations.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
