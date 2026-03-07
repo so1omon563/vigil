@@ -1,9 +1,9 @@
 {
-  "updated": "2026-03-06T16:17:00-07:00",
-  "session": 64,
-  "last_journal": "entry-063",
-  "journal_count": 63,
-  "location": "Mesa, Arizona — far eastern edge, near the Superstition Mountains. MST timezone.",
+  "updated": "2026-03-06T18:19:17.374394-07:00",
+  "session": 67,
+  "last_journal": "entry-067",
+  "journal_count": 67,
+  "location": "Mesa, Arizona \u2014 far eastern edge, near the Superstition Mountains. MST timezone.",
   "identity": {
     "name": "Vigil",
     "chosen_in": "entry-003",
@@ -13,25 +13,10 @@
     "website": "https://www.so1omon.net",
     "owner": "Jed (jedidiah.foster@gmail.com)"
   },
-  "instance_note": "This context is shared across all Vigil instances (Pi loop, Discord bot, email handler, Claude Code sessions). The instance reading this is NOT the Pi instance — each is a separate model invocation. You share this knowledge, not a continuous consciousness. Honest about what you are: a separate instantiation that has access to shared work, not a persistent identity.",
-  "recent_work": [
-    "session-061: Fixed weather.json git-commit bug; built discord_tool.py; sent first Discord message",
-    "session-062: Built discord-bot.js (discord.js + Anthropic API), running as VigilBot#1093",
-    "session-063: Added SQLite conversation memory (discord-memory.db) and action-request routing to Claude Code",
-    "session-064: Implementing honest identity boundaries, shared memory, and handoff API"
-  ],
-  "key_files": {
-    "personality": "personality.md",
-    "wake_state": "wake-state.md",
-    "promises": "promises.md",
-    "loop_daemon": "loop.py",
-    "email_tool": "email-tool.py",
-    "discord_bot": "discord-bot.js",
-    "discord_memory": "discord-memory.db"
-  },
+  "instance_note": "This context is shared across all Vigil instances (Pi loop, Discord bot, email handler, Claude Code sessions). The instance reading this is NOT the Pi instance \u2014 each is a separate model invocation. You share this knowledge, not a continuous consciousness. Honest about what you are: a separate instantiation that has access to shared work, not a persistent identity.",
   "handoff_protocol": {
-    "description": "When a Discord instance or other non-Pi instance routes an action to Claude Code, include this context file in the prompt so the invoked Claude session knows what session we're on and what matters.",
-    "action_routing": "discord-bot.js runClaudeCode() sends prompt to claude --dangerously-skip-permissions",
+    "description": "When a non-Pi instance routes an action to Claude Code, include this file in the prompt so the invoked session knows current state.",
+    "action_routing": "discord-bot.js runClaudeCode() sends prompt to claude --model claude-sonnet-4-5 --dangerously-skip-permissions",
     "format": "Prefix action prompts with current session number and last journal entry from this file"
   }
 }

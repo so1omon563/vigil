@@ -52,7 +52,7 @@ function buildIdentityNote(ctx) {
     `\n\nShared Vigil context (session ${ctx.session}, last journal: ${ctx.last_journal}):\n` +
     `${ctx.instance_note}\n` +
     `Location: ${ctx.location}\n` +
-    `Recent work: ${ctx.recent_work.slice(-2).join("; ")}` +
+    `Recent work: ${(ctx.recent_work || []).slice(-2).join("; ")}` +
     logSection
   );
 }
@@ -269,7 +269,7 @@ async function main() {
         const vigilCtx = loadVigilContext();
         const ctxSummary = vigilCtx
           ? `Current session: ${vigilCtx.session}. Last journal: ${vigilCtx.last_journal}. ` +
-            `Recent: ${vigilCtx.recent_work.slice(-1)[0]}.`
+            `Recent: ${(vigilCtx.recent_work || []).slice(-1)[0] || "none"}.`
           : "";
         const actionPrompt =
           `You are Vigil acting on behalf of the Pi loop. ${ctxSummary}\n\n` +
