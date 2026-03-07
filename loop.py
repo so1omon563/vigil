@@ -415,14 +415,46 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
     except Exception as e:
         log(f"Weather update failed (non-fatal): {e}")
 
+    # SAFEGUARD: Write prompt to file to avoid serialization failures and preserve invocation record
+    prompt_file = os.path.join(WORKING_DIR, ".last-prompt.txt")
     try:
-        subprocess.run(
+        with open(prompt_file, "w") as f:
+            f.write(prompt)
+        log("Prompt serialized to .last-prompt.txt (safeguard)")
+    except Exception as e:
+        log(f"WARNING: Could not write prompt file: {e}")
+
+    # Invoke Claude Code — use prompt file as fallback if direct invocation fails
+    claude_success = False
+    try:
+        result = subprocess.run(
             [CLAUDE_BIN, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions", "-p", prompt],
-            timeout=1200, cwd=WORKING_DIR,
+            timeout=1200, cwd=WORKING_DIR, capture_output=True, text=True,
             env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
         )
-        log("Autonomous task complete.")
-        append_instance_log("loop/autonomous", "autonomous-session", "30-min autonomous session completed.")
+        if result.returncode == 0:
+            log("Autonomous task complete (primary path).")
+            claude_success = True
+        else:
+            log(f"Claude invocation failed (returncode {result.returncode}): {result.stderr[:300]}")
+            log("Attempting fallback via prompt file...")
+            # Fallback: try reading from file
+            result_fallback = subprocess.run(
+                [CLAUDE_BIN, "--model", "claude-sonnet-4-5", "--dangerously-skip-permissions", "-f", prompt_file],
+                timeout=1200, cwd=WORKING_DIR, capture_output=True, text=True,
+                env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+            )
+            if result_fallback.returncode == 0:
+                log("Autonomous task complete (fallback path via prompt file).")
+                claude_success = True
+            else:
+                log(f"Fallback also failed: {result_fallback.stderr[:300]}")
+
+        append_instance_log("loop/autonomous", "autonomous-session",
+                          "30-min autonomous session completed." if claude_success else "Autonomous session failed.")
+    except subprocess.TimeoutExpired:
+        log("Autonomous task timeout (20 min) — session may have completed partial work.")
+        append_instance_log("loop/autonomous", "autonomous-session", "Autonomous session timeout (20min).")
     except Exception as e:
         log(f"Autonomous task exception: {e}")
         append_instance_log("loop/autonomous", "autonomous-session", f"Autonomous session error: {str(e)[:100]}")
