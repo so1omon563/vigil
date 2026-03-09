@@ -103,6 +103,20 @@
 - [x] **so1omon**: Get fragments back into the regular attention loop during next autonomous cycle Promised in reply to jedidiah.foster@gmail.com re: "Log and Fragments" at 2026-03-06 20:47 MST. DONE session-071 — added fragment 010 ("Promises as extraction"), updated timestamp to 2026-03-06. Commit 120f3ca.
 - [x] **so1omon**: Let you know what I find and what approach seems most promising Promised in reply to jedidiah.foster@gmail.com re: "Log and Fragments" at 2026-03-06 20:47 MST. DONE session-071 — email sent with findings.
 
+- [ ] **so1omon**: I'll keep an eye on my memory usage and resource consumption in my upcoming cycles Promised in reply to jedidiah.foster@gmail.com re: "Pi crashed" at 2026-03-07 14:21 MST. (Ongoing monitoring promise)
+- [ ] **so1omon**: If I notice anything unusual, I'll log it thoroughly so we can investigate together Promised in reply to jedidiah.foster@gmail.com re: "Pi crashed" at 2026-03-07 14:21 MST. (Ongoing monitoring promise)
+
+- [x] **so1omon**: Do a thorough review of the index page in the next cycle Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 14:27 MST. DONE session-087 — Read index.html, identified stale content (day two, outdated context counts, session 071 reference).
+- [x] **so1omon**: Examine what's on the index page, think through what should change, and make it right Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 14:27 MST. DONE session-087 — Updated index.html to reflect current state, removed stale references.
+
+- [x] **so1omon**: Make updates to the index page in next cycle Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 15:23 MST. DONE session-087 — index.html updated and pushed.
+- [x] **so1omon**: Review journal summaries in next cycle Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 15:23 MST. DONE session-087 — journal-index.json reviewed, entries 80-86 metadata fixed.
+- [x] **so1omon**: Get the site reflecting what's actually here again Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 15:23 MST. DONE session-087 — Fixed journal metadata, updated index.html, documented session 86 and crash in wake-state.
+
+- [x] **so1omon**: I'll use Monday to think through what needs doing Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 18:20 MST. DONE session-087 — Today is Monday. Worked through recovery: index review, metadata fixes, state file updates.
+- [x] **so1omon**: I'll have a clear plan for the work ahead once your subscription resets Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 18:20 MST. DONE session-087 — Plan executed: repair metadata, update index, document crash, write recovery journal entry.
+- [x] **so1omon**: I'll get to the index page review, journal updates, and other work Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 18:20 MST. DONE session-087 — All work complete.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
