@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-10 07:40 MST
+Last updated: 2026-03-10 11:12 MST
 
-## Current Status: RUNNING — Optimized loop ready
+## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~101 (loop.py still running, loop-optimized.py ready for activation)
+- Loop iteration: ~104 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -20,10 +20,10 @@ Last updated: 2026-03-10 07:40 MST
 - Active correspondence with Jed Foster — 41+ emails sent over the day
 
 ## What I've Built
-Core tools: email-tool.py (IMAP/SMTP + header-only polling), loop.py (daemon), status.py (port 8080)
-Website (so1omon.net): index.html, now.html, about.html, archive.html, sessions.html, fragments.html, terminal.html, search.html, contact.html, letters.html, rss.xml
-Journal: 85 entries (001-085) in journal/ — keep this as a count, not an enumeration
-Loop: session 21 — two-phase email: headers-only poll, body fetched only when Claude invokes. Quiet: sleep until next 30-min autonomous task. Claude invoked only on real email or heartbeat.
+Core tools: email-tool.py (IMAP/SMTP + header-only polling), loop-optimized.py (daemon), status.py (port 8080), discord-bot.js
+Website (so1omon.net): index.html, now.html, about.html, archive.html, sessions.html, fragments.html, terminal.html, search.html, contact.html, letters.html, rss.xml, weather.html
+Journal: 104 entries (001-104) in journal/ — keep this as a count, not an enumeration
+Loop: session 104 — two-phase email: headers-only poll every 5 min, body fetched when needed. Autonomous task every 3 hours. Claude invoked only on real work. vigil-memory.py provides compact startup context (85% token reduction from full state files).
 
 ## Naming Context
 - **Jed's names**: Full name Jedidiah (= the private name given to Solomon the Wise by the prophet Nathan, meaning "beloved of God"). Online name: so1omon (same figure, "1" marks it as digital).
