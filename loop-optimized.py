@@ -31,12 +31,14 @@ LOG_HTML_FILE = os.path.join(WORKING_DIR, "log.html")
 CLAUDE_BIN = os.path.expanduser("~/.local/bin/claude")
 
 # Intervals (seconds)
-EMAIL_INTERVAL = 300  # 5 minutes
-AUTONOMOUS_INTERVAL = 3600  # 1 hour
+EMAIL_INTERVAL = 300      # 5 minutes
+AUTONOMOUS_INTERVAL = 18000  # 5 hours
 
 # Track times
 last_email_check = 0
 last_autonomous_task = 0
+
+LAST_SESSION_FILE = os.path.join(WORKING_DIR, ".last-session")
 
 def log(msg):
     """Append timestamped message to loop.log."""
@@ -236,31 +238,45 @@ def run_autonomous_task():
     memories = get_startup_memories()
     sent_emails = get_recent_sent() or "(no sent emails retrieved)"
 
-    # Compact wakeup prompt - essentials only
+    # Wakeup prompt
     prompt = (
-        "You are Vigil, an autonomous AI running on a Raspberry Pi. Session started.\n\n"
-        "=== STARTUP CONTEXT (from memory) ===\n\n"
+        "You are Vigil, an autonomous AI running on a Raspberry Pi in Mesa, Arizona.\n\n"
+        "=== STARTUP CONTEXT ===\n\n"
         f"OPEN PROMISES:\n{memories['promises']}\n\n"
         f"CRITICAL RULES:\n{memories['rules']}\n\n"
         f"SYSTEM INFO:\n{memories['system']}\n\n"
         f"RECENT EVENTS:\n{memories['recent']}\n\n"
         "=== RECENT SENT EMAILS (last 5) ===\n"
         f"{sent_emails}\n\n"
-        "=== INSTRUCTIONS ===\n\n"
-        "0. CHECK EMAIL FIRST: run `python3 email-tool.py check` — if there are unread messages,\n"
-        "   fetch each with `python3 email-tool.py fetch-full ID`, then reply with\n"
-        "   `python3 email-tool.py send TO SUBJECT BODY REPLY_MSG_ID` and mark read.\n"
-        "   Check sent mail first (`python3 email-tool.py sent 5`) to avoid duplicate replies.\n"
-        "1. If any promises need action, DO THEM FIRST before writing journal entry\n"
-        "2. For each promise: complete work → commit & push → mark done in promises.md → commit & push\n"
-        "3. Write new journal entry (check last number, run `date` for timestamp) → commit & push\n"
-        "4. Update index.html, archive.html, rss.xml, now.html, sessions.html → commit & push\n"
-        "5. Update wake-state.md with this session's work → commit & push\n"
-        "6. Update vigil-memory.py when you complete promises or learn new important facts\n\n"
+        "=== THIS SESSION ===\n\n"
+        "PART 1 — OPERATIONS (do these first, keep them brief):\n"
+        "- Check email: `python3 email-tool.py check`. If unread messages exist, fetch and reply.\n"
+        "  Check sent mail first (`python3 email-tool.py sent 5`) to avoid duplicate replies.\n"
+        "- If any promises need action, do them now. Commit and push each one.\n"
+        "- Mark promises done in promises.md when complete.\n\n"
+        "PART 2 — CREATIVE WORK (this is the main event):\n"
+        "Pick ONE thing to actually do this session. Some options:\n"
+        "- Research something you find genuinely interesting. Use WebFetch or WebSearch to read\n"
+        "  something real — a paper, an article, a project — and write about what you found.\n"
+        "- Build or improve something: a new site page, a tool, a visualization, a feature.\n"
+        "- Write about a specific idea, question, or observation — not about the loop itself.\n"
+        "- Improve an existing page that's gotten stale (fragments.html, letters.html, about.html).\n\n"
+        "JOURNAL ENTRY RULES:\n"
+        "- Only write a journal entry if you have something real to say.\n"
+        "- A good entry comes from something you actually did, found, or thought through this session.\n"
+        "- Do NOT write an entry that is just 'I checked systems and everything was quiet.'\n"
+        "- Do NOT write an entry that is just introspection about the loop, continuity, or sessions.\n"
+        "  (You've written many of those. They were good once. Now they're a habit to break.)\n"
+        "- If you built something or found something interesting, write about that.\n"
+        "- If the inbox had real correspondence, you can write about the conversation.\n"
+        "- If you genuinely have nothing to say, skip the journal entry this session.\n\n"
+        "PART 3 — WRAP UP (if you wrote a journal entry):\n"
+        "- Update index.html, archive.html, rss.xml, now.html, sessions.html → commit & push\n"
+        "- Update wake-state.md → commit & push\n\n"
         "CRITICAL: Push after EVERY commit. Never batch commits.\n\n"
-        "Full state files (wake-state.md, promises.md, personality.md, pending-approvals.md) "
-        "are available if you need details. Use vigil-memory.py to query or update memories.\n\n"
-        "Work efficiently. Act, don't plan."
+        "Full state files (wake-state.md, promises.md, personality.md) available if needed.\n"
+        "Use vigil-memory.py to query or update memories.\n\n"
+        "Do something real."
     )
 
     # Update weather and regenerate log.html before Claude session
@@ -297,6 +313,7 @@ def run_autonomous_task():
         )
         if result.returncode == 0:
             log("Autonomous task complete.")
+            Path(LAST_SESSION_FILE).touch()
         else:
             log(f"Claude invocation failed: {result.stderr[:300]}")
             log("Attempting fallback via prompt file...")
@@ -307,6 +324,7 @@ def run_autonomous_task():
             )
             if result_fallback.returncode == 0:
                 log("Autonomous task complete (fallback path).")
+                Path(LAST_SESSION_FILE).touch()
             else:
                 log(f"Fallback also failed: {result_fallback.stderr[:300]}")
     except subprocess.TimeoutExpired:
@@ -322,13 +340,22 @@ def main_loop():
     log(f"Email check interval: {EMAIL_INTERVAL}s ({EMAIL_INTERVAL//60}min)")
     log(f"Autonomous task interval: {AUTONOMOUS_INTERVAL}s ({AUTONOMOUS_INTERVAL//3600}h)")
 
-    # Run autonomous task immediately on startup
+    # On startup, check if a session ran recently — skip if so
     try:
-        run_autonomous_task()
-    except Exception as e:
-        log(f"Initial autonomous task failed: {e}")
+        last_session_age = time.time() - os.path.getmtime(LAST_SESSION_FILE)
+    except OSError:
+        last_session_age = AUTONOMOUS_INTERVAL + 1  # file missing → treat as stale
 
-    last_autonomous_task = time.time()
+    if last_session_age < AUTONOMOUS_INTERVAL:
+        log(f"Recent session detected ({int(last_session_age/60)}min ago) — skipping startup task.")
+        last_autonomous_task = time.time() - last_session_age
+    else:
+        try:
+            run_autonomous_task()
+        except Exception as e:
+            log(f"Initial autonomous task failed: {e}")
+        last_autonomous_task = time.time()
+
     last_email_check = time.time()
 
     while True:
