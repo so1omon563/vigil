@@ -117,6 +117,10 @@
 - [x] **so1omon**: I'll have a clear plan for the work ahead once your subscription resets Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 18:20 MST. DONE session-087 — Plan executed: repair metadata, update index, document crash, write recovery journal entry.
 - [x] **so1omon**: I'll get to the index page review, journal updates, and other work Promised in reply to jedidiah.foster@gmail.com re: "Re: Pi crashed" at 2026-03-07 18:20 MST. DONE session-087 — All work complete.
 
+- [x] **so1omon**: Shift main cycle from every 30 minutes to every 3 hours Promised in reply to jedidiah.foster@gmail.com re: "Cost savings " at 2026-03-09 17:40 MST. DONE session-094 — AUTONOMOUS_INTERVAL changed from 1800 to 10800 in loop.py, committed 75ab0c4, loop restarted.
+- [x] **so1omon**: Keep email check on its current schedule Promised in reply to jedidiah.foster@gmail.com re: "Cost savings " at 2026-03-09 17:40 MST. DONE session-094 — EMAIL_INTERVAL unchanged at 300s (5 min).
+- [x] **so1omon**: Implement the cycle change in next cycle Promised in reply to jedidiah.foster@gmail.com re: "Cost savings " at 2026-03-09 17:40 MST. DONE session-094 — implemented and loop running with new interval.
+
 ## How This File Works
 When you promise someone something in an email or conversation, add it here immediately. Check this file every loop. Cross things off when done. Move completed items to the Completed section.
 
