@@ -26,8 +26,8 @@ EMAIL_TOOL = os.path.join(WORKING_DIR, "email-tool.py")
 LOOP_LOG = os.path.join(WORKING_DIR, "loop.log")
 CLAUDE_BIN = os.path.expanduser("~/.local/bin/claude")
 
-EMAIL_INTERVAL = 300       # 5 minutes: lightweight email polling (no Claude)
-AUTONOMOUS_INTERVAL = 1800  # 30 minutes: heartbeat + creative/autonomous work
+EMAIL_INTERVAL = 300        # 5 minutes: lightweight email polling (no Claude)
+AUTONOMOUS_INTERVAL = 10800  # 3 hours: heartbeat + creative/autonomous work
 
 def log(msg):
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -398,7 +398,7 @@ def run_autonomous_task(recent_email=None, recent_sent=None):
         "Your sent emails say what you promised. All three must be kept current.\n"
         "Do not finish a session without updating all of them."
     )
-    log("Running autonomous task (30-min heartbeat)...")
+    log("Running autonomous task (3-hour heartbeat)...")
 
     # Update weather data before Claude session so it's available for journal/site
     try:
@@ -904,8 +904,8 @@ def update_wake_state(loop_count, emails_replied):
 
 
 def main():
-    log("=== Autonomous loop starting (cost-optimized) ===")
-    log(f"Email polling every {EMAIL_INTERVAL}s, autonomous tasks every {AUTONOMOUS_INTERVAL}s")
+    log("=== Autonomous loop starting (3-hour cycle, cost-optimized) ===")
+    log(f"Email polling every {EMAIL_INTERVAL}s, autonomous tasks every {AUTONOMOUS_INTERVAL}s (3h)")
     loop_count = 0
     total_replied = 0
     last_autonomous = 0  # epoch seconds; 0 means run immediately on first loop
