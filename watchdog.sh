@@ -17,7 +17,7 @@ log() {
 }
 
 # Check if any claude process is running
-CLAUDE_PIDS=$(pgrep -f "loop.py" | head -5)
+CLAUDE_PIDS=$(pgrep -f "loop-optimized.py" | head -5)
 
 if [ -z "$CLAUDE_PIDS" ]; then
     log "ALERT: No Claude process found. Starting fresh instance."
