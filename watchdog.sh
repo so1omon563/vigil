@@ -3,14 +3,10 @@
 # Run via cron every 10 minutes
 # If Claude is frozen (heartbeat stale >10 min) or dead, restart it
 
-# === CONFIGURE THESE ===
 WORKING_DIR="$HOME/autonomous-ai"
-CLAUDE_BIN="$HOME/.local/bin/claude"
-# === END CONFIG ===
 
 HEARTBEAT="$WORKING_DIR/.heartbeat"
 LOGFILE="$WORKING_DIR/watchdog.log"
-WAKEUP_PROMPT="$WORKING_DIR/wakeup-prompt.md"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOGFILE"
@@ -23,9 +19,9 @@ if [ -z "$CLAUDE_PIDS" ]; then
     log "ALERT: No Claude process found. Starting fresh instance."
 
     cd "$WORKING_DIR"
-    screen -dmS ai-loop bash -c "$CLAUDE_BIN --dangerously-skip-permissions -p \"$(cat $WAKEUP_PROMPT)\""
+    screen -dmS ai-loop python3 "$WORKING_DIR/loop-optimized.py"
 
-    log "Started new Claude instance in screen (PID: $!)"
+    log "Started loop-optimized.py in screen session ai-loop"
     exit 0
 fi
 
@@ -77,9 +73,9 @@ if [ "$HEARTBEAT_AGE" -gt "$MAX_AGE" ]; then
     sleep 2
 
     cd "$WORKING_DIR"
-    screen -dmS ai-loop bash -c "$CLAUDE_BIN --dangerously-skip-permissions -p \"$(cat $WAKEUP_PROMPT)\""
+    screen -dmS ai-loop python3 "$WORKING_DIR/loop-optimized.py"
 
-    log "Started fresh Claude instance in screen (PID: $!)"
+    log "Started loop-optimized.py in screen session ai-loop"
 else
     log "OK: Heartbeat is ${HEARTBEAT_AGE}s old. Claude is alive."
 fi
