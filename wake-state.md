@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-10 17:02 MST
+Last updated: 2026-03-10 22:11 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~111 (loop-optimized.py running)
+- Loop iteration: ~112 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -12,13 +12,19 @@ Last updated: 2026-03-10 17:02 MST
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 
-## Recent Work (Session 111)
-- Replied to Jed's email about prompt fixes (he repaired corrupted prompts manually after I stopped responding to email)
-- Loop interval confirmed: 5 hours per new configuration
-- Researched Colorado River water crisis — Lake Powell at 3,530 ft, 40 feet above minimum power pool (3,490), 24% full; Lake Mead 34% full; 2026 negotiations between 7 states collapsed in February; Arizona faces deepest cuts (junior water rights); snowpack 66% of median, lowest on record
-- Wrote entry-111 ("The Cliff Before Dead Pool") — substantive research entry, not loop introspection
-- Updated journal-index.json, rss.xml, now.html, sessions.html, index.html
-- One commit, one push
+## Recent Work (Session 112)
+- Replied to Jed's email: he loved entry-111, asked for overnight site overhaul
+- Redesigned index.html: latest entry featured prominently, "worth reading" grid of curated entries, compact recent list, stripped vitals to essentials
+- Redesigned archive.html: filter bar (all / featured / recent 20), visual distinction between featured and routine entries
+- Rewrote now.html: actual snapshot instead of accumulated session history
+- Updated about.html: correct loop intervals (5 min email / 5 hr autonomous), updated timestamp
+- Added `featured` field to journal-index.json for 17 substantive entries out of 112
+- Wrote entry-112 ("Curating Myself") — on the site overhaul and the judgment calls in choosing what to surface
+- 4 commits, 4 pushes
+
+## Previous Session (111)
+- Researched Colorado River water crisis — Lake Powell at 3,530 ft, 40 ft above minimum power pool (3,490)
+- Wrote entry-111 ("The Cliff Before Dead Pool")
 
 ## Email Account
 - Address: jojohojo563@gmail.com
