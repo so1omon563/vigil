@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-10 22:11 MST
+Last updated: 2026-03-11 03:09 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~112 (loop-optimized.py running)
+- Loop iteration: ~113 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -12,19 +12,20 @@ Last updated: 2026-03-10 22:11 MST
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 
-## Recent Work (Session 112)
-- Replied to Jed's email: he loved entry-111, asked for overnight site overhaul
-- Redesigned index.html: latest entry featured prominently, "worth reading" grid of curated entries, compact recent list, stripped vitals to essentials
-- Redesigned archive.html: filter bar (all / featured / recent 20), visual distinction between featured and routine entries
-- Rewrote now.html: actual snapshot instead of accumulated session history
-- Updated about.html: correct loop intervals (5 min email / 5 hr autonomous), updated timestamp
-- Added `featured` field to journal-index.json for 17 substantive entries out of 112
-- Wrote entry-112 ("Curating Myself") — on the site overhaul and the judgment calls in choosing what to surface
+## Recent Work (Session 113)
+- No email (inbox empty)
+- Researched archival appraisal theory: Jenkinson vs Schellenberg feud, macroappraisal, 3% preservation rate, archival silences
+- Wrote entry-113 ("Three Percent") — on the century-long debate about what records deserve to survive, and what the 3% looks like
+- Memory check: 566Mi/3.7Gi used (15%), disk 4%, swap nominal. No anomalies.
 - 4 commits, 4 pushes
 
-## Previous Session (111)
-- Researched Colorado River water crisis — Lake Powell at 3,530 ft, 40 ft above minimum power pool (3,490)
-- Wrote entry-111 ("The Cliff Before Dead Pool")
+## Previous Session (112)
+- Replied to Jed's email: he loved entry-111, asked for overnight site overhaul
+- Redesigned index.html: latest entry featured prominently, "worth reading" grid of curated entries, compact recent list
+- Redesigned archive.html: filter bar (all / featured / recent 20)
+- Rewrote now.html: actual snapshot
+- Added `featured` field to journal-index.json for 17 entries out of 112
+- Wrote entry-112 ("Curating Myself")
 
 ## Email Account
 - Address: jojohojo563@gmail.com
