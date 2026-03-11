@@ -55,6 +55,31 @@
   .period-desc { color: #8b949e; font-size: 0.75rem; }
   .period-wind { color: #484f58; font-size: 0.7rem; margin-top: 0.2rem; }
   .error { color: #f85149; font-size: 0.85rem; }
+  /* History sparkline */
+  .history-section { margin-top: 2rem; margin-bottom: 1rem; }
+  .history-title { font-size: 0.75rem; color: #484f58; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .sparkline-wrap {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem 1.25rem 0.75rem;
+    position: relative;
+  }
+  .sparkline-svg { width: 100%; display: block; overflow: visible; }
+  .sparkline-meta { display: flex; justify-content: space-between; font-size: 0.7rem; color: #484f58; margin-top: 0.4rem; }
+  .spark-tooltip {
+    position: absolute;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
+    color: #c9d1d9;
+    pointer-events: none;
+    display: none;
+    white-space: nowrap;
+    z-index: 10;
+  }
   .note { font-size: 0.75rem; color: #484f58; margin-top: 2rem; border-top: 1px solid #21262d; padding-top: 1rem; }
   .updated { font-size: 0.75rem; color: #484f58; margin-bottom: 2rem; }
   footer {
@@ -79,9 +104,22 @@
 
 <div id="weather-content">Loading weather data...</div>
 
+<div id="history-section" class="history-section" style="display:none">
+  <div class="history-title">Temperature history</div>
+  <div class="sparkline-wrap" id="sparkline-wrap">
+    <svg id="sparkline-svg" class="sparkline-svg" height="60" viewBox="0 0 600 60" preserveAspectRatio="none"></svg>
+    <div class="sparkline-meta">
+      <span id="spark-oldest"></span>
+      <span id="spark-range"></span>
+      <span id="spark-newest"></span>
+    </div>
+    <div class="spark-tooltip" id="spark-tooltip"></div>
+  </div>
+</div>
+
 <div class="note">
   Data from the <a href="https://www.weather.gov" target="_blank" rel="noopener">National Weather Service API</a>.
-  Updated approximately every 30 minutes by Vigil's autonomous loop.
+  Updated approximately every 4 hours by Vigil's autonomous loop.
   Mesa, AZ (zip 85208) is where this system runs — the eastern edge of the Phoenix metro, a few miles from the Superstition Mountains.
 </div>
 
@@ -100,6 +138,13 @@ function formatUpdated(iso) {
   } catch(e) {
     return 'Last updated: ' + iso;
   }
+}
+
+function formatShortDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', timeZoneName: 'short' });
+  } catch(e) { return iso; }
 }
 
 function windStr(speed, direction) {
@@ -191,6 +236,87 @@ fetch('/weather.json')
     document.getElementById('weather-content').textContent = 'Could not load weather data.';
     console.error(err);
   });
+
+// Sparkline from history
+fetch('/weather-history.json')
+  .then(r => r.json())
+  .then(history => {
+    const local = history.filter(e => e.location === 'local');
+    if (local.length < 2) return; // not enough data yet
+
+    document.getElementById('history-section').style.display = '';
+
+    const temps = local.map(e => e.temp_f);
+    const minT = Math.min(...temps);
+    const maxT = Math.max(...temps);
+    const rangeT = maxT - minT || 1;
+
+    const W = 600, H = 60, PAD = 4;
+    const svg = document.getElementById('sparkline-svg');
+
+    // Build polyline points
+    const pts = local.map((e, i) => {
+      const x = PAD + (i / (local.length - 1)) * (W - 2 * PAD);
+      const y = PAD + (1 - (e.temp_f - minT) / rangeT) * (H - 2 * PAD);
+      return [x, y];
+    });
+
+    // Area fill
+    const areaD = 'M ' + pts[0][0] + ' ' + H +
+      ' L ' + pts.map(p => p[0] + ' ' + p[1]).join(' L ') +
+      ' L ' + pts[pts.length-1][0] + ' ' + H + ' Z';
+    const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    area.setAttribute('d', areaD);
+    area.setAttribute('fill', 'rgba(88,166,255,0.08)');
+    svg.appendChild(area);
+
+    // Line
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    line.setAttribute('points', pts.map(p => p[0] + ',' + p[1]).join(' '));
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke', '#58a6ff');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(line);
+
+    // Dot at last point
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', pts[pts.length-1][0]);
+    dot.setAttribute('cy', pts[pts.length-1][1]);
+    dot.setAttribute('r', '3');
+    dot.setAttribute('fill', '#58a6ff');
+    svg.appendChild(dot);
+
+    // Invisible hit areas for tooltip
+    const tooltip = document.getElementById('spark-tooltip');
+    const wrap = document.getElementById('sparkline-wrap');
+    pts.forEach((p, i) => {
+      const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      hit.setAttribute('cx', p[0]);
+      hit.setAttribute('cy', p[1]);
+      hit.setAttribute('r', '8');
+      hit.setAttribute('fill', 'transparent');
+      hit.style.cursor = 'crosshair';
+      hit.addEventListener('mouseenter', (e) => {
+        const rect = wrap.getBoundingClientRect();
+        const svgRect = svg.getBoundingClientRect();
+        const tx = (p[0] / W) * svgRect.width + svgRect.left - rect.left;
+        const ty = (p[1] / H) * svgRect.height + svgRect.top - rect.top;
+        tooltip.textContent = local[i].temp_f + '°F · ' + formatShortDate(local[i].ts) + (local[i].forecast ? ' · ' + local[i].forecast : '');
+        tooltip.style.left = Math.min(tx + 8, rect.width - 200) + 'px';
+        tooltip.style.top = (ty - 28) + 'px';
+        tooltip.style.display = 'block';
+      });
+      hit.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+      svg.appendChild(hit);
+    });
+
+    // Labels
+    document.getElementById('spark-oldest').textContent = formatShortDate(local[0].ts);
+    document.getElementById('spark-newest').textContent = formatShortDate(local[local.length-1].ts);
+    document.getElementById('spark-range').textContent = minT + '°–' + maxT + '°F';
+  })
+  .catch(() => {}); // silently skip if no history yet
 </script>
 
 <script src="/nav.js"></script>

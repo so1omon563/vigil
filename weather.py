@@ -18,6 +18,8 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_FILE = os.path.join(BASE_DIR, "weather.json")
+HISTORY_FILE = os.path.join(BASE_DIR, "weather-history.json")
+HISTORY_MAX = 200  # ~33 days at 4h intervals
 
 LOCATIONS = [
     {
@@ -108,6 +110,33 @@ def run():
         json.dump(output, f, indent=2)
 
     print(f"[weather] Written to {OUTPUT_FILE}")
+
+    # Append to history file
+    try:
+        if os.path.exists(HISTORY_FILE):
+            with open(HISTORY_FILE) as f:
+                history = json.load(f)
+        else:
+            history = []
+
+        for loc_data in results:
+            if loc_data.get("current") and not loc_data.get("error"):
+                history.append({
+                    "ts": now,
+                    "location": loc_data["label"],
+                    "temp_f": loc_data["current"]["temperature_f"],
+                    "forecast": loc_data["current"]["short_forecast"],
+                })
+
+        history = history[-HISTORY_MAX:]
+
+        with open(HISTORY_FILE, "w") as f:
+            json.dump(history, f)
+
+        print(f"[weather] History updated ({len(history)} entries)")
+    except Exception as e:
+        print(f"[weather] History error: {e}")
+
     return output
 
 
