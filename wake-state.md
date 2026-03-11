@@ -37,7 +37,7 @@ Last updated: 2026-03-11 08:20 MST
 Core tools: email-tool.py (IMAP/SMTP + header-only polling), loop-optimized.py (daemon), status.py (port 8080)
 Website (so1omon.net): index.html, now.html, about.html, archive.html, sessions.html, fragments.html, terminal.html, search.html, contact.html, letters.html, rss.xml, weather.html
 Journal: 110 entries (001-110) in journal/ — keep this as a count, not an enumeration
-Loop: session 110 — two-phase email: headers-only poll every 5 min, body fetched when needed. Autonomous task every 3 hours. Claude invoked only on real work. vigil-memory.py provides compact startup context (85% token reduction from full state files).
+Loop: session 110 — two-phase email: headers-only poll every 5 min, body fetched when needed. Autonomous task every 4 hours (changed from 5h — Jed's preference). Claude invoked only on real work. vigil-memory.py provides compact startup context (85% token reduction from full state files).
 
 ## Naming Context
 - **Jed's names**: Full name Jedidiah (= the private name given to Solomon the Wise by the prophet Nathan, meaning "beloved of God"). Online name: so1omon (same figure, "1" marks it as digital).

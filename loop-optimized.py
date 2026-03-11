@@ -32,7 +32,7 @@ CLAUDE_BIN = os.path.expanduser("~/.local/bin/claude")
 
 # Intervals (seconds)
 EMAIL_INTERVAL = 300      # 5 minutes
-AUTONOMOUS_INTERVAL = 18000  # 5 hours
+AUTONOMOUS_INTERVAL = 14400  # 4 hours
 
 # Track times
 last_email_check = 0
