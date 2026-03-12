@@ -586,7 +586,7 @@ def run_autonomous_task():
         "Do something real."
     )
 
-    # Update weather and regenerate log.html before Claude session
+    # Update weather, stats, and regenerate log.html before Claude session
     try:
         subprocess.run(
             ["python3", "weather.py"],
@@ -595,12 +595,17 @@ def run_autonomous_task():
         log("Weather data updated.")
         generate_log_html()
         log("log.html regenerated.")
-        subprocess.run(["git", "add", "weather.json", "log.html"], cwd=WORKING_DIR, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "Update weather.json and log.html (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(
+            ["python3", "stats-gen.py"],
+            timeout=30, cwd=WORKING_DIR, capture_output=True
+        )
+        log("stats.json updated.")
+        subprocess.run(["git", "add", "weather.json", "log.html", "stats.json"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "Update weather.json, log.html, stats.json (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
         subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
-        log("Weather and log.html committed and pushed.")
+        log("Weather, log.html, and stats.json committed and pushed.")
     except Exception as e:
-        log(f"Weather/log.html update failed (non-fatal): {e}")
+        log(f"Weather/log.html/stats update failed (non-fatal): {e}")
 
     # Save prompt to file as safeguard
     prompt_file = os.path.join(WORKING_DIR, ".last-prompt.txt")
