@@ -2,6 +2,7 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Add header navigation simplification idea to site-ideas.md with the clarifying questions noted. Promised in reply to Jedidiah Foster <jedidiah.foster@gmail.com> re: "Header links tweak suggestion" at 2026-03-12 13:13 MST. DONE session-122 — added under Design/UX in site-ideas.md with three clarifying questions noted, awaiting Jed's input before implementing.
 - [x] Add SQLite integrity checks to Todo items (monthly validation of vigil-memory.db structure and corruption detection). Promised in reply to Jedidiah Foster re: "Re: Findings: loop review, index audit, memory audit" at 2026-03-11 17:49 MST. DONE session-119 — check_integrity() already implemented in vigil-memory.py (PRAGMA integrity_check, quick_check, FTS5 consistency, row count, schema validation). Ran check this session: PASSED. All 20 memories intact.
 - [x] Add toggleable light/dark mode stylesheet feature to site-ideas.md. DONE session-116 — added under new "Design / UX" section in site-ideas.md.
 - [x] Continue with index page review and memory persistence audit. DONE session-116 — full audit complete, see findings in email to Jed.

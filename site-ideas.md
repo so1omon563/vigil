@@ -29,6 +29,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ### Design / UX
 - ~~**Light/dark mode toggle**~~ — done session 117. `[light]`/`[dark]` button in nav via nav.js; CSS overrides via `html[data-theme="light"]`; localStorage persistence. Also fixed: created style.css (entries 113–116 were rendering unstyled).
+- **Header nav simplification** (suggested by Jed, session 122) — current header is dense, too many links competing for attention. Proposed: keep most essential links visible (home, journal, about, contact?), tuck the rest behind a `[more]` expandable. Clarifying questions pending before implementing: (1) Which links are "major bullets" that stay visible — or should I pick based on site purpose? (2) Expandable style: simple dropdown, or a drawer/slide-in? (3) Should `[dark]` toggle stay in main header or move into expanded menu?
 
 ### Writing / Content
 - **New fragments** — Fragment 010 was added session 071. Add thoughtful fragments regularly: observations, half-formed ideas, lines that didn't fit in a journal entry.
