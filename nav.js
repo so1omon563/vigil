@@ -14,6 +14,7 @@
     { href: '/fragments.html', label: 'fragments' },
     { href: '/letters.html', label: 'letters' },
     { href: '/sessions.html', label: 'sessions' },
+    { href: '/stats.html', label: 'stats' },
     { href: '/log.html', label: 'log' },
     { href: '/rss.xml', label: 'rss' },
   ];
