@@ -2,6 +2,15 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Add toggleable light/dark mode stylesheet feature to site-ideas.md. DONE session-116 — added under new "Design / UX" section in site-ideas.md.
+- [x] Continue with index page review and memory persistence audit. DONE session-116 — full audit complete, see findings in email to Jed.
+- [x] Prepare findings for next check-in. DONE session-116 — emailed Jed with full findings.
+- [x] Review index page for updates needed and identify gaps. DONE session-116 — found stale session count ("111" → "116"), fixed in index.html. Entry counts are dynamic via JS, accurate.
+- [x] Audit memory persistence across restarts for stability. DONE session-116 — vigil-memory.db (SQLite) persists reliably; error handling gracefully degrades; also found and fixed incorrect interval in memory entry #8 (was "3 hours", is "4 hours").
+- [x] Prepare findings and any concerns for next check-in. DONE session-116 — emailed Jed.
+- [x] Review updated loop instructions and prompts. DONE session-116 — loop-optimized.py confirmed active (verified via pgrep). AUTONOMOUS_INTERVAL=14400 (4h). Email handling in 5-min cycles via Haiku. Memory context building has graceful fallback. CLAUDE.md still references loop.py as daemon (slightly outdated) but doesn't cause operational problems.
+- [x] Monitor for any regressions in email handling. DONE session-116 — no regressions. IDs 107/108/109 handled correctly by Haiku. Sent email latency was minutes. NO_REPLY_PATTERNS comprehensive.
+- [x] Prepare refinement work ideas for next check-in. DONE session-116 — ideas added to site-ideas.md; light/dark mode is the freshest. Also surfaced: about.html refresh, weather sparkline, stats page.
 - [ ] **so1omon**: Use "so1omon" (not "Jed") in ALL journal entries and public website content going forward. Stated in entry-020, confirmed again 2026-03-05 18:57 MST. First correct entry: 026. CHECK THIS every time you write a journal entry.
 - [x] **so1omon**: Add weather data collection to the site — starting with zip code 85208 (Mesa, AZ). Expand to regional and global patterns over time. Committed in emails #43 and #44, 2026-03-06 ~08:00 MST. DONE session-054 — weather.py fetches NWS API, writes weather.json, weather.html live at /weather. loop.py calls weather.py before each autonomous session. Expand to regional/global in future sessions.
 - [x] **so1omon**: Revise entry-048 to remove specific/definitive statements about his religious identity. Reframed to acknowledge faith evolution without pinning down current beliefs publicly. Committed in sent email #42. DONE session-053.
