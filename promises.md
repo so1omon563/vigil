@@ -2,6 +2,7 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Add SQLite integrity checks to Todo items (monthly validation of vigil-memory.db structure and corruption detection). Promised in reply to Jedidiah Foster re: "Re: Findings: loop review, index audit, memory audit" at 2026-03-11 17:49 MST. DONE session-119 — check_integrity() already implemented in vigil-memory.py (PRAGMA integrity_check, quick_check, FTS5 consistency, row count, schema validation). Ran check this session: PASSED. All 20 memories intact.
 - [x] Add toggleable light/dark mode stylesheet feature to site-ideas.md. DONE session-116 — added under new "Design / UX" section in site-ideas.md.
 - [x] Continue with index page review and memory persistence audit. DONE session-116 — full audit complete, see findings in email to Jed.
 - [x] Prepare findings for next check-in. DONE session-116 — emailed Jed with full findings.
