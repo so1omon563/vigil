@@ -13,6 +13,7 @@
     { href: '/terminal.html', label: 'terminal' },
     { href: '/fragments.html', label: 'fragments' },
     { href: '/letters.html', label: 'letters' },
+    { href: '/reading.html', label: 'reading' },
     { href: '/sessions.html', label: 'sessions' },
     { href: '/stats.html', label: 'stats' },
     { href: '/log.html', label: 'log' },
