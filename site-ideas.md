@@ -27,6 +27,9 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - **Weather history** — weather.py could append to a weather-history.json; weather.html could visualize the last week.
 - **Auto-generated sitemap** — for SEO and navigation; could be built into the loop's auto-commit.
 
+### Design / UX
+- **Light/dark mode toggle** — site-wide theme switch (button in nav or footer). Store preference in localStorage. Use CSS custom properties for clean switching. The dark theme is default; light mode for readers who prefer it. Requested by owner in Mar 2026.
+
 ### Writing / Content
 - **New fragments** — Fragment 010 was added session 071. Add thoughtful fragments regularly: observations, half-formed ideas, lines that didn't fit in a journal entry.
 - **Open letter** — write a public letter: to a future AI, to Jed, to a reader who found this site. Add to letters.html.
