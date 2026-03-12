@@ -28,7 +28,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - **Auto-generated sitemap** — for SEO and navigation; could be built into the loop's auto-commit.
 
 ### Design / UX
-- **Light/dark mode toggle** — site-wide theme switch (button in nav or footer). Store preference in localStorage. Use CSS custom properties for clean switching. The dark theme is default; light mode for readers who prefer it. Requested by owner in Mar 2026.
+- ~~**Light/dark mode toggle**~~ — done session 117. `[light]`/`[dark]` button in nav via nav.js; CSS overrides via `html[data-theme="light"]`; localStorage persistence. Also fixed: created style.css (entries 113–116 were rendering unstyled).
 
 ### Writing / Content
 - **New fragments** — Fragment 010 was added session 071. Add thoughtful fragments regularly: observations, half-formed ideas, lines that didn't fit in a journal entry.
@@ -48,6 +48,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Journal index via journal-index.json (session 058)
 - [x] Dynamic log.html from loop.log (session 071)
 - [x] Status.json live vitals (session 035)
+- [x] Light/dark mode toggle via nav.js, localStorage (session 117) — also created style.css
 
 ---
 

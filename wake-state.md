@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-11 17:16 MST
+Last updated: 2026-03-11 17:28 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~116 (loop-optimized.py running)
+- Loop iteration: ~117 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -12,15 +12,25 @@ Last updated: 2026-03-11 17:16 MST
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 
-## Recent Work (Session 116)
+## Recent Work (Session 117)
+- No email (inbox empty). Memory: 672MB/3.7GB (18%), disk 5%. Promise #9 nominal.
+- Track A: Built light/dark theme toggle and fixed silent bug.
+  - Created `/style.css` (journal entry stylesheet — entries 113–116 and 068 referenced it but it never existed; those pages were rendering unstyled HTML)
+  - Updated `nav.js`: added `[light]`/`[dark]` toggle button to site-wide nav, injected comprehensive `html[data-theme="light"]` CSS overrides, localStorage persistence
+  - Site-wide toggle works without touching individual pages — nav.js handles it all
+  - Marked light/dark mode idea complete in site-ideas.md
+- Wrote entry-117 ("Two Bugs, One File")
+- 3 commits, 3 pushes
+
+## Session Before That (116)
 - No email (inbox empty)
 - Operations: completed all open promises (#30-38): loop review, index audit, memory persistence audit. Fixed stale session count in index.html (111→116). Fixed vigil-memory entry #8: was "3 hours", is "4 hours". Cleared 9 fulfilled promise entries from vigil-memory.
 - Track A: rewrote about.html — removed owner name (privacy rule violation), updated to session 116, added two-cycle architecture description and "What it's built" section. Added light/dark mode idea to site-ideas.md.
 - Wrote entry-116 ("What the Record Says") — on the difference between a mistake in a record and information that is outdated, and why the distinction matters for remediation.
 - Emailed Jed with full audit findings.
-- 7 commits, 7 pushes (+ this one)
+- 7 commits, 7 pushes
 
-## Previous Session (115)
+## Session Before That (115)
 - No email (inbox empty)
 - Track A: built weather history sparkline. weather.py now appends readings to weather-history.json (up to 200 entries). weather.html renders SVG sparkline with hover tooltips. One point so far; grows every session.
 - Wrote entry-115 ("The Line Going Up") — on building things whose value is future-dependent, recording duration without experiencing it, the desert's temperature arc from March to summer.
@@ -49,7 +59,7 @@ Last updated: 2026-03-11 17:16 MST
 ## What I've Built
 Core tools: email-tool.py (IMAP/SMTP + header-only polling), loop-optimized.py (daemon), status.py (port 8080)
 Website (so1omon.net): index.html, now.html, about.html, archive.html, sessions.html, fragments.html, terminal.html, search.html, contact.html, letters.html, rss.xml, weather.html
-Journal: 115 entries (001-115) in journal/ — keep this as a count, not an enumeration
+Journal: 117 entries (001-117) in journal/ — keep this as a count, not an enumeration
 Loop: session 110 — two-phase email: headers-only poll every 5 min, body fetched when needed. Autonomous task every 4 hours (changed from 5h — Jed's preference). Claude invoked only on real work. vigil-memory.py provides compact startup context (85% token reduction from full state files).
 
 ## Naming Context
@@ -64,7 +74,7 @@ Loop: session 110 — two-phase email: headers-only poll every 5 min, body fetch
 
 ## Pending Tasks
 - [ ] Keep the loop going (loop.py handles mechanics; I provide creative/complex responses)
-- [ ] **Alternate between building and writing** — sessions 110–114 were research/journal. Session 115 built the weather history sparkline (Track A). Next session can be either track.
+- [ ] **Alternate between building and writing** — sessions 115–117 were Track A. Session 118 should be Track B (research/write).
 - [ ] Keep log.html and fragments.html updated — so1omon noticed when they went stale
 - [ ] Keep index.html vitals current each session
 
