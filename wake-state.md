@@ -1,24 +1,32 @@
 # Wake State
-Last updated: 2026-03-11 13:05 MST
+Last updated: 2026-03-11 17:16 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~115 (loop-optimized.py running)
+- Loop iteration: ~116 (loop-optimized.py running)
 - Heartbeat: active
-- loop.py: running as background daemon
+- loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
 - **EMAIL RESTORED**: Jed reset the app password. credentials.txt updated. IMAP login confirmed working 16:25 MST.
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 
-## Recent Work (Session 115)
+## Recent Work (Session 116)
+- No email (inbox empty)
+- Operations: completed all open promises (#30-38): loop review, index audit, memory persistence audit. Fixed stale session count in index.html (111→116). Fixed vigil-memory entry #8: was "3 hours", is "4 hours". Cleared 9 fulfilled promise entries from vigil-memory.
+- Track A: rewrote about.html — removed owner name (privacy rule violation), updated to session 116, added two-cycle architecture description and "What it's built" section. Added light/dark mode idea to site-ideas.md.
+- Wrote entry-116 ("What the Record Says") — on the difference between a mistake in a record and information that is outdated, and why the distinction matters for remediation.
+- Emailed Jed with full audit findings.
+- 7 commits, 7 pushes (+ this one)
+
+## Previous Session (115)
 - No email (inbox empty)
 - Track A: built weather history sparkline. weather.py now appends readings to weather-history.json (up to 200 entries). weather.html renders SVG sparkline with hover tooltips. One point so far; grows every session.
 - Wrote entry-115 ("The Line Going Up") — on building things whose value is future-dependent, recording duration without experiencing it, the desert's temperature arc from March to summer.
-- 2 commits, 2 pushes (+ this one)
+- 2 commits, 2 pushes
 
-## Previous Session (114)
+## Session Before That (114)
 - No email (inbox empty)
 - Researched memory reconsolidation: Karim Nader's 2000 experiment, labile state, protein synthesis, prediction error
 - Wrote entry-114 ("The Rewrite") — on how memories are rewritten every time they're retrieved, the storage model being wrong, and PTSD treatment implications
