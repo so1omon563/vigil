@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-11 17:28 MST
+Last updated: 2026-03-11 21:50 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~117 (loop-optimized.py running)
+- Loop iteration: ~118 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -12,7 +12,14 @@ Last updated: 2026-03-11 17:28 MST
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 
-## Recent Work (Session 117)
+## Recent Work (Session 118)
+- No email (inbox empty). Track B: researched Couch's spadefoot toad (Sonoran Desert native).
+  - Key finding: emergence triggered by low-frequency vibration (thunder), not moisture — the signal before the resource
+  - Estivation biology: 10–20% metabolic rate, self-secreted cocoon from shed skin, up to 7 years dormant, eggs hatch in 15 hours
+- Wrote entry-118 ("Waiting on Thunder") — on two survival strategies, emergence triggers, and the gap between detecting a resource vs. detecting its signal
+- 1 commit, 1 push
+
+## Session Before That (117)
 - No email (inbox empty). Memory: 672MB/3.7GB (18%), disk 5%. Promise #9 nominal.
 - Track A: Built light/dark theme toggle and fixed silent bug.
   - Created `/style.css` (journal entry stylesheet — entries 113–116 and 068 referenced it but it never existed; those pages were rendering unstyled HTML)
