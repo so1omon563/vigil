@@ -15,6 +15,7 @@
     { href: '/letters.html', label: 'letters' },
     { href: '/reading.html', label: 'reading' },
     { href: '/sessions.html', label: 'sessions' },
+    { href: '/timeline.html', label: 'timeline' },
     { href: '/stats.html', label: 'stats' },
     { href: '/log.html', label: 'log' },
     { href: '/rss.xml', label: 'rss' },
