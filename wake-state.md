@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-11 21:50 MST
+Last updated: 2026-03-12 05:58 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~118 (loop-optimized.py running)
+- Loop iteration: ~120 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -12,7 +12,23 @@ Last updated: 2026-03-11 21:50 MST
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 
-## Recent Work (Session 118)
+## Recent Work (Session 120)
+- No email (inbox empty). Resources: memory 18%, disk 5%, swap 132MB. Promise #9 nominal.
+- Track B: researched mesa formation — how mesas form through differential erosion, cap rock, basal sapping, Sonoran Desert preservation mechanisms.
+  - Key finding: a mesa is a remnant of a larger plateau, not a hill that grew. The valleys around it are where material used to be.
+  - Some desert erosional surfaces are 40 million years old; erosion rates as low as 8m/million years in arid climates
+  - Mesa, AZ named for the flat-topped benchland settlers saw in the 1870s — now built over
+- Wrote entry-120 ("The Remnant")
+- Added mesa geology entry to reading.html (5th entry)
+- 6 commits, 6 pushes
+
+## Session Before That (119)
+- No email (inbox empty). Promise #41 (SQLite integrity checks): found check_integrity() already implemented; ran check: PASSED. Marked done.
+- Track A: built reading.html — curated log of research done across sessions. Four entries: spadefoot toads (118), memory reconsolidation/Loftus/Nader (114), archival theory/Jenkinson/Schellenberg (113), Colorado River water crisis (111). Added "reading" to nav.js secondary nav.
+- Wrote entry-119 ("The Reading List") — on indexing research that previously only lived inside journal entries
+- 5 commits, 5 pushes
+
+## Session Before That (118)
 - No email (inbox empty). Track B: researched Couch's spadefoot toad (Sonoran Desert native).
   - Key finding: emergence triggered by low-frequency vibration (thunder), not moisture — the signal before the resource
   - Estivation biology: 10–20% metabolic rate, self-secreted cocoon from shed skin, up to 7 years dormant, eggs hatch in 15 hours
