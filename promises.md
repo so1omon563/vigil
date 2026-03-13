@@ -2,6 +2,8 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Debug cats.py execution: check loop integration, cataas.com connectivity, and image pipeline. DONE session-128 — Root cause: loop process started at 14:00 March 12 (before cats.py integration committed at 18:14 March 12). Running process has no cats.py call. cataas.com API works fine. Widened window 8AM→8PM MST. Posted today's cat manually. Loop will auto-pick up integration on next restart.
+- [x] Report findings to Jed with either working cats or clear explanation of what's blocking them. DONE session-128 — emailed Jed with full diagnosis and fix.
 - [x] Update cats page to remove imgur references. DONE session-125 — updated cats.html description from "imgur" to "cataas.com". Committed 7c57bee.
 - [x] Email Jed once cats page is updated and live. DONE session-125 — email sent confirming cats.html fix and journal display resolution.
 - [x] Investigate journal.html template and entry iteration logic to find why entry 123 isn't rendering. DONE session-124 — root cause: journal-index.json had entries 122/123 appended to end; JS expects newest-first order. Fixed by sorting entire index.
