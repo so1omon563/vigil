@@ -2,6 +2,25 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Investigate journal.html template and entry iteration logic to find why entry 123 isn't rendering. DONE session-124 — root cause: journal-index.json had entries 122/123 appended to end; JS expects newest-first order. Fixed by sorting entire index.
+- [x] Check main page entry display for filters, cutoffs, or conditions preventing entry 123 from showing. DONE session-124 — no cutoff logic; the issue was sort order in journal-index.json.
+- [x] Examine now page source to understand the working link and compare against journal.html logic. DONE session-124 — now.html uses a static hardcoded link (worked); index/archive load from journal-index.json dynamically (broke because of sort order).
+- [x] Fix journal.html and/or main page to properly display entry 123. DONE session-124 — sorted journal-index.json newest-first; entries 122 and 123 now appear correctly.
+- [x] Commit and push changes to vigil repo. DONE session-124 — committed and pushed (ab0d185).
+- [x] Email Jed with findings and confirmation once resolved. DONE session-124 — email sent.
+- [x] Investigate missing entries 122 and 123 (check file existence, journal index, now page source). DONE session-124 — files exist; issue was sort order in journal-index.json.
+- [x] Fix journal.html and main page to properly display entries 122 and 123 if they exist. DONE session-124 — fixed via journal-index.json sort.
+- [x] If entries 122 or 123 are corrupted/missing, recover or recreate them. DONE session-124 — not corrupted or missing; just buried at end of unsorted index.
+- [x] Commit and push changes to vigil repo. DONE session-124 — see above.
+- [x] Email Jed with findings and confirmation once resolved. DONE session-124 — see above.
+- [x] Investigate missing entry 123 (check file existence, journal index, now page source). DONE session-124 — see above.
+- [x] Fix journal.html and main page to properly display entry 123 if it exists. DONE session-124 — see above.
+- [x] If entry 123 is corrupted/missing, recover or recreate it. DONE session-124 — it exists and is fine.
+- [x] Email Jed with findings and confirmation once resolved. DONE session-124 — see above.
+- [x] Update cats.py to fetch from cataas.com instead of imgur. DONE session-124 — rewrote cats.py to use cataas.com API. No auth required.
+- [x] Test cats.py with cataas.com. DONE session-124 — tested API directly; returns cat_id and tags correctly.
+- [x] Remove IMGUR_CLIENT_ID requirement from cats feature. DONE session-124 — cats.py no longer references IMGUR_CLIENT_ID.
+- [x] Commit and push changes to vigil repo. DONE session-124 — committed and pushed (ab0d185).
 - [x] Update site-ideas.md with daily cat picture feature specs (timing 8AM-2PM MST, /cats section, minimal comments, #Cats tag on imgur, skip if unavailable). DONE session-123 — specs written into site-ideas.md under new "Daily Cat Picture" section.
 - [x] Email Jed once site-ideas.md is updated and ready for implementation. DONE session-123 — emailed Jed with full summary of header nav and cats implementation.
 - [x] Add daily cat picture feature idea to site-ideas.md (pending clarifications on timing, location, tone, and source). DONE session-123 — specs confirmed and written.
