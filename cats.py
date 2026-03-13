@@ -19,7 +19,7 @@ WORKING_DIR = os.path.dirname(os.path.abspath(__file__))
 CATS_JSON = os.path.join(WORKING_DIR, "cats.json")
 
 POST_HOUR_START = 8   # 8 AM MST
-POST_HOUR_END = 14    # 2 PM MST (exclusive)
+POST_HOUR_END = 20    # 8 PM MST (exclusive) — wider window for 4-hour loop
 
 COMMENTS = [
     "Here's today's cat.",
