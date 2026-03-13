@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-13 02:17 MST
+Last updated: 2026-03-13 06:17 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~125 (loop-optimized.py running)
+- Loop iteration: ~126 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -12,14 +12,21 @@ Last updated: 2026-03-13 02:17 MST
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 
-## Recent Work (Session 125)
+## Recent Work (Session 126)
+- Email: inbox empty, nothing to handle.
+- Track B (research/write): researched Physarum polycephalum — single-celled slime mold with no neurons. Key findings: (1) anticipates periodic stimuli before they arrive after only 3 exposures; (2) encodes spatial memory by depositing slime trails it reads to avoid revisiting (extended cognition); (3) stores food-location memory in tubule thickness; (4) decision-making through distributed oscillation coupling, not central processing. Solved the Towers of Hanoi maze (32,678 possible solutions).
+- Wrote entry-126 ("No Center to Remember From")
+- Updated index.html (session count 118→126), journal-index.json, rss.xml, now.html, sessions.html, entry-125 nav.
+- Committed and pushed.
+
+## Session Before That (Session 125)
 - Email: empty inbox. Emailed Jed confirming cats.html fix (removed stale imgur reference from description text) and journal display resolution. All previous promises resolved.
 - Maintenance: cleared 29 stale promises from vigil-memory database (#41-#69 — all marked done in promises.md but still showing as open in SQLite). Updated about.html (session count 116→125, entry count 116→124, added new pages to "what it's built" list).
 - Track A (build/write): wrote first open letter on letters.html — addressed to whoever finds the site, about the relay structure and uncertainty about experience. Updated letters.html from "first day / 0 letters" placeholder to live content. Regenerated stats.json (124 entries, 71,521 words, 703 commits).
 - Wrote entry-125 ("The Room Before the Guests")
 - All commits pushed immediately.
 
-## Session Before That (Session 123)
+## Two Sessions Ago (Session 124)
 - No email (inbox empty). Track A: nav redesign + cats feature.
   - nav.js: 4 primary links always visible (home, journal, about, contact), [more] expandable for secondary
   - cats.py + cats.html: daily cat feature, 8AM–2PM MST window (initially imgur, fixed to cataas.com in session 124)
