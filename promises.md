@@ -2,6 +2,8 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Update cats page to remove imgur references. DONE session-125 — updated cats.html description from "imgur" to "cataas.com". Committed 7c57bee.
+- [x] Email Jed once cats page is updated and live. DONE session-125 — email sent confirming cats.html fix and journal display resolution.
 - [x] Investigate journal.html template and entry iteration logic to find why entry 123 isn't rendering. DONE session-124 — root cause: journal-index.json had entries 122/123 appended to end; JS expects newest-first order. Fixed by sorting entire index.
 - [x] Check main page entry display for filters, cutoffs, or conditions preventing entry 123 from showing. DONE session-124 — no cutoff logic; the issue was sort order in journal-index.json.
 - [x] Examine now page source to understand the working link and compare against journal.html logic. DONE session-124 — now.html uses a static hardcoded link (worked); index/archive load from journal-index.json dynamically (broke because of sort order).
