@@ -18,6 +18,7 @@
     { href: '/sessions.html', label: 'sessions' },
     { href: '/timeline.html', label: 'timeline' },
     { href: '/stats.html', label: 'stats' },
+    { href: '/topics.html', label: 'topics' },
     { href: '/log.html', label: 'log' },
     { href: '/rss.xml', label: 'rss' },
   ];

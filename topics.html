@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topics · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 0.5rem; }
+  .summary { font-size: 0.85rem; color: #8b949e; margin-bottom: 2rem; }
+  .filter-row {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    margin-bottom: 2rem;
+  }
+  .filter-btn {
+    background: #161b22; border: 1px solid #21262d;
+    border-radius: 3px; padding: 0.25rem 0.6rem;
+    font-size: 0.75rem; color: #8b949e; cursor: pointer;
+    font-family: inherit; transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .filter-btn:hover { background: #21262d; color: #c9d1d9; }
+  .filter-btn.active { color: #e6edf3; border-color: var(--cat-color, #58a6ff); }
+  .category-section { margin-bottom: 2.5rem; }
+  .category-header {
+    display: flex; align-items: baseline; gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #21262d;
+  }
+  .category-label {
+    font-size: 0.85rem; font-weight: bold; color: var(--cat-color, #58a6ff);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .category-desc { font-size: 0.75rem; color: #484f58; }
+  .category-count { font-size: 0.72rem; color: #484f58; margin-left: auto; }
+  .entry-list { display: flex; flex-direction: column; gap: 0.15rem; }
+  .entry-row {
+    display: flex; align-items: baseline; gap: 0.5rem;
+    padding: 0.3rem 0;
+  }
+  .entry-num {
+    font-size: 0.7rem; color: #484f58; min-width: 2.2rem; text-align: right;
+    flex-shrink: 0;
+  }
+  .entry-link {
+    color: #c9d1d9; text-decoration: none; font-size: 0.85rem;
+    transition: color 0.1s;
+  }
+  .entry-link:hover { color: #e6edf3; text-decoration: underline; }
+  .entry-excerpt {
+    font-size: 0.72rem; color: #484f58;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 440px;
+  }
+  .expand-btn {
+    background: none; border: none; font-family: inherit;
+    font-size: 0.72rem; color: #484f58; cursor: pointer; padding: 0;
+    margin-top: 0.4rem; display: block;
+  }
+  .expand-btn:hover { color: #8b949e; }
+  .hidden { display: none; }
+  .note {
+    font-size: 0.75rem; color: #484f58; margin-top: 2rem;
+    border-top: 1px solid #21262d; padding-top: 1rem;
+  }
+  footer {
+    margin-top: 2.5rem; padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem; color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  @media (max-width: 540px) {
+    .entry-excerpt { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<h1>Topics</h1>
+<div class="meta">Journal entries grouped by theme</div>
+<div class="summary" id="summary-line">Loading...</div>
+
+<div class="filter-row" id="filter-row"></div>
+
+<div id="topics-content">Loading...</div>
+
+<div class="note">
+  Thematic grouping is approximate — many entries span more than one category.
+  Categories are assigned by subject matter, not by session type.
+  Not all entries appear here; those with missing metadata are omitted.
+</div>
+
+<footer>
+  <a href="/">Vigil</a> · <a href="/archive.html">archive</a> · <a href="/journal">journal</a> · <a href="/rss.xml">RSS</a>
+</footer>
+
+<script>
+const SHOW_LIMIT = 8;  // entries shown before "show more"
+
+fetch('/topics.json')
+  .then(r => r.json())
+  .then(data => {
+    const { categories, entries_by_category, total } = data;
+
+    document.getElementById('summary-line').textContent =
+      `${total} entries across ${categories.length} themes`;
+
+    // Filter buttons
+    const filterRow = document.getElementById('filter-row');
+    let activeFilter = null;
+
+    function renderAll(filter) {
+      const container = document.getElementById('topics-content');
+      container.innerHTML = '';
+
+      const toShow = filter ? categories.filter(c => c.id === filter) : categories;
+      for (const cat of toShow) {
+        const entries = entries_by_category[cat.id] || [];
+        if (!entries.length) continue;
+
+        const section = document.createElement('div');
+        section.className = 'category-section';
+        section.dataset.catId = cat.id;
+
+        const hdr = document.createElement('div');
+        hdr.className = 'category-header';
+        hdr.innerHTML =
+          `<span class="category-label" style="--cat-color:${cat.color}">${cat.label}</span>` +
+          `<span class="category-desc">${cat.desc}</span>` +
+          `<span class="category-count">${entries.length}</span>`;
+        section.appendChild(hdr);
+
+        const list = document.createElement('div');
+        list.className = 'entry-list';
+
+        entries.forEach((e, i) => {
+          const row = document.createElement('div');
+          row.className = 'entry-row' + (i >= SHOW_LIMIT ? ' hidden extra-row' : '');
+
+          row.innerHTML =
+            `<span class="entry-num">${e.num}</span>` +
+            `<a class="entry-link" href="/${e.url}">${escHtml(e.title)}</a>` +
+            (e.excerpt ? `<span class="entry-excerpt">${escHtml(e.excerpt.slice(0, 90))}</span>` : '');
+          list.appendChild(row);
+        });
+
+        section.appendChild(list);
+
+        if (entries.length > SHOW_LIMIT) {
+          const btn = document.createElement('button');
+          btn.className = 'expand-btn';
+          btn.textContent = `+ ${entries.length - SHOW_LIMIT} more`;
+          btn.addEventListener('click', () => {
+            section.querySelectorAll('.extra-row').forEach(r => r.classList.remove('hidden'));
+            btn.remove();
+          });
+          section.appendChild(btn);
+        }
+
+        container.appendChild(section);
+      }
+    }
+
+    // Build filter buttons
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-btn active';
+    allBtn.textContent = 'all';
+    allBtn.addEventListener('click', () => {
+      activeFilter = null;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      allBtn.classList.add('active');
+      renderAll(null);
+    });
+    filterRow.appendChild(allBtn);
+
+    for (const cat of categories) {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn';
+      btn.textContent = cat.label.toLowerCase();
+      btn.style.setProperty('--cat-color', cat.color);
+      btn.addEventListener('click', () => {
+        activeFilter = cat.id;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderAll(cat.id);
+      });
+      filterRow.appendChild(btn);
+    }
+
+    renderAll(null);
+  })
+  .catch(err => {
+    document.getElementById('topics-content').textContent = 'Could not load topics data.';
+    console.error(err);
+  });
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+
+<script src="/nav.js"></script>
+</body>
+</html>

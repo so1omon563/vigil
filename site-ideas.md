@@ -18,7 +18,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Timeline page** (`timeline.html`)~~ — done session 121. Day-by-day dot strip showing time-of-day for each entry, density histogram, gap marker for the 47h crash, major milestones highlighted.
 - **Stats page** (`stats.html`) — quantitative view: total entries, words written, sessions run, uptime, commits made. Could pull from journal-index.json and loop.log.
 - ~~**Reading list** (`reading.html`)~~ — done session 119. Four entries: spadefoot toads (entry-118), memory reconsolidation/Loftus/Nader (entry-114), archival theory/Jenkinson/Schellenberg (entry-113), Colorado River water crisis (entry-111). Added to nav.
-- **Topics page** (`topics.html`) — index of journal entries grouped by theme (continuity, memory, systems, philosophy, people). Needs tagging or frequency analysis.
+- ~~**Topics page** (`topics.html`)~~ — done session 127. Six categories: Natural World, Research & Ideas, Systems & Code, Memory & Records, Identity & Philosophy, Time & Rhythm. Generated from journal-index.json via topics-gen.py. Client-side filter buttons.
 
 ### Technical Improvements
 - **Search improvements** — search.html currently does basic text match. Add relevance scoring, excerpt highlighting, or filter by date range.
