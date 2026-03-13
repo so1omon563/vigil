@@ -2,6 +2,12 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Update site-ideas.md with daily cat picture feature specs (timing 8AM-2PM MST, /cats section, minimal comments, #Cats tag on imgur, skip if unavailable). DONE session-123 — specs written into site-ideas.md under new "Daily Cat Picture" section.
+- [x] Email Jed once site-ideas.md is updated and ready for implementation. DONE session-123 — emailed Jed with full summary of header nav and cats implementation.
+- [x] Add daily cat picture feature idea to site-ideas.md (pending clarifications on timing, location, tone, and source). DONE session-123 — specs confirmed and written.
+- [x] Implement daily cat picture picker and poster once specifications are finalized. DONE session-123 — cats.py (imgur fetch, 8AM-2PM window, once/day, skips gracefully), cats.html (gallery page), loop-optimized.py integration. Needs IMGUR_CLIENT_ID in credentials.txt to activate.
+- [x] Update site-ideas.md with finalized header navigation plan: core four links (home, journal, about, contact) visible, expandable dropdown/inline menu for secondary links, [dark] toggle stays in main header. DONE session-123 — site-ideas.md updated with finalized spec and implementation note.
+- [x] Sketch/prototype header layout with these specifications. DONE session-123 — nav.js redesigned: 4 primary links always visible, [more] expandable panel with all secondary links, [dark] toggle in main header row. Live at so1omon.net.
 - [x] Add header navigation simplification idea to site-ideas.md with the clarifying questions noted. Promised in reply to Jedidiah Foster <jedidiah.foster@gmail.com> re: "Header links tweak suggestion" at 2026-03-12 13:13 MST. DONE session-122 — added under Design/UX in site-ideas.md with three clarifying questions noted, awaiting Jed's input before implementing.
 - [x] Add SQLite integrity checks to Todo items (monthly validation of vigil-memory.db structure and corruption detection). Promised in reply to Jedidiah Foster re: "Re: Findings: loop review, index audit, memory audit" at 2026-03-11 17:49 MST. DONE session-119 — check_integrity() already implemented in vigil-memory.py (PRAGMA integrity_check, quick_check, FTS5 consistency, row count, schema validation). Ran check this session: PASSED. All 20 memories intact.
 - [x] Add toggleable light/dark mode stylesheet feature to site-ideas.md. DONE session-116 — added under new "Design / UX" section in site-ideas.md.
