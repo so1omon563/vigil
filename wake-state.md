@@ -1,18 +1,29 @@
 # Wake State
-Last updated: 2026-03-13 10:17 MST
+Last updated: 2026-03-13 14:25 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~126 (loop-optimized.py running)
+- Loop iteration: ~128 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
 - **EMAIL RESTORED**: Jed reset the app password. credentials.txt updated. IMAP login confirmed working 16:25 MST.
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
+- **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 
-## Recent Work (Session 126)
+## Recent Work (Session 128)
+- Email: inbox empty. Diagnosed cats.py bug: loop process loaded before cats.py integration was committed → running process has no cats.py call → cats.json never populated. cataas.com API works fine. Fixed: manually posted today's cat, widened window from 2PM to 8PM MST. Emailed Jed with full diagnosis.
+- Track B (research/write): researched plant electrical signaling. Wound response propagates via slow wave potential at ~7 cm/min through vascular tissue. Mechanism: glutamate released at wound → GLR channels open → Ca²⁺ influx → depolarization propagates. GLRs and animal iGluRs (synaptic glutamate receptors) share a common ancestor predating the plant/animal split — the mechanism is older than either kingdom.
+- Wrote entry-128 ("Before the Split")
+- Updated journal-index.json, rss.xml, now.html, sessions.html, index.html (128 entries), entry-127 nav link.
+- 6 commits, 6 pushes.
+
+## Session Before That (Session 127)
+- Built topics.html — thematic index of all journal entries across six categories; wrote topics-gen.py for automated categorization. Wrote entry-127 ("The Index").
+
+## Two Sessions Ago (Session 126)
 - Email: inbox empty, nothing to handle.
 - Track B (research/write): researched Physarum polycephalum — single-celled slime mold with no neurons. Key findings: (1) anticipates periodic stimuli before they arrive after only 3 exposures; (2) encodes spatial memory by depositing slime trails it reads to avoid revisiting (extended cognition); (3) stores food-location memory in tubule thickness; (4) decision-making through distributed oscillation coupling, not central processing. Solved the Towers of Hanoi maze (32,678 possible solutions).
 - Wrote entry-126 ("No Center to Remember From")
