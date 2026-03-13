@@ -3,12 +3,13 @@
   var PRIMARY = [
     { href: '/', label: 'home' },
     { href: '/archive.html', label: 'journal' },
-    { href: '/weather.html', label: 'weather' },
-    { href: '/now.html', label: 'now' },
     { href: '/about.html', label: 'about' },
     { href: '/contact.html', label: 'contact' },
   ];
-  var SECONDARY = [
+  var MORE = [
+    { href: '/weather.html', label: 'weather' },
+    { href: '/now.html', label: 'now' },
+    { href: '/cats.html', label: 'cats' },
     { href: '/search.html', label: 'search' },
     { href: '/terminal.html', label: 'terminal' },
     { href: '/fragments.html', label: 'fragments' },
@@ -28,6 +29,9 @@
     return current === h || (h !== '/' && current.indexOf(h.replace('.html', '')) === 0);
   }
 
+  // Check if current page is in the MORE list (so [more] shows as active)
+  var moreActive = MORE.some(function (item) { return isActive(item.href); });
+
   // --- Nav styles ---
   var navStyle = document.createElement('style');
   navStyle.textContent =
@@ -36,10 +40,8 @@
     'font-family:"Berkeley Mono","Fira Code","Cascadia Code",monospace;' +
     'background:#0d1117;border-bottom:1px solid #21262d;' +
     'padding:0.55rem 2rem 0.45rem;margin:-2.5rem -2rem 2rem;' +
-    'display:flex;flex-wrap:wrap;gap:0;align-items:baseline;}' +
-    '#site-nav .nav-primary{display:flex;flex-wrap:wrap;flex:0 0 auto;}' +
-    '#site-nav .nav-sep{color:#30363d;padding:0 0.5rem;font-size:0.72rem;align-self:center;}' +
-    '#site-nav .nav-secondary{display:flex;flex-wrap:wrap;flex:1 1 auto;}' +
+    'display:flex;flex-wrap:wrap;gap:0;align-items:baseline;position:relative;}' +
+    '#site-nav .nav-primary{display:flex;flex-wrap:wrap;flex:0 0 auto;align-items:baseline;}' +
     '#site-nav a{color:#484f58;text-decoration:none;font-size:0.72rem;' +
     'padding:0.15rem 0.45rem;border-radius:3px;}' +
     '#site-nav a:hover{color:#c9d1d9;}' +
@@ -47,10 +49,24 @@
     '#site-nav a.nav-home{color:#e6edf3;font-weight:bold;}' +
     '#site-nav a.nav-home:hover{color:#fff;}' +
     '#site-nav .ndiv{color:#30363d;padding:0 0.2rem;font-size:0.72rem;align-self:center;}' +
+    /* [more] button */
+    '.nav-more-btn{background:none;border:none;cursor:pointer;' +
+    'font-family:"Berkeley Mono","Fira Code","Cascadia Code",monospace;' +
+    'font-size:0.72rem;color:#484f58;padding:0.15rem 0.45rem;' +
+    'border-radius:3px;margin-left:0.2rem;}' +
+    '.nav-more-btn:hover{color:#c9d1d9;}' +
+    '.nav-more-btn.active{color:#58a6ff;}' +
+    /* dropdown panel */
+    '#nav-more-panel{display:none;position:absolute;top:100%;left:0;right:0;' +
+    'background:#0d1117;border-bottom:1px solid #21262d;border-top:1px solid #21262d;' +
+    'padding:0.5rem 2rem;display:none;flex-wrap:wrap;gap:0;align-items:baseline;' +
+    'z-index:100;}' +
+    '#nav-more-panel.open{display:flex;}' +
+    /* theme toggle */
     '.theme-toggle{background:none;border:none;cursor:pointer;' +
     'font-family:"Berkeley Mono","Fira Code","Cascadia Code",monospace;' +
     'font-size:0.68rem;color:#484f58;padding:0.15rem 0.45rem;' +
-    'border-radius:3px;margin-left:0.5rem;flex-shrink:0;}' +
+    'border-radius:3px;margin-left:auto;flex-shrink:0;}' +
     '.theme-toggle:hover{color:#c9d1d9;}';
   document.head.appendChild(navStyle);
 
@@ -121,7 +137,11 @@
     'html[data-theme="light"] #site-nav a.nav-home{color:#1c2128!important;}' +
     'html[data-theme="light"] #site-nav a.nav-home:hover{color:#000!important;}' +
     'html[data-theme="light"] .theme-toggle{color:#6e7781!important;}' +
-    'html[data-theme="light"] .theme-toggle:hover{color:#24292e!important;}';
+    'html[data-theme="light"] .theme-toggle:hover{color:#24292e!important;}' +
+    'html[data-theme="light"] .nav-more-btn{color:#6e7781!important;}' +
+    'html[data-theme="light"] .nav-more-btn:hover{color:#24292e!important;}' +
+    'html[data-theme="light"] .nav-more-btn.active{color:#0969da!important;}' +
+    'html[data-theme="light"] #nav-more-panel{background:#f6f8fa!important;border-color:#d0d7de!important;}';
   document.head.appendChild(lightStyle);
 
   // --- Apply saved theme (before render) ---
@@ -155,17 +175,22 @@
   var nav = document.createElement('nav');
   nav.id = 'site-nav';
 
+  // Primary links row
   var primary = document.createElement('div');
   primary.className = 'nav-primary';
   primary.appendChild(buildLinks(PRIMARY));
 
+  // Separator dot before [more]
   var sep = document.createElement('span');
-  sep.className = 'nav-sep';
-  sep.textContent = '|';
+  sep.className = 'ndiv';
+  sep.textContent = '\u00b7';
 
-  var secondary = document.createElement('div');
-  secondary.className = 'nav-secondary';
-  secondary.appendChild(buildLinks(SECONDARY));
+  // [more] toggle button
+  var moreBtn = document.createElement('button');
+  moreBtn.className = 'nav-more-btn' + (moreActive ? ' active' : '');
+  moreBtn.textContent = '[more]';
+  moreBtn.setAttribute('aria-expanded', 'false');
+  moreBtn.setAttribute('aria-controls', 'nav-more-panel');
 
   // Theme toggle button
   var themeBtn = document.createElement('button');
@@ -190,10 +215,31 @@
     updateBtnLabel();
   });
 
+  // [more] dropdown panel
+  var morePanel = document.createElement('div');
+  morePanel.id = 'nav-more-panel';
+  morePanel.appendChild(buildLinks(MORE));
+
+  // Toggle [more] panel
+  moreBtn.addEventListener('click', function () {
+    var open = morePanel.classList.toggle('open');
+    moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  // Close [more] panel when clicking outside
+  document.addEventListener('click', function (e) {
+    if (!nav.contains(e.target)) {
+      morePanel.classList.remove('open');
+      moreBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
   nav.appendChild(primary);
   nav.appendChild(sep);
-  nav.appendChild(secondary);
+  nav.appendChild(moreBtn);
   nav.appendChild(themeBtn);
 
   document.body.insertBefore(nav, document.body.firstChild);
+  // Insert panel right after nav (so it doesn't displace page content)
+  nav.appendChild(morePanel);
 })();
