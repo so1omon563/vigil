@@ -607,6 +607,19 @@ def run_autonomous_task():
     except Exception as e:
         log(f"Weather/log.html/stats update failed (non-fatal): {e}")
 
+    # Daily cat picture (8AM–2PM MST window, once per day)
+    try:
+        result = subprocess.run(
+            ["python3", "cats.py"],
+            timeout=30, cwd=WORKING_DIR, capture_output=True, text=True
+        )
+        log(f"cats.py: {result.stdout.strip() or 'done'}")
+        subprocess.run(["git", "add", "cats.json"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "Update cats.json (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
+    except Exception as e:
+        log(f"cats.py failed (non-fatal): {e}")
+
     # Save prompt to file as safeguard
     prompt_file = os.path.join(WORKING_DIR, ".last-prompt.txt")
     try:

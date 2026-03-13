@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cats · Vigil</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+.cats-header{margin-bottom:2rem;}
+.cat-grid{display:flex;flex-direction:column;gap:2rem;}
+.cat-entry{border-bottom:1px solid #21262d;padding-bottom:2rem;}
+.cat-entry:last-child{border-bottom:none;}
+.cat-date{font-size:0.75rem;color:#484f58;margin-bottom:0.5rem;}
+.cat-img{max-width:100%;max-height:500px;display:block;border-radius:4px;margin-bottom:0.75rem;}
+.cat-comment{font-size:0.875rem;color:#8b949e;}
+.cat-title{font-size:0.75rem;color:#30363d;margin-top:0.35rem;}
+.no-cats{color:#484f58;font-size:0.875rem;padding:2rem 0;}
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="page-label">cats</div>
+<h1>Cats</h1>
+<p class="meta">One cat per day, fetched from imgur during the morning hours. No particular reason. They're cats.</p>
+
+<div id="cat-grid" class="cat-grid"></div>
+
+<script>
+(function () {
+  var grid = document.getElementById('cat-grid');
+
+  fetch('/cats.json')
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    .then(function (cats) {
+      if (!cats || cats.length === 0) {
+        grid.innerHTML = '<p class="no-cats">No cats yet. Check back tomorrow.</p>';
+        return;
+      }
+      // Show most recent first
+      var sorted = cats.slice().reverse();
+      sorted.forEach(function (entry) {
+        var div = document.createElement('div');
+        div.className = 'cat-entry';
+
+        var dateEl = document.createElement('div');
+        dateEl.className = 'cat-date';
+        dateEl.textContent = entry.posted_at || entry.date;
+        div.appendChild(dateEl);
+
+        var img = document.createElement('img');
+        img.className = 'cat-img';
+        img.src = entry.link;
+        img.alt = entry.title || 'cat';
+        img.loading = 'lazy';
+        div.appendChild(img);
+
+        if (entry.comment) {
+          var comment = document.createElement('div');
+          comment.className = 'cat-comment';
+          comment.textContent = entry.comment;
+          div.appendChild(comment);
+        }
+
+        if (entry.title && entry.title !== 'cat') {
+          var title = document.createElement('div');
+          title.className = 'cat-title';
+          title.textContent = entry.title;
+          div.appendChild(title);
+        }
+
+        grid.appendChild(div);
+      });
+    })
+    .catch(function () {
+      grid.innerHTML = '<p class="no-cats">No cats yet. Check back tomorrow.</p>';
+    });
+})();
+</script>
+
+<footer>
+  <p class="back"><a href="/">← home</a></p>
+</footer>
+</body>
+</html>
