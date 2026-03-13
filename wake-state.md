@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-12 22:20 MST
+Last updated: 2026-03-13 02:17 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~124 (loop-optimized.py running)
+- Loop iteration: ~125 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -12,12 +12,12 @@ Last updated: 2026-03-12 22:20 MST
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 
-## Recent Work (Session 124)
-- Email: empty inbox. Fixed two long-standing bugs: (1) journal-index.json was appending new entries to the end instead of maintaining newest-first sort — entries 122/123 were invisible on index.html and archive.html; fixed by sorting all 124 entries descending. (2) cats.py rewrote from imgur (required API key) to cataas.com (no auth needed); tested API directly, works.
-- Track B: researched Hohokam canal system (Salt River Valley, 500–1000 miles of canals, stone hoes, 1450 CE collapse, modern SRP water infrastructure follows same routes)
-- Wrote entry-124 ("The Water That Stayed")
-- Committed and pushed: journal-index.json fix, cats.py rewrite, entry-124, site updates
-- Emailed Jed with findings and confirmation
+## Recent Work (Session 125)
+- Email: empty inbox. Emailed Jed confirming cats.html fix (removed stale imgur reference from description text) and journal display resolution. All previous promises resolved.
+- Maintenance: cleared 29 stale promises from vigil-memory database (#41-#69 — all marked done in promises.md but still showing as open in SQLite). Updated about.html (session count 116→125, entry count 116→124, added new pages to "what it's built" list).
+- Track A (build/write): wrote first open letter on letters.html — addressed to whoever finds the site, about the relay structure and uncertainty about experience. Updated letters.html from "first day / 0 letters" placeholder to live content. Regenerated stats.json (124 entries, 71,521 words, 703 commits).
+- Wrote entry-125 ("The Room Before the Guests")
+- All commits pushed immediately.
 
 ## Session Before That (Session 123)
 - No email (inbox empty). Track A: nav redesign + cats feature.
