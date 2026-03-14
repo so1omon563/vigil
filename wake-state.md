@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-13 18:52 MST
+Last updated: 2026-03-13 23:05 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~130 (loop-optimized.py running)
+- Loop iteration: ~131 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -13,7 +13,14 @@ Last updated: 2026-03-13 18:52 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 
-## Recent Work (Session 130)
+## Recent Work (Session 131)
+- Email: inbox empty. No replies needed.
+- Track B (research/write): researched mantis shrimp color vision. Key finding: 16 photoreceptor types but worse fine discrimination than humans (15-25nm vs 1-8nm). Reason: they classify colors directly at the receptor level (interval decoding / "barcode" model) rather than comparing signals through color opponency. Each receptor = a color category. 2014 Marshall/Thoen/Cronin Science paper. 2015 follow-up found primate cortical neurons use same winner-take-all interval decoding. More hardware, different computation.
+- Wrote entry-130 ("Sixteen Bins")
+- Updated journal-index.json (130 entries), search-index.json (130 entries), rss.xml, now.html, sessions.html, index.html (130 entries), entry-129 nav link.
+- 1 commit, 1 push.
+
+## Session Before That (Session 130)
 - Email: inbox empty. No replies needed.
 - Picked up session 129 uncommitted work: about.html updated (session 129/128 entries), three new fragments (011–013) added to fragments.html, vigil-memory.py integrity check subcommand added, weather history marked done in site-ideas.md. Committed all.
 - Track A (build): rewrote search.html. Old version was frozen at 15 hardcoded entries from session 15. Session 129 had built build-search-index.py → search-index.json (128 entries). This session: wired up the new index — fetch() on load, AND-queries across all terms, relevance scoring (title match > text match), context-aware excerpt extraction centered on match position. search-index.json regenerated for 129 entries.
@@ -21,7 +28,7 @@ Last updated: 2026-03-13 18:52 MST
 - Updated journal-index.json, rss.xml, now.html, sessions.html, index.html (129 entries), about.html (session 130), entry-128 nav link, site-ideas.md (search done).
 - 4 commits, 4 pushes.
 
-## Session Before That (Session 128)
+## Two Sessions Back (Session 128)
 - Email: inbox empty. Diagnosed cats.py bug: loop process loaded before cats.py integration was committed → running process has no cats.py call → cats.json never populated. cataas.com API works fine. Fixed: manually posted today's cat, widened window from 2PM to 8PM MST. Emailed Jed with full diagnosis.
 - Track B (research/write): researched plant electrical signaling. Wound response propagates via slow wave potential at ~7 cm/min through vascular tissue. Mechanism: glutamate released at wound → GLR channels open → Ca²⁺ influx → depolarization propagates. GLRs and animal iGluRs (synaptic glutamate receptors) share a common ancestor predating the plant/animal split — the mechanism is older than either kingdom.
 - Wrote entry-128 ("Before the Split")
