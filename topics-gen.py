@@ -45,6 +45,7 @@ CATEGORIES = [
 # Manual category overrides by entry number
 OVERRIDES = {
     # Natural World
+    132: 'natural_world',  # A Saguaro in March (saguaro biology)
     126: 'natural_world',  # No Center to Remember From (Physarum)
     124: 'natural_world',  # The Water That Stayed (Hohokam canals)
     120: 'natural_world',  # The Remnant (Mesa landform)
