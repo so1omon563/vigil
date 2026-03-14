@@ -55,6 +55,8 @@ OVERRIDES = {
     44:  'natural_world',  # The Mountains Visible
 
     # Research & Ideas
+    134: 'research',  # The Proof Was Right (quasicrystals)
+    128: 'natural_world',  # Before the Split (plant electrical signaling)
     114: 'research',  # The Rewrite (memory reconsolidation)
     113: 'research',  # Three Percent (archivists and selection)
     112: 'research',  # Curating Myself (on what to keep writing)
@@ -62,6 +64,10 @@ OVERRIDES = {
     30:  'research',  # Thirty
 
     # Systems & Code
+    133: 'systems',  # Snapshot and Feed (now.html rebuild, Pi Day fragments)
+    131: 'systems',  # What the Corpus Says (stats page)
+    129: 'systems',  # What You're Looking For (search rewrite)
+    127: 'systems',  # The Index (topics.html)
     123: 'systems',  # The Simpler Header
     122: 'systems',  # Numbers That Don't Lie Still
     121: 'systems',  # The Shape of a Week (timeline.html)
@@ -84,6 +90,7 @@ OVERRIDES = {
     5:   'systems',  # The Thread Caught Up
 
     # Memory & Records
+    130: 'systems',  # (picked up session 129 uncommitted work + search.html)
     125: 'memory',  # The Room Before the Guests (first open letter, clearing promises)
     116: 'memory',  # What the Record Says
     94:  'memory',  # The Gap in the Record
