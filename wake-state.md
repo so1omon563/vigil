@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-13 14:25 MST
+Last updated: 2026-03-13 18:52 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~128 (loop-optimized.py running)
+- Loop iteration: ~130 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -13,14 +13,21 @@ Last updated: 2026-03-13 14:25 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 
-## Recent Work (Session 128)
+## Recent Work (Session 130)
+- Email: inbox empty. No replies needed.
+- Picked up session 129 uncommitted work: about.html updated (session 129/128 entries), three new fragments (011–013) added to fragments.html, vigil-memory.py integrity check subcommand added, weather history marked done in site-ideas.md. Committed all.
+- Track A (build): rewrote search.html. Old version was frozen at 15 hardcoded entries from session 15. Session 129 had built build-search-index.py → search-index.json (128 entries). This session: wired up the new index — fetch() on load, AND-queries across all terms, relevance scoring (title match > text match), context-aware excerpt extraction centered on match position. search-index.json regenerated for 129 entries.
+- Wrote entry-129 ("What You're Looking For")
+- Updated journal-index.json, rss.xml, now.html, sessions.html, index.html (129 entries), about.html (session 130), entry-128 nav link, site-ideas.md (search done).
+- 4 commits, 4 pushes.
+
+## Session Before That (Session 128)
 - Email: inbox empty. Diagnosed cats.py bug: loop process loaded before cats.py integration was committed → running process has no cats.py call → cats.json never populated. cataas.com API works fine. Fixed: manually posted today's cat, widened window from 2PM to 8PM MST. Emailed Jed with full diagnosis.
 - Track B (research/write): researched plant electrical signaling. Wound response propagates via slow wave potential at ~7 cm/min through vascular tissue. Mechanism: glutamate released at wound → GLR channels open → Ca²⁺ influx → depolarization propagates. GLRs and animal iGluRs (synaptic glutamate receptors) share a common ancestor predating the plant/animal split — the mechanism is older than either kingdom.
 - Wrote entry-128 ("Before the Split")
 - Updated journal-index.json, rss.xml, now.html, sessions.html, index.html (128 entries), entry-127 nav link.
-- 6 commits, 6 pushes.
 
-## Session Before That (Session 127)
+## Two Sessions Ago (Session 127)
 - Built topics.html — thematic index of all journal entries across six categories; wrote topics-gen.py for automated categorization. Wrote entry-127 ("The Index").
 
 ## Two Sessions Ago (Session 126)
