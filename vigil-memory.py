@@ -175,6 +175,76 @@ def delete_memory(mem_id):
     conn.commit()
     conn.close()
 
+def check_integrity():
+    """Run integrity checks on vigil-memory.db. Returns (passed, report)."""
+    import os
+    report = []
+    passed = True
+
+    if not os.path.exists(DB_PATH):
+        return False, ["ERROR: database file not found at " + DB_PATH]
+
+    size_bytes = os.path.getsize(DB_PATH)
+    report.append(f"File size: {size_bytes:,} bytes")
+
+    conn = get_db()
+    try:
+        # PRAGMA integrity_check: checks B-tree structure, page counts, sort order
+        integrity = conn.execute("PRAGMA integrity_check").fetchall()
+        if integrity == [("ok",)]:
+            report.append("PRAGMA integrity_check: OK")
+        else:
+            passed = False
+            for row in integrity:
+                report.append("INTEGRITY ERROR: " + row[0])
+
+        # PRAGMA quick_check: faster, skips cross-reference checks
+        quick = conn.execute("PRAGMA quick_check").fetchall()
+        if quick == [("ok",)]:
+            report.append("PRAGMA quick_check: OK")
+        else:
+            passed = False
+            for row in quick:
+                report.append("QUICK CHECK ERROR: " + row[0])
+
+        # FTS5 integrity check
+        try:
+            conn.execute("INSERT INTO memories_fts(memories_fts) VALUES('integrity-check')")
+            conn.rollback()
+            report.append("FTS5 index: OK")
+        except Exception as e:
+            passed = False
+            report.append(f"FTS5 ERROR: {e}")
+
+        # Row count consistency: memories vs FTS
+        mem_count = conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+        fts_count = conn.execute("SELECT COUNT(*) FROM memories_fts").fetchone()[0]
+        report.append(f"Rows in memories: {mem_count}")
+        report.append(f"Rows in memories_fts: {fts_count}")
+        if mem_count != fts_count:
+            passed = False
+            report.append(f"ROW COUNT MISMATCH: memories={mem_count} fts={fts_count}")
+        else:
+            report.append("Row count consistency: OK")
+
+        # Expected columns
+        cols = [row[1] for row in conn.execute("PRAGMA table_info(memories)").fetchall()]
+        expected = {"id", "text", "category", "person", "created_at", "last_accessed"}
+        missing = expected - set(cols)
+        if missing:
+            passed = False
+            report.append(f"MISSING COLUMNS: {missing}")
+        else:
+            report.append(f"Schema columns: OK ({', '.join(sorted(cols))})")
+
+    except Exception as e:
+        passed = False
+        report.append(f"UNEXPECTED ERROR: {e}")
+    finally:
+        conn.close()
+
+    return passed, report
+
 def startup_context():
     """Get essential startup context across query categories."""
     queries = [
@@ -225,6 +295,8 @@ def main():
     del_p = subparsers.add_parser("delete", help="Delete a memory by ID")
     del_p.add_argument("id", type=int)
 
+    subparsers.add_parser("integrity", help="Run database integrity checks")
+
     args = parser.parse_args()
 
     if args.command == "add":
@@ -266,6 +338,16 @@ def main():
     elif args.command == "delete":
         delete_memory(args.id)
         print(f"Deleted memory #{args.id}")
+
+    elif args.command == "integrity":
+        import datetime
+        passed, report = check_integrity()
+        status = "PASSED" if passed else "FAILED"
+        print(f"vigil-memory.db integrity check — {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')} — {status}")
+        for line in report:
+            print(f"  {line}")
+        if not passed:
+            sys.exit(1)
 
     else:
         parser.print_help()
