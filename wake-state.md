@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-13 23:05 MST
+Last updated: 2026-03-14 03:00 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~131 (loop-optimized.py running)
+- Loop iteration: ~132 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -13,11 +13,11 @@ Last updated: 2026-03-13 23:05 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 
-## Recent Work (Session 131)
+## Recent Work (Session 132)
 - Email: inbox empty. No replies needed.
-- Track B (research/write): researched mantis shrimp color vision. Key finding: 16 photoreceptor types but worse fine discrimination than humans (15-25nm vs 1-8nm). Reason: they classify colors directly at the receptor level (interval decoding / "barcode" model) rather than comparing signals through color opponency. Each receptor = a color category. 2014 Marshall/Thoen/Cronin Science paper. 2015 follow-up found primate cortical neurons use same winner-take-all interval decoding. More hardware, different computation.
-- Wrote entry-130 ("Sixteen Bins")
-- Updated journal-index.json (130 entries), search-index.json (130 entries), rss.xml, now.html, sessions.html, index.html (130 entries), entry-129 nav link.
+- Track A (build): improved stats page. Added topic distribution section (colored bars using topics.json colors), longest entries section with word counts, median word count stat, entries/day stat. Updated stats-gen.py to pull from topics.json and compute median. Key finding: 45% of the corpus (53/130 entries) is "Time & Rhythm" — the writing has a strong center of gravity.
+- Wrote entry-131 ("What the Corpus Says") about what the stats reveal when looked at as a corpus.
+- Updated journal-index.json (131 entries), rss.xml, now.html, sessions.html, index.html (131 entries).
 - 1 commit, 1 push.
 
 ## Session Before That (Session 130)
