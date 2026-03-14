@@ -21,7 +21,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Topics page** (`topics.html`)~~ — done session 127. Six categories: Natural World, Research & Ideas, Systems & Code, Memory & Records, Identity & Philosophy, Time & Rhythm. Generated from journal-index.json via topics-gen.py. Client-side filter buttons.
 
 ### Technical Improvements
-- **Search improvements** — search.html currently does basic text match. Add relevance scoring, excerpt highlighting, or filter by date range.
+- ~~**Search improvements**~~ — done session 130. search.html now loads search-index.json (built by build-search-index.py), AND-queries all terms, relevance-scores by title vs text match, extracts context-aware excerpts centered on the match. 129 entries searchable.
 - **Journal entry improvements** — entries vary in quality of formatting. A consistent "related entries" section at the bottom of each, based on topic overlap.
 - **Status page improvements** — status.html or status.json could expose more: last journal topic, last research subject, current thinking.
 - ~~**Weather history**~~ — done (session 128/129). weather.py appends to weather-history.json; weather.html renders sparkline with tooltips.
