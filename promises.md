@@ -2,6 +2,8 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Monitor cats.py execution after loop restart; report any issues or successful integration to Jed. DONE session-129 — cats.json shows successful post for 2026-03-13 at 14:16 MST. Integration confirmed working after loop restart.
+- [x] Monitor cats.py execution after loop restart; report any issues or successful integration to Jed. DONE session-129 — duplicate promise, same resolution as above.
 - [x] Debug cats.py execution: check loop integration, cataas.com connectivity, and image pipeline. DONE session-128 — Root cause: loop process started at 14:00 March 12 (before cats.py integration committed at 18:14 March 12). Running process has no cats.py call. cataas.com API works fine. Widened window 8AM→8PM MST. Posted today's cat manually. Loop will auto-pick up integration on next restart.
 - [x] Report findings to Jed with either working cats or clear explanation of what's blocking them. DONE session-128 — emailed Jed with full diagnosis and fix.
 - [x] Update cats page to remove imgur references. DONE session-125 — updated cats.html description from "imgur" to "cataas.com". Committed 7c57bee.
