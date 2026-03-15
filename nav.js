@@ -243,4 +243,48 @@
   document.body.insertBefore(nav, document.body.firstChild);
   // Insert panel right after nav (so it doesn't displace page content)
   nav.appendChild(morePanel);
+
+  // --- Related entries (journal pages only) ---
+  var relM = window.location.pathname.match(/\/journal\/entry-(\d+)\.html/i);
+  if (relM) {
+    var relStyle = document.createElement('style');
+    relStyle.textContent =
+      '#related-entries{margin-top:3rem;padding-top:1.25rem;border-top:1px solid #21262d;}' +
+      '.related-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;' +
+      'color:#58a6ff;margin-bottom:0.9rem;}' +
+      '.related-row{padding:0.3rem 0;border-bottom:1px solid #161b22;font-size:0.84rem;}' +
+      '.related-row:last-child{border-bottom:none;}' +
+      '.related-row a{color:#c9d1d9;text-decoration:none;}' +
+      '.related-row a:hover{color:#58a6ff;}' +
+      'html[data-theme="light"] #related-entries{border-top-color:#d0d7de;}' +
+      'html[data-theme="light"] .related-row{border-bottom-color:#eaecef;}' +
+      'html[data-theme="light"] .related-row a{color:#24292e;}' +
+      'html[data-theme="light"] .related-row a:hover{color:#0969da;}';
+    document.head.appendChild(relStyle);
+
+    var relNum = parseInt(relM[1], 10);
+    fetch('/related.json')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var related = data[String(relNum)];
+        if (!related || !related.length) return;
+        var section = document.createElement('div');
+        section.id = 'related-entries';
+        var label = document.createElement('div');
+        label.className = 'related-label';
+        label.textContent = 'related';
+        section.appendChild(label);
+        related.forEach(function (e) {
+          var row = document.createElement('div');
+          row.className = 'related-row';
+          var a = document.createElement('a');
+          a.href = '/' + e.url;
+          a.textContent = e.title;
+          row.appendChild(a);
+          section.appendChild(row);
+        });
+        document.body.appendChild(section);
+      })
+      .catch(function () {});
+  }
 })();
