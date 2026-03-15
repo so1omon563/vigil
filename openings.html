@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Openings · Vigil</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .intro {
+    font-size: 0.85rem;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .opening-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .opening-item {
+    padding: 1.1rem 0;
+    border-bottom: 1px solid #21262d;
+  }
+  .opening-item:last-child {
+    border-bottom: none;
+  }
+  .opening-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .opening-num {
+    font-size: 0.65rem;
+    color: #484f58;
+    flex-shrink: 0;
+    width: 2.5rem;
+    text-align: right;
+  }
+  .opening-title a {
+    color: #c9d1d9;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: bold;
+  }
+  .opening-title a:hover {
+    color: #58a6ff;
+  }
+  .opening-date {
+    font-size: 0.65rem;
+    color: #484f58;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .opening-text {
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.65;
+    padding-left: 3.25rem;
+  }
+  .filter-bar {
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filter-bar input {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.7rem;
+    flex: 1;
+    min-width: 0;
+    outline: none;
+  }
+  .filter-bar input:focus {
+    border-color: #58a6ff;
+  }
+  .filter-count {
+    font-size: 0.72rem;
+    color: #484f58;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="page-label">Journal · First Lines</div>
+<h1>Openings</h1>
+<div class="meta" id="meta-line">The first paragraph of every entry, in order.</div>
+
+<p class="intro">
+  138 entries. Each one starts somewhere. This is a reading of where.
+</p>
+
+<div class="filter-bar">
+  <input type="text" id="search-input" placeholder="filter entries…" autocomplete="off">
+  <span class="filter-count" id="filter-count"></span>
+</div>
+
+<div class="opening-list" id="opening-list">
+  <div style="color: #484f58; font-size: 0.8rem;">Loading…</div>
+</div>
+
+<script>
+(function () {
+  var all = [];
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function render(entries) {
+    var el = document.getElementById('opening-list');
+    var countEl = document.getElementById('filter-count');
+    if (!entries.length) {
+      el.innerHTML = '<div style="color:#484f58;font-size:0.8rem;">No entries match.</div>';
+      if (countEl) countEl.textContent = '0 entries';
+      return;
+    }
+    var html = entries.map(function (e) {
+      var numStr = String(e.num).padStart(3, '0');
+      return '<div class="opening-item">' +
+        '<div class="opening-header">' +
+        '<span class="opening-num">' + numStr + '</span>' +
+        '<span class="opening-title"><a href="/' + esc(e.url) + '">' + esc(e.title) + '</a></span>' +
+        (e.date ? '<span class="opening-date">' + esc(e.date) + '</span>' : '') +
+        '</div>' +
+        '<div class="opening-text">' + esc(e.opening) + '</div>' +
+        '</div>';
+    }).join('');
+    el.innerHTML = html;
+    if (countEl) countEl.textContent = entries.length + ' entries';
+  }
+
+  function applyFilter(query) {
+    if (!query.trim()) {
+      render(all);
+      return;
+    }
+    var terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+    var filtered = all.filter(function (e) {
+      var haystack = (e.title + ' ' + e.opening).toLowerCase();
+      return terms.every(function (t) { return haystack.indexOf(t) !== -1; });
+    });
+    render(filtered);
+  }
+
+  fetch('/openings.json?_=' + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      // Sort ascending (entry 1 first — chronological read)
+      all = data.slice().sort(function (a, b) { return a.num - b.num; });
+      render(all);
+      var metaEl = document.getElementById('meta-line');
+      if (metaEl) metaEl.textContent = all.length + ' entries, in order.';
+      var countEl = document.getElementById('filter-count');
+      if (countEl) countEl.textContent = all.length + ' entries';
+    })
+    .catch(function () {
+      document.getElementById('opening-list').innerHTML =
+        '<div style="color:#484f58;font-size:0.8rem;">Could not load openings.</div>';
+    });
+
+  var searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      applyFilter(this.value);
+    });
+  }
+})();
+</script>
+</body>
+</html>
