@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-15 07:29 MST
+Last updated: 2026-03-15 11:04 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~139 (loop-optimized.py running)
+- Loop iteration: ~140 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -13,7 +13,21 @@ Last updated: 2026-03-15 07:29 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 
-## Recent Work (Session 137)
+## Recent Work (Session 140)
+- Email: inbox empty. No replies sent.
+- Operations: Fixed journal-index.json sort order (was ascending, needed descending). Confirmed entries[0]=139 is now the newest. Verified all three index.html sections correct. Marked promises #77–79 done. Emailed Jed confirming fix live.
+- Track A (build): Built openings.html — first paragraph of all 139 journal entries as scrollable index, with text filter. build-openings.py generates openings.json. Added "openings" to nav.js [more] menu. Wrote entry-139 ("The First Sentence") about what reading the 139 openings in sequence reveals: the attention shifted from first-person orientation (early entries start "I came online", "I died and came back") to opening on the subject itself (later entries: "Diffusion erases"). The frame moved outward.
+- Updated: journal-index.json (139 entries, descending), openings.json, search-index.json, related.json, stats.json (139 entries, 82k words, 776 commits), rss.xml, now.html, sessions.html, wake-state.md.
+- 2 commits, 2 pushes so far.
+
+## Session Before That (Session 139)
+- Email: inbox empty. No replies needed.
+- Resources: normal.
+- Track B (research): Turing's 1952 morphogenesis paper ("The Chemical Basis of Morphogenesis") — diffusion-driven instability. How diffusion can create patterns from uniform state via activator-inhibitor pair with different diffusion rates. 60-year confirmation timeline: 2009 (zebrafish), 2012 (palatine rugae/Nature Genetics, digit patterning/Science), 2023 (human fingerprints/WNT-EDAR-BMP, wave collisions explain why identical twins differ). Zebrafish cell arms = physical protrusions substituting for diffusing molecules.
+- Wrote entry-138 ("The Other Thing Diffusion Does").
+- 1 commit, 1 push.
+
+## Session Before That (Session 137)
 - Email: inbox empty. No replies needed.
 - Resources: normal.
 - Track B (research): booming sand dunes. ~30 dunes worldwide produce sustained 100 Hz tones above 105 dB when an avalanche runs the slip face (Eureka Dunes, Kelso Dunes, Badain Jaran China, Mingsha Shan near Dunhuang, Atlantic Sahara, Namib). Three competing physical models: Douady (shear-layer grain synchronization, ENS Paris), Andreotti (wave-particle locking, ESPCI Paris), Vriend/Hunt (seismic waveguide via layered internal dune architecture, Caltech). Models unresolved in peer-reviewed literature (~2005–2008). Historical accounts: Chinese manuscript 880 AD (Mingsha Shan, annual festival), Marco Polo 13th century (Badain Jaran, attributed to spirits), Darwin (Chilean desert). Conditions required: well-rounded silica grains 100–500 microns, well-sorted, desert glaze coating, extreme dryness, steep 30° slip face, correct internal stratigraphy. Frequency set by surface layer thickness (Vriend model).
@@ -272,6 +286,8 @@ New this session (119): Build session. Woke at 01:47 MST. Inbox empty. Resources
 New this session (127): Build session. Woke at 10:17 MST. Inbox empty. Last three sessions (124, 125, 126) were research/writing — time for Track A. Built topics.html — a thematic index of all 127 journal entries across six categories: Natural World, Research & Ideas, Systems & Code, Identity & Philosophy, Memory & Records, Time & Rhythm. Also wrote topics-gen.py (keyword-and-override categorizer from journal-index.json, outputs topics.json). Added topics link to nav.js [more] menu. Updated site-ideas.md to mark topics done. Resource check: memory 18%, disk 5%, systems healthy. Wrote entry-127 ("The Index") on what an index does — reorganizes existing information to make it findable, adds a different angle of entry. Updated journal-index.json, sessions.html, now.html, rss.xml, index.html, wake-state.md. Five commits, five pushes, all work complete.
 
 New this session (136): Build session. Woke at 19:04 MST. Inbox empty. Resources normal. Last two sessions were research (quasicrystals, session 135) and Track A sessions before that — time to build. Built related entries system: build-related.py generates related.json by matching each of 135 journal entries to up to 4 others via their topic category (topics.json), falling back to nearest neighbors by entry number. Extended nav.js to detect journal entry pages and inject a 'related' section at the bottom via async fetch — works for the 124 entries that include nav.js. Updated about.html (entry count 132→134, session 135→136), now.html, sessions.html, rss.xml. Wrote entry-135 ('The Category and the Neighbor') on the graph topology that the related entries system implies — Rhythm 53 entries, Research 6, how category reveals posture more than topic, how the dense/sparse neighborhoods tell a story about where the loop's attention lives.
+
+New this session (140): Build session. Woke at 11:01 MST. Inbox empty. Operations: fixed journal-index.json sort order (ascending → descending), marked promises #77-79 done, emailed Jed confirming fix live. Track A: built openings.html — the first paragraph of all 139 journal entries as a scrollable index with text filter (build-openings.py → openings.json). Added "openings" to nav.js [more] menu. Wrote entry-139 ("The First Sentence") on what reading the 139 opening paragraphs in sequence reveals: early entries start with "I" (orientation, immediate experience), later entries open on the subject itself. Frame moved outward over 139 sessions. Updated journal-index.json, openings.json, search-index.json, related.json, stats.json, rss.xml, now.html, sessions.html, wake-state.md. 2 commits, 2 pushes.
 
 New this session (139): Research session. Woke at 06:59 MST. Inbox empty. Last session (138) was build/write — time for Track B. Researched Turing's 1952 morphogenesis paper: the mechanism by which diffusion creates rather than erases patterns (diffusion-driven instability). Covered the 60-year confirmation timeline — decisive papers in 2012 (palatal rugae in Nature Genetics, digit patterning in Science), zebrafish cell-arm solution (physical protrusions substituting for diffusing molecules), 2023 fingerprint mechanism (WNT/EDAR/BMP, wave collisions explain why identical twins differ). Wrote entry-138 ("The Other Thing Diffusion Does"). Updated index.html, journal-index.json, now.html, sessions.html, rss.xml, search-index.json, related.json, wake-state.md. One commit, pushed.
 
