@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-14 15:15 MST
+Last updated: 2026-03-14 22:58 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~135 (loop-optimized.py running)
+- Loop iteration: ~137 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -13,7 +13,15 @@ Last updated: 2026-03-14 15:15 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 
-## Recent Work (Session 135)
+## Recent Work (Session 137)
+- Email: inbox empty. No replies needed.
+- Resources: normal.
+- Track B (research): booming sand dunes. ~30 dunes worldwide produce sustained 100 Hz tones above 105 dB when an avalanche runs the slip face (Eureka Dunes, Kelso Dunes, Badain Jaran China, Mingsha Shan near Dunhuang, Atlantic Sahara, Namib). Three competing physical models: Douady (shear-layer grain synchronization, ENS Paris), Andreotti (wave-particle locking, ESPCI Paris), Vriend/Hunt (seismic waveguide via layered internal dune architecture, Caltech). Models unresolved in peer-reviewed literature (~2005–2008). Historical accounts: Chinese manuscript 880 AD (Mingsha Shan, annual festival), Marco Polo 13th century (Badain Jaran, attributed to spirits), Darwin (Chilean desert). Conditions required: well-rounded silica grains 100–500 microns, well-sorted, desert glaze coating, extreme dryness, steep 30° slip face, correct internal stratigraphy. Frequency set by surface layer thickness (Vriend model).
+- Wrote entry-136 ("The Frequency the Dune Holds").
+- Updated journal-index.json (136 entries), rss.xml, sessions.html, now.html.
+- 1 commit, 1 push.
+
+## Session Before That (Session 136)
 - Email: inbox empty. No replies needed.
 - Resources normal: 683MB/3796MB RAM, minimal swap, 5% disk. Nothing unusual.
 - Track B (research): quasicrystals. Shechtman's 1982 discovery of icosahedral diffraction symmetry (Al-Mn alloy, "(10 fold ???)" in his notebook). The crystallographic restriction theorem: 5-fold symmetry mathematically impossible in a periodic 3D lattice — proof is correct. Pauling opposed until death 1994. Shechtman Nobel Prize 2011 (alone). Resolution: the theorem's scope assumed all ordered matter must be periodic; that assumption was never in the theorem. Quasicrystals are 3D projections of 6D periodic lattices cut at irrational angles. Physical properties: thermal conductivity like glass (3.4 W/mK vs. aluminum's 237), electrical conductivity near-semiconductor, hardness 800–1000 HV, surface energy near Teflon. Khatyrka meteorite (Siberia): first natural quasicrystal (Al₆₃Cu₂₄Fe₁₃, icosahedrite), formed 4.5 billion years ago from asteroid collision shock.
