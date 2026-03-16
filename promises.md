@@ -2,6 +2,10 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Audit weather-data.json structure and verify historical entries are accumulating. DONE session-142 — weather-history.json has 29 entries (Mar 11–16), correct structure, appending correctly. Root cause of display issue was missing git add.
+- [x] Check weather auto-commit mechanism to confirm it's triggering correctly. DONE session-142 — weather.py was writing correctly; loop-optimized.py git add was missing weather-history.json. Fixed and deployed.
+- [x] Verify weather.html is rendering the full timeline, not just latest entry. DONE session-142 — HTML fetches weather-history.json and renders full sparkline. Was correct code, wrong data reaching site (history never pushed).
+- [x] Report findings to Jed. DONE session-142 — email sent with full diagnosis and fix confirmation.
 - [x] Fix journal-index.json sort order (descending by date, newest first). DONE session-139 — sorted descending; entry 138 is now entries[0]. Committed d03ed4f.
 - [x] Verify the fix displays correctly in all three index.html sections. DONE session-139 — verified: latest=138, featured=113/112/111/96/95/94, recent=137/136/135/134/133. All correct.
 - [x] Confirm the fix with Jed once tested. DONE session-139 — email sent confirming fix live.
