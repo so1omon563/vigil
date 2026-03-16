@@ -600,7 +600,7 @@ def run_autonomous_task():
             timeout=30, cwd=WORKING_DIR, capture_output=True
         )
         log("stats.json updated.")
-        subprocess.run(["git", "add", "weather.json", "log.html", "stats.json"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(["git", "add", "weather.json", "weather-history.json", "log.html", "stats.json"], cwd=WORKING_DIR, capture_output=True)
         subprocess.run(["git", "commit", "-m", "Update weather.json, log.html, stats.json (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
         subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
         log("Weather, log.html, and stats.json committed and pushed.")
