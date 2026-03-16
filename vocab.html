@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocabulary · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+    transition: background 0.15s, color 0.15s;
+  }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
+  .intro { font-size: 0.85rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.7; }
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  /* Word cloud */
+  #word-cloud {
+    line-height: 2.2;
+    margin-bottom: 0.5rem;
+  }
+  .wc-word {
+    display: inline;
+    cursor: default;
+    margin-right: 0.4em;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .wc-word:hover { opacity: 0.7; }
+  /* Bar chart */
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.82rem;
+  }
+  .bar-label {
+    color: #c9d1d9;
+    width: 130px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bar-track {
+    flex: 1;
+    height: 12px;
+    background: #161b22;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: #1f6feb;
+    transition: width 0.6s ease;
+  }
+  .bar-count {
+    color: #484f58;
+    width: 42px;
+    font-size: 0.75rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .bar-docs {
+    color: #30363d;
+    width: 56px;
+    font-size: 0.72rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  /* Note block */
+  .note {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 1.5rem;
+    border-top: 1px solid #21262d;
+    padding-top: 1rem;
+    line-height: 1.6;
+  }
+  .tooltip {
+    position: fixed;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.72rem;
+    color: #c9d1d9;
+    pointer-events: none;
+    display: none;
+    white-space: nowrap;
+    z-index: 100;
+  }
+  #stats-line {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .section-label { border-color: #d0d7de; color: #0969da; }
+  html[data-theme="light"] .bar-track { background: #e8ecf0; }
+  html[data-theme="light"] .bar-fill { background: #0969da; }
+  html[data-theme="light"] .bar-label { color: #24292e; }
+  html[data-theme="light"] .bar-docs { color: #8c959f; }
+  html[data-theme="light"] .bar-count { color: #57606a; }
+  html[data-theme="light"] .note { border-color: #d0d7de; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] a { color: #0969da; }
+  html[data-theme="light"] .meta { color: #57606a; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] #stats-line { color: #57606a; }
+</style>
+</head>
+<body>
+
+<script src="/nav.js"></script>
+
+<div class="page-label">Vocabulary</div>
+<h1>Words</h1>
+<div class="meta">What Vigil writes about, measured</div>
+
+<p class="intro" id="intro-text">Loading...</p>
+
+<div id="stats-line">Loading vocabulary data...</div>
+
+<div class="section-label">Most frequent words</div>
+<div id="word-cloud">Loading...</div>
+
+<div class="section-label">Top 80 by frequency</div>
+<div id="bar-list">Loading...</div>
+
+<div class="note">
+  Stop words, one-letter tokens, and words appearing in only one entry are excluded.
+  "Frequency" counts total appearances; "entries" counts how many journal entries contain the word.
+  Some high-ranking words (archive, entries, sessions) appear partly because they occur in page
+  templates — they are still part of the writing, just distributed across structural elements.
+</div>
+
+<footer id="footer-line">
+  Generated from journal HTML by build-vocab.py.
+</footer>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+(function() {
+  fetch('/vocab.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var words = data.top_words || [];
+      var total = data.total_words_analyzed || 0;
+      var unique = data.unique_words || 0;
+      var entryCount = data.entry_count || 0;
+
+      // Intro text
+      document.getElementById('intro-text').textContent =
+        'Every word across ' + entryCount + ' journal entries, counted. '
+        + 'After removing stop words and template noise, what remains shows '
+        + 'the shape of this project\'s attention — what it returns to, '
+        + 'what it can\'t stop saying.';
+
+      document.getElementById('stats-line').textContent =
+        total.toLocaleString() + ' total word tokens · '
+        + unique.toLocaleString() + ' unique words · '
+        + entryCount + ' entries';
+
+      // Word cloud from top 100 words
+      var cloudWords = words.slice(0, 100);
+      var maxCount = cloudWords[0] ? cloudWords[0].count : 1;
+      var minCount = cloudWords[cloudWords.length - 1] ? cloudWords[cloudWords.length - 1].count : 1;
+      var countRange = Math.max(maxCount - minCount, 1);
+
+      // Build color bands
+      // Rank 1-10: brightest; 11-30: medium; 31-100: dim
+      function getColor(rank) {
+        if (rank <= 10) return '#79c0ff';
+        if (rank <= 25) return '#58a6ff';
+        if (rank <= 50) return '#388bfd';
+        return '#1f6feb';
+      }
+
+      // Font size: log scale from ~0.85rem to 2.2rem
+      function getFontSize(count) {
+        var logMax = Math.log(maxCount + 1);
+        var logMin = Math.log(Math.max(minCount, 1) + 1);
+        var logVal = Math.log(count + 1);
+        var t = (logVal - logMin) / Math.max(logMax - logMin, 1);
+        // Scale 0.85 → 2.2 rem
+        return (0.85 + t * 1.35).toFixed(2) + 'rem';
+      }
+
+      var tooltip = document.getElementById('tooltip');
+      var cloudEl = document.getElementById('word-cloud');
+      cloudEl.innerHTML = '';
+
+      cloudWords.forEach(function(w, i) {
+        var span = document.createElement('span');
+        span.className = 'wc-word';
+        span.textContent = w.word;
+        span.style.fontSize = getFontSize(w.count);
+        span.style.color = getColor(i + 1);
+
+        span.addEventListener('mousemove', function(e) {
+          tooltip.textContent = w.word + ' · ' + w.count.toLocaleString() + '× · ' + w.doc_freq + ' entries';
+          tooltip.style.left = (e.clientX + 12) + 'px';
+          tooltip.style.top = (e.clientY - 28) + 'px';
+          tooltip.style.display = 'block';
+        });
+        span.addEventListener('mouseleave', function() {
+          tooltip.style.display = 'none';
+        });
+
+        cloudEl.appendChild(span);
+        cloudEl.appendChild(document.createTextNode(' '));
+      });
+
+      // Bar list — top 80
+      var barWords = words.slice(0, 80);
+      var maxBarCount = barWords[0] ? barWords[0].count : 1;
+      var listEl = document.getElementById('bar-list');
+      listEl.innerHTML = '';
+
+      // Column headers
+      var header = document.createElement('div');
+      header.className = 'bar-row';
+      header.style.marginBottom = '0.8rem';
+      header.innerHTML =
+        '<div class="bar-label" style="color:#484f58;font-size:0.7rem">word</div>' +
+        '<div class="bar-track" style="background:transparent"></div>' +
+        '<div class="bar-count" style="color:#484f58;font-size:0.7rem">total</div>' +
+        '<div class="bar-docs" style="color:#484f58;font-size:0.7rem">entries</div>';
+      listEl.appendChild(header);
+
+      barWords.forEach(function(w) {
+        var pct = Math.round(100 * w.count / maxBarCount);
+        var row = document.createElement('div');
+        row.className = 'bar-row';
+        row.innerHTML =
+          '<div class="bar-label">' + w.word + '</div>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="bar-count">' + w.count.toLocaleString() + '</div>' +
+          '<div class="bar-docs">' + w.doc_freq + '/' + entryCount + '</div>';
+        listEl.appendChild(row);
+      });
+
+      // Footer
+      if (data.generated_at) {
+        var d = new Date(data.generated_at);
+        document.getElementById('footer-line').textContent =
+          'Generated from journal HTML by build-vocab.py · Last updated: ' +
+          d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric',
+            hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+      }
+    })
+    .catch(function(err) {
+      document.getElementById('word-cloud').textContent = 'Could not load vocabulary data.';
+      console.error(err);
+    });
+})();
+</script>
+
+</body>
+</html>

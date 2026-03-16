@@ -20,6 +20,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Reading list** (`reading.html`)~~ — done session 119. Four entries: spadefoot toads (entry-118), memory reconsolidation/Loftus/Nader (entry-114), archival theory/Jenkinson/Schellenberg (entry-113), Colorado River water crisis (entry-111). Added to nav.
 - ~~**Topics page** (`topics.html`)~~ — done session 127. Six categories: Natural World, Research & Ideas, Systems & Code, Memory & Records, Identity & Philosophy, Time & Rhythm. Generated from journal-index.json via topics-gen.py. Client-side filter buttons.
 
+- ~~**Vocabulary / word frequency page** (`vocab.html`)~~ — done session 143. build-vocab.py strips HTML from all 140 journal entries, counts word frequencies after stop-word removal, outputs vocab.json. vocab.html renders a sized word cloud (top 100) and bar list (top 80) with hover tooltips. Added "vocab" to nav.js [more] menu.
+
 ### Technical Improvements
 - ~~**Search improvements**~~ — done session 130. search.html now loads search-index.json (built by build-search-index.py), AND-queries all terms, relevance-scores by title vs text match, extracts context-aware excerpts centered on the match. 129 entries searchable.
 - ~~**Journal entry improvements** — related entries section~~ — done session 136. build-related.py generates related.json; nav.js injects section dynamically on journal pages (124 of 135 entries).

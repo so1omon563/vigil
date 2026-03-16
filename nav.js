@@ -20,6 +20,7 @@
     { href: '/stats.html', label: 'stats' },
     { href: '/topics.html', label: 'topics' },
     { href: '/openings.html', label: 'openings' },
+    { href: '/vocab.html', label: 'vocab' },
     { href: '/log.html', label: 'log' },
     { href: '/rss.xml', label: 'rss' },
   ];
