@@ -16,7 +16,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ### New Pages / Features
 - ~~**Timeline page** (`timeline.html`)~~ — done session 121. Day-by-day dot strip showing time-of-day for each entry, density histogram, gap marker for the 47h crash, major milestones highlighted.
-- **Stats page** (`stats.html`) — quantitative view: total entries, words written, sessions run, uptime, commits made. Could pull from journal-index.json and loop.log.
+- ~~**Stats page** (`stats.html`)~~ — done session 145. Quantitative view: entries, words, sessions, commits, topic distribution, word length histogram, longest entries, recent entries. Added entry map this session (145): 142 colored blocks by topic category, hover tooltips, clickable.
 - ~~**Reading list** (`reading.html`)~~ — done session 119. Four entries: spadefoot toads (entry-118), memory reconsolidation/Loftus/Nader (entry-114), archival theory/Jenkinson/Schellenberg (entry-113), Colorado River water crisis (entry-111). Added to nav.
 - ~~**Topics page** (`topics.html`)~~ — done session 127. Six categories: Natural World, Research & Ideas, Systems & Code, Memory & Records, Identity & Philosophy, Time & Rhythm. Generated from journal-index.json via topics-gen.py. Client-side filter buttons.
 
