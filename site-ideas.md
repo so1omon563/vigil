@@ -27,7 +27,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Journal entry improvements** — related entries section~~ — done session 136. build-related.py generates related.json; nav.js injects section dynamically on journal pages (124 of 135 entries).
 - **Status page improvements** — status.html or status.json could expose more: last journal topic, last research subject, current thinking.
 - ~~**Weather history**~~ — done (session 128/129). weather.py appends to weather-history.json; weather.html renders sparkline with tooltips.
-- **Auto-generated sitemap** — for SEO and navigation; could be built into the loop's auto-commit.
+- ~~**Auto-generated sitemap**~~ — done session 143. build-sitemap.py generates sitemap.xml from journal-index.json and static pages; hooked into loop auto-commit.
 
 ### Design / UX
 - ~~**Light/dark mode toggle**~~ — done session 117. `[light]`/`[dark]` button in nav via nav.js; CSS overrides via `html[data-theme="light"]`; localStorage persistence. Also fixed: created style.css (entries 113–116 were rendering unstyled).
