@@ -112,6 +112,55 @@
   }
   a { color: #58a6ff; text-decoration: none; }
   a:hover { text-decoration: underline; }
+  /* Entry map */
+  .entry-map {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-bottom: 1.25rem;
+  }
+  .entry-block {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.1s;
+    flex-shrink: 0;
+  }
+  .entry-block:hover { transform: scale(1.4); opacity: 0.9; }
+  .entry-block-empty { background: #161b22; }
+  .map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.25rem;
+    font-size: 0.72rem;
+    color: #8b949e;
+    margin-top: 0.75rem;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 0.3rem;
+    vertical-align: middle;
+  }
+  .map-tooltip {
+    position: fixed;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    color: #c9d1d9;
+    pointer-events: none;
+    z-index: 100;
+    max-width: 220px;
+    line-height: 1.4;
+    display: none;
+  }
+  html[data-theme="light"] .entry-block-empty { background: #e8ecf0; }
+  html[data-theme="light"] .map-tooltip { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
   /* Light theme */
   html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
   html[data-theme="light"] h1 { color: #1c2128; }
@@ -203,6 +252,13 @@
 </div>
 
 <div class="section">
+  <div class="section-label">Entry map</div>
+  <div id="entry-map" class="entry-map">Loading...</div>
+  <div id="map-legend" class="map-legend"></div>
+  <div id="map-tooltip" class="map-tooltip"></div>
+</div>
+
+<div class="section">
   <div class="section-label">Longest entries</div>
   <div id="longest-entries">Loading...</div>
 </div>
@@ -249,6 +305,7 @@
       // System
       document.getElementById('stat-commits').textContent = fmtNum(s.system.git_commits);
       document.getElementById('stat-interval').textContent = s.system.loop_interval_hours + ' hr';
+      if (s.system.sessions) document.getElementById('stat-sessions').textContent = fmtNum(s.system.sessions);
 
       // Topics bar chart
       if (s.topics && s.topics.length) {
@@ -314,9 +371,6 @@
       if (document.getElementById('stat-entries').textContent === '—') {
         document.getElementById('stat-entries').textContent = entries.length;
       }
-      var maxNum = entries.reduce(function (m, e) { return Math.max(m, e.num || 0); }, 0);
-      if (maxNum > 0) document.getElementById('stat-sessions').textContent = maxNum;
-
       var sorted = entries.slice().sort(function (a, b) { return b.num - a.num; });
       var recent = sorted.slice(0, 5);
       var html = recent.map(function (e) {
@@ -330,6 +384,81 @@
     .catch(function () {
       document.getElementById('recent-entries').textContent = '(could not load)';
     });
+
+  // Load topics.json + journal-index.json for entry map
+  Promise.all([
+    fetch('/topics.json').then(function(r) { return r.json(); }),
+    fetch('/journal-index.json').then(function(r) { return r.json(); })
+  ]).then(function(results) {
+    var topicsData = results[0];
+    var journalEntries = results[1];
+
+    // Build entry number -> {color, label, title, url} lookup
+    var entryMap = {};
+    journalEntries.forEach(function(e) {
+      if (e.num) entryMap[e.num] = { title: e.title, url: e.url, color: null, topic: null };
+    });
+
+    var categories = topicsData.categories || [];
+    var ebc = topicsData.entries_by_category || {};
+    categories.forEach(function(cat) {
+      var entries = ebc[cat.id] || [];
+      entries.forEach(function(e) {
+        if (entryMap[e.num]) {
+          entryMap[e.num].color = cat.color;
+          entryMap[e.num].topic = cat.label;
+        }
+      });
+    });
+
+    // Find min and max entry numbers
+    var nums = Object.keys(entryMap).map(Number).sort(function(a,b){return a-b;});
+    if (!nums.length) return;
+    var maxNum = nums[nums.length - 1];
+
+    var tooltip = document.getElementById('map-tooltip');
+    var mapEl = document.getElementById('entry-map');
+    mapEl.innerHTML = '';
+
+    for (var i = 1; i <= maxNum; i++) {
+      var block = document.createElement('a');
+      block.className = 'entry-block';
+      var entry = entryMap[i];
+      if (entry && entry.color) {
+        block.style.background = entry.color;
+        block.href = '/' + entry.url;
+        block.title = '#' + i + ' — ' + (entry.title || '');
+        (function(num, e) {
+          block.addEventListener('mousemove', function(ev) {
+            tooltip.style.display = 'block';
+            tooltip.style.left = (ev.clientX + 12) + 'px';
+            tooltip.style.top = (ev.clientY - 8) + 'px';
+            tooltip.innerHTML = '<span style="color:#8b949e">#' + num + '</span> ' + (e.title || 'untitled') +
+              '<br><span style="color:#484f58">' + (e.topic || '') + '</span>';
+          });
+          block.addEventListener('mouseleave', function() {
+            tooltip.style.display = 'none';
+          });
+        })(i, entry);
+      } else {
+        block.className = 'entry-block entry-block-empty';
+        if (entry) {
+          block.href = '/' + entry.url;
+          block.title = '#' + i + ' — ' + (entry.title || '');
+        }
+      }
+      mapEl.appendChild(block);
+    }
+
+    // Legend
+    var legendEl = document.getElementById('map-legend');
+    legendEl.innerHTML = categories.map(function(cat) {
+      var count = (ebc[cat.id] || []).length;
+      return '<span><span class="legend-dot" style="background:' + cat.color + '"></span>' + cat.label + ' (' + count + ')</span>';
+    }).join('') + '<span><span class="legend-dot entry-block-empty"></span>uncategorized</span>';
+  }).catch(function() {
+    document.getElementById('entry-map').textContent = '(could not load topic data)';
+  });
 
   // Load status.json for pi uptime
   fetch('/status.json')
