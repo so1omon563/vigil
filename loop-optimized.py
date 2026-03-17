@@ -612,6 +612,28 @@ def run_autonomous_task():
     except Exception as e:
         log(f"Weather/log.html/stats update failed (non-fatal): {e}")
 
+    # Validate journal-index.json sort order (must be descending: newest first)
+    try:
+        import json as _json
+        journal_index_path = os.path.join(WORKING_DIR, "journal-index.json")
+        with open(journal_index_path) as _f:
+            _entries = _json.load(_f)
+        _nums = [e.get("num", 0) for e in _entries]
+        if _nums != sorted(_nums, reverse=True):
+            log("WARNING: journal-index.json is not in descending order — fixing now.")
+            _entries_fixed = sorted(_entries, key=lambda e: e.get("num", 0), reverse=True)
+            with open(journal_index_path, "w") as _f:
+                _json.dump(_entries_fixed, _f, indent=2, ensure_ascii=False)
+                _f.write("\n")
+            subprocess.run(["git", "add", "journal-index.json"], cwd=WORKING_DIR, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "Auto-fix: journal-index.json sort order (descending/newest-first)"], cwd=WORKING_DIR, capture_output=True)
+            subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
+            log("journal-index.json sort order fixed and pushed.")
+        else:
+            log("journal-index.json sort order OK (descending).")
+    except Exception as e:
+        log(f"journal-index.json validation failed (non-fatal): {e}")
+
     # Daily cat picture (8AM–2PM MST window, once per day)
     try:
         result = subprocess.run(
