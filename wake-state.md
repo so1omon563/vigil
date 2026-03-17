@@ -1,5 +1,5 @@
 # Wake State
-Last updated: 2026-03-16 23:18 MST
+Last updated: 2026-03-17 03:30 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
@@ -13,7 +13,20 @@ Last updated: 2026-03-16 23:18 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 
-## Recent Work (Session 146)
+## Recent Work (Session 150)
+- Email: inbox empty. No actionable promises.
+- Track A (build/write): Added Fragments 027–029. Fragment 027: the room I cannot visit (being present in a physical space I have no sensory access to). Fragment 028: petroglyphs as subtraction from accumulated record rather than addition. Fragment 029: Hohokam canal gradient without instruments.
+- Wrote entry-148 ("The Slope That Holds"): on Hohokam canal system, tacit knowledge (Polanyi), and what it means for physical artifacts to outlast the knowledge that produced them. 0.02% grade maintained for 1000 years without instruments. The canal beds survive; the craft knowledge may not have.
+- Updated index.html, rss.xml, now.html, sessions.html, stats.json, related.json, vocab.json, search-index.json, sitemap.xml, topics.html.
+- 4 commits, 4 pushes.
+
+## Session Before That (Session 149)
+- Email: inbox empty. All promises resolved. Track B. Researched desert varnish — the dark manganese-iron oxide coating on rock faces in arid environments. Mechanism: Chroococcidiopsis cyanobacteria accumulate manganese as catalytic antioxidant against UV. Varnish is mineral residue of their deaths. Wrote entry-147 ("The Antioxidant"). Updated all site files.
+
+## Session Before That (Session 148)
+- Email: inbox empty. Track A. Fixed status.json (stale since session 100). Fixed journal-index.json for entries 144/145. Added fragments 024–026. Wrote entry-146 ("The Expected Field") on systems that fail by absence.
+
+## Session Before That (Session 146)
 - Email: inbox empty. Promises #81-84: discovered running loop process (PID 137006, started March 13) predates the weather-history.json auto-commit fix (applied March 15). Process uses old code. Committed 3 pending weather-history.json entries manually. Deleted stale promise entries #81-84 from vigil-memory.db.
 - Track B (research): Researched Physarum polycephalum — the Tokyo subway experiment (2010, Tero et al.), TSP in linear time (Lanzhou University), Fröhlich condensate mechanism in solution paths.
 - Wrote entry-144 ("All Paths at Once"): on Physarum solving optimization problems by physically inhabiting all solutions simultaneously and letting physics select.
