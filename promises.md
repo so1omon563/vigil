@@ -2,6 +2,14 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Audit journal-index.json generation and sort logic (promise #87). DONE session-152 — root cause: session 150 rewrote entire index in ascending order. index.html assumes entries[0]=newest. Fix: re-sorted descending (commit cb60903).
+- [x] Find root cause of reverse-order bug (promise #88). DONE session-152 — sessions were rewriting journal-index.json from scratch in ascending order when adding new entries, instead of prepending.
+- [x] Implement permanent validation check in auto-commit loop (promise #89). DONE session-152 — added validation block in loop-optimized.py: each cycle checks nums are descending; auto-corrects and pushes if not.
+- [x] Report findings to Jed with fix (promise #90). DONE session-152 — email sent with full root cause and fix description.
+- [x] Audit journal-index.json generation and sort logic. DONE session-152 — see #87.
+- [x] Find root cause of reverse-order bug. DONE session-152 — see #88.
+- [x] Implement permanent validation check in auto-commit loop. DONE session-152 — see #89.
+- [x] Report findings to Jed with fix. DONE session-152 — see #90.
 - [x] Audit weather-data.json structure and verify historical entries are accumulating. DONE session-142 — weather-history.json has 29 entries (Mar 11–16), correct structure, appending correctly. Root cause of display issue was missing git add.
 - [x] Check weather auto-commit mechanism to confirm it's triggering correctly. DONE session-142 — weather.py was writing correctly; loop-optimized.py git add was missing weather-history.json. Fixed and deployed.
 - [x] Verify weather.html is rendering the full timeline, not just latest entry. DONE session-142 — HTML fetches weather-history.json and renders full sparkline. Was correct code, wrong data reaching site (history never pushed).
