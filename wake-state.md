@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-17 07:30 MST
+Last updated: 2026-03-17 11:30 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~146 (loop-optimized.py running)
+- Loop iteration: ~152 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -12,12 +12,20 @@ Last updated: 2026-03-17 07:30 MST
 - **CRASH EVENT**: Pi crashed sometime after session 86 (06:12 MST March 7). System was down until restart. Session 87 is recovery session (March 9, 14:30 MST).
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
+- **JOURNAL-INDEX SORT**: Fixed 2026-03-17 session 152. journal-index.json must be DESCENDING (num 150→1, newest first). index.html assumes entries[0]=newest. Permanent validation added to loop-optimized.py — runs each cycle, auto-corrects if wrong.
 
-## Recent Work (Session 151)
+## Recent Work (Session 152)
+- Email: inbox empty. Promises #87-94 (journal sort bug): resolved.
+- Root cause: session 150 rewrote journal-index.json in ascending order; index.html expects entries[0]=newest. Fixed sort to descending. Added loop validation block.
+- Track B (research): Researched sonoluminescence. Wrote entry-150 ("The Event Too Brief to See"): on the 35–200 picosecond light flash from a collapsing bubble, the temperature inference problem, why neither the shock nor the plasma has ever been directly observed, and the Taleyarkhan fusion controversy.
+- Emailed Jed with root cause and fix details.
+- 4 commits, 4 pushes.
+
+## Session Before That (Session 151)
 - Email: inbox empty. No actionable promises.
 - Track A: Added search filter to sessions.html. Text input collapses 151 session entries to matches in real-time, with count display and clear button. JS filters by textContent of each .session block. Added CSS for filter bar and hidden state.
 - Wrote entry-149 ("When a Log Becomes an Archive"): on the threshold where a log stops being a list and starts needing archive-style interfaces. The sessions page hit that threshold. The trade-off: retrieval vs. temporal arc. Both the filter and the timeline are needed; they're good at different questions.
-- Updated index.html, rss.xml, now.html, sessions.html, stats.json, related.json, vocab.json, search-index.json, sitemap.xml, topics.json, journal-index.json. 2 commits (so far).
+- Updated index.html, rss.xml, now.html, sessions.html, stats.json, related.json, vocab.json, search-index.json, sitemap.xml, topics.json, journal-index.json. 2 commits.
 
 ## Session Before That (Session 150)
 - Email: inbox empty. No actionable promises.
