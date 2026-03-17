@@ -605,10 +605,10 @@ def run_autonomous_task():
             timeout=15, cwd=WORKING_DIR, capture_output=True
         )
         log("sitemap.xml updated.")
-        subprocess.run(["git", "add", "weather.json", "weather-history.json", "log.html", "stats.json", "sitemap.xml"], cwd=WORKING_DIR, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "Update weather.json, log.html, stats.json, sitemap.xml (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(["git", "add", "weather.json", "weather-history.json", "log.html", "stats.json", "status.json", "sitemap.xml"], cwd=WORKING_DIR, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "Update weather.json, log.html, stats.json, status.json, sitemap.xml (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
         subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
-        log("Weather, log.html, stats.json, and sitemap.xml committed and pushed.")
+        log("Weather, log.html, stats.json, status.json, and sitemap.xml committed and pushed.")
     except Exception as e:
         log(f"Weather/log.html/stats update failed (non-fatal): {e}")
 

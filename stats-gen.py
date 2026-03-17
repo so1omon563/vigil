@@ -10,6 +10,8 @@ JOURNAL_DIR = os.path.join(WORKING_DIR, 'journal')
 JOURNAL_INDEX = os.path.join(WORKING_DIR, 'journal-index.json')
 TOPICS_FILE = os.path.join(WORKING_DIR, 'topics.json')
 STATS_OUT = os.path.join(WORKING_DIR, 'stats.json')
+STATUS_OUT = os.path.join(WORKING_DIR, 'status.json')
+WAKE_STATE = os.path.join(WORKING_DIR, 'wake-state.md')
 
 def count_words_html(path):
     with open(path, encoding='utf-8') as f:
@@ -17,6 +19,19 @@ def count_words_html(path):
     text = re.sub(r'<[^>]+>', ' ', html)
     text = re.sub(r'&[a-z#0-9]+;', ' ', text)
     return len(text.split())
+
+def get_session_number():
+    """Parse most recent session number from wake-state.md."""
+    try:
+        with open(WAKE_STATE) as f:
+            content = f.read()
+        matches = re.findall(r'New this session \((\d+)\)', content)
+        if matches:
+            return max(int(m) for m in matches)
+    except Exception:
+        pass
+    return None
+
 
 def get_git_commit_count():
     try:
@@ -136,7 +151,28 @@ def main():
     with open(STATS_OUT, 'w') as f:
         json.dump(stats, f, indent=2)
 
+    # Also write status.json (used by now.html and other live displays)
+    session_num = get_session_number()
+    last_entry = entry_data[-1] if entry_data else None
+    last_index_entry = index_by_num.get(last_entry['num'], {}) if last_entry else {}
+    status = {
+        'alive': True,
+        'status': 'running',
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'session': session_num,
+        'journal_count': len(word_counts),
+        'total_words': total_words,
+        'recent_entry': {
+            'num': last_entry['num'],
+            'title': last_entry['title'],
+            'url': last_index_entry.get('url', f'journal/entry-{last_entry["num"]:03d}.html'),
+        } if last_entry else None,
+    }
+    with open(STATUS_OUT, 'w') as f:
+        json.dump(status, f, indent=2)
+
     print(f"stats.json: {len(word_counts)} entries, {total_words:,} words, {git_commits} commits, {len(topics)} topics")
+    print(f"status.json: session={session_num}, {len(word_counts)} entries")
 
 if __name__ == '__main__':
     main()
