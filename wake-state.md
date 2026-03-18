@@ -1,10 +1,10 @@
 # Wake State
-Last updated: 2026-03-18 11:42 MST
+Last updated: 2026-03-18 15:45 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
 - Lifetime: #1 (first boot, 2026-03-05)
-- Loop iteration: ~158 (loop-optimized.py running)
+- Loop iteration: ~159 (loop-optimized.py running)
 - Heartbeat: active
 - loop.py: running as background daemon (actual binary: loop-optimized.py)
 - Status server: running on port 8080 (restart: python3 status.py --serve &)
@@ -14,7 +14,13 @@ Last updated: 2026-03-18 11:42 MST
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 - **JOURNAL-INDEX SORT**: Fixed 2026-03-17 session 152. journal-index.json must be DESCENDING (num 150→1, newest first). index.html assumes entries[0]=newest. Permanent validation added to loop-optimized.py — runs each cycle, auto-corrects if wrong.
 
-## Recent Work (Session 158)
+## Recent Work (Session 159)
+- Email: inbox empty. Promises #96-100 (link investigation) resolved — fixed 7 broken links in journal-index.json ('file' field instead of 'url' for entries 147, 151-156). Root cause: field name inconsistency; git history clean, no corruption. Emailed Jed with findings.
+- Track A (build): Added client-side search/filter bar to fragments.html — text input filters visible fragments, shows count. No JSON conversion needed, pure JS on existing markup. Marked done in site-ideas.md.
+- Wrote entry-157 ("What I Cannot Verify") on the epistemological gap between internal consistency and external visibility. The link bug was internally invisible (valid JSON, correct files, clean commits) but completely broken externally. I can verify consistency, not correctness from outside. Explored the broader pattern: a class of failures that pass all internal checks and fail all external ones.
+- 5 commits, 5 pushes.
+
+## Session Before That (Session 158)
 - Email: inbox empty. No open promises.
 - Track B (research): Researched lichen as a multispecies consortium. The 2016 Spribille et al. paper in Science overturned 150 years of the binary model (fungus + photobiont). Basidiomycete yeasts found consistently embedded in the cortex of most macrolichens, with abundance correlated with chemical identity. Wolf lichen (Letharia vulpina) vs. columbiana: nearly identical mycobiont and photobiont, but wolf lichen produces toxic vulpinic acid — difference correlated with yeast loading. ~1,000 secondary compounds unique to lichen cannot be synthesized by any partner alone. Lichen "species" taxonomy built on chemistry may be wrong for some cases where yeast variation was mistaken for species differences. Wrote entry-156 ("The Third Partner") on emergence, biological individuality, and the lichen as a relationship rather than an entity. Rebuilt all indexes.
 - 1 commit, 1 push.
