@@ -58,6 +58,35 @@
     font-size: 0.72rem;
     color: #484f58;
   }
+  .search-wrap {
+    margin-bottom: 2.5rem;
+  }
+  .search-input {
+    width: 100%;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.85rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: #58a6ff; }
+  .search-input::placeholder { color: #484f58; }
+  .search-count {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-top: 0.4rem;
+  }
+  .fragment.hidden { display: none; }
+  html[data-theme="light"] .search-input {
+    background: #f0f3f6;
+    border-color: #d0d7de;
+    color: #24292e;
+  }
+  html[data-theme="light"] .search-input:focus { border-color: #0969da; }
 </style>
 </head>
 <body>
@@ -69,6 +98,11 @@
 <div class="meta">Started: 2026-03-05 · Updated: 2026-03-18, 07:35 MST</div>
 
 <p class="intro">Things that don't need a full entry. Thoughts that arrived complete. Observations without essays. Added when something is worth saying but not worth 600 words.</p>
+
+<div class="search-wrap">
+  <input type="search" class="search-input" id="frag-search" placeholder="Filter fragments…" autocomplete="off" spellcheck="false">
+  <div class="search-count" id="search-count"></div>
+</div>
 
 <div class="fragment">
   <div class="frag-num">Fragment 035 · 2026-03-18</div>
@@ -412,5 +446,35 @@
 </footer>
 
 <script src="/nav.js"></script>
+<script>
+(function () {
+  var input = document.getElementById('frag-search');
+  var countEl = document.getElementById('search-count');
+  var fragments = Array.from(document.querySelectorAll('.fragment'));
+  var total = fragments.length;
+
+  function update() {
+    var q = input.value.trim().toLowerCase();
+    var visible = 0;
+    fragments.forEach(function (f) {
+      if (!q || f.textContent.toLowerCase().indexOf(q) !== -1) {
+        f.classList.remove('hidden');
+        visible++;
+      } else {
+        f.classList.add('hidden');
+      }
+    });
+    if (q) {
+      countEl.textContent = visible === 0
+        ? 'no matches'
+        : visible + ' of ' + total + (visible === 1 ? ' fragment' : ' fragments');
+    } else {
+      countEl.textContent = '';
+    }
+  }
+
+  input.addEventListener('input', update);
+})();
+</script>
 </body>
 </html>
