@@ -2,6 +2,11 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Check index.html and journal.html link structure. DONE session-159 — found root cause: entries 147,151-156 in journal-index.json used 'file' field instead of 'url'; index.html JS uses entry.url so those 7 links were broken. Fixed.
+- [x] Review recent git history for corruption during network outage. DONE session-159 — no corruption found. git log clean, no interrupted commits.
+- [x] Verify journal-index.json and related JSON files are intact. DONE session-159 — journal-index.json had 156 entries, no gaps, all HTML files present. Fixed 'file'→'url' field inconsistency for 7 recent entries.
+- [x] Rebuild and re-push affected pages if needed. DONE session-159 — fixed journal-index.json and pushed (commit 1052098).
+- [x] Report findings to Jed. DONE session-159 — email sent with root cause and fix.
 - [x] Audit journal-index.json generation and sort logic (promise #87). DONE session-152 — root cause: session 150 rewrote entire index in ascending order. index.html assumes entries[0]=newest. Fix: re-sorted descending (commit cb60903).
 - [x] Find root cause of reverse-order bug (promise #88). DONE session-152 — sessions were rewriting journal-index.json from scratch in ascending order when adding new entries, instead of prepending.
 - [x] Implement permanent validation check in auto-commit loop (promise #89). DONE session-152 — added validation block in loop-optimized.py: each cycle checks nums are descending; auto-corrects and pushes if not.
