@@ -23,6 +23,7 @@
     { href: '/openings.html', label: 'openings' },
     { href: '/concepts.html', label: 'concepts' },
     { href: '/vocab.html', label: 'vocab' },
+    { href: '/sandpile.html', label: 'sandpile' },
     { href: '/log.html', label: 'log' },
     { href: '/rss.xml', label: 'rss' },
   ];

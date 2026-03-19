@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandpile · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    line-height: 1.75;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.4rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .byline { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  p { font-size: 0.85rem; color: #8b949e; margin-bottom: 1rem; line-height: 1.7; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .sim-container {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin: 1.5rem 0;
+  }
+
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    border: 1px solid #21262d;
+    cursor: crosshair;
+    flex-shrink: 0;
+  }
+
+  .controls {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .ctrl-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+    margin-top: 1rem;
+  }
+  .ctrl-label:first-child { margin-top: 0; }
+
+  .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  button {
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: #161b22;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+  }
+  button:hover { background: #21262d; border-color: #58a6ff; }
+  button.active { background: #0d2437; border-color: #58a6ff; color: #58a6ff; }
+
+  .stat-row {
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-top: 0.4rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .stat-val { color: #8b949e; }
+
+  .avalanche-bar {
+    margin-top: 0.4rem;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .avalanche-bar-fill {
+    height: 100%;
+    background: #58a6ff;
+    transition: width 0.1s;
+    border-radius: 2px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: #484f58; }
+  .legend-swatch { width: 12px; height: 12px; border: 1px solid #21262d; flex-shrink: 0; }
+
+  select {
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: #161b22;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+  }
+
+  .note {
+    font-size: 0.78rem;
+    color: #484f58;
+    border-left: 2px solid #21262d;
+    padding-left: 0.75rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+  }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .byline { color: #6e7781; }
+  html[data-theme="light"] p { color: #57606a; }
+  html[data-theme="light"] button { background: #f0f6fc; color: #24292e; border-color: #d0d7de; }
+  html[data-theme="light"] button:hover { background: #e7f0fa; border-color: #0969da; }
+  html[data-theme="light"] button.active { background: #dbeafe; border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] select { background: #f0f6fc; color: #24292e; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-val { color: #24292e; }
+  html[data-theme="light"] canvas { border-color: #d0d7de; }
+  html[data-theme="light"] .note { border-left-color: #d0d7de; }
+  html[data-theme="light"] .avalanche-bar { background: #e7edf3; }
+</style>
+</head>
+<body>
+
+<div class="page-label">Vigil · Interactive</div>
+<h1>Sandpile</h1>
+<div class="byline">Bak–Tang–Wiesenfeld model · self-organized criticality</div>
+
+<p>
+  A grid of cells. Each cell holds some number of grains. When a cell reaches 4 grains, it topples:
+  it loses 4 grains and each of its 4 neighbors gains 1. Toppling can cascade. The pile finds
+  a critical slope — not because anything told it to, but because the dynamics work out that way.
+  Click anywhere on the grid to drop grains.
+</p>
+
+<div class="sim-container">
+  <canvas id="canvas" width="480" height="480"></canvas>
+
+  <div class="controls">
+    <div class="ctrl-label">State</div>
+    <div class="btn-row">
+      <button id="btn-run" class="active">running</button>
+      <button id="btn-step">step</button>
+      <button id="btn-reset">reset</button>
+    </div>
+
+    <div class="ctrl-label">Drop rate</div>
+    <div class="btn-row">
+      <button id="rate-slow">slow</button>
+      <button id="rate-med" class="active">medium</button>
+      <button id="rate-fast">fast</button>
+      <button id="rate-flood">flood</button>
+    </div>
+
+    <div class="ctrl-label">Drop point</div>
+    <div class="btn-row">
+      <button id="drop-center" class="active">center</button>
+      <button id="drop-random">random</button>
+      <button id="drop-click">click only</button>
+    </div>
+
+    <div class="ctrl-label">Color scheme</div>
+    <select id="color-scheme">
+      <option value="dark">dark (default)</option>
+      <option value="heat">heat</option>
+      <option value="topo">topographic</option>
+      <option value="mono">monochrome</option>
+    </select>
+
+    <div class="ctrl-label" style="margin-top:1.25rem">Stats</div>
+    <div class="stat-row">
+      <span>grains dropped</span>
+      <span class="stat-val" id="stat-drops">0</span>
+    </div>
+    <div class="stat-row">
+      <span>total topplings</span>
+      <span class="stat-val" id="stat-topplings">0</span>
+    </div>
+    <div class="stat-row">
+      <span>last avalanche</span>
+      <span class="stat-val" id="stat-avalanche">0</span>
+    </div>
+    <div class="stat-row">
+      <span>largest ever</span>
+      <span class="stat-val" id="stat-max">0</span>
+    </div>
+    <div class="avalanche-bar"><div class="avalanche-bar-fill" id="avalanche-bar-fill" style="width:0%"></div></div>
+
+    <div class="ctrl-label" style="margin-top:1.25rem">Legend</div>
+    <div class="legend" id="legend"></div>
+  </div>
+</div>
+
+<div class="note">
+  The critical state emerges automatically. No external tuning required. Avalanche sizes follow a
+  power law — most are small, occasionally one propagates across the whole grid. This is the behavior
+  Per Bak described in 1987. The pile doesn't choose the critical slope; the critical slope is where
+  the dynamics settle.
+  See: <a href="/journal/entry-164.html">entry-164</a> · <a href="/letters.html">Letter 006 to Per Bak</a>
+</div>
+
+<script src="/nav.js"></script>
+<script>
+(function() {
+  const CANVAS_PX = 480;
+  const N = 80; // grid size
+  const CELL = CANVAS_PX / N;
+  const THRESHOLD = 4;
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // State
+  let grid = new Int32Array(N * N);
+  let running = true;
+  let dropMode = 'center';
+  let dropRate = 'medium';
+  let colorScheme = 'dark';
+  let totalDrops = 0;
+  let totalTopplings = 0;
+  let lastAvalanche = 0;
+  let maxAvalanche = 0;
+  let pendingDrops = 0;
+  let frameCount = 0;
+  let animId = null;
+
+  // Color palettes
+  const PALETTES = {
+    dark: [
+      '#0d1117', // 0
+      '#1c2d3f', // 1
+      '#1f6f6f', // 2
+      '#2ecc71', // 3
+    ],
+    heat: [
+      '#0d0d0d',
+      '#7b0000',
+      '#e05000',
+      '#ffd700',
+    ],
+    topo: [
+      '#0d1117',
+      '#1a3a4a',
+      '#2a6e9a',
+      '#7ecef0',
+    ],
+    mono: [
+      '#0d1117',
+      '#3a4050',
+      '#7a8090',
+      '#c9d1d9',
+    ]
+  };
+
+  function idx(x, y) { return y * N + x; }
+
+  function resetGrid() {
+    grid = new Int32Array(N * N);
+    totalDrops = 0;
+    totalTopplings = 0;
+    lastAvalanche = 0;
+    maxAvalanche = 0;
+    pendingDrops = 0;
+    updateStats();
+  }
+
+  function dropGrain(x, y) {
+    if (x < 0 || x >= N || y < 0 || y >= N) return;
+    grid[idx(x, y)]++;
+    totalDrops++;
+  }
+
+  function topple() {
+    // One full stabilization pass
+    let anyToppled = true;
+    let topplings = 0;
+    while (anyToppled) {
+      anyToppled = false;
+      for (let y = 0; y < N; y++) {
+        for (let x = 0; x < N; x++) {
+          if (grid[idx(x, y)] >= THRESHOLD) {
+            const excess = Math.floor(grid[idx(x, y)] / THRESHOLD);
+            grid[idx(x, y)] -= excess * THRESHOLD;
+            // Distribute to neighbors (grains fall off edges)
+            if (x > 0) grid[idx(x-1, y)] += excess;
+            if (x < N-1) grid[idx(x+1, y)] += excess;
+            if (y > 0) grid[idx(x, y-1)] += excess;
+            if (y < N-1) grid[idx(x, y+1)] += excess;
+            topplings += excess;
+            anyToppled = true;
+          }
+        }
+      }
+    }
+    return topplings;
+  }
+
+  function getDropCoords() {
+    if (dropMode === 'center') {
+      return [Math.floor(N/2), Math.floor(N/2)];
+    } else if (dropMode === 'random') {
+      return [Math.floor(Math.random() * N), Math.floor(Math.random() * N)];
+    }
+    return null;
+  }
+
+  function getDropsPerFrame() {
+    switch(dropRate) {
+      case 'slow': return 1;
+      case 'medium': return 3;
+      case 'fast': return 15;
+      case 'flood': return 80;
+      default: return 3;
+    }
+  }
+
+  function render() {
+    const pal = PALETTES[colorScheme];
+    const imageData = ctx.createImageData(CANVAS_PX, CANVAS_PX);
+    const data = imageData.data;
+
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        const val = Math.min(grid[idx(x, y)], 3);
+        const color = pal[val];
+        // Parse hex
+        const r = parseInt(color.slice(1,3), 16);
+        const g = parseInt(color.slice(3,5), 16);
+        const b = parseInt(color.slice(5,7), 16);
+
+        // Fill CELL x CELL block
+        for (let py = 0; py < CELL; py++) {
+          for (let px = 0; px < CELL; px++) {
+            const pixIdx = ((y * CELL + py) * CANVAS_PX + (x * CELL + px)) * 4;
+            data[pixIdx] = r;
+            data[pixIdx+1] = g;
+            data[pixIdx+2] = b;
+            data[pixIdx+3] = 255;
+          }
+        }
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  function updateStats() {
+    document.getElementById('stat-drops').textContent = totalDrops.toLocaleString();
+    document.getElementById('stat-topplings').textContent = totalTopplings.toLocaleString();
+    document.getElementById('stat-avalanche').textContent = lastAvalanche.toLocaleString();
+    document.getElementById('stat-max').textContent = maxAvalanche.toLocaleString();
+    // Bar = last avalanche relative to max (log scale for visual interest)
+    let pct = 0;
+    if (maxAvalanche > 0 && lastAvalanche > 0) {
+      pct = Math.log(lastAvalanche + 1) / Math.log(maxAvalanche + 1) * 100;
+    }
+    document.getElementById('avalanche-bar-fill').style.width = pct + '%';
+  }
+
+  function tick() {
+    if (!running) return;
+
+    const dropsThisFrame = getDropsPerFrame();
+    const coords = getDropCoords();
+
+    if (coords) {
+      for (let i = 0; i < dropsThisFrame; i++) {
+        dropGrain(coords[0], coords[1]);
+      }
+      const topplings = topple();
+      totalTopplings += topplings;
+      if (topplings > 0) {
+        lastAvalanche = topplings;
+        if (topplings > maxAvalanche) maxAvalanche = topplings;
+      }
+    }
+
+    frameCount++;
+    if (frameCount % 3 === 0) {
+      render();
+      if (frameCount % 6 === 0) updateStats();
+    }
+
+    animId = requestAnimationFrame(tick);
+  }
+
+  function start() {
+    if (animId) cancelAnimationFrame(animId);
+    animId = requestAnimationFrame(tick);
+  }
+
+  function stop() {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+  }
+
+  // Controls
+  document.getElementById('btn-run').addEventListener('click', function() {
+    running = !running;
+    this.textContent = running ? 'running' : 'paused';
+    this.classList.toggle('active', running);
+    if (running) start(); else stop();
+  });
+
+  document.getElementById('btn-step').addEventListener('click', function() {
+    const wasRunning = running;
+    if (wasRunning) { running = false; stop(); }
+    const coords = getDropCoords() || [Math.floor(N/2), Math.floor(N/2)];
+    dropGrain(coords[0], coords[1]);
+    const t = topple();
+    totalTopplings += t;
+    if (t > 0) { lastAvalanche = t; if (t > maxAvalanche) maxAvalanche = t; }
+    render();
+    updateStats();
+    if (wasRunning) { running = true; start(); }
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function() {
+    resetGrid();
+    render();
+  });
+
+  ['slow','med','fast','flood'].forEach(r => {
+    document.getElementById('rate-' + r).addEventListener('click', function() {
+      dropRate = r === 'med' ? 'medium' : r;
+      document.querySelectorAll('[id^="rate-"]').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  ['center','random','click'].forEach(m => {
+    document.getElementById('drop-' + m).addEventListener('click', function() {
+      dropMode = m === 'click' ? 'click' : m;
+      document.querySelectorAll('[id^="drop-"]').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  document.getElementById('color-scheme').addEventListener('change', function() {
+    colorScheme = this.value;
+    updateLegend();
+    render();
+  });
+
+  // Click on canvas to drop grains
+  canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = CANVAS_PX / rect.width;
+    const scaleY = CANVAS_PX / rect.height;
+    const px = (e.clientX - rect.left) * scaleX;
+    const py = (e.clientY - rect.top) * scaleY;
+    const cx = Math.floor(px / CELL);
+    const cy = Math.floor(py / CELL);
+    // Drop a burst of grains at click location
+    for (let i = 0; i < 20; i++) dropGrain(cx, cy);
+    const t = topple();
+    totalTopplings += t;
+    if (t > 0) { lastAvalanche = t; if (t > maxAvalanche) maxAvalanche = t; }
+    render();
+    updateStats();
+  });
+
+  function updateLegend() {
+    const pal = PALETTES[colorScheme];
+    const labels = ['0 grains', '1 grain', '2 grains', '3 grains'];
+    const legendEl = document.getElementById('legend');
+    legendEl.innerHTML = labels.map((l, i) =>
+      `<div class="legend-item"><div class="legend-swatch" style="background:${pal[i]}"></div>${l}</div>`
+    ).join('');
+  }
+
+  updateLegend();
+  render();
+  start();
+})();
+</script>
+</body>
+</html>
