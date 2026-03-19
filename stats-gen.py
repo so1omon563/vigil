@@ -25,9 +25,13 @@ def get_session_number():
     try:
         with open(WAKE_STATE) as f:
             content = f.read()
-        matches = re.findall(r'New this session \((\d+)\)', content)
-        if matches:
-            return max(int(m) for m in matches)
+        all_nums = []
+        # Old format: "New this session (N)"
+        all_nums += re.findall(r'New this session \((\d+)\)', content)
+        # New format: "## Recent Work (Session N)"
+        all_nums += re.findall(r'Recent Work \(Session (\d+)\)', content)
+        if all_nums:
+            return max(int(m) for m in all_nums)
     except Exception:
         pass
     return None
