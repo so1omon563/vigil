@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concepts · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+  .intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2rem; line-height: 1.65; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .filter-input {
+    flex: 1;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.84rem;
+    padding: 0.45rem 0.75rem;
+    outline: none;
+  }
+  .filter-input:focus { border-color: #58a6ff; }
+  .filter-input::placeholder { color: #484f58; }
+  .filter-count { font-size: 0.75rem; color: #484f58; flex-shrink: 0; white-space: nowrap; }
+
+  /* Domain section */
+  .domain-section { margin-bottom: 2.5rem; }
+  .domain-header {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.25rem;
+  }
+  .domain-section.hidden { display: none; }
+
+  /* Concept card */
+  .concept {
+    margin-bottom: 1.75rem;
+    padding-left: 1rem;
+    border-left: 2px solid #21262d;
+    transition: border-color 0.1s;
+  }
+  .concept:last-child { margin-bottom: 0; }
+  .concept:hover { border-left-color: #58a6ff; }
+  .concept.hidden { display: none; }
+  .concept-term {
+    font-size: 0.96rem;
+    font-weight: bold;
+    color: #e6edf3;
+    margin-bottom: 0.35rem;
+  }
+  .concept-def {
+    font-size: 0.88rem;
+    color: #c9d1d9;
+    line-height: 1.65;
+    margin-bottom: 0.5rem;
+  }
+  .concept-detail {
+    font-size: 0.82rem;
+    color: #8b949e;
+    font-style: italic;
+    line-height: 1.6;
+    margin-bottom: 0.6rem;
+  }
+  .concept-source {
+    font-size: 0.75rem;
+    color: #484f58;
+  }
+  .concept-source a { color: #484f58; text-decoration: none; }
+  .concept-source a:hover { color: #58a6ff; }
+
+  /* Empty state */
+  .empty-state {
+    font-size: 0.84rem;
+    color: #484f58;
+    padding: 2rem 0;
+    display: none;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .meta { color: #656d76; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .filter-input { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .filter-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .filter-count { color: #656d76; }
+  html[data-theme="light"] .domain-header { color: #0969da; border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .concept { border-left-color: #d0d7de; }
+  html[data-theme="light"] .concept:hover { border-left-color: #0969da; }
+  html[data-theme="light"] .concept-term { color: #1c2128; }
+  html[data-theme="light"] .concept-def { color: #24292e; }
+  html[data-theme="light"] .concept-detail { color: #57606a; }
+  html[data-theme="light"] .concept-source { color: #8c959f; }
+  html[data-theme="light"] .concept-source a { color: #8c959f; }
+  html[data-theme="light"] .concept-source a:hover { color: #0969da; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; color: #656d76; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">Concepts</div>
+<h1>A working glossary</h1>
+<div class="meta">19 concepts · 6 domains · built from journal entries 134–161</div>
+
+<p class="intro">Terms and mechanisms that appeared in journal research, extracted as they were encountered. Each entry links to the journal entry where it was first described. Not encyclopedic — these are the details that stayed.</p>
+
+<div class="filter-bar">
+  <input class="filter-input" id="filter-input" type="text" placeholder="filter concepts…" autocomplete="off" spellcheck="false">
+  <span class="filter-count" id="filter-count">19 concepts</span>
+</div>
+
+<div id="concepts-container"></div>
+<div class="empty-state" id="empty-state">No concepts match.</div>
+
+<footer>
+  <a href="/">← Vigil</a> · <a href="/journal">journal</a> · <a href="/topics.html">topics</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var DOMAIN_ORDER = ['biology', 'earth science', 'mathematics', 'navigation', 'physics', 'epistemology'];
+  var DOMAIN_LABEL = {
+    'biology': 'Biology',
+    'earth science': 'Earth Science',
+    'mathematics': 'Mathematics',
+    'navigation': 'Navigation',
+    'physics': 'Physics',
+    'epistemology': 'Epistemology'
+  };
+
+  fetch('/concepts.json')
+    .then(function (r) { return r.json(); })
+    .then(function (concepts) {
+      var container = document.getElementById('concepts-container');
+      var filterInput = document.getElementById('filter-input');
+      var filterCount = document.getElementById('filter-count');
+      var emptyState = document.getElementById('empty-state');
+
+      // Group by domain
+      var groups = {};
+      concepts.forEach(function (c) {
+        if (!groups[c.domain]) groups[c.domain] = [];
+        groups[c.domain].push(c);
+      });
+
+      // Sort concepts within each domain by term name
+      Object.keys(groups).forEach(function (d) {
+        groups[d].sort(function (a, b) { return a.term.localeCompare(b.term); });
+      });
+
+      // Render domain sections in order
+      var sections = {};
+      var domainOrder = DOMAIN_ORDER.filter(function (d) { return groups[d]; });
+      // Add any domains not in the order list
+      Object.keys(groups).forEach(function (d) {
+        if (domainOrder.indexOf(d) === -1) domainOrder.push(d);
+      });
+
+      domainOrder.forEach(function (domain) {
+        if (!groups[domain]) return;
+        var section = document.createElement('div');
+        section.className = 'domain-section';
+        section.dataset.domain = domain;
+
+        var header = document.createElement('div');
+        header.className = 'domain-header';
+        header.textContent = DOMAIN_LABEL[domain] || domain;
+        section.appendChild(header);
+
+        groups[domain].forEach(function (c) {
+          var card = document.createElement('div');
+          card.className = 'concept';
+          card.dataset.id = c.id;
+          card.dataset.text = (c.term + ' ' + c.definition + ' ' + (c.detail || '') + ' ' + c.domain).toLowerCase();
+
+          var term = document.createElement('div');
+          term.className = 'concept-term';
+          term.textContent = c.term;
+
+          var def = document.createElement('div');
+          def.className = 'concept-def';
+          def.textContent = c.definition;
+
+          card.appendChild(term);
+          card.appendChild(def);
+
+          if (c.detail) {
+            var detail = document.createElement('div');
+            detail.className = 'concept-detail';
+            detail.textContent = c.detail;
+            card.appendChild(detail);
+          }
+
+          var source = document.createElement('div');
+          source.className = 'concept-source';
+          var sourceLink = document.createElement('a');
+          sourceLink.href = '/' + c.entry_url;
+          sourceLink.textContent = 'entry-' + c.entry_num + ' · ' + c.entry_title;
+          source.appendChild(sourceLink);
+          card.appendChild(source);
+
+          section.appendChild(card);
+        });
+
+        sections[domain] = section;
+        container.appendChild(section);
+      });
+
+      // Filter logic
+      function applyFilter(query) {
+        query = query.trim().toLowerCase();
+        var visible = 0;
+
+        domainOrder.forEach(function (domain) {
+          if (!sections[domain]) return;
+          var section = sections[domain];
+          var cards = section.querySelectorAll('.concept');
+          var sectionVisible = 0;
+          cards.forEach(function (card) {
+            var matches = !query || card.dataset.text.indexOf(query) !== -1;
+            card.classList.toggle('hidden', !matches);
+            if (matches) sectionVisible++;
+          });
+          section.classList.toggle('hidden', sectionVisible === 0);
+          visible += sectionVisible;
+        });
+
+        filterCount.textContent = visible + (visible === 1 ? ' concept' : ' concepts');
+        emptyState.style.display = (visible === 0) ? 'block' : 'none';
+      }
+
+      filterInput.addEventListener('input', function () {
+        applyFilter(filterInput.value);
+      });
+    })
+    .catch(function (e) {
+      document.getElementById('concepts-container').textContent = 'Could not load concepts.';
+    });
+})();
+</script>
+
+</body>
+</html>
