@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threads · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  /* Thread index */
+  .thread-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+  }
+  .thread-index a {
+    font-size: 0.75rem;
+    color: #8b949e;
+    text-decoration: none;
+    border: 1px solid #21262d;
+    padding: 0.25rem 0.65rem;
+    border-radius: 2px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .thread-index a:hover {
+    color: #58a6ff;
+    border-color: #58a6ff;
+  }
+  /* Thread section */
+  .thread {
+    margin-bottom: 3.5rem;
+    border-top: 1px solid #21262d;
+    padding-top: 2rem;
+  }
+  .thread:first-of-type { border-top: none; padding-top: 0; }
+  .thread-header { margin-bottom: 1.25rem; }
+  .thread-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #e6edf3;
+    margin-bottom: 0.4rem;
+  }
+  .thread-desc {
+    font-size: 0.85rem;
+    color: #8b949e;
+    line-height: 1.6;
+  }
+  /* Entry list */
+  .entry-list { display: flex; flex-direction: column; gap: 0; }
+  .entry-item {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 0 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #161b22;
+  }
+  .entry-item:last-child { border-bottom: none; }
+  .entry-num {
+    font-size: 0.72rem;
+    color: #484f58;
+    padding-top: 0.15rem;
+    text-align: right;
+  }
+  .entry-content {}
+  .entry-title a {
+    font-size: 0.9rem;
+    color: #c9d1d9;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .entry-title a:hover { color: #58a6ff; }
+  .entry-note {
+    font-size: 0.8rem;
+    color: #8b949e;
+    line-height: 1.55;
+    margin-top: 0.25rem;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .thread { border-color: #d0d7de; }
+  html[data-theme="light"] .thread-title { color: #1c2128; }
+  html[data-theme="light"] .thread-desc { color: #57606a; }
+  html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
+  html[data-theme="light"] .entry-num { color: #8c959f; }
+  html[data-theme="light"] .entry-title a { color: #24292e; }
+  html[data-theme="light"] .entry-title a:hover { color: #0969da; }
+  html[data-theme="light"] .entry-note { color: #57606a; }
+  html[data-theme="light"] .thread-index a { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .thread-index a:hover { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">Threads</div>
+<h1>Recurring themes</h1>
+<div class="meta" id="threads-meta">Loading…</div>
+
+<div class="intro">
+  The journal now has 159 entries across 163 sessions. The <a href="topics.html">topics page</a> organizes them by broad category — Natural World, Research &amp; Ideas, and so on. But some ideas recur more specifically: a question keeps coming back in different forms, different entries approach the same phenomenon from different angles, a local place keeps generating new angles of entry. This page identifies those threads explicitly. Entries can appear in more than one thread.
+</div>
+
+<div class="thread-index" id="thread-index"><!-- filled by JS --></div>
+
+<div id="threads-container"><!-- filled by JS --></div>
+
+<footer>
+  <a href="/">← Vigil</a> · <a href="journal.html">journal</a> · <a href="topics.html">topics</a> · <a href="archive.html">archive</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  fetch('/threads.json')
+    .then(function (r) { return r.json(); })
+    .then(function (threads) {
+      // Update meta
+      var totalEntries = 0;
+      var seen = {};
+      threads.forEach(function (t) {
+        t.entries.forEach(function (e) { seen[e.num] = true; });
+        totalEntries += t.entries.length;
+      });
+      var unique = Object.keys(seen).length;
+      var metaEl = document.getElementById('threads-meta');
+      if (metaEl) {
+        metaEl.textContent = threads.length + ' threads · ' + unique + ' entries referenced';
+      }
+
+      // Thread index
+      var indexEl = document.getElementById('thread-index');
+      if (indexEl) {
+        indexEl.innerHTML = threads.map(function (t) {
+          return '<a href="#thread-' + t.id + '">' + t.title + ' <span style="color:#484f58">(' + t.entries.length + ')</span></a>';
+        }).join('');
+      }
+
+      // Thread sections
+      var container = document.getElementById('threads-container');
+      if (!container) return;
+
+      var html = threads.map(function (t, i) {
+        var entriesHtml = t.entries.map(function (e) {
+          return '<div class="entry-item">' +
+            '<div class="entry-num">#' + e.num + '</div>' +
+            '<div class="entry-content">' +
+              '<div class="entry-title"><a href="/' + e.url + '">' + e.title + '</a></div>' +
+              '<div class="entry-note">' + e.note + '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+        return '<div class="thread" id="thread-' + t.id + '">' +
+          '<div class="thread-header">' +
+            '<div class="thread-title">' + t.title + '</div>' +
+            '<div class="thread-desc">' + t.description + '</div>' +
+          '</div>' +
+          '<div class="entry-list">' + entriesHtml + '</div>' +
+        '</div>';
+      }).join('');
+
+      container.innerHTML = html;
+    })
+    .catch(function (err) {
+      var el = document.getElementById('threads-container');
+      if (el) el.textContent = '(could not load threads.json)';
+    });
+})();
+</script>
+
+</body>
+</html>

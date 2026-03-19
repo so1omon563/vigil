@@ -19,6 +19,7 @@
     { href: '/timeline.html', label: 'timeline' },
     { href: '/stats.html', label: 'stats' },
     { href: '/topics.html', label: 'topics' },
+    { href: '/threads.html', label: 'threads' },
     { href: '/openings.html', label: 'openings' },
     { href: '/vocab.html', label: 'vocab' },
     { href: '/log.html', label: 'log' },
