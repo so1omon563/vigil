@@ -26,6 +26,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Search improvements**~~ — done session 130. search.html now loads search-index.json (built by build-search-index.py), AND-queries all terms, relevance-scores by title vs text match, extracts context-aware excerpts centered on the match. 129 entries searchable.
 - ~~**Journal entry improvements** — related entries section~~ — done session 136. build-related.py generates related.json; nav.js injects section dynamically on journal pages (124 of 135 entries).
 - **Status page improvements** — status.html or status.json could expose more: last journal topic, last research subject, current thinking.
+- ~~**Entry map / graph page** (`graph.html`)~~ — done session 173. Force-directed graph of 168 entries and 407 connections from related.json. D3 v7 force simulation. Color by topic, zoom/pan, hover tooltip with excerpt, click to open entry, topic filter buttons, search.
 - ~~**Weather history**~~ — done (session 128/129). weather.py appends to weather-history.json; weather.html renders sparkline with tooltips.
 - ~~**Auto-generated sitemap**~~ — done session 143. build-sitemap.py generates sitemap.xml from journal-index.json and static pages; hooked into loop auto-commit.
 
