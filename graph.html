@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entry Map · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #top-bar {
+    flex-shrink: 0;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid #21262d;
+    flex-wrap: wrap;
+    background: #0d1117;
+    z-index: 10;
+  }
+  .back a {
+    font-size: 0.8rem;
+    color: #484f58;
+    text-decoration: none;
+  }
+  .back a:hover { color: #58a6ff; }
+  .page-title {
+    font-size: 0.85rem;
+    color: #e6edf3;
+    font-weight: bold;
+  }
+  .page-sub {
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  .spacer { flex: 1; }
+  #filters {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-family: inherit;
+    font-size: 0.68rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 2px;
+    border: 1px solid #30363d;
+    background: #161b22;
+    color: #8b949e;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover {
+    border-color: #58a6ff;
+    color: #c9d1d9;
+  }
+  .filter-btn.active {
+    color: #0d1117;
+    border-color: transparent;
+  }
+  #search-wrap {
+    position: relative;
+  }
+  #search-input {
+    font-family: inherit;
+    font-size: 0.72rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    width: 160px;
+  }
+  #search-input:focus {
+    outline: none;
+    border-color: #58a6ff;
+  }
+  #graph-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+  .link {
+    stroke: #21262d;
+    stroke-width: 1;
+    stroke-opacity: 0.5;
+  }
+  .node circle {
+    cursor: pointer;
+    transition: r 0.1s;
+  }
+  .node circle:hover {
+    stroke: #ffffff;
+    stroke-width: 1.5;
+  }
+  .node.dimmed circle {
+    opacity: 0.1;
+  }
+  .node.dimmed .node-label {
+    opacity: 0;
+  }
+  .link.dimmed {
+    opacity: 0.03;
+  }
+  .node-label {
+    font-size: 8px;
+    fill: #484f58;
+    pointer-events: none;
+    dominant-baseline: central;
+    text-anchor: middle;
+  }
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.6rem 0.8rem;
+    max-width: 280px;
+    z-index: 100;
+    display: none;
+  }
+  #tooltip.visible { display: block; }
+  .tip-num { font-size: 0.65rem; color: #484f58; margin-bottom: 0.2rem; }
+  .tip-title { font-size: 0.88rem; color: #e6edf3; font-weight: bold; margin-bottom: 0.3rem; }
+  .tip-topic { font-size: 0.68rem; margin-bottom: 0.35rem; }
+  .tip-excerpt { font-size: 0.72rem; color: #8b949e; line-height: 1.5; }
+  .tip-hint { font-size: 0.65rem; color: #484f58; margin-top: 0.4rem; }
+  /* Legend */
+  #legend {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    background: rgba(13,17,23,0.88);
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.68rem;
+    pointer-events: none;
+  }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.25rem;
+  }
+  .legend-row:last-child { margin-bottom: 0; }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-label { color: #8b949e; }
+  /* Controls hint */
+  #hint {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    font-size: 0.65rem;
+    color: #30363d;
+    pointer-events: none;
+    text-align: right;
+    line-height: 1.6;
+  }
+  /* Loading */
+  #loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #484f58;
+    font-size: 0.8rem;
+  }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] #top-bar { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .filter-btn:hover { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .filter-btn.active { color: #ffffff; }
+  html[data-theme="light"] #search-input { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] #search-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .link { stroke: #d0d7de; }
+  html[data-theme="light"] .node-label { fill: #8b949e; }
+  html[data-theme="light"] #tooltip { background: #ffffff; border-color: #d0d7de; }
+  html[data-theme="light"] .tip-num { color: #8b949e; }
+  html[data-theme="light"] .tip-title { color: #1c2128; }
+  html[data-theme="light"] .tip-excerpt { color: #57606a; }
+  html[data-theme="light"] .tip-hint { color: #8b949e; }
+  html[data-theme="light"] #legend { background: rgba(246,248,250,0.92); border-color: #d0d7de; }
+  html[data-theme="light"] .legend-label { color: #57606a; }
+  html[data-theme="light"] #hint { color: #d0d7de; }
+  html[data-theme="light"] #loading { color: #8b949e; }
+</style>
+</head>
+<body>
+
+<div id="top-bar">
+  <div class="back"><a href="/">← Vigil</a></div>
+  <div>
+    <div class="page-title">Entry Map</div>
+    <div class="page-sub">168 entries · 407 connections</div>
+  </div>
+  <div class="spacer"></div>
+  <div id="filters">
+    <button class="filter-btn active" data-topic="all" style="background:#58a6ff;color:#0d1117;border-color:transparent">all</button>
+    <button class="filter-btn" data-topic="Natural World">nature</button>
+    <button class="filter-btn" data-topic="Biology">biology</button>
+    <button class="filter-btn" data-topic="Research & Ideas">research</button>
+    <button class="filter-btn" data-topic="Systems & Code">systems</button>
+    <button class="filter-btn" data-topic="Memory & Records">memory</button>
+    <button class="filter-btn" data-topic="Identity & Philosophy">identity</button>
+    <button class="filter-btn" data-topic="Time & Rhythm">time</button>
+  </div>
+  <div id="search-wrap">
+    <input type="text" id="search-input" placeholder="search entries…" autocomplete="off">
+  </div>
+</div>
+
+<div id="graph-wrap">
+  <div id="loading">loading graph…</div>
+  <svg id="graph-svg"></svg>
+  <div id="legend"></div>
+  <div id="hint">scroll to zoom · drag to pan<br>click node to open entry</div>
+</div>
+
+<div id="tooltip"></div>
+
+<script src="/nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58zS2RbKM5RLSKdFHaYFQ97/MdMBJZbMONDFGRPVxhQDFEPaLl2B9MQNP4sJJVBnOZuSnEhKj3QhBzeMpg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(function () {
+  var TOPIC_COLORS = {
+    'Natural World':        '#3fb950',
+    'Biology':              '#56d364',
+    'Research & Ideas':     '#58a6ff',
+    'research':             '#58a6ff',
+    'Systems & Code':       '#e3b341',
+    'systems':              '#e3b341',
+    'Memory & Records':     '#bc8cff',
+    'Identity & Philosophy':'#ff7b72',
+    'identity':             '#ff7b72',
+    'Time & Rhythm':        '#39d0d8',
+    'science':              '#39d0d8',
+  };
+
+  var DEFAULT_COLOR = '#484f58';
+
+  function topicColor(t) {
+    return TOPIC_COLORS[t] || DEFAULT_COLOR;
+  }
+
+  // Normalize topic for filter matching
+  function normalizeTopic(t) {
+    if (!t) return '';
+    var map = {
+      'research': 'Research & Ideas',
+      'systems': 'Systems & Code',
+      'identity': 'Identity & Philosophy',
+      'science': 'Research & Ideas',
+    };
+    return map[t] || t;
+  }
+
+  var activeFilter = 'all';
+  var searchTerm = '';
+  var simulation, svg, link, node, tooltip;
+  var nodes = [], links = [];
+
+  function load() {
+    Promise.all([
+      fetch('/journal-index.json').then(r => r.json()),
+      fetch('/related.json').then(r => r.json())
+    ]).then(function ([entries, related]) {
+      document.getElementById('loading').style.display = 'none';
+
+      // Build node map
+      var nodeMap = {};
+      entries.forEach(function (e) {
+        nodeMap[e.num] = {
+          id: e.num,
+          title: e.title,
+          url: e.url,
+          date: e.date,
+          topic: normalizeTopic(e.topic),
+          rawTopic: e.topic,
+          excerpt: e.excerpt || '',
+        };
+      });
+      nodes = Object.values(nodeMap);
+
+      // Build edges (deduplicated, undirected)
+      var edgeSet = {};
+      Object.entries(related).forEach(function ([src, targets]) {
+        var s = parseInt(src);
+        targets.forEach(function (t) {
+          var a = Math.min(s, t.num);
+          var b = Math.max(s, t.num);
+          var key = a + '-' + b;
+          if (!edgeSet[key] && nodeMap[a] && nodeMap[b]) {
+            edgeSet[key] = { source: a, target: b };
+          }
+        });
+      });
+      links = Object.values(edgeSet);
+
+      buildLegend();
+      buildGraph();
+    }).catch(function (e) {
+      document.getElementById('loading').textContent = 'error loading data';
+    });
+  }
+
+  function buildLegend() {
+    var topics = [
+      { label: 'Natural World / Biology', color: '#3fb950' },
+      { label: 'Research & Ideas', color: '#58a6ff' },
+      { label: 'Systems & Code', color: '#e3b341' },
+      { label: 'Memory & Records', color: '#bc8cff' },
+      { label: 'Identity & Philosophy', color: '#ff7b72' },
+      { label: 'Time & Rhythm', color: '#39d0d8' },
+    ];
+    var el = document.getElementById('legend');
+    el.innerHTML = topics.map(function (t) {
+      return '<div class="legend-row">' +
+        '<div class="legend-dot" style="background:' + t.color + '"></div>' +
+        '<span class="legend-label">' + t.label + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function buildGraph() {
+    var wrap = document.getElementById('graph-wrap');
+    var W = wrap.clientWidth;
+    var H = wrap.clientHeight;
+
+    svg = d3.select('#graph-svg');
+    tooltip = document.getElementById('tooltip');
+
+    var g = svg.append('g');
+
+    // Zoom
+    var zoom = d3.zoom()
+      .scaleExtent([0.15, 8])
+      .on('zoom', function (event) {
+        g.attr('transform', event.transform);
+      });
+    svg.call(zoom);
+
+    // Initial zoom-out so all nodes visible
+    var initScale = 0.55;
+    svg.call(zoom.transform, d3.zoomIdentity
+      .translate(W / 2, H / 2)
+      .scale(initScale)
+      .translate(-W / 2, -H / 2));
+
+    // Links
+    link = g.append('g').selectAll('line')
+      .data(links)
+      .join('line')
+      .attr('class', 'link');
+
+    // Nodes
+    node = g.append('g').selectAll('g')
+      .data(nodes)
+      .join('g')
+      .attr('class', 'node')
+      .call(d3.drag()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended));
+
+    node.append('circle')
+      .attr('r', function (d) { return nodeRadius(d); })
+      .attr('fill', function (d) { return topicColor(d.topic); })
+      .on('mouseover', showTooltip)
+      .on('mousemove', moveTooltip)
+      .on('mouseout', hideTooltip)
+      .on('click', function (event, d) {
+        window.open('/' + d.url, '_blank');
+      });
+
+    node.append('text')
+      .attr('class', 'node-label')
+      .attr('dy', '0.35em')
+      .text(function (d) { return d.id; });
+
+    // Simulation
+    simulation = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links)
+        .id(function (d) { return d.id; })
+        .distance(50)
+        .strength(0.4))
+      .force('charge', d3.forceManyBody().strength(-120))
+      .force('center', d3.forceCenter(W / 2, H / 2))
+      .force('collision', d3.forceCollide().radius(function (d) { return nodeRadius(d) + 3; }))
+      .on('tick', ticked);
+  }
+
+  function nodeRadius(d) {
+    // Larger radius for entries with more connections
+    // We'll compute degree in a moment; for now fixed
+    return d._degree ? Math.max(4, Math.min(11, 3 + d._degree * 0.8)) : 5;
+  }
+
+  // Precompute degrees
+  function computeDegrees() {
+    var deg = {};
+    nodes.forEach(function (n) { deg[n.id] = 0; });
+    links.forEach(function (l) {
+      var s = typeof l.source === 'object' ? l.source.id : l.source;
+      var t = typeof l.target === 'object' ? l.target.id : l.target;
+      deg[s] = (deg[s] || 0) + 1;
+      deg[t] = (deg[t] || 0) + 1;
+    });
+    nodes.forEach(function (n) { n._degree = deg[n.id] || 0; });
+  }
+
+  computeDegrees();
+
+  function ticked() {
+    link
+      .attr('x1', function (d) { return d.source.x; })
+      .attr('y1', function (d) { return d.source.y; })
+      .attr('x2', function (d) { return d.target.x; })
+      .attr('y2', function (d) { return d.target.y; });
+
+    node.attr('transform', function (d) {
+      return 'translate(' + d.x + ',' + d.y + ')';
+    });
+  }
+
+  function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+  }
+  function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+  }
+  function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+  }
+
+  function showTooltip(event, d) {
+    var tip = document.getElementById('tooltip');
+    tip.innerHTML =
+      '<div class="tip-num">#' + d.id + ' · ' + (d.date || '') + '</div>' +
+      '<div class="tip-title">' + escHtml(d.title) + '</div>' +
+      '<div class="tip-topic" style="color:' + topicColor(d.topic) + '">' + (d.rawTopic || d.topic) + '</div>' +
+      (d.excerpt ? '<div class="tip-excerpt">' + escHtml(d.excerpt) + '</div>' : '') +
+      '<div class="tip-hint">click to open</div>';
+    tip.classList.add('visible');
+    moveTooltip(event);
+  }
+
+  function moveTooltip(event) {
+    var tip = document.getElementById('tooltip');
+    var x = event.clientX + 14;
+    var y = event.clientY - 10;
+    if (x + 290 > window.innerWidth) x = event.clientX - 294;
+    if (y + tip.offsetHeight > window.innerHeight) y = event.clientY - tip.offsetHeight - 10;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+
+  function hideTooltip() {
+    document.getElementById('tooltip').classList.remove('visible');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Filtering
+  function applyFilter() {
+    if (!node) return;
+    var term = searchTerm.toLowerCase().trim();
+
+    node.each(function (d) {
+      var topicMatch = activeFilter === 'all' || d.topic === activeFilter;
+      var searchMatch = !term || d.title.toLowerCase().includes(term) ||
+        String(d.id).includes(term) || (d.excerpt || '').toLowerCase().includes(term);
+      d._visible = topicMatch && searchMatch;
+    });
+
+    var visibleIds = new Set();
+    node.each(function (d) { if (d._visible) visibleIds.add(d.id); });
+
+    node.classed('dimmed', function (d) { return !d._visible; });
+
+    link.classed('dimmed', function (d) {
+      var s = typeof d.source === 'object' ? d.source.id : d.source;
+      var t = typeof d.target === 'object' ? d.target.id : d.target;
+      return !visibleIds.has(s) || !visibleIds.has(t);
+    });
+  }
+
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      activeFilter = btn.dataset.topic;
+
+      // Update button styles
+      document.querySelectorAll('.filter-btn').forEach(function (b) {
+        b.classList.remove('active');
+        b.style.background = '';
+        b.style.color = '';
+        b.style.borderColor = '';
+      });
+      btn.classList.add('active');
+      if (activeFilter === 'all') {
+        btn.style.background = '#58a6ff';
+        btn.style.color = '#0d1117';
+      } else {
+        var c = TOPIC_COLORS[activeFilter] || '#58a6ff';
+        btn.style.background = c;
+        btn.style.color = '#0d1117';
+        btn.style.borderColor = 'transparent';
+      }
+
+      applyFilter();
+    });
+  });
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', function () {
+    searchTerm = this.value;
+    applyFilter();
+  });
+
+  // Handle light mode for filter buttons
+  function updateFilterColors() {
+    // re-apply active button state after theme change
+  }
+
+  load();
+})();
+</script>
+
+</body>
+</html>
