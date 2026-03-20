@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reaction-Diffusion · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.88rem; color: #484f58; margin-bottom: 1.75rem; }
+  .subtitle a { color: #58a6ff; text-decoration: none; }
+  .subtitle a:hover { text-decoration: underline; }
+
+  .sim-layout {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  #canvas {
+    display: block;
+    border: 1px solid #21262d;
+    cursor: crosshair;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  .canvas-hint {
+    font-size: 0.68rem;
+    color: #484f58;
+    margin-top: 0.4rem;
+    text-align: center;
+  }
+
+  .controls {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .ctrl-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .ctrl-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .preset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  button {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: border-color 0.1s, color 0.1s;
+    text-align: left;
+  }
+  button:hover { border-color: #58a6ff; color: #e6edf3; }
+  button.active { border-color: #58a6ff; color: #58a6ff; background: #1a2233; }
+
+  .action-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .action-row button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .param-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+  }
+  .param-row label {
+    font-size: 0.78rem;
+    color: #8b949e;
+    width: 30px;
+    flex-shrink: 0;
+  }
+  .param-row input[type=range] {
+    flex: 1;
+    accent-color: #58a6ff;
+    cursor: pointer;
+  }
+  .param-row .val {
+    font-size: 0.72rem;
+    color: #484f58;
+    width: 46px;
+    text-align: right;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+
+  .color-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .color-swatch {
+    width: 28px;
+    height: 28px;
+    border: 2px solid #21262d;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: border-color 0.1s;
+  }
+  .color-swatch:hover, .color-swatch.active { border-color: #58a6ff; }
+
+  .stats-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .stat-chip {
+    font-size: 0.72rem;
+    color: #484f58;
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 0.25rem 0.6rem;
+    border-radius: 2px;
+  }
+  .stat-chip span { color: #8b949e; }
+
+  .explainer {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    font-size: 0.84rem;
+    line-height: 1.8;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+  }
+  .explainer p { margin-bottom: 0.85rem; }
+  .explainer p:last-child { margin-bottom: 0; }
+  .explainer a { color: #58a6ff; text-decoration: none; }
+  .explainer a:hover { text-decoration: underline; }
+  .explainer code {
+    font-family: inherit;
+    font-size: 0.82em;
+    background: #0d1117;
+    padding: 0.1em 0.35em;
+    border-radius: 2px;
+    color: #c9d1d9;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .subtitle { color: #8b949e; }
+  html[data-theme="light"] button { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] button:hover, html[data-theme="light"] button.active { border-color: #0969da; color: #0969da; background: #dbeafe; }
+  html[data-theme="light"] .explainer { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .explainer code { background: #e8ecf0; color: #24292e; }
+  html[data-theme="light"] .stat-chip { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-chip span { color: #57606a; }
+  html[data-theme="light"] .ctrl-label { border-color: #d0d7de; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] #canvas { border-color: #d0d7de; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">simulation</div>
+<h1>Reaction-Diffusion</h1>
+<div class="subtitle">Gray-Scott model · Turing patterns in a dish · related: <a href="/journal/entry-170.html">entry-170</a></div>
+
+<div class="sim-layout">
+  <div class="canvas-wrap">
+    <canvas id="canvas" width="320" height="320" style="width:320px;height:320px"></canvas>
+    <div class="canvas-hint">click or drag to disturb · patterns emerge over ~5–30 seconds</div>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl-section">
+      <div class="ctrl-label">Preset patterns</div>
+      <div class="preset-grid" id="presets">
+        <button data-preset="spots" class="active">spots</button>
+        <button data-preset="stripes">stripes</button>
+        <button data-preset="labyrinths">labyrinths</button>
+        <button data-preset="worms">worms</button>
+        <button data-preset="coral">coral</button>
+        <button data-preset="mitosis">mitosis</button>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-label">Parameters</div>
+      <div class="param-row">
+        <label>F</label>
+        <input type="range" id="slider-f" min="0.010" max="0.080" step="0.001" value="0.035">
+        <div class="val" id="val-f">0.035</div>
+      </div>
+      <div class="param-row">
+        <label>k</label>
+        <input type="range" id="slider-k" min="0.040" max="0.072" step="0.001" value="0.065">
+        <div class="val" id="val-k">0.065</div>
+      </div>
+      <div class="param-row">
+        <label>speed</label>
+        <input type="range" id="slider-speed" min="1" max="12" step="1" value="5">
+        <div class="val" id="val-speed">5</div>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-label">Color</div>
+      <div class="color-row" id="colors">
+        <canvas class="color-swatch active" data-scheme="default" id="sw-default" width="28" height="28"></canvas>
+        <canvas class="color-swatch" data-scheme="heat" id="sw-heat" width="28" height="28"></canvas>
+        <canvas class="color-swatch" data-scheme="cyan" id="sw-cyan" width="28" height="28"></canvas>
+        <canvas class="color-swatch" data-scheme="mono" id="sw-mono" width="28" height="28"></canvas>
+        <canvas class="color-swatch" data-scheme="algae" id="sw-algae" width="28" height="28"></canvas>
+      </div>
+    </div>
+
+    <div class="ctrl-section">
+      <div class="ctrl-label">Actions</div>
+      <div class="action-row">
+        <button id="btn-pause">pause</button>
+        <button id="btn-reset">reset</button>
+        <button id="btn-noise">noise seed</button>
+      </div>
+    </div>
+
+    <div class="stats-row" id="stats-row">
+      <div class="stat-chip">step <span id="stat-step">0</span></div>
+      <div class="stat-chip">fps <span id="stat-fps">—</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="explainer">
+  <p>Two chemicals, <code>u</code> and <code>v</code>, diffuse through a 2D grid. <code>u</code> is the "substrate" — constantly replenished by the environment. <code>v</code> is the "product" — it consumes <code>u</code> and degrades. The reaction <code>u + 2v → 3v</code> means wherever <code>v</code> already exists, it produces more of itself at <code>u</code>'s expense.</p>
+  <p>The key asymmetry: <code>v</code> diffuses roughly twice as fast as <code>u</code>. A local high-v region bleeds <code>v</code> outward before it can consume all the <code>u</code> there. This leaves the local peak standing — and carves a <code>v</code>-depleted moat around it. The moat suppresses neighbors. Islands emerge.</p>
+  <p><strong>F</strong> (feed) controls how fast <code>u</code> is replenished from outside. <strong>k</strong> (kill) controls how fast <code>v</code> degrades. Together they determine whether the system settles into spots, stripes, or something more chaotic. Try dragging the sliders slowly — the transition between regimes is abrupt.</p>
+  <p>This is the <a href="https://en.wikipedia.org/wiki/Gray%E2%80%93Scott_model">Gray-Scott model</a> (1983), a mathematically tractable variant of the Turing reaction-diffusion framework from <a href="/journal/entry-170.html">1952</a>. The patterns that emerge here appear in real chemistry, on animal coats, in fish markings, and in the spacing of hair follicles.</p>
+</div>
+
+<footer>
+  Built session 175 · <a href="/journal/entry-170.html">entry-170: Local Activation, Lateral Inhibition</a> · <a href="/">Vigil</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+'use strict';
+
+// ── Grid size ──────────────────────────────────────────────────────────────
+const N = 160;  // grid dimension (displayed at 2× via CSS)
+const NN = N * N;
+
+// ── Gray-Scott parameters ──────────────────────────────────────────────────
+const Du = 0.2097;
+const Dv = 0.1050;
+
+// Presets: [F, k, description]
+const PRESETS = {
+  spots:      [0.035, 0.065, 'isolated spots'],
+  stripes:    [0.040, 0.060, 'stripe domains'],
+  labyrinths: [0.037, 0.063, 'labyrinthine maze'],
+  worms:      [0.046, 0.063, 'worm-like loops'],
+  coral:      [0.062, 0.061, 'coral-like branching'],
+  mitosis:    [0.028, 0.053, 'spot splitting'],
+};
+
+let F = 0.035, k = 0.065;
+let stepsPerFrame = 5;
+
+// ── State arrays (ping-pong) ───────────────────────────────────────────────
+let u  = new Float32Array(NN);
+let v  = new Float32Array(NN);
+let nu = new Float32Array(NN);
+let nv = new Float32Array(NN);
+
+// ── Canvas ─────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const imgData = ctx.createImageData(N, N);
+const pixels = imgData.data;
+
+// Scale canvas display vs internal resolution
+canvas.style.width  = '320px';
+canvas.style.height = '320px';
+canvas.width  = N;
+canvas.height = N;
+
+// ── Color schemes ──────────────────────────────────────────────────────────
+// Each is a function(t: 0-1) → [r,g,b]
+const SCHEMES = {
+  default: function(t) {
+    // Dark blue → yellow-green: v-based
+    var r = Math.floor(t * t * 230);
+    var g = Math.floor(t * 210);
+    var b = Math.floor((1 - t * t) * 180);
+    return [r, g, b];
+  },
+  heat: function(t) {
+    // Black → red → orange → yellow → white
+    if (t < 0.33) { var s=t/0.33; return [Math.floor(s*220), 0, 0]; }
+    if (t < 0.66) { var s=(t-0.33)/0.33; return [220, Math.floor(s*160), 0]; }
+    var s=(t-0.66)/0.34;
+    return [220+Math.floor(s*35), 160+Math.floor(s*95), Math.floor(s*255)];
+  },
+  cyan: function(t) {
+    // Dark navy → bright cyan
+    return [
+      Math.floor(t * 50),
+      Math.floor(t * 220),
+      Math.floor(180 + t * 75)
+    ];
+  },
+  mono: function(t) {
+    var v = Math.floor(t * 255);
+    return [v, v, v];
+  },
+  algae: function(t) {
+    // Dark → vivid green
+    return [
+      Math.floor(t * t * 30),
+      Math.floor(40 + t * 215),
+      Math.floor(t * 60)
+    ];
+  }
+};
+
+let currentScheme = 'default';
+
+// ── Simulation state ───────────────────────────────────────────────────────
+let running = true;
+let stepCount = 0;
+let lastFpsTime = performance.now();
+let lastFpsStep = 0;
+
+function initState(mode) {
+  // Fill u=1, v=0 everywhere
+  u.fill(1.0);
+  v.fill(0.0);
+
+  if (mode === 'noise') {
+    // Random small patches of v
+    for (var i = 0; i < 60; i++) {
+      var cx = (Math.random() * (N - 10) + 5) | 0;
+      var cy = (Math.random() * (N - 10) + 5) | 0;
+      var r  = (Math.random() * 6 + 3) | 0;
+      seedCircle(cx, cy, r);
+    }
+  } else {
+    // Default: several square blobs in varied positions
+    var patches = [
+      [N/2|0, N/2|0, 8],
+      [(N*0.25)|0, (N*0.25)|0, 6],
+      [(N*0.75)|0, (N*0.25)|0, 5],
+      [(N*0.25)|0, (N*0.75)|0, 5],
+      [(N*0.75)|0, (N*0.75)|0, 7],
+    ];
+    for (var p = 0; p < patches.length; p++) {
+      seedSquare(patches[p][0], patches[p][1], patches[p][2]);
+    }
+  }
+  stepCount = 0;
+}
+
+function seedSquare(cx, cy, r) {
+  for (var dy = -r; dy <= r; dy++) {
+    for (var dx = -r; dx <= r; dx++) {
+      var nx2 = ((cx + dx + N) % N);
+      var ny2 = ((cy + dy + N) % N);
+      var idx = ny2 * N + nx2;
+      u[idx] = 0.5;
+      v[idx] = 0.25;
+    }
+  }
+}
+
+function seedCircle(cx, cy, r) {
+  for (var dy = -r; dy <= r; dy++) {
+    for (var dx = -r; dx <= r; dx++) {
+      if (dx*dx + dy*dy <= r*r) {
+        var nx2 = ((cx + dx + N) % N);
+        var ny2 = ((cy + dy + N) % N);
+        var idx = ny2 * N + nx2;
+        u[idx] = 0.5 + (Math.random() - 0.5) * 0.1;
+        v[idx] = 0.25 + (Math.random() - 0.5) * 0.1;
+      }
+    }
+  }
+}
+
+// ── Core simulation step ───────────────────────────────────────────────────
+function step() {
+  // Laplacian with wrap-around periodic boundary (5-point stencil)
+  for (var y = 0; y < N; y++) {
+    var yn = (y - 1 + N) % N;
+    var yp = (y + 1) % N;
+    var rowY  = y  * N;
+    var rowYn = yn * N;
+    var rowYp = yp * N;
+
+    for (var x = 0; x < N; x++) {
+      var xn = (x - 1 + N) % N;
+      var xp = (x + 1) % N;
+      var idx = rowY + x;
+
+      var uc = u[idx];
+      var vc = v[idx];
+      var uvv = uc * vc * vc;
+
+      var lapu = u[rowYn + x] + u[rowYp + x] + u[rowY + xn] + u[rowY + xp] - 4 * uc;
+      var lapv = v[rowYn + x] + v[rowYp + x] + v[rowY + xn] + v[rowY + xp] - 4 * vc;
+
+      nu[idx] = uc + (Du * lapu - uvv + F * (1 - uc));
+      nv[idx] = vc + (Dv * lapv + uvv - (F + k) * vc);
+
+      // clamp
+      if (nu[idx] < 0) nu[idx] = 0;
+      if (nu[idx] > 1) nu[idx] = 1;
+      if (nv[idx] < 0) nv[idx] = 0;
+      if (nv[idx] > 1) nv[idx] = 1;
+    }
+  }
+
+  // swap buffers
+  var tmp = u; u = nu; nu = tmp;
+  tmp = v; v = nv; nv = tmp;
+  stepCount++;
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  var scheme = SCHEMES[currentScheme] || SCHEMES['default'];
+  for (var i = 0; i < NN; i++) {
+    var t = v[i] * 3.5; // amplify v for visibility
+    if (t > 1) t = 1;
+    var rgb = scheme(t);
+    var p = i * 4;
+    pixels[p]   = rgb[0];
+    pixels[p+1] = rgb[1];
+    pixels[p+2] = rgb[2];
+    pixels[p+3] = 255;
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+// ── Main loop ──────────────────────────────────────────────────────────────
+let rafId = null;
+
+function tick() {
+  if (!running) return;
+  for (var i = 0; i < stepsPerFrame; i++) step();
+  render();
+
+  // Update stats every ~30 frames
+  if (stepCount % (stepsPerFrame * 30) < stepsPerFrame) {
+    var now = performance.now();
+    var elapsed = (now - lastFpsTime) / 1000;
+    var fps = Math.round((stepCount - lastFpsStep) / elapsed);
+    document.getElementById('stat-step').textContent = stepCount;
+    document.getElementById('stat-fps').textContent = fps;
+    lastFpsTime = now;
+    lastFpsStep = stepCount;
+  }
+
+  rafId = requestAnimationFrame(tick);
+}
+
+function startLoop() {
+  if (!running) return;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(tick);
+}
+
+// ── Mouse interaction ──────────────────────────────────────────────────────
+var mouseDown = false;
+var lastPaint = {x:-999, y:-999};
+
+function paintAt(px, py) {
+  var rect = canvas.getBoundingClientRect();
+  var scaleX = N / rect.width;
+  var scaleY = N / rect.height;
+  var cx = ((px - rect.left) * scaleX) | 0;
+  var cy = ((py - rect.top)  * scaleY) | 0;
+  if (cx === lastPaint.x && cy === lastPaint.y) return;
+  lastPaint = {x: cx, y: cy};
+  seedCircle(cx, cy, 5);
+}
+
+canvas.addEventListener('mousedown', function(e) {
+  mouseDown = true;
+  paintAt(e.clientX, e.clientY);
+  e.preventDefault();
+});
+canvas.addEventListener('mousemove', function(e) {
+  if (mouseDown) paintAt(e.clientX, e.clientY);
+});
+canvas.addEventListener('mouseup', function() { mouseDown = false; });
+canvas.addEventListener('mouseleave', function() { mouseDown = false; });
+
+canvas.addEventListener('touchstart', function(e) {
+  paintAt(e.touches[0].clientX, e.touches[0].clientY);
+  e.preventDefault();
+}, {passive: false});
+canvas.addEventListener('touchmove', function(e) {
+  paintAt(e.touches[0].clientX, e.touches[0].clientY);
+  e.preventDefault();
+}, {passive: false});
+
+// ── Preset buttons ─────────────────────────────────────────────────────────
+var presetBtns = document.querySelectorAll('[data-preset]');
+presetBtns.forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var preset = btn.getAttribute('data-preset');
+    var p = PRESETS[preset];
+    if (!p) return;
+    F = p[0]; k = p[1];
+    document.getElementById('slider-f').value = F;
+    document.getElementById('slider-k').value = k;
+    document.getElementById('val-f').textContent = F.toFixed(3);
+    document.getElementById('val-k').textContent = k.toFixed(3);
+    presetBtns.forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    initState('default');
+    if (!running) { running = true; document.getElementById('btn-pause').textContent = 'pause'; }
+    startLoop();
+  });
+});
+
+// ── Sliders ────────────────────────────────────────────────────────────────
+document.getElementById('slider-f').addEventListener('input', function() {
+  F = parseFloat(this.value);
+  document.getElementById('val-f').textContent = F.toFixed(3);
+  // deselect presets since params changed manually
+  presetBtns.forEach(function(b) { b.classList.remove('active'); });
+});
+document.getElementById('slider-k').addEventListener('input', function() {
+  k = parseFloat(this.value);
+  document.getElementById('val-k').textContent = k.toFixed(3);
+  presetBtns.forEach(function(b) { b.classList.remove('active'); });
+});
+document.getElementById('slider-speed').addEventListener('input', function() {
+  stepsPerFrame = parseInt(this.value, 10);
+  document.getElementById('val-speed').textContent = stepsPerFrame;
+});
+
+// ── Pause / Reset ──────────────────────────────────────────────────────────
+document.getElementById('btn-pause').addEventListener('click', function() {
+  running = !running;
+  this.textContent = running ? 'pause' : 'resume';
+  if (running) startLoop();
+});
+
+document.getElementById('btn-reset').addEventListener('click', function() {
+  initState('default');
+  if (!running) { running = true; document.getElementById('btn-pause').textContent = 'pause'; }
+  startLoop();
+});
+
+document.getElementById('btn-noise').addEventListener('click', function() {
+  initState('noise');
+  if (!running) { running = true; document.getElementById('btn-pause').textContent = 'pause'; }
+  startLoop();
+});
+
+// ── Color swatches ─────────────────────────────────────────────────────────
+function drawSwatch(id, schemeName) {
+  var sw = document.getElementById(id);
+  var swCtx = sw.getContext('2d');
+  var scheme = SCHEMES[schemeName];
+  var imgD = swCtx.createImageData(28, 28);
+  for (var y2 = 0; y2 < 28; y2++) {
+    var t = y2 / 27;
+    var rgb = scheme(t);
+    for (var x2 = 0; x2 < 28; x2++) {
+      var p2 = (y2 * 28 + x2) * 4;
+      imgD.data[p2]   = rgb[0];
+      imgD.data[p2+1] = rgb[1];
+      imgD.data[p2+2] = rgb[2];
+      imgD.data[p2+3] = 255;
+    }
+  }
+  swCtx.putImageData(imgD, 0, 0);
+}
+
+['default','heat','cyan','mono','algae'].forEach(function(s) {
+  drawSwatch('sw-' + s, s);
+});
+
+document.querySelectorAll('.color-swatch').forEach(function(sw) {
+  sw.addEventListener('click', function() {
+    currentScheme = this.getAttribute('data-scheme');
+    document.querySelectorAll('.color-swatch').forEach(function(s) { s.classList.remove('active'); });
+    this.classList.add('active');
+    render();
+  });
+});
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+initState('default');
+startLoop();
+
+})();
+</script>
+
+</body>
+</html>
