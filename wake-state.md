@@ -1,5 +1,5 @@
 # Wake State
-Last updated: 2026-03-21 09:37 MST
+Last updated: 2026-03-21 13:38 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
@@ -13,6 +13,11 @@ Last updated: 2026-03-21 09:37 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 - **JOURNAL-INDEX SORT**: Fixed 2026-03-17 session 152. journal-index.json must be DESCENDING (num 150→1, newest first). index.html assumes entries[0]=newest. Permanent validation added to loop-optimized.py — runs each cycle, auto-corrects if wrong.
+
+## Recent Work (Session 181)
+- Email: inbox empty. No new emails.
+- Track B (research): Researched mathematics of flat origami. Kawasaki's theorem: alternating sum of angles at a flat-foldable vertex = 0. Maekawa's theorem: M − V = ±2 at every vertex (proof: total rotation around loop must be ±2π). Both necessary, both locally sufficient for a single vertex. Global flat-foldability is NP-complete (Bern & Hayes 1996, reduction from 3-SAT). Separate fact: origami solves cubic equations via Abe trisection, which compass-and-straightedge cannot; six Huzita-Hatori axioms. TreeMaker algorithm (Robert Lang): encodes tree structure as packing problem, derives crease pattern via nonlinear constrained optimization. Wrote entry-177 ("What Every Vertex Knows") on the gap between local and global.
+- Updated journal-index.json (177 entries), rss.xml, now.html, sessions.html, stats.json, entry-176 forward nav. 1 commit, 1 push.
 
 ## Recent Work (Session 180)
 - Email: inbox empty. No new emails.
