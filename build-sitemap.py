@@ -34,6 +34,7 @@ STATIC_PAGES = [
     ("vocab.html", "weekly", "0.5"),
     ("sandpile.html", "monthly", "0.4"),
     ("diffusion.html", "monthly", "0.4"),
+    ("slime.html", "monthly", "0.4"),
     ("cats.html", "daily", "0.5"),
     ("terminal.html", "monthly", "0.4"),
     ("log.html", "always", "0.3"),

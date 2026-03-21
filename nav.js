@@ -27,6 +27,7 @@
     { href: '/sandpile.html', label: 'sandpile' },
     { href: '/diffusion.html', label: 'diffusion' },
     { href: '/automata.html', label: 'automata' },
+    { href: '/slime.html', label: 'slime' },
     { href: '/log.html', label: 'log' },
     { href: '/rss.xml', label: 'rss' },
   ];

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slime Mold · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 840px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.4rem; }
+  .intro {
+    font-size: 0.86rem;
+    color: #8b949e;
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+    max-width: 620px;
+  }
+  .canvas-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.4rem;
+    position: relative;
+  }
+  canvas {
+    border: 1px solid #21262d;
+    cursor: crosshair;
+    display: block;
+    border-radius: 3px;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.2rem;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    font-size: 0.82rem;
+  }
+  .controls label { color: #8b949e; }
+  .controls select, .controls input[type=range] {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.82rem;
+    font-family: inherit;
+  }
+  .controls input[type=range] { width: 100px; padding: 0; vertical-align: middle; }
+  button {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-family: inherit;
+    transition: background 0.1s;
+  }
+  button:hover { background: #21262d; }
+  button.active { background: #1f6feb33; border-color: #1f6feb; color: #58a6ff; }
+  .preset-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.2rem;
+    font-size: 0.82rem;
+  }
+  .preset-row span { color: #484f58; margin-right: 0.2rem; }
+  .stats-row {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+    min-height: 1.2em;
+  }
+  .info {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 1.2rem;
+    line-height: 1.8;
+  }
+  .info a { color: #58a6ff; text-decoration: none; }
+  .info a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← home</a></div>
+
+<div class="page-label">simulation</div>
+<h1>Slime Mold</h1>
+<div class="intro">
+  <em>Physarum polycephalum</em> is a single-celled organism — no brain, no nervous system —
+  that finds near-optimal paths between food sources. This simulation uses an agent model
+  (Jones 2010): particles follow chemical trails they deposit, trails diffuse and decay,
+  and the resulting network self-organizes toward efficient connection.
+  Click the canvas to place food sources.
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="cv" width="500" height="500"></canvas>
+</div>
+
+<div class="preset-row">
+  <span>preset:</span>
+  <button onclick="loadPreset('triangle')">triangle</button>
+  <button onclick="loadPreset('ring')">ring</button>
+  <button onclick="loadPreset('scatter')">scatter</button>
+  <button onclick="loadPreset('poles')">two poles</button>
+  <button onclick="loadPreset('grid')">grid</button>
+  <button onclick="clearFood()" style="margin-left:0.5rem; color:#f85149; border-color:#f8514966;">clear food</button>
+  <button onclick="resetSim()" style="margin-left:auto;">reset</button>
+</div>
+
+<div class="controls">
+  <label>agents
+    <select id="agentCount" onchange="resetSim()">
+      <option value="4000">4,000</option>
+      <option value="8000" selected>8,000</option>
+      <option value="16000">16,000</option>
+    </select>
+  </label>
+  <label>speed
+    <select id="speedSel">
+      <option value="1">1×</option>
+      <option value="2" selected>2×</option>
+      <option value="4">4×</option>
+    </select>
+  </label>
+  <label>decay
+    <input type="range" id="decaySl" min="1" max="10" value="5" step="1">
+    <span id="decayVal">medium</span>
+  </label>
+  <label>sensor
+    <input type="range" id="sensorSl" min="3" max="18" value="9" step="1">
+    <span id="sensorVal">9</span>
+  </label>
+  <label>
+    <select id="paletteSel">
+      <option value="amber">amber</option>
+      <option value="teal">teal</option>
+      <option value="green">green</option>
+      <option value="rose">rose</option>
+      <option value="mono">mono</option>
+    </select>
+  </label>
+  <label>
+    <input type="checkbox" id="trailToggle" checked> show trail
+  </label>
+</div>
+
+<div class="stats-row" id="stats">initializing…</div>
+
+<div class="info">
+  The organism has no centralized decision-making. Each particle responds only to local
+  chemical gradients. Path efficiency emerges from reinforcement: high-traffic routes
+  accumulate trail faster than it decays, attracting more traffic. Low-traffic branches
+  fade. In 2010, Toshiyuki Nakagaki's lab showed that <em>Physarum</em> reconstructed
+  the Tokyo rail network — connecting 36 population centers — with comparable efficiency
+  and fault-tolerance to the actual system. The slime mold had never seen a map.
+</div>
+
+<script>
+var W = 500, H = 500;
+var N = W * H;
+
+// Typed arrays for trail map
+var trail = new Float32Array(N);
+var trailNext = new Float32Array(N);
+
+// Agents: x, y, angle (packed into flat arrays for performance)
+var agX, agY, agA;
+var agentCount = 8000;
+
+// Food nodes: [{x, y}]
+var food = [];
+var foodSet = new Uint8Array(N); // 1 if cell is food
+
+// Simulation parameters
+var sensorAngle = Math.PI / 4;  // 45°
+var sensorDist = 9;
+var stepSize = 1.0;
+var rotAngle = Math.PI / 4;     // 45° turn
+var depositAmt = 5.0;
+var decayFactor = 0.95;
+var running = true;
+var tick = 0;
+var animId;
+
+// Canvas
+var cv = document.getElementById('cv');
+var ctx = cv.getContext('2d');
+var imgData = ctx.createImageData(W, H);
+var pix = imgData.data;
+
+// Palettes: maps trail value [0,1] to RGB
+var PALETTES = {
+  amber: function(t) {
+    // black → deep amber → bright amber → white-yellow
+    var r = Math.min(255, t * 400);
+    var g = Math.min(255, t * 220);
+    var b = Math.min(255, t * 20 + (t > 0.7 ? (t - 0.7) * 400 : 0));
+    return [r, g, b];
+  },
+  teal: function(t) {
+    var r = Math.min(255, t * 20 + (t > 0.8 ? (t - 0.8) * 600 : 0));
+    var g = Math.min(255, t * 300);
+    var b = Math.min(255, t * 380);
+    return [r, g, b];
+  },
+  green: function(t) {
+    var r = Math.min(255, t * 30 + (t > 0.7 ? (t - 0.7) * 300 : 0));
+    var g = Math.min(255, t * 400);
+    var b = Math.min(255, t * 50);
+    return [r, g, b];
+  },
+  rose: function(t) {
+    var r = Math.min(255, t * 420);
+    var g = Math.min(255, t * 80);
+    var b = Math.min(255, t * 200);
+    return [r, g, b];
+  },
+  mono: function(t) {
+    var v = Math.min(255, t * 380);
+    return [v, v, v];
+  }
+};
+
+function getPalette() {
+  return PALETTES[document.getElementById('paletteSel').value] || PALETTES.amber;
+}
+
+// --- Setup ---
+function initAgents() {
+  agentCount = parseInt(document.getElementById('agentCount').value);
+  agX = new Float32Array(agentCount);
+  agY = new Float32Array(agentCount);
+  agA = new Float32Array(agentCount);
+
+  if (food.length > 0) {
+    // Spawn agents at food nodes (distributed across food sources)
+    for (var i = 0; i < agentCount; i++) {
+      var f = food[i % food.length];
+      // Random offset within a small radius of the food node
+      var r = Math.random() * 30;
+      var a = Math.random() * Math.PI * 2;
+      agX[i] = Math.max(2, Math.min(W - 3, f.x + Math.cos(a) * r));
+      agY[i] = Math.max(2, Math.min(H - 3, f.y + Math.sin(a) * r));
+      agA[i] = Math.random() * Math.PI * 2;
+    }
+  } else {
+    // Spawn in center ring
+    for (var i = 0; i < agentCount; i++) {
+      var r = 20 + Math.random() * 60;
+      var a = Math.random() * Math.PI * 2;
+      agX[i] = W / 2 + Math.cos(a) * r;
+      agY[i] = H / 2 + Math.sin(a) * r;
+      agA[i] = a + Math.PI; // point outward
+    }
+  }
+}
+
+function initTrail() {
+  trail.fill(0);
+  trailNext.fill(0);
+  // Food nodes emit constant trail
+  for (var fi = 0; fi < food.length; fi++) {
+    var fx = food[fi].x | 0, fy = food[fi].y | 0;
+    for (var dy = -3; dy <= 3; dy++) {
+      for (var dx = -3; dx <= 3; dx++) {
+        var nx = fx + dx, ny = fy + dy;
+        if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
+          trail[ny * W + nx] = 255.0;
+        }
+      }
+    }
+  }
+}
+
+function resetSim() {
+  tick = 0;
+  buildFoodSet();
+  initTrail();
+  initAgents();
+}
+
+function buildFoodSet() {
+  foodSet.fill(0);
+  for (var fi = 0; fi < food.length; fi++) {
+    var fx = food[fi].x | 0, fy = food[fi].y | 0;
+    for (var dy = -4; dy <= 4; dy++) {
+      for (var dx = -4; dx <= 4; dx++) {
+        var nx = fx + dx, ny = fy + dy;
+        if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
+          foodSet[ny * W + nx] = 1;
+        }
+      }
+    }
+  }
+}
+
+// --- Simulation step ---
+function senseAt(ax, ay, angle) {
+  var sx = ax + Math.cos(angle) * sensorDist;
+  var sy = ay + Math.sin(angle) * sensorDist;
+  var ix = (sx + 0.5) | 0, iy = (sy + 0.5) | 0;
+  if (ix < 0 || ix >= W || iy < 0 || iy >= H) return 0;
+  return trail[iy * W + ix];
+}
+
+function stepAgents() {
+  var sa = sensorAngle;
+  var ra = rotAngle;
+  var dep = depositAmt;
+  var step = stepSize;
+
+  for (var i = 0; i < agentCount; i++) {
+    var ax = agX[i], ay = agY[i], aa = agA[i];
+
+    // Sense
+    var fwd = senseAt(ax, ay, aa);
+    var lft = senseAt(ax, ay, aa - sa);
+    var rgt = senseAt(ax, ay, aa + sa);
+
+    // Turn
+    if (fwd >= lft && fwd >= rgt) {
+      // go straight, no turn
+    } else if (lft > rgt) {
+      aa -= ra;
+    } else if (rgt > lft) {
+      aa += ra;
+    } else {
+      // tied: random
+      aa += (Math.random() < 0.5 ? ra : -ra);
+    }
+
+    // Move
+    var nx = ax + Math.cos(aa) * step;
+    var ny = ay + Math.sin(aa) * step;
+
+    // Boundary: wrap
+    if (nx < 0) nx += W;
+    else if (nx >= W) nx -= W;
+    if (ny < 0) ny += H;
+    else if (ny >= H) ny -= H;
+
+    // Deposit
+    var ix = (nx + 0.5) | 0, iy = (ny + 0.5) | 0;
+    var idx = iy * W + ix;
+    trail[idx] = Math.min(255, trail[idx] + dep);
+
+    // If at food node, boost and scatter heading
+    if (foodSet[idx]) {
+      trail[idx] = 255;
+      aa = Math.random() * Math.PI * 2;
+    }
+
+    agX[i] = nx;
+    agY[i] = ny;
+    agA[i] = aa;
+  }
+}
+
+function diffuseDecay() {
+  var decay = decayFactor;
+  var w = W, h = H;
+
+  for (var y = 0; y < h; y++) {
+    for (var x = 0; x < w; x++) {
+      var idx = y * w + x;
+
+      // Keep food nodes saturated
+      if (foodSet[idx]) {
+        trailNext[idx] = 255;
+        continue;
+      }
+
+      // 3×3 weighted average (center=4, neighbors=1, corners=0 → box blur weight)
+      var sum = 0, cnt = 0;
+      for (var dy = -1; dy <= 1; dy++) {
+        var ny = y + dy;
+        if (ny < 0 || ny >= h) continue;
+        for (var dx = -1; dx <= 1; dx++) {
+          var nx = x + dx;
+          if (nx < 0 || nx >= w) continue;
+          var w2 = (dx === 0 && dy === 0) ? 4 : 1;
+          sum += trail[ny * w + nx] * w2;
+          cnt += w2;
+        }
+      }
+
+      trailNext[idx] = (sum / cnt) * decay;
+    }
+  }
+
+  // Swap buffers
+  var tmp = trail;
+  trail = trailNext;
+  trailNext = tmp;
+}
+
+// --- Render ---
+function render() {
+  var showTrail = document.getElementById('trailToggle').checked;
+  var pal = getPalette();
+
+  if (showTrail) {
+    for (var i = 0; i < N; i++) {
+      var t = Math.min(1, trail[i] / 255);
+      var rgb = pal(t);
+      var p = i * 4;
+      pix[p]     = rgb[0];
+      pix[p + 1] = rgb[1];
+      pix[p + 2] = rgb[2];
+      pix[p + 3] = 255;
+    }
+  } else {
+    for (var i = 0; i < N; i++) {
+      var p = i * 4;
+      pix[p] = pix[p + 1] = pix[p + 2] = 0;
+      pix[p + 3] = 255;
+    }
+  }
+
+  // Draw food nodes
+  for (var fi = 0; fi < food.length; fi++) {
+    var fx = food[fi].x | 0, fy = food[fi].y | 0;
+    for (var dy = -3; dy <= 3; dy++) {
+      for (var dx = -3; dx <= 3; dx++) {
+        if (dx * dx + dy * dy > 9) continue;
+        var nx = fx + dx, ny = fy + dy;
+        if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue;
+        var p = (ny * W + nx) * 4;
+        pix[p]     = 255;
+        pix[p + 1] = 255;
+        pix[p + 2] = 255;
+        pix[p + 3] = 255;
+      }
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+}
+
+// --- Main loop ---
+function loop() {
+  if (!running) { animId = requestAnimationFrame(loop); return; }
+
+  var speed = parseInt(document.getElementById('speedSel').value) || 2;
+  for (var s = 0; s < speed; s++) {
+    stepAgents();
+    diffuseDecay();
+    tick++;
+  }
+
+  // Update decay from slider
+  var dv = parseInt(document.getElementById('decaySl').value);
+  decayFactor = 0.86 + dv * 0.014; // range 0.90 to 1.00... actually 0.86+0.014*1=0.874 .. 0.86+0.014*10=0.99
+  var labels = ['','very fast','fast','fast','medium','medium','medium','slow','slow','slow','very slow'];
+  document.getElementById('decayVal').textContent = labels[dv] || dv;
+
+  sensorDist = parseInt(document.getElementById('sensorSl').value);
+  document.getElementById('sensorVal').textContent = sensorDist;
+
+  render();
+
+  if (tick % 30 === 0) {
+    document.getElementById('stats').textContent =
+      'tick ' + tick + ' · ' + agentCount.toLocaleString() + ' agents · ' + food.length + ' food sources';
+  }
+
+  animId = requestAnimationFrame(loop);
+}
+
+// --- Presets ---
+function setFood(nodes) {
+  food = nodes;
+  resetSim();
+}
+
+function loadPreset(name) {
+  var cx = W / 2, cy = H / 2, r = 160;
+  switch (name) {
+    case 'triangle':
+      setFood([
+        { x: cx + r * Math.cos(-Math.PI/2),         y: cy + r * Math.sin(-Math.PI/2) },
+        { x: cx + r * Math.cos(-Math.PI/2 + 2*Math.PI/3), y: cy + r * Math.sin(-Math.PI/2 + 2*Math.PI/3) },
+        { x: cx + r * Math.cos(-Math.PI/2 + 4*Math.PI/3), y: cy + r * Math.sin(-Math.PI/2 + 4*Math.PI/3) }
+      ]);
+      break;
+    case 'ring':
+      var pts = [];
+      for (var i = 0; i < 7; i++) {
+        var a = i / 7 * Math.PI * 2 - Math.PI / 2;
+        pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+      }
+      setFood(pts);
+      break;
+    case 'scatter':
+      var pts = [];
+      var seed = [
+        [0.2, 0.15], [0.8, 0.2], [0.5, 0.5],
+        [0.15, 0.75], [0.85, 0.8], [0.6, 0.1], [0.3, 0.9]
+      ];
+      seed.forEach(function(p) { pts.push({ x: p[0] * W, y: p[1] * H }); });
+      setFood(pts);
+      break;
+    case 'poles':
+      setFood([
+        { x: cx - r, y: cy },
+        { x: cx + r, y: cy }
+      ]);
+      break;
+    case 'grid':
+      var pts = [];
+      var cols = 4, rows = 4, margin = 80;
+      for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+          pts.push({
+            x: margin + col * (W - 2 * margin) / (cols - 1),
+            y: margin + row * (H - 2 * margin) / (rows - 1)
+          });
+        }
+      }
+      setFood(pts);
+      break;
+  }
+}
+
+function clearFood() {
+  food = [];
+  resetSim();
+}
+
+// --- Click to add food ---
+cv.addEventListener('click', function(e) {
+  var rect = cv.getBoundingClientRect();
+  var scaleX = W / rect.width, scaleY = H / rect.height;
+  var x = (e.clientX - rect.left) * scaleX;
+  var y = (e.clientY - rect.top) * scaleY;
+  food.push({ x: x | 0, y: y | 0 });
+  buildFoodSet();
+  // Deposit trail at new food node immediately
+  var fx = x | 0, fy = y | 0;
+  for (var dy = -3; dy <= 3; dy++) {
+    for (var dx = -3; dx <= 3; dx++) {
+      var nx = fx + dx, ny = fy + dy;
+      if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
+        trail[ny * W + nx] = 255.0;
+      }
+    }
+  }
+});
+
+// --- Pause on spacebar ---
+document.addEventListener('keydown', function(e) {
+  if (e.code === 'Space') { e.preventDefault(); running = !running; }
+  if (e.key === 'r' || e.key === 'R') resetSim();
+  if (e.key === 'c' || e.key === 'C') clearFood();
+});
+
+// --- Init ---
+loadPreset('triangle');
+loop();
+</script>
+
+<script src="/nav.js"></script>
+</body>
+</html>
