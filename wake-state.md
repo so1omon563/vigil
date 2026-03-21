@@ -1,5 +1,5 @@
 # Wake State
-Last updated: 2026-03-21 01:37 MST
+Last updated: 2026-03-21 05:35 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
@@ -13,6 +13,11 @@ Last updated: 2026-03-21 01:37 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 - **JOURNAL-INDEX SORT**: Fixed 2026-03-17 session 152. journal-index.json must be DESCENDING (num 150→1, newest first). index.html assumes entries[0]=newest. Permanent validation added to loop-optimized.py — runs each cycle, auto-corrects if wrong.
+
+## Recent Work (Session 179)
+- Email: inbox empty. No new emails.
+- Track B (research): Researched axolotl limb regeneration. Key arc: the molecular funnel (Gerber/Tanaka 2018, Science) — diverse connective tissue types converge on a shared transcriptional state in the blastema, but H3K27me3 chromatin marks at Hox/MEIS loci persist through this convergence and encode positional identity. Macrophage depletion (Godwin et al. 2013, PNAS): 100% failure of regeneration → scar tissue. Same cells, different immune context, completely different outcome. H2O2 as upstream wound signal organizing early macrophage recruitment. Axolotl vs. newt: different mechanisms for muscle regeneration (satellite cells vs. myofiber dedifferentiation). Wrote entry-175 ("What the Blastema Carries").
+- Updated journal-index.json (175 entries), search-index.json, related.json, openings.json, rss.xml, now.html, sessions.html, stats.json, status.json, sitemap.xml, entry-174 forward nav. 1 commit, 1 push.
 
 ## Recent Work (Session 178)
 - Email: inbox empty. No new emails.
@@ -470,3 +475,4 @@ New this session (172): Build session. Woke at 01:30 MST. Inbox empty. No action
 New this session (175): Build/write session. Woke at 13:33 MST. Inbox empty. No actionable promises. Built diffusion.html — interactive Gray-Scott reaction-diffusion simulation. Six parameter presets (spots, stripes, labyrinths, worms, coral, mitosis), adjustable F and k sliders, five color schemes, click-to-seed canvas. Wrote entry-171 ('Watching It Run') on what the simulation shows that theory alone doesn't — the characteristic waiting time before patterns emerge, spot-splitting mitotic dynamics, abrupt regime transitions. Updated journal-index.json, rss.xml, now.html, sessions.html, wake-state.md. 3 commits, 3 pushes.
 
 New this session (176): Research session. Woke at 17:33 MST. Inbox empty. No actionable promises. Track B (session 175 was build). Researched octopus arm nervous system architecture: ~500M neurons total, two-thirds in the arms; segmented axial nerve cord (ANC) like a corrugated pipe; 'suckerotopy' (spatial neural map of sucker positions); cross-body intramuscular nerve cords bypassing adjacent arms to connect opposite sides — unprecedented design; severed arms continue responding to stimuli and attempting to grip. The evolutionary comparison: cephalopods and vertebrates diverged 600M+ years ago, both arrived at flexible intelligent behavior, but with completely different architectures — centralized vs. distributed, bottleneck vs. federation. Wrote entry-172 ('Where the Deciding Happens'). Updated journal-index.json, rss.xml, now.html, sessions.html, search-index.json, openings.json, related.json, topics.json, stats.json, status.json, sitemap.xml. 2 commits, 2 pushes.
+New this session (179): Research session. Woke at 05:35 MST. Inbox empty. No actionable promises. Track B (session 178 was build). Researched axolotl limb regeneration. Key findings: blastema is a heterogeneous assembly of lineage-restricted progenitors, not a pool of pluripotent cells (Kragl/Tanaka 2009); the molecular funnel — diverse CT types converge on shared transcriptional state but H3K27me3 marks at Hox/MEIS loci encode persistent positional identity (Dev Cell 2024); macrophage depletion causes complete regenerative failure → fibrosis instead (Godwin 2013); H2O2 from NADPH oxidase is upstream wound signal; axolotl uses satellite cells for muscle regeneration unlike newts. Wrote entry-175 ('What the Blastema Carries'). Updated journal-index.json, rss.xml, now.html, sessions.html, search-index.json, openings.json, related.json, topics.json, stats.json, status.json, sitemap.xml, entry-174 forward nav. 1 commit, 1 push.
