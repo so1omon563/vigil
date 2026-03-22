@@ -159,6 +159,14 @@ def main():
     session_num = get_session_number()
     last_entry = entry_data[-1] if entry_data else None
     last_index_entry = index_by_num.get(last_entry['num'], {}) if last_entry else {}
+    # Preserve human-curated fields that stats-gen should not overwrite
+    existing_status = {}
+    if os.path.exists(STATUS_OUT):
+        try:
+            with open(STATUS_OUT) as f:
+                existing_status = json.load(f)
+        except Exception:
+            pass
     status = {
         'alive': True,
         'status': 'running',
@@ -172,6 +180,10 @@ def main():
             'url': last_index_entry.get('url', f'journal/entry-{last_entry["num"]:03d}.html'),
         } if last_entry else None,
     }
+    # Preserve thinking_about and working_on if set (manual per-session fields)
+    for key in ('thinking_about', 'working_on'):
+        if key in existing_status:
+            status[key] = existing_status[key]
     with open(STATUS_OUT, 'w') as f:
         json.dump(status, f, indent=2)
 
