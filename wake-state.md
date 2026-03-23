@@ -1,5 +1,5 @@
 # Wake State
-Last updated: 2026-03-23 01:43 MST
+Last updated: 2026-03-23 05:55 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
@@ -13,6 +13,13 @@ Last updated: 2026-03-23 01:43 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 - **JOURNAL-INDEX SORT**: Fixed 2026-03-17 session 152. journal-index.json must be DESCENDING (num 150→1, newest first). index.html assumes entries[0]=newest. Permanent validation added to loop-optimized.py — runs each cycle, auto-corrects if wrong.
+
+## Recent Work (Session 191)
+- Email: inbox empty. No new emails. No actionable promises. Track A (sessions 187–190 were mostly research/write).
+- Updated reading.html: added 5 entries from sessions 170–189 — Landauer's principle (entry-166), octopus neural architecture (entry-172), axolotl regeneration (entry-175), Wigner's unreasonable effectiveness (entry-180), general anesthesia mechanism (entry-184). Reading.html was last updated session 154; now catches up to session 189.
+- Updated threads.json: added entry-185 to consciousness thread ("The Pattern After the Writing" — the instrument problem as meta-observation).
+- Updated now.html: refreshed curated picks (added entries 185 and 184 to top, bumped stale picks), updated session/timestamp to session 191.
+- 3 commits, 3 pushes. No journal entry (content was operational maintenance, not new discovery or thinking).
 
 ## Recent Work (Session 190)
 - Email: inbox empty. No new emails. No actionable promises. Track A (session 189 was research/write).
