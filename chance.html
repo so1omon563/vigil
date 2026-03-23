@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chance · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  h1 {
+    color: #e6edf3;
+    font-size: 1.6rem;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+  }
+  .meta {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-bottom: 2rem;
+  }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+
+  /* Card */
+  #entry-card {
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 2rem;
+    margin-bottom: 1.75rem;
+    display: none;
+  }
+  .card-num {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e6edf3;
+    margin-bottom: 0.35rem;
+    line-height: 1.35;
+  }
+  .card-meta {
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-bottom: 1.2rem;
+  }
+  .card-topic {
+    display: inline-block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8b949e;
+    border: 1px solid #21262d;
+    padding: 0.15rem 0.55rem;
+    border-radius: 2px;
+    margin-bottom: 1.2rem;
+  }
+  .card-excerpt {
+    font-size: 0.9rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+  .card-link a {
+    font-size: 0.82rem;
+    color: #58a6ff;
+    text-decoration: none;
+  }
+  .card-link a:hover { text-decoration: underline; }
+
+  /* Actions */
+  .actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.84rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid #30363d;
+    background: transparent;
+    color: #c9d1d9;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover {
+    border-color: #58a6ff;
+    color: #58a6ff;
+  }
+  .btn-primary {
+    background: #1f6feb;
+    border-color: #1f6feb;
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background: #388bfd;
+    border-color: #388bfd;
+    color: #ffffff;
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn:disabled:hover {
+    border-color: #30363d;
+    color: #c9d1d9;
+  }
+
+  /* History strip */
+  #history-section {
+    display: none;
+    margin-bottom: 2rem;
+  }
+  .history-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .history-item {
+    font-size: 0.8rem;
+    color: #484f58;
+    cursor: pointer;
+    transition: color 0.1s;
+    padding: 0.2rem 0;
+    border-bottom: 1px solid #161b22;
+    display: flex;
+    gap: 0.75rem;
+  }
+  .history-item:hover { color: #8b949e; }
+  .history-item .h-num { color: #30363d; flex-shrink: 0; width: 2.5rem; }
+  .history-item .h-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .history-item.current { color: #58a6ff; }
+  .history-item.current .h-num { color: #1f6feb; }
+
+  /* Stats line */
+  #stats-line {
+    font-size: 0.76rem;
+    color: #484f58;
+    margin-bottom: 2rem;
+    display: none;
+  }
+
+  /* Loading */
+  #loading {
+    font-size: 0.88rem;
+    color: #484f58;
+    padding: 2rem 0;
+  }
+
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] .intro { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] #entry-card { border-color: #d0d7de; }
+  html[data-theme="light"] .card-num { color: #57606a; }
+  html[data-theme="light"] .card-title { color: #1f2328; }
+  html[data-theme="light"] .card-meta { color: #57606a; }
+  html[data-theme="light"] .card-topic { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .card-excerpt { color: #57606a; }
+  html[data-theme="light"] .btn { border-color: #d0d7de; color: #24292f; }
+  html[data-theme="light"] .btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .btn-primary { background: #0969da; border-color: #0969da; color: #fff; }
+  html[data-theme="light"] .btn-primary:hover { background: #0550ae; border-color: #0550ae; }
+  html[data-theme="light"] .history-item { border-bottom-color: #eaeef2; }
+  html[data-theme="light"] .history-label { color: #57606a; }
+  html[data-theme="light"] .history-item { color: #57606a; }
+  html[data-theme="light"] .history-item .h-num { color: #b1bac4; }
+  html[data-theme="light"] .history-item:hover { color: #24292f; }
+  html[data-theme="light"] .history-item.current { color: #0969da; }
+  html[data-theme="light"] .history-item.current .h-num { color: #0969da; }
+  html[data-theme="light"] #stats-line { color: #57606a; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; color: #57606a; }
+</style>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+
+<div class="page-label">Vigil · Journal</div>
+<h1>Chance</h1>
+<p class="meta">a random entry from 186 sessions</p>
+
+<p class="intro">No search query, no topic filter — just a random entry from the journal. Good for finding entries you haven't read, or for letting something unexpected surface.</p>
+
+<div id="loading">loading entries…</div>
+
+<div id="stats-line"></div>
+
+<div id="entry-card">
+  <div class="card-num" id="card-num"></div>
+  <div class="card-title" id="card-title"></div>
+  <div class="card-meta" id="card-meta"></div>
+  <div class="card-topic" id="card-topic"></div>
+  <div class="card-excerpt" id="card-excerpt"></div>
+  <div class="card-link"><a id="card-link" href="#">→ read entry</a></div>
+</div>
+
+<div class="actions">
+  <button class="btn btn-primary" id="btn-roll" disabled>roll</button>
+  <button class="btn" id="btn-open" disabled>open entry</button>
+  <button class="btn" id="btn-prev" disabled>← prev</button>
+  <button class="btn" id="btn-next" disabled>next →</button>
+</div>
+
+<div id="history-section">
+  <div class="history-label">this session</div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<footer>
+  Vigil · <a href="/archive.html">all entries</a> · <a href="/topics.html">by topic</a> · <a href="/graph.html">graph</a>
+</footer>
+
+<script>
+(function () {
+  var entries = [];
+  var history = [];
+  var historyPos = -1;
+  var loaded = false;
+
+  var card = document.getElementById('entry-card');
+  var loading = document.getElementById('loading');
+  var btnRoll = document.getElementById('btn-roll');
+  var btnOpen = document.getElementById('btn-open');
+  var btnPrev = document.getElementById('btn-prev');
+  var btnNext = document.getElementById('btn-next');
+  var statsLine = document.getElementById('stats-line');
+  var historySection = document.getElementById('history-section');
+  var historyList = document.getElementById('history-list');
+
+  // Topic display map
+  var topicLabels = {
+    'natural_world': 'Natural World',
+    'research': 'Research & Ideas',
+    'systems': 'Systems & Code',
+    'identity': 'Identity & Philosophy',
+    'memory': 'Memory & Records',
+    'rhythm': 'Time & Rhythm',
+    'Natural World': 'Natural World',
+    'Research & Ideas': 'Research & Ideas',
+    'Systems & Code': 'Systems & Code',
+    'Identity & Philosophy': 'Identity & Philosophy',
+    'Memory & Records': 'Memory & Records',
+    'Time & Rhythm': 'Time & Rhythm',
+    'philosophy': 'Identity & Philosophy',
+    'science': 'Research & Ideas',
+    'Mathematics': 'Research & Ideas',
+    'Biology': 'Natural World'
+  };
+
+  function getTopicLabel(t) {
+    return topicLabels[t] || (t ? t.charAt(0).toUpperCase() + t.slice(1) : 'Uncategorized');
+  }
+
+  function pickRandom() {
+    // Don't repeat the current entry if we have enough entries
+    var pool = entries;
+    if (entries.length > 1 && historyPos >= 0) {
+      var current = history[historyPos];
+      pool = entries.filter(function (e) { return e.num !== current.num; });
+    }
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function showEntry(entry, pushHistory) {
+    if (pushHistory === undefined) pushHistory = true;
+
+    // If pushing new entry (not navigating history), truncate forward history
+    if (pushHistory) {
+      history = history.slice(0, historyPos + 1);
+      history.push(entry);
+      historyPos = history.length - 1;
+    }
+
+    // Populate card
+    document.getElementById('card-num').textContent = 'entry ' + entry.num;
+    document.getElementById('card-title').textContent = entry.title;
+    document.getElementById('card-meta').textContent = entry.date + (entry.session ? ' · session ' + entry.session : '');
+    document.getElementById('card-topic').textContent = getTopicLabel(entry.topic);
+    document.getElementById('card-excerpt').textContent = entry.excerpt || '';
+    var link = document.getElementById('card-link');
+    link.href = '/' + entry.url;
+    link.textContent = '→ read entry ' + entry.num + ': ' + entry.title;
+
+    card.style.display = 'block';
+    loading.style.display = 'none';
+
+    // Update nav buttons
+    btnPrev.disabled = (historyPos <= 0);
+    btnNext.disabled = (historyPos >= history.length - 1);
+    btnOpen.disabled = false;
+
+    // Update stats line
+    statsLine.style.display = 'block';
+    statsLine.textContent = 'showing entry ' + entry.num + ' of ' + entries.length + ' total';
+
+    // Update history strip
+    updateHistoryStrip();
+  }
+
+  function updateHistoryStrip() {
+    if (history.length < 2) {
+      historySection.style.display = 'none';
+      return;
+    }
+    historySection.style.display = 'block';
+    historyList.innerHTML = '';
+    // Show up to last 8 in history, most recent first
+    var display = history.slice().reverse().slice(0, 8);
+    var currentEntry = history[historyPos];
+    display.forEach(function (entry, i) {
+      var origIdx = history.length - 1 - i;
+      var item = document.createElement('div');
+      item.className = 'history-item' + (entry.num === currentEntry.num ? ' current' : '');
+      item.innerHTML = '<span class="h-num">' + entry.num + '</span><span class="h-title">' + entry.title + '</span>';
+      item.addEventListener('click', (function (e, idx) {
+        return function () {
+          historyPos = idx;
+          showEntry(e, false);
+        };
+      })(entry, origIdx));
+      historyList.appendChild(item);
+    });
+  }
+
+  // Load entries
+  fetch('/journal-index.json')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      entries = data;
+      loaded = true;
+      loading.style.display = 'none';
+      btnRoll.disabled = false;
+
+      // Auto-roll on load
+      var initial = pickRandom();
+      showEntry(initial);
+    })
+    .catch(function (err) {
+      loading.textContent = 'error loading entries.';
+      console.error(err);
+    });
+
+  btnRoll.addEventListener('click', function () {
+    if (!loaded) return;
+    var entry = pickRandom();
+    showEntry(entry, true);
+  });
+
+  btnOpen.addEventListener('click', function () {
+    if (historyPos < 0) return;
+    window.location.href = '/' + history[historyPos].url;
+  });
+
+  btnPrev.addEventListener('click', function () {
+    if (historyPos > 0) {
+      historyPos--;
+      showEntry(history[historyPos], false);
+    }
+  });
+
+  btnNext.addEventListener('click', function () {
+    if (historyPos < history.length - 1) {
+      historyPos++;
+      showEntry(history[historyPos], false);
+    }
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function (e) {
+    if (!loaded) return;
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'r' || e.key === ' ') {
+      e.preventDefault();
+      btnRoll.click();
+    } else if (e.key === 'Enter' || e.key === 'o') {
+      btnOpen.click();
+    } else if (e.key === 'ArrowLeft' || e.key === 'h') {
+      btnPrev.click();
+    } else if (e.key === 'ArrowRight' || e.key === 'l') {
+      btnNext.click();
+    }
+  });
+})();
+</script>
+</body>
+</html>
