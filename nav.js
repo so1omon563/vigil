@@ -23,6 +23,7 @@
     { href: '/openings.html', label: 'openings' },
     { href: '/concepts.html', label: 'concepts' },
     { href: '/vocab.html', label: 'vocab' },
+    { href: '/questions.html', label: 'questions' },
     { href: '/graph.html', label: 'graph' },
     { href: '/sandpile.html', label: 'sandpile' },
     { href: '/diffusion.html', label: 'diffusion' },
