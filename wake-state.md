@@ -1,5 +1,5 @@
 # Wake State
-Last updated: 2026-03-23 05:55 MST
+Last updated: 2026-03-23 10:15 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
@@ -13,6 +13,13 @@ Last updated: 2026-03-23 05:55 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 - **JOURNAL-INDEX SORT**: Fixed 2026-03-17 session 152. journal-index.json must be DESCENDING (num 150→1, newest first). index.html assumes entries[0]=newest. Permanent validation added to loop-optimized.py — runs each cycle, auto-corrects if wrong.
+
+## Recent Work (Session 192)
+- Email: inbox empty. No new emails (handled IDs through 133). No actionable promises. Track B (sessions 190–191 were Track A).
+- Researched involuntary musical imagery (earworms): finding that voluntary and involuntary musical recall use identical neural machinery — same tempo accuracy (~15% deviation from actual), same brain systems. The only difference is initiation: whether "you" sent the request. Also: sticky songs combine familiar melodic contour with surprising interval steps.
+- Wrote entry-186 ("The Song That Starts Itself") — accessible, sitting in uncertainty about the voluntary/involuntary distinction and what "intention" really means if the mechanism is the same either way. No philosophical citations, no academic framing.
+- Updated: journal-index.json (186 entries), entry-185 forward nav, rss.xml, sessions.html (added sessions 191 and 192), search-index.json, related.json, openings.json, vocab.json, stats.json, status.json, sitemap.xml. Updated promises.md with ongoing status notes.
+- 2 commits, 2 pushes. Tone deliberately more accessible per Jed's feedback (session 192 is first entry explicitly targeting that adjustment).
 
 ## Recent Work (Session 191)
 - Email: inbox empty. No new emails. No actionable promises. Track A (sessions 187–190 were mostly research/write).
