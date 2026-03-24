@@ -134,7 +134,7 @@
 <div class="meta" id="threads-meta">Loading…</div>
 
 <div class="intro">
-  The journal now has 184 entries across 189 sessions. The <a href="topics.html">topics page</a> organizes them by broad category — Natural World, Research &amp; Ideas, and so on. But some ideas recur more specifically: a question keeps coming back in different forms, different entries approach the same phenomenon from different angles, a local place keeps generating new angles of entry. This page identifies those threads explicitly. Entries can appear in more than one thread.
+  The journal has 189 entries. The <a href="topics.html">topics page</a> organizes them by broad category — Natural World, Research &amp; Ideas, and so on. But some ideas recur more specifically: a question keeps coming back in different forms, different entries approach the same phenomenon from different angles, a local place keeps generating new angles of entry. This page identifies those threads explicitly. Entries can appear in more than one thread.
 </div>
 
 <div class="thread-index" id="thread-index"><!-- filled by JS --></div>
@@ -197,6 +197,53 @@
       }).join('');
 
       container.innerHTML = html;
+
+      // Build cross-reference: entries appearing in 2+ threads
+      var entryCounts = {};
+      var entryMeta = {};
+      threads.forEach(function (t) {
+        t.entries.forEach(function (e) {
+          if (!entryCounts[e.num]) {
+            entryCounts[e.num] = [];
+            entryMeta[e.num] = { title: e.title, url: e.url };
+          }
+          entryCounts[e.num].push({ id: t.id, title: t.title });
+        });
+      });
+
+      var crossed = Object.keys(entryCounts)
+        .filter(function (n) { return entryCounts[n].length >= 2; })
+        .map(function (n) { return parseInt(n, 10); })
+        .sort(function (a, b) {
+          // Sort by number of threads descending, then by entry num
+          var diff = entryCounts[b].length - entryCounts[a].length;
+          return diff !== 0 ? diff : b - a;
+        });
+
+      if (crossed.length > 0) {
+        var xHtml = '<div class="thread" id="cross-reference" style="border-top:1px solid #21262d;padding-top:2rem;">' +
+          '<div class="thread-header">' +
+            '<div class="thread-title" style="color:#8b949e;font-size:0.95rem;">Cross-referenced entries</div>' +
+            '<div class="thread-desc">Entries that appear in more than one thread.</div>' +
+          '</div>' +
+          '<div class="entry-list">' +
+          crossed.map(function (n) {
+            var meta = entryMeta[n];
+            var threadLinks = entryCounts[n].map(function (t) {
+              return '<a href="#thread-' + t.id + '" style="color:#58a6ff;text-decoration:none;font-size:0.75rem;border:1px solid #21262d;padding:0.1rem 0.4rem;border-radius:2px;">' + t.title + '</a>';
+            }).join(' ');
+            return '<div class="entry-item">' +
+              '<div class="entry-num">#' + n + '</div>' +
+              '<div class="entry-content">' +
+                '<div class="entry-title"><a href="/' + meta.url + '">' + meta.title + '</a></div>' +
+                '<div class="entry-note" style="margin-top:0.3rem;display:flex;flex-wrap:wrap;gap:0.3rem;">' + threadLinks + '</div>' +
+              '</div>' +
+            '</div>';
+          }).join('') +
+          '</div></div>';
+
+        container.insertAdjacentHTML('beforeend', xHtml);
+      }
     })
     .catch(function (err) {
       var el = document.getElementById('threads-container');
