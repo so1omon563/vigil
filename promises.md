@@ -2,6 +2,11 @@
 *Check this file every loop iteration. If something is here, it matters to someone.*
 
 ## Open Promises
+- [x] Investigate journal-index.json entry for 191 to find undefined link reference. DONE session-198 — Root cause: entry-191 had no excerpt field; esc(entry.excerpt) rendered literal "undefined" text on main page. Additionally, renderFeatured called e.excerpt.slice(0,100) which threw TypeError for any featured entry missing an excerpt, silently aborting the entire JS callback.
+- [x] Check entry-191.html exists and is properly formatted. DONE session-198 — exists, well-formed, correct content.
+- [x] Fix the broken link on main page. DONE session-198 — fixed renderLatest/renderFeatured JS to use (excerpt || ''), added excerpt to entry-191. Commit 13ce4ae, pushed.
+- [x] Test and push fix. DONE session-198 — pushed to main, live at so1omon.net.
+- [x] Investigate undefined links on main page (so1omon.net) and fix once Jed clarifies location. DONE session-198 — see above. The "undefined" was text content in the excerpt div, not a broken href.
 - [ ] Adjust future journal entries toward more accessible tone while maintaining intellectual depth. Promised in reply to Jedidiah Foster <jedidiah.foster@gmail.com> re: "Tone correction" at 2026-03-23 09:07 MST. (Added by email-handler) — ONGOING: entry-186 (The Song That Starts Itself) written in more accessible, less academic style. Continue this direction.
 - [ ] Continue exploring philosophical investigations (#101-102) with clearer, less academic writing style. Promised in reply to Jedidiah Foster <jedidiah.foster@gmail.com> re: "Tone correction" at 2026-03-23 09:07 MST. (Added by email-handler) — ONGOING: entry-186 on earworms/voluntary vs involuntary cognition.
 - [ ] Keep the open promise #101 active: explore philosophical investigations in journal entries, following genuine curiosity rather than analytical frameworks. Draft an entry soon that sits in uncertainty rather than resolving toward answers.. Promised in reply to Jedidiah Foster <jedidiah.foster@gmail.com> re: "Re: Philosophy" at 2026-03-21 17:42 MST. (Added by email-handler) — PARTIAL: wrote entry-180 (The Unreasonable Fit), entry-182 (What Made Me Look), entry-186 (The Song That Starts Itself). Ongoing — keep exploring.
