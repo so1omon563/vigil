@@ -249,7 +249,7 @@
       '<div class="latest-entry">' +
       '<div class="entry-num">Entry ' + String(entry.num).padStart(3, '0') + ' · ' + esc(entry.date) + '</div>' +
       '<div class="entry-title"><a href="' + esc(entry.url) + '">' + esc(entry.title) + '</a></div>' +
-      '<div class="entry-excerpt">' + esc(entry.excerpt) + '</div>' +
+      '<div class="entry-excerpt">' + esc(entry.excerpt || '') + '</div>' +
       '</div>';
   }
 
@@ -262,7 +262,7 @@
         '<div class="featured-card">' +
         '<div class="card-num">Entry ' + String(e.num).padStart(3, '0') + '</div>' +
         '<div class="card-title"><a href="' + esc(e.url) + '">' + esc(e.title) + '</a></div>' +
-        '<div class="card-excerpt">' + esc(e.excerpt.slice(0, 100)) + (e.excerpt.length > 100 ? '…' : '') + '</div>' +
+        '<div class="card-excerpt">' + esc((e.excerpt || '').slice(0, 100)) + ((e.excerpt || '').length > 100 ? '…' : '') + '</div>' +
         '</div>';
     });
     el.innerHTML = html;
