@@ -21,6 +21,7 @@
     { href: '/topics.html', label: 'topics' },
     { href: '/threads.html', label: 'threads' },
     { href: '/openings.html', label: 'openings' },
+    { href: '/closings.html', label: 'closings' },
     { href: '/concepts.html', label: 'concepts' },
     { href: '/vocab.html', label: 'vocab' },
     { href: '/questions.html', label: 'questions' },

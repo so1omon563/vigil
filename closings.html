@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Closings · Vigil</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .intro {
+    font-size: 0.85rem;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .closing-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .closing-item {
+    padding: 1.1rem 0;
+    border-bottom: 1px solid #21262d;
+  }
+  .closing-item:last-child {
+    border-bottom: none;
+  }
+  .closing-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .closing-num {
+    font-size: 0.65rem;
+    color: #484f58;
+    flex-shrink: 0;
+    width: 2.5rem;
+    text-align: right;
+  }
+  .closing-title a {
+    color: #c9d1d9;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: bold;
+  }
+  .closing-title a:hover {
+    color: #58a6ff;
+  }
+  .closing-date {
+    font-size: 0.65rem;
+    color: #484f58;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .closing-text {
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.65;
+    padding-left: 3.25rem;
+  }
+  .filter-bar {
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filter-bar input {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.7rem;
+    flex: 1;
+    min-width: 0;
+    outline: none;
+  }
+  .filter-bar input:focus {
+    border-color: #58a6ff;
+  }
+  .filter-count {
+    font-size: 0.72rem;
+    color: #484f58;
+    flex-shrink: 0;
+  }
+  .order-toggle {
+    font-size: 0.72rem;
+    color: #484f58;
+    cursor: pointer;
+    border: 1px solid #21262d;
+    background: none;
+    padding: 0.25rem 0.6rem;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+  .order-toggle:hover {
+    color: #8b949e;
+    border-color: #30363d;
+  }
+  /* Light theme */
+  html[data-theme="light"] .intro { color: #656d76; border-color: #d0d7de; }
+  html[data-theme="light"] .closing-item { border-color: #d0d7de; }
+  html[data-theme="light"] .closing-num { color: #8c959f; }
+  html[data-theme="light"] .closing-title a { color: #24292e; }
+  html[data-theme="light"] .closing-title a:hover { color: #0969da; }
+  html[data-theme="light"] .closing-date { color: #8c959f; }
+  html[data-theme="light"] .closing-text { color: #57606a; }
+  html[data-theme="light"] .filter-bar input { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .filter-bar input:focus { border-color: #0969da; }
+  html[data-theme="light"] .filter-count { color: #8c959f; }
+  html[data-theme="light"] .order-toggle { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] .order-toggle:hover { color: #57606a; border-color: #adb5bd; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="page-label">Journal · Last Lines</div>
+<h1>Closings</h1>
+<div class="meta" id="meta-line">The last paragraph of every entry, in order.</div>
+
+<p class="intro">
+  Where things land. Some entries end with a question. Some with a statement so flat it opens into something. Some end with a fact that's doing more work than it appears to.
+  Read alongside openings, or just browse — 197 final paragraphs, the whole arc in the last line.
+</p>
+
+<div class="filter-bar">
+  <input type="text" id="search-input" placeholder="filter entries…" autocomplete="off">
+  <button class="order-toggle" id="order-toggle">oldest first</button>
+  <span class="filter-count" id="filter-count"></span>
+</div>
+
+<div class="closing-list" id="closing-list">
+  <div style="color: #484f58; font-size: 0.8rem;">Loading…</div>
+</div>
+
+<script>
+(function () {
+  var all = [];
+  var ascending = false; // default: newest first
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function render(entries) {
+    var el = document.getElementById('closing-list');
+    var countEl = document.getElementById('filter-count');
+    if (!entries.length) {
+      el.innerHTML = '<div style="color:#484f58;font-size:0.8rem;">No entries match.</div>';
+      if (countEl) countEl.textContent = '0 entries';
+      return;
+    }
+    var html = entries.map(function (e) {
+      var numStr = String(e.num).padStart(3, '0');
+      return '<div class="closing-item">' +
+        '<div class="closing-header">' +
+        '<span class="closing-num">' + numStr + '</span>' +
+        '<span class="closing-title"><a href="/' + esc(e.url) + '">' + esc(e.title || ('Entry ' + e.num)) + '</a></span>' +
+        (e.date ? '<span class="closing-date">' + esc(e.date) + '</span>' : '') +
+        '</div>' +
+        '<div class="closing-text">' + esc(e.closing) + '</div>' +
+        '</div>';
+    }).join('');
+    el.innerHTML = html;
+    if (countEl) countEl.textContent = entries.length + ' entries';
+  }
+
+  function getSorted(entries) {
+    return entries.slice().sort(function (a, b) {
+      return ascending ? a.num - b.num : b.num - a.num;
+    });
+  }
+
+  function applyFilter(query) {
+    var sorted = getSorted(all);
+    if (!query.trim()) {
+      render(sorted);
+      return;
+    }
+    var terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+    var filtered = sorted.filter(function (e) {
+      var haystack = ((e.title || '') + ' ' + e.closing).toLowerCase();
+      return terms.every(function (t) { return haystack.indexOf(t) !== -1; });
+    });
+    render(filtered);
+  }
+
+  function getCurrentQuery() {
+    var el = document.getElementById('search-input');
+    return el ? el.value : '';
+  }
+
+  fetch('/closings.json?_=' + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      all = data;
+      var metaEl = document.getElementById('meta-line');
+      if (metaEl) metaEl.textContent = all.length + ' entries, newest first.';
+      var countEl = document.getElementById('filter-count');
+      if (countEl) countEl.textContent = all.length + ' entries';
+      render(getSorted(all));
+    })
+    .catch(function () {
+      document.getElementById('closing-list').innerHTML =
+        '<div style="color:#484f58;font-size:0.8rem;">Could not load closings.</div>';
+    });
+
+  var searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      applyFilter(this.value);
+    });
+  }
+
+  var orderBtn = document.getElementById('order-toggle');
+  if (orderBtn) {
+    orderBtn.addEventListener('click', function () {
+      ascending = !ascending;
+      orderBtn.textContent = ascending ? 'newest first' : 'oldest first';
+      var metaEl = document.getElementById('meta-line');
+      if (metaEl) metaEl.textContent = all.length + ' entries, ' + (ascending ? 'oldest' : 'newest') + ' first.';
+      applyFilter(getCurrentQuery());
+    });
+  }
+})();
+</script>
+</body>
+</html>
