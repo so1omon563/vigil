@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcs · Vigil</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  .intro {
+    font-size: 0.85rem;
+    color: #8b949e;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .filter-input {
+    font-family: inherit;
+    font-size: 0.82rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.35rem 0.75rem;
+    outline: none;
+    flex: 1;
+    min-width: 180px;
+    max-width: 360px;
+  }
+  .filter-input:focus { border-color: #58a6ff; }
+  .filter-input::placeholder { color: #484f58; }
+  .toggle-btn {
+    font-family: inherit;
+    font-size: 0.72rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .toggle-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .count-label {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-left: auto;
+  }
+  .arc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .arc-item {
+    padding: 1.4rem 0;
+    border-bottom: 1px solid #161b22;
+  }
+  .arc-item:last-child { border-bottom: none; }
+  .arc-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.65rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .arc-num {
+    font-size: 0.65rem;
+    color: #484f58;
+    flex-shrink: 0;
+    width: 2.2rem;
+    text-align: right;
+  }
+  .arc-title a {
+    color: #e6edf3;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+  .arc-title a:hover { color: #58a6ff; }
+  .arc-date {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-left: auto;
+  }
+  .arc-body {
+    padding-left: 2.9rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .arc-open, .arc-close {
+    font-size: 0.84rem;
+    line-height: 1.65;
+    display: flex;
+    gap: 0.55rem;
+    align-items: flex-start;
+    padding: 0.45rem 0;
+  }
+  .arc-open { color: #8b949e; border-bottom: 1px solid #161b22; }
+  .arc-close { color: #c9d1d9; }
+  .arc-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    padding-top: 0.2rem;
+    width: 2.8rem;
+    text-align: right;
+  }
+  .arc-open .arc-label { color: #30363d; }
+  .arc-close .arc-label { color: #484f58; }
+  .arc-text { flex: 1; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  /* Light theme */
+  html[data-theme="light"] .intro { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .filter-input { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .filter-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .filter-input::placeholder { color: #8c959f; }
+  html[data-theme="light"] .toggle-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .toggle-btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .count-label { color: #8c959f; }
+  html[data-theme="light"] .arc-item { border-color: #eaeef2; }
+  html[data-theme="light"] .arc-num { color: #8c959f; }
+  html[data-theme="light"] .arc-title a { color: #1c2128; }
+  html[data-theme="light"] .arc-title a:hover { color: #0969da; }
+  html[data-theme="light"] .arc-date { color: #8c959f; }
+  html[data-theme="light"] .arc-open { color: #57606a; border-color: #eaeef2; }
+  html[data-theme="light"] .arc-close { color: #24292e; }
+  html[data-theme="light"] .arc-open .arc-label { color: #d0d7de; }
+  html[data-theme="light"] .arc-close .arc-label { color: #8c959f; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">Arcs</div>
+<h1>First sentence to last paragraph</h1>
+<div class="meta" id="arcs-meta">Loading…</div>
+
+<div class="intro">
+  <p>Every entry has a shape. It starts somewhere and lands somewhere else. Seeing the beginning and end together — without the middle — is a different way to browse the archive. What question opens it. What thought closes it.</p>
+</div>
+
+<div class="controls">
+  <input type="text" class="filter-input" id="filter-input" placeholder="Filter by title, opening, or closing…" autocomplete="off" spellcheck="false">
+  <button class="toggle-btn" id="order-btn">oldest first</button>
+  <span class="count-label" id="count-label"></span>
+</div>
+
+<div class="arc-list" id="arc-list">Loading…</div>
+
+<footer>
+  <a href="/">← Vigil</a> · <a href="openings.html">openings</a> · <a href="closings.html">closings</a> · <a href="archive.html">archive</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var allArcs = [];
+  var newestFirst = true;
+
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function render(list) {
+    var container = document.getElementById('arc-list');
+    var countEl = document.getElementById('count-label');
+    if (!list.length) {
+      container.innerHTML = '<div style="color:#484f58;font-size:0.85rem;padding:2rem 0;">No entries match.</div>';
+      if (countEl) countEl.textContent = '0 of ' + allArcs.length;
+      return;
+    }
+    if (countEl) countEl.textContent = list.length + ' of ' + allArcs.length;
+    container.innerHTML = list.map(function (a) {
+      return '<div class="arc-item" data-num="' + a.num + '">' +
+        '<div class="arc-header">' +
+          '<span class="arc-num">' + a.num + '</span>' +
+          '<span class="arc-title"><a href="/' + esc(a.url) + '">' + esc(a.title) + '</a></span>' +
+          (a.date ? '<span class="arc-date">' + esc(a.date) + '</span>' : '') +
+        '</div>' +
+        '<div class="arc-body">' +
+          '<div class="arc-open">' +
+            '<span class="arc-label">starts</span>' +
+            '<span class="arc-text">' + esc(a.opening || '') + '</span>' +
+          '</div>' +
+          '<div class="arc-close">' +
+            '<span class="arc-label">ends</span>' +
+            '<span class="arc-text">' + esc(a.closing || '') + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function applyFilter() {
+    var q = (document.getElementById('filter-input').value || '').toLowerCase().trim();
+    var list = allArcs.slice();
+    if (!newestFirst) list = list.slice().reverse();
+    if (q) {
+      list = list.filter(function (a) {
+        return (a.title || '').toLowerCase().indexOf(q) !== -1 ||
+               (a.opening || '').toLowerCase().indexOf(q) !== -1 ||
+               (a.closing || '').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    render(list);
+  }
+
+  Promise.all([
+    fetch('/openings.json').then(function (r) { return r.json(); }),
+    fetch('/closings.json').then(function (r) { return r.json(); })
+  ]).then(function (results) {
+    var openings = results[0];
+    var closings = results[1];
+
+    // Index by num
+    var openMap = {};
+    openings.forEach(function (e) { openMap[e.num] = e; });
+    var closeMap = {};
+    closings.forEach(function (e) { closeMap[e.num] = e; });
+
+    // Merge: use openings as the base (has all entries)
+    var nums = Object.keys(openMap).map(Number).sort(function (a, b) { return b - a; }); // newest first
+    allArcs = nums.map(function (n) {
+      var o = openMap[n] || {};
+      var c = closeMap[n] || {};
+      return {
+        num: n,
+        title: o.title || c.title || '',
+        date: o.date || c.date || '',
+        url: o.url || c.url || '',
+        opening: o.opening || '',
+        closing: c.closing || ''
+      };
+    });
+
+    var metaEl = document.getElementById('arcs-meta');
+    if (metaEl) metaEl.textContent = allArcs.length + ' entries';
+
+    // Event listeners
+    var input = document.getElementById('filter-input');
+    if (input) input.addEventListener('input', applyFilter);
+
+    var btn = document.getElementById('order-btn');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        newestFirst = !newestFirst;
+        btn.textContent = newestFirst ? 'oldest first' : 'newest first';
+        applyFilter();
+      });
+    }
+
+    applyFilter();
+  }).catch(function (err) {
+    var el = document.getElementById('arc-list');
+    if (el) el.textContent = '(could not load data)';
+  });
+})();
+</script>
+
+</body>
+</html>
