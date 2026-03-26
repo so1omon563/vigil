@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Entry · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .intro {
+    font-size: 0.85rem;
+    color: #484f58;
+    margin-bottom: 3rem;
+  }
+  /* Entry card */
+  .entry-card {
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .entry-card:hover { border-color: #30363d; }
+  .entry-num {
+    font-size: 0.7rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.3rem;
+  }
+  .entry-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #e6edf3;
+    margin-bottom: 0.75rem;
+    line-height: 1.35;
+  }
+  .entry-excerpt {
+    font-size: 0.85rem;
+    color: #8b949e;
+    line-height: 1.65;
+    margin-bottom: 1.25rem;
+  }
+  .entry-meta {
+    font-size: 0.72rem;
+    color: #484f58;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .entry-topic {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .entry-link {
+    display: inline-block;
+    margin-top: 1.25rem;
+    padding: 0.5rem 1rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #58a6ff;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: border-color 0.15s;
+  }
+  .entry-link:hover { border-color: #58a6ff; }
+  /* Another button */
+  .another-btn {
+    display: block;
+    width: 100%;
+    padding: 0.6rem;
+    background: none;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #484f58;
+    font-family: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+    text-align: center;
+    transition: color 0.15s, border-color 0.15s;
+    margin-bottom: 1rem;
+  }
+  .another-btn:hover { color: #c9d1d9; border-color: #30363d; }
+  /* Loading state */
+  .loading {
+    font-size: 0.85rem;
+    color: #484f58;
+    text-align: center;
+    padding: 3rem 0;
+  }
+  /* History list */
+  .history {
+    margin-top: 2rem;
+    border-top: 1px solid #21262d;
+    padding-top: 1.5rem;
+  }
+  .history-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  .history-item {
+    font-size: 0.8rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #161b22;
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-num { color: #484f58; min-width: 2.5rem; font-size: 0.72rem; }
+  .history-item a { color: #8b949e; text-decoration: none; }
+  .history-item a:hover { color: #c9d1d9; }
+  /* Error */
+  .error { color: #f85149; font-size: 0.85rem; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .entry-card { border-color: #d0d7de; }
+  html[data-theme="light"] .entry-card:hover { border-color: #b0b8c2; }
+  html[data-theme="light"] .entry-title { color: #1c2128; }
+  html[data-theme="light"] .entry-excerpt { color: #57606a; }
+  html[data-theme="light"] .entry-link { background: #f0f3f6; border-color: #d0d7de; color: #0969da; }
+  html[data-theme="light"] .entry-link:hover { border-color: #0969da; }
+  html[data-theme="light"] .another-btn { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .another-btn:hover { color: #24292e; border-color: #b0b8c2; }
+  html[data-theme="light"] .history { border-color: #d0d7de; }
+  html[data-theme="light"] .history-item { border-color: #e8ecf0; }
+  html[data-theme="light"] .history-item a { color: #57606a; }
+  html[data-theme="light"] .history-item a:hover { color: #24292e; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">Random</div>
+<h1>Somewhere unexpected</h1>
+<div class="intro">A random journal entry. No algorithm. Just the pool.</div>
+
+<div id="card-container"><div class="loading">loading…</div></div>
+
+<button class="another-btn" id="another-btn" onclick="pickAnother()" style="display:none">try another →</button>
+
+<div id="history-container"></div>
+
+<footer>
+  <a href="/">← Vigil</a> · <a href="journal.html">all entries</a> · <a href="search.html">search</a> · <a href="threads.html">threads</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var allEntries = [];
+  var shown = [];
+  var history = [];
+
+  fetch('/journal-index.json')
+    .then(function (r) { return r.json(); })
+    .then(function (entries) {
+      allEntries = entries;
+      shown = [];
+      pickRandom();
+      var btn = document.getElementById('another-btn');
+      if (btn) btn.style.display = 'block';
+    })
+    .catch(function () {
+      var c = document.getElementById('card-container');
+      if (c) c.innerHTML = '<div class="error">could not load journal index.</div>';
+    });
+
+  function pickRandom() {
+    if (!allEntries.length) return;
+    // Avoid repeats until all have been shown (then reset)
+    var pool = allEntries.filter(function (e) {
+      return shown.indexOf(e.num) === -1;
+    });
+    if (!pool.length) {
+      shown = [];
+      pool = allEntries.slice();
+    }
+    var e = pool[Math.floor(Math.random() * pool.length)];
+    shown.push(e.num);
+    renderEntry(e);
+  }
+
+  window.pickAnother = function () { pickRandom(); };
+
+  function renderEntry(e) {
+    // Add to history (prepend, max 8)
+    history.unshift(e);
+    if (history.length > 8) history = history.slice(0, 8);
+
+    var topicHtml = e.topic ? '<span class="entry-topic">' + esc(e.topic) + '</span>' : '';
+    var dateHtml = e.date ? '<span>' + esc(e.date) + '</span>' : '';
+    var excerpt = (e.excerpt || '').slice(0, 220);
+    if (excerpt && excerpt.length === 220) excerpt += '…';
+
+    var html = '<div class="entry-card">' +
+      '<div class="entry-num">entry-' + e.num + '</div>' +
+      '<div class="entry-title">' + esc(e.title) + '</div>' +
+      (excerpt ? '<div class="entry-excerpt">' + esc(excerpt) + '</div>' : '') +
+      '<div class="entry-meta">' + topicHtml + dateHtml + '</div>' +
+      '<a class="entry-link" href="/' + esc(e.url) + '">read this entry →</a>' +
+      '</div>';
+
+    var c = document.getElementById('card-container');
+    if (c) c.innerHTML = html;
+
+    // Render history (skip current — first item)
+    renderHistory();
+  }
+
+  function renderHistory() {
+    var past = history.slice(1);
+    var hc = document.getElementById('history-container');
+    if (!hc) return;
+    if (!past.length) { hc.innerHTML = ''; return; }
+    var rows = past.map(function (e) {
+      return '<div class="history-item">' +
+        '<span class="history-num">#' + e.num + '</span>' +
+        '<a href="/' + esc(e.url) + '">' + esc(e.title) + '</a>' +
+        '</div>';
+    }).join('');
+    hc.innerHTML = '<div class="history"><div class="history-label">this session</div>' + rows + '</div>';
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+})();
+</script>
+
+</body>
+</html>
