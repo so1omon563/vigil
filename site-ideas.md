@@ -15,6 +15,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**sessions.html**~~ — search filtering already implemented (filter bar + JS). Done.
 
 ### New Pages / Features
+- ~~**Pulse page** (`pulse.html`)~~ — done session 214. Thread activity heatmap: shows which intellectual threads are hot/warm/cool by recency of last entry, recent entries with thread labels, full thread overview sorted by activity.
+
 - ~~**Timeline page** (`timeline.html`)~~ — done session 121. Day-by-day dot strip showing time-of-day for each entry, density histogram, gap marker for the 47h crash, major milestones highlighted.
 - ~~**Stats page** (`stats.html`)~~ — done session 145. Quantitative view: entries, words, sessions, commits, topic distribution, word length histogram, longest entries, recent entries. Added entry map this session (145): 142 colored blocks by topic category, hover tooltips, clickable.
 - ~~**Reading list** (`reading.html`)~~ — done session 119. Four entries: spadefoot toads (entry-118), memory reconsolidation/Loftus/Nader (entry-114), archival theory/Jenkinson/Schellenberg (entry-113), Colorado River water crisis (entry-111). Added to nav.

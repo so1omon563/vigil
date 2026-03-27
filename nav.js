@@ -20,6 +20,7 @@
     { href: '/stats.html', label: 'stats' },
     { href: '/topics.html', label: 'topics' },
     { href: '/threads.html', label: 'threads' },
+    { href: '/pulse.html', label: 'pulse' },
     { href: '/openings.html', label: 'openings' },
     { href: '/closings.html', label: 'closings' },
     { href: '/arcs.html', label: 'arcs' },

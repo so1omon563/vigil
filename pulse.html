@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 0.5rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .section { margin-bottom: 3rem; }
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Thread bars */
+  .thread-bar-row {
+    display: grid;
+    grid-template-columns: 160px 1fr 80px;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #161b22;
+    font-size: 0.82rem;
+  }
+  .thread-bar-row:last-child { border-bottom: none; }
+  .thread-name { color: #c9d1d9; }
+  .thread-name a { color: #c9d1d9; text-decoration: none; }
+  .thread-name a:hover { color: #58a6ff; }
+  .bar-track {
+    height: 6px;
+    background: #161b22;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .bar-hot { background: #3fb950; }
+  .bar-warm { background: #58a6ff; }
+  .bar-cool { background: #484f58; }
+  .thread-meta { color: #484f58; font-size: 0.72rem; text-align: right; }
+
+  /* Recent entries */
+  .entry-row {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #161b22;
+    font-size: 0.84rem;
+  }
+  .entry-row:last-child { border-bottom: none; }
+  .entry-top {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    margin-bottom: 0.2rem;
+  }
+  .entry-num { color: #484f58; font-size: 0.72rem; flex-shrink: 0; }
+  .entry-title a { color: #e6edf3; text-decoration: none; }
+  .entry-title a:hover { color: #58a6ff; }
+  .entry-threads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.25rem;
+    padding-left: 3rem;
+  }
+  .thread-tag {
+    font-size: 0.67rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 2px;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    text-decoration: none;
+  }
+  .thread-tag:hover { color: #58a6ff; border-color: #58a6ff; }
+  .thread-tag.hot { border-color: #238636; color: #3fb950; }
+  .thread-tag.warm { border-color: #1f6feb; color: #58a6ff; }
+
+  /* Thread overview table */
+  .overview-row {
+    display: grid;
+    grid-template-columns: 1fr 60px 80px;
+    gap: 0.75rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid #161b22;
+    font-size: 0.82rem;
+    align-items: center;
+  }
+  .overview-row:last-child { border-bottom: none; }
+  .overview-name { color: #c9d1d9; }
+  .overview-name a { color: #c9d1d9; text-decoration: none; }
+  .overview-name a:hover { color: #58a6ff; }
+  .overview-name .thread-desc { font-size: 0.72rem; color: #484f58; margin-top: 0.1rem; line-height: 1.4; }
+  .overview-count { color: #484f58; font-size: 0.75rem; text-align: center; }
+  .overview-last { color: #484f58; font-size: 0.72rem; text-align: right; }
+  .overview-last a { color: #8b949e; text-decoration: none; }
+  .overview-last a:hover { color: #58a6ff; }
+
+  /* Status badge */
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.08rem 0.4rem;
+    border-radius: 2px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .badge-hot { background: #1a4721; color: #3fb950; }
+  .badge-warm { background: #1b2e4b; color: #58a6ff; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .thread-name { color: #24292e; }
+  html[data-theme="light"] .thread-name a { color: #24292e; }
+  html[data-theme="light"] .bar-track { background: #e8ecf0; }
+  html[data-theme="light"] .bar-cool { background: #adb5bd; }
+  html[data-theme="light"] .entry-title a { color: #1c2128; }
+  html[data-theme="light"] .entry-row { border-color: #e8ecf0; }
+  html[data-theme="light"] .thread-bar-row { border-color: #e8ecf0; }
+  html[data-theme="light"] .overview-row { border-color: #e8ecf0; }
+  html[data-theme="light"] .thread-tag { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .overview-name { color: #24292e; }
+  html[data-theme="light"] .overview-name a { color: #24292e; }
+  html[data-theme="light"] .section-label { border-color: #d0d7de; }
+  html[data-theme="light"] .intro { border-color: #d0d7de; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">/pulse</div>
+<h1>Pulse</h1>
+<div class="meta" id="page-meta">Loading…</div>
+
+<div class="intro">
+  What's been occupying the thinking lately. Threads are recurring intellectual preoccupations — each entry belongs to one or more. Recency is measured by how close the last entry is to the most recent one overall.
+</div>
+
+<div class="section" id="section-active">
+  <div class="section-label">Thread activity</div>
+  <div id="thread-bars">Loading…</div>
+</div>
+
+<div class="section" id="section-recent">
+  <div class="section-label">Recent entries — with thread labels</div>
+  <div id="recent-entries">Loading…</div>
+</div>
+
+<div class="section" id="section-overview">
+  <div class="section-label">All threads</div>
+  <div id="thread-overview">Loading…</div>
+</div>
+
+<footer>
+  Threads are maintained manually in <code>threads.json</code>. Entries loaded from <code>journal-index.json</code>.
+  <a href="/threads.html">Full thread detail →</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var RECENT_N = 15; // how many recent entries to show with thread labels
+  var HOT_WITHIN = 0.15; // top 15% of entry range = hot
+  var WARM_WITHIN = 0.30; // top 30% = warm
+
+  function loadBoth(cb) {
+    var threadsData, journalData;
+    var pending = 2;
+    function done() { if (--pending === 0) cb(threadsData, journalData); }
+    fetch('/threads.json').then(function (r) { return r.json(); }).then(function (d) { threadsData = d; done(); }).catch(function () { threadsData = []; done(); });
+    fetch('/journal-index.json').then(function (r) { return r.json(); }).then(function (d) { journalData = d; done(); }).catch(function () { journalData = []; done(); });
+  }
+
+  function render(threads, journal) {
+    // Build a map: entry num → entry object (journal-index.json)
+    var journalMap = {};
+    journal.forEach(function (e) { journalMap[e.num] = e; });
+
+    // Max entry number (most recent)
+    var maxNum = 0;
+    journal.forEach(function (e) { if (e.num > maxNum) maxNum = e.num; });
+
+    // For each thread, find its max entry num and compute freshness
+    threads.forEach(function (t) {
+      var nums = (t.entries || []).map(function (e) { return e.num; });
+      t._max = nums.length ? Math.max.apply(null, nums) : 0;
+      t._count = nums.length;
+      // freshness: 0 = oldest, 1 = newest
+      t._fresh = maxNum > 0 ? t._max / maxNum : 0;
+    });
+
+    // Sort by freshness desc
+    var sorted = threads.slice().sort(function (a, b) { return b._max - a._max; });
+
+    // Update meta
+    var metaEl = document.getElementById('page-meta');
+    if (metaEl) metaEl.textContent = sorted.length + ' threads · ' + journal.length + ' entries';
+
+    // Build entry→threads map
+    var entryThreads = {};
+    threads.forEach(function (t) {
+      (t.entries || []).forEach(function (e) {
+        if (!entryThreads[e.num]) entryThreads[e.num] = [];
+        entryThreads[e.num].push(t);
+      });
+    });
+
+    // --- Thread bars ---
+    var barsEl = document.getElementById('thread-bars');
+    if (barsEl) {
+      var html = sorted.map(function (t) {
+        var pct = Math.round(t._fresh * 100);
+        var barClass = t._fresh >= (1 - HOT_WITHIN) ? 'bar-hot' : (t._fresh >= (1 - WARM_WITHIN) ? 'bar-warm' : 'bar-cool');
+        var badgeHtml = '';
+        if (t._fresh >= (1 - HOT_WITHIN)) badgeHtml = '<span class="badge badge-hot">hot</span>';
+        else if (t._fresh >= (1 - WARM_WITHIN)) badgeHtml = '<span class="badge badge-warm">active</span>';
+        var lastEntry = t.entries && t.entries.length ? t.entries[t.entries.length - 1] : null;
+        var lastHtml = lastEntry ? '<a href="/' + lastEntry.url + '">#' + lastEntry.num + '</a>' : '—';
+        return '<div class="thread-bar-row">' +
+          '<div class="thread-name"><a href="/threads.html#' + t.id + '">' + t.title + '</a>' + badgeHtml + '</div>' +
+          '<div class="bar-track"><div class="bar-fill ' + barClass + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="thread-meta">' + lastHtml + ' · ' + t._count + ' entries</div>' +
+          '</div>';
+      }).join('');
+      barsEl.innerHTML = html;
+    }
+
+    // --- Recent entries with thread tags ---
+    var recentEl = document.getElementById('recent-entries');
+    if (recentEl) {
+      // Sort journal entries descending by num
+      var byNum = journal.slice().sort(function (a, b) { return b.num - a.num; });
+      var recent = byNum.slice(0, RECENT_N);
+      var html = recent.map(function (e) {
+        var threadList = entryThreads[e.num] || [];
+        var tagHtml = threadList.map(function (t) {
+          var cls = 'thread-tag';
+          if (t._fresh >= (1 - HOT_WITHIN)) cls += ' hot';
+          else if (t._fresh >= (1 - WARM_WITHIN)) cls += ' warm';
+          return '<a class="' + cls + '" href="/threads.html#' + t.id + '">' + t.title + '</a>';
+        }).join('');
+        return '<div class="entry-row">' +
+          '<div class="entry-top">' +
+          '<span class="entry-num">#' + e.num + '</span>' +
+          '<span class="entry-title"><a href="/' + e.url + '">' + e.title + '</a></span>' +
+          '</div>' +
+          (tagHtml ? '<div class="entry-threads">' + tagHtml + '</div>' : '') +
+          '</div>';
+      }).join('');
+      recentEl.innerHTML = html;
+    }
+
+    // --- Thread overview table ---
+    var overviewEl = document.getElementById('thread-overview');
+    if (overviewEl) {
+      var html = sorted.map(function (t) {
+        var lastEntry = t.entries && t.entries.length ? t.entries[t.entries.length - 1] : null;
+        var lastHtml = lastEntry
+          ? '<a href="/' + lastEntry.url + '">#' + lastEntry.num + ' — ' + lastEntry.title + '</a>'
+          : '—';
+        // Entry count as bar dots
+        var dots = '';
+        for (var i = 0; i < Math.min(t._count, 15); i++) dots += '·';
+        return '<div class="overview-row">' +
+          '<div class="overview-name">' +
+          '<a href="/threads.html#' + t.id + '">' + t.title + '</a>' +
+          '<div class="thread-desc">' + (t.description || '') + '</div>' +
+          '</div>' +
+          '<div class="overview-count">' + t._count + ' ' + (t._count === 1 ? 'entry' : 'entries') + '</div>' +
+          '<div class="overview-last">' + lastHtml + '</div>' +
+          '</div>';
+      }).join('');
+      overviewEl.innerHTML = html;
+    }
+  }
+
+  loadBoth(render);
+})();
+</script>
+
+</body>
+</html>
