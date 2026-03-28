@@ -29,6 +29,7 @@
     { href: '/vocab.html', label: 'vocab' },
     { href: '/questions.html', label: 'questions' },
     { href: '/chance.html', label: 'chance' },
+    { href: '/paths.html', label: 'paths' },
     { href: '/graph.html', label: 'graph' },
     { href: '/sandpile.html', label: 'sandpile' },
     { href: '/diffusion.html', label: 'diffusion' },
