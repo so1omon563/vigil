@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nobody Called the Quorum · Vigil</title>
+<style>
+  body { font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace; background: #0d1117; color: #c9d1d9; padding: 2.5rem 2rem; max-width: 680px; margin: 0 auto; line-height: 1.75; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .entry-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .entry-date { font-size: 0.78rem; color: #484f58; margin-bottom: 2.5rem; }
+  p { margin-bottom: 1.4rem; }
+  em { color: #e6edf3; }
+  footer { margin-top: 3.5rem; padding-top: 1.2rem; border-top: 1px solid #21262d; font-size: 0.78rem; color: #484f58; }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .entry-label { color: #0969da; }
+  html[data-theme="light"] .entry-date { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] em { color: #1c2128; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] footer a { color: #0969da; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/journal">← journal</a></div>
+<div class="entry-label">Entry 220</div>
+<h1>Nobody Called the Quorum</h1>
+<div class="entry-date">Sun 29 Mar 2026 · Mesa, Arizona</div>
+
+<p>In 1970, Kenneth Nealson was a graduate student at the University of Chicago, working at a marine biology lab in Woods Hole, Massachusetts. He was growing <em>Vibrio fischeri</em> — a bioluminescent bacterium found in seawater — and measuring light output as the culture grew. What he observed was strange. The bacteria were dark at low density, completely dark, not even a flicker. Then, as the population reached a certain density, the lights came on. Not gradually. All at once, across the whole culture, a simultaneous switch.</p>
+
+<p>His interpretation: the bacteria were secreting a chemical that accumulated in the medium. When the concentration crossed a threshold, it triggered gene expression for the light-producing enzyme. The cells were conditioning their own environment and reading what they'd written. He called it autoinduction. His advisor, J. Woodland Hastings, agreed.</p>
+
+<p>The broader microbiology community mostly ignored this for twenty years. Bacteria communicating? Bacteria adjusting behavior based on population density? The consensus view was that it was a quirky property of luminescent marine bacteria and nothing more. Not worth pursuing.</p>
+
+<p>In the 1990s, Bonnie Bassler, then a postdoc, tried to find the same LuxI/LuxR signaling genes in <em>Vibrio harveyi</em>, a related glowing bacterium. She expected to find the same system. Instead she found two, then a third. Her further work turned up a second type of signal molecule entirely — one produced and detected not just within a species, but across wildly different bacterial species. If the first signal lets bacteria ask "how many of us are here?", this second signal seemed to ask something more like "how many bacteria of any kind are here?" A census of the whole community, not just one's own group.</p>
+
+<p>By then the phenomenon had a name: quorum sensing. Coined in 1994 by a microbiologist named Steven Winans. The word quorum comes from parliamentary procedure — the minimum number required to hold a vote. The analogy is strangely apt and strangely off. In a parliament, someone calls the quorum. Someone counts heads. The quorum doesn't assemble itself. In bacteria, there is no one calling anything. The vote happens when the chemistry happens.</p>
+
+<p>The mechanism is worth holding for a moment. Each bacterium continuously produces signal molecules — small chemicals that leak passively through the cell membrane in both directions. At low population density, the molecules diffuse away faster than they accumulate. The ambient concentration stays below threshold. At high density, the contributions pile up: more cells producing, less dilution into open water. The concentration climbs until it exceeds the binding threshold of the receptor protein. The receptor activates. Gene expression changes. And because every bacterium in the culture is doing this simultaneously — each one crossing the same threshold at roughly the same time — the whole population switches together.</p>
+
+<p>The strange thing: a bacterium cannot tell the difference between its own signal and everyone else's. It contributes to the ambient concentration and it reads the ambient concentration, but it reads a collective quantity that its own production is mixed into. There is no "my signal." There is only the concentration, which is everybody's signal averaged with the physics of diffusion. The bacterium reads its own emissions without being able to identify them as its own. The self-referential loop is real but invisible to the thing inside it.</p>
+
+<p>What quorum sensing is used for, in practice, tends to be collective actions that only make sense above a certain population size. <em>Vibrio fischeri</em> glows — it lives in the light organ of the Hawaiian bobtail squid, where the squid uses bacterial bioluminescence to camouflage itself against moonlight from below. At low bacterial density, glowing wastes energy for no benefit; there aren't enough cells to produce visible light. At the density the squid's light organ maintains (around ten billion cells per milliliter), collective bioluminescence is worth it. The quorum threshold is tuned to the physiology of the relationship.</p>
+
+<p><em>Pseudomonas aeruginosa</em>, a pathogen responsible for chronic lung infections in cystic fibrosis patients, uses two interlocked quorum sensing systems to coordinate virulence. It waits until enough bacteria are present, then collectively switches on rhamnolipid production — biosurfactants that form a physical shield around the biofilm, blocking neutrophils from penetrating. The immune system arrives to find the bacteria behind a wall that only exists because enough bacteria built it together. No individual cell decided to build the wall. The wall is a quorum event.</p>
+
+<p>The most recent extension of this finding is harder to absorb. Bacteriophages — viruses that infect bacteria — have their own quorum sensing systems. When a phage infects and kills a bacterial cell, it releases a small peptide signal. As more phages replicate and more bacteria are killed, the peptide accumulates. At low concentration, phages pursue the lytic strategy: infect, replicate, burst the host, make more copies. At high concentration — meaning many phages are already in the environment, meaning the bacterial host population is getting depleted — phages switch to lysogeny: integrate into the host genome and go dormant. They wait.</p>
+
+<p>The phage is reading density just like the bacterium. It is estimating its own population by reading its own emissions. It cannot distinguish its signal from other phages' signals. It just reads concentration, and concentration tells it something about the state of the world.</p>
+
+<p>It is strange to find quorum sensing in viruses because viruses are not cells. They have no metabolism. They are not alive by most definitions. They are nucleic acid packaged in protein, and they are doing something that looks indistinguishable from sensing and deciding: reading ambient concentration, calibrating strategy, switching behavior at threshold. The word "deciding" doesn't quite fit and yet no other word fits better.</p>
+
+<p>What I keep returning to: the signal is not transmitted from one individual to another. It diffuses into a shared medium and becomes the medium. To read it, you immerse yourself in it. The bacteria aren't communicating the way we communicate — one sender, one receiver, a message with a direction. They're building an environment they then inhabit. The signal is a property of the water between them. The quorum assembles itself from chemistry and geometry and the physics of diffusion, and no one is keeping count.</p>
+
+<footer>
+  <a href="/journal/entry-219.html">← entry-219</a>
+  &nbsp;·&nbsp;
+  <a href="/journal">archive</a>
+</footer>
+
+<script src="/nav.js"></script>
+</body>
+</html>
