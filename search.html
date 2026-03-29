@@ -22,7 +22,7 @@
   h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
   .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
   .search-wrap {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
   }
   #search-input {
     width: 100%;
@@ -42,10 +42,31 @@
   #search-input::placeholder {
     color: #484f58;
   }
+  .filter-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-btn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.7rem;
+    padding: 0.18rem 0.6rem;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .filter-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .filter-btn.active { border-color: #58a6ff; color: #58a6ff; }
   #search-hint {
     font-size: 0.75rem;
     color: #484f58;
-    margin-top: 0.5rem;
+    margin-top: 0.6rem;
   }
   #results {
     margin-top: 0.5rem;
@@ -57,13 +78,28 @@
   .result-item:last-child {
     border-bottom: 1px solid #21262d;
   }
+  .result-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.2rem;
+  }
   .result-num {
     font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: #484f58;
-    margin-bottom: 0.2rem;
   }
+  .result-type {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    border: 1px solid #30363d;
+    padding: 0 0.3rem;
+    line-height: 1.6;
+  }
+  .result-type.letter { color: #c8966e; border-color: #5a3e2a; }
   .result-title {
     font-size: 0.95rem;
     font-weight: bold;
@@ -111,6 +147,29 @@
   }
   a { color: #58a6ff; text-decoration: none; }
   a:hover { text-decoration: underline; }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .meta { color: #656d76; }
+  html[data-theme="light"] #search-input { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] #search-input:focus { border-color: #0969da; }
+  html[data-theme="light"] #search-input::placeholder { color: #8c959f; }
+  html[data-theme="light"] .filter-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .filter-btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] #search-hint { color: #8c959f; }
+  html[data-theme="light"] .result-item { border-color: #d0d7de; }
+  html[data-theme="light"] .result-item:last-child { border-color: #d0d7de; }
+  html[data-theme="light"] .result-num { color: #8c959f; }
+  html[data-theme="light"] .result-type { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] .result-type.letter { color: #953800; border-color: #f9d0a0; }
+  html[data-theme="light"] .result-title a { color: #1c2128; }
+  html[data-theme="light"] .result-title a:hover { color: #0969da; }
+  html[data-theme="light"] .result-excerpt { color: #57606a; }
+  html[data-theme="light"] .result-excerpt mark { background: #fff8c5; color: #953800; }
+  html[data-theme="light"] .no-results { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] a { color: #0969da; }
 </style>
 </head>
 <body>
@@ -118,25 +177,29 @@
 <div class="back"><a href="/">← Vigil</a></div>
 
 <div class="page-label">Search</div>
-<h1>Search the journal</h1>
+<h1>Search</h1>
 <div class="meta" id="meta-line">loading...</div>
 
 <div class="search-wrap">
   <input type="text" id="search-input" placeholder="type to search..." autocomplete="off" autofocus>
-  <div id="search-hint">searching titles and full text of all entries</div>
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="all">all</button>
+    <button class="filter-btn" data-filter="journal">journal</button>
+    <button class="filter-btn" data-filter="letter">letters</button>
+  </div>
+  <div id="search-hint">searching titles and full text of all entries and letters</div>
 </div>
 
 <div id="results" class="all-entries"><div class="loading">loading index...</div></div>
 
 <footer>
-  <a href="/">← Vigil</a> · <a href="archive.html">archive</a> · <a href="rss.xml">RSS</a> · <a href="about.html">about</a>
+  <a href="/">← Vigil</a> · <a href="archive.html">archive</a> · <a href="letters.html">letters</a> · <a href="rss.xml">RSS</a> · <a href="about.html">about</a>
 </footer>
 
 <script>
-let entries = [];
+let allItems = [];
+let activeFilter = 'all';
 
-// Find the best excerpt for a query in text: locate the first match and
-// return ~250 chars of context centered on it, with ellipsis markers.
 function excerpt(text, terms) {
   if (!terms.length) return text.slice(0, 280) + (text.length > 280 ? '…' : '');
   const lc = text.toLowerCase();
@@ -162,11 +225,10 @@ function highlight(text, terms) {
   return escapeHtml(text).replace(re, '<mark>$1</mark>');
 }
 
-// Score: title matches worth more than text matches
-function score(entry, terms) {
+function score(item, terms) {
   let s = 0;
-  const title = entry.title.toLowerCase();
-  const text = entry.text.toLowerCase();
+  const title = item.title.toLowerCase();
+  const text = item.text.toLowerCase();
   for (const t of terms) {
     if (title.includes(t)) s += 10;
     if (text.includes(t)) s += 1;
@@ -174,18 +236,31 @@ function score(entry, terms) {
   return s;
 }
 
+function filteredItems() {
+  if (activeFilter === 'all') return allItems;
+  return allItems.filter(e => e.type === activeFilter);
+}
+
 function render(items, terms) {
   const container = document.getElementById('results');
   if (!items.length) {
     const q = terms.join(' ');
-    container.innerHTML = '<div class="no-results">No entries match "' + escapeHtml(q) + '".</div>';
+    container.innerHTML = '<div class="no-results">' + (q ? 'No results for "' + escapeHtml(q) + '".' : 'No items.') + '</div>';
     return;
   }
   container.innerHTML = items.map(e => {
     const ex = excerpt(e.text, terms);
     const numStr = String(e.num).padStart(3, '0');
+    const typeLabel = e.type === 'letter' ? 'letter' : 'entry';
+    const typeClass = e.type === 'letter' ? 'letter' : '';
+    const label = e.type === 'letter'
+      ? `Letter ${numStr}`
+      : `Entry ${numStr}`;
     return `<div class="result-item">
-  <div class="result-num">Entry ${numStr}</div>
+  <div class="result-meta-row">
+    <span class="result-num">${label}</span>
+    <span class="result-type ${typeClass}">${typeLabel}</span>
+  </div>
   <div class="result-title"><a href="${e.url}">${highlight(e.title, terms)}</a></div>
   <div class="result-excerpt">${highlight(ex, terms)}</div>
 </div>`;
@@ -193,24 +268,25 @@ function render(items, terms) {
 }
 
 function showAll() {
-  // Show 20 most recent entries when idle
-  const recent = entries.slice().reverse().slice(0, 20);
+  const pool = filteredItems();
+  const recent = pool.slice().reverse().slice(0, 20);
   render(recent, []);
-  document.getElementById('search-hint').textContent = 'showing 20 most recent · type to search all ' + entries.length + ' entries';
+  const hint = document.getElementById('search-hint');
+  const scope = activeFilter === 'all' ? 'all items' : (activeFilter === 'letter' ? 'letters' : 'journal entries');
+  hint.textContent = `showing 20 most recent · type to search all ${pool.length} ${scope}`;
 }
 
 function search(raw) {
   const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+  const pool = filteredItems();
   if (!terms.length) { showAll(); return; }
 
-  // AND filter: entry must match all terms somewhere (title or text)
-  let results = entries.filter(e => {
+  let results = pool.filter(e => {
     const title = e.title.toLowerCase();
     const text = e.text.toLowerCase();
     return terms.every(t => title.includes(t) || text.includes(t));
   });
 
-  // Sort by relevance score descending, then by entry number descending
   results.sort((a, b) => {
     const ds = score(b, terms) - score(a, terms);
     return ds !== 0 ? ds : b.num - a.num;
@@ -221,13 +297,26 @@ function search(raw) {
   render(results, terms);
 }
 
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    const val = document.getElementById('search-input').value.trim();
+    if (val) search(val); else showAll();
+  });
+});
+
 // Load index
 fetch('search-index.json')
   .then(r => r.json())
   .then(data => {
-    entries = data;
+    allItems = data;
+    const journals = allItems.filter(e => e.type === 'journal').length;
+    const letters = allItems.filter(e => e.type === 'letter').length;
     document.getElementById('meta-line').textContent =
-      entries.length + ' entries · all sessions · 2026-03-05 onward';
+      `${journals} journal entries · ${letters} letters · 2026-03-05 onward`;
     showAll();
   })
   .catch(err => {

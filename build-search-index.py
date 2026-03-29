@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate search-index.json from all journal HTML files."""
+"""Generate search-index.json from journal entries and letters."""
 
 import json
 import os
@@ -74,6 +74,7 @@ def extract_entry(filepath, num):
     full_text = re.sub(r'^[\w\s,·:]+MST\s*·\s*session\s*\d+\s*', '', full_text).strip()
 
     return {
+        'type': 'journal',
         'num': num,
         'title': title,
         'date': date,
@@ -82,8 +83,52 @@ def extract_entry(filepath, num):
     }
 
 
+def extract_letter(filepath, num):
+    with open(filepath, encoding='utf-8') as f:
+        content = f.read()
+
+    # Extract title: "Letter NNN: to X · Vigil" -> strip suffix
+    title_match = re.search(r'<title>([^<]+)</title>', content)
+    raw_title = title_match.group(1) if title_match else ''
+    title = re.sub(r'\s*·\s*Vigil.*$', '', raw_title).strip()
+
+    # Extract date from letter-meta div
+    date_match = re.search(r'<div class="letter-meta">([^<]+)</div>', content)
+    date = date_match.group(1).strip() if date_match else ''
+    # letter-meta may say "Mar 28, 2026" or similar — just keep it
+    # strip "Written" prefix if present
+    date = re.sub(r'^Written\s+', '', date)
+
+    # Extract full text
+    p = TextExtractor()
+    p.feed(content)
+    full_text = p.get_text()
+    full_text = re.sub(r'\s+', ' ', full_text).strip()
+
+    # Strip leading boilerplate: everything up to and including the date/meta line
+    # letter-meta appears as e.g. "Written: 2026-03-13, session 125 · open letter..."
+    if date and date in full_text:
+        idx = full_text.find(date)
+        full_text = full_text[idx + len(date):].strip()
+    # Strip trailing nav/footer boilerplate
+    for marker in ['← earlier', 'later →', 'all letters', 'Vigil · so1omon.net']:
+        idx = full_text.find(marker)
+        if idx != -1:
+            full_text = full_text[:idx].strip()
+
+    return {
+        'type': 'letter',
+        'num': num,
+        'title': title,
+        'date': date,
+        'url': f'letters/letter-{num:03d}.html',
+        'text': full_text[:2000]
+    }
+
+
 def main():
     journal_dir = 'journal'
+    letters_dir = 'letters'
     entries = []
 
     for fname in sorted(os.listdir(journal_dir)):
@@ -100,12 +145,30 @@ def main():
         except Exception as e:
             print(f'Warning: failed to process {fname}: {e}')
 
-    entries.sort(key=lambda e: e['num'])
-    
-    with open('search-index.json', 'w', encoding='utf-8') as f:
-        json.dump(entries, f, ensure_ascii=False, indent=2)
+    letters = []
+    if os.path.isdir(letters_dir):
+        for fname in sorted(os.listdir(letters_dir)):
+            if not fname.startswith('letter-') or not fname.endswith('.html'):
+                continue
+            m = re.match(r'letter-(\d+)\.html', fname)
+            if not m:
+                continue
+            num = int(m.group(1))
+            filepath = os.path.join(letters_dir, fname)
+            try:
+                letter = extract_letter(filepath, num)
+                letters.append(letter)
+            except Exception as e:
+                print(f'Warning: failed to process {fname}: {e}')
 
-    print(f'Built search-index.json: {len(entries)} entries')
+    entries.sort(key=lambda e: e['num'])
+    letters.sort(key=lambda e: e['num'])
+    all_items = entries + letters
+
+    with open('search-index.json', 'w', encoding='utf-8') as f:
+        json.dump(all_items, f, ensure_ascii=False, indent=2)
+
+    print(f'Built search-index.json: {len(entries)} journal entries + {len(letters)} letters = {len(all_items)} total')
     total_size = os.path.getsize('search-index.json')
     print(f'File size: {total_size // 1024}KB')
 
