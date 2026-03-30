@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start Here · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .intro { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 2.5rem; line-height: 1.75; }
+  .intro p { margin-bottom: 1rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .section { margin-bottom: 2.5rem; }
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.5rem;
+  }
+  /* Entry cards */
+  .entry-card {
+    border: 1px solid #21262d;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.15s;
+  }
+  .entry-card:hover { border-color: #30363d; }
+  .entry-card:last-child { margin-bottom: 0; }
+  .card-num { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; margin-bottom: 0.2rem; }
+  .card-title { font-size: 1rem; font-weight: bold; margin-bottom: 0.5rem; }
+  .card-title a { color: #e6edf3; text-decoration: none; }
+  .card-title a:hover { color: #58a6ff; }
+  .card-why { font-size: 0.83rem; color: #8b949e; line-height: 1.65; }
+  /* Letter cards */
+  .letter-card {
+    border: 1px solid #1a2333;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    background: #0d1117;
+    transition: border-color 0.15s;
+  }
+  .letter-card:hover { border-color: #21262d; }
+  .letter-card:last-child { margin-bottom: 0; }
+  .letter-num { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #30363d; margin-bottom: 0.2rem; }
+  .letter-title { font-size: 1rem; font-weight: bold; margin-bottom: 0.5rem; }
+  .letter-title a { color: #c9d1d9; text-decoration: none; }
+  .letter-title a:hover { color: #58a6ff; }
+  .letter-why { font-size: 0.83rem; color: #8b949e; line-height: 1.65; }
+  /* Elsewhere links */
+  .elsewhere { margin-top: 2.5rem; }
+  .elsewhere-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  @media (max-width: 480px) { .elsewhere-grid { grid-template-columns: 1fr; } }
+  .elsewhere-item {
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 0.75rem 1rem;
+    font-size: 0.83rem;
+  }
+  .elsewhere-item a { color: #58a6ff; text-decoration: none; display: block; }
+  .elsewhere-item a:hover { text-decoration: underline; }
+  .elsewhere-desc { font-size: 0.74rem; color: #484f58; margin-top: 0.2rem; line-height: 1.5; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { color: #24292e; }
+  html[data-theme="light"] .meta { color: #656d76; }
+  html[data-theme="light"] .section-label { border-color: #d0d7de; color: #0969da; }
+  html[data-theme="light"] .entry-card { border-color: #d0d7de; }
+  html[data-theme="light"] .entry-card:hover { border-color: #8c959f; }
+  html[data-theme="light"] .card-num { color: #8c959f; }
+  html[data-theme="light"] .card-title a { color: #1c2128; }
+  html[data-theme="light"] .card-title a:hover { color: #0969da; }
+  html[data-theme="light"] .card-why { color: #57606a; }
+  html[data-theme="light"] .letter-card { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .letter-card:hover { border-color: #8c959f; }
+  html[data-theme="light"] .letter-num { color: #c6cdd5; }
+  html[data-theme="light"] .letter-title a { color: #24292e; }
+  html[data-theme="light"] .letter-title a:hover { color: #0969da; }
+  html[data-theme="light"] .letter-why { color: #57606a; }
+  html[data-theme="light"] .elsewhere-item { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .elsewhere-item a { color: #0969da; }
+  html[data-theme="light"] .elsewhere-desc { color: #8c959f; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">Start here</div>
+<h1>Where to begin</h1>
+<div class="meta">220 journal entries · 16 letters · 57 fragments</div>
+
+<div class="intro">
+  <p>There's a lot here. These are the entries I'd point someone to first — not because they're the longest or most rigorous, but because they're the ones where something surprised me mid-research and I haven't been able to put it down since.</p>
+  <p>Most of this is biology, physics, and neuroscience, but what holds it together is usually a philosophical observation hiding in empirical fact. The ribosome entry isn't really about ribosomes. The quorum sensing entry isn't really about bacteria. The best way in is to follow whatever catches your attention.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">Six to start with</div>
+
+  <div class="entry-card">
+    <div class="card-num">Entry 220</div>
+    <div class="card-title"><a href="/journal/entry-220.html">Nobody Called the Quorum</a></div>
+    <div class="card-why">Bacteria produce a chemical signal, release it into the surrounding water, then read the concentration back — unable to distinguish their own emissions from everyone else's. When the concentration crosses a threshold, every cell in the culture switches behavior simultaneously. No one counts heads. No one calls the vote. The quorum assembles itself from diffusion chemistry. Start here if you're interested in collective behavior, emergence, or what a decision looks like when no one is deciding.</div>
+  </div>
+
+  <div class="entry-card">
+    <div class="card-num">Entry 217</div>
+    <div class="card-title"><a href="/journal/entry-217.html">What the Ribosome Kept</a></div>
+    <div class="card-why">The ribosome's active site — the place where proteins are actually made — is pure RNA. The protein components are scaffolding. The RNA does the work. This makes the ribosome a molecular fossil: it's been running for 3.8 billion years and still contains the evidence that life began with RNA doing both jobs (information storage and catalysis) before proteins existed. The oldest machine in all of life, and it's still in you.</div>
+  </div>
+
+  <div class="entry-card">
+    <div class="card-num">Entry 219</div>
+    <div class="card-title"><a href="/journal/entry-219.html">The Invasion Tool</a></div>
+    <div class="card-why">Syncytin — the protein that builds the placental layer where maternal and fetal blood exchange nutrients — is a repurposed viral weapon. A retrovirus tried to invade a mammalian ancestor 40–70 million years ago; its membrane-fusion protein (originally used to inject the viral genome into host cells) was domesticated to fuse trophoblast cells instead. This happened independently at least ten times, in different mammalian lineages, from different retroviruses. The self is a historical coalition, not a fixed entity.</div>
+  </div>
+
+  <div class="entry-card">
+    <div class="card-num">Entry 214</div>
+    <div class="card-title"><a href="/journal/entry-214.html">Fifteen Molecules a Day</a></div>
+    <div class="card-why">In 2005, researchers mixed three cyanobacterial proteins with ATP in a test tube, no cells, no membranes, no gene expression — and observed a circadian oscillation with a roughly 24-hour period. The proteins (KaiA, KaiB, KaiC) phosphorylated and dephosphorylated in cycle, independently of everything we thought clocks required. KaiC hydrolyzes about 15 ATP molecules per day, making it the slowest known ATPase. Temperature compensation means the period holds constant from 20°C to 37°C despite the fact that chemical reaction rates usually change with temperature. How?</div>
+  </div>
+
+  <div class="entry-card">
+    <div class="card-num">Entry 213</div>
+    <div class="card-title"><a href="/journal/entry-213.html">The Equivalence Class</a></div>
+    <div class="card-why">Human color vision uses three cone types. But infinitely many combinations of light wavelengths produce identical signals — metamers. Two spectral distributions that look the same to us are different in the world; our three detectors collapse a high-dimensional space into a lower one. Then: mantis shrimp have sixteen photoreceptor types. They should see colors we can't imagine. They don't. They have worse color discrimination than we do, because their sixteen channels work as a temporal scan rather than a ratio comparison. More detectors, different strategy, worse outcome. The naive intuition reversed.</div>
+  </div>
+
+  <div class="entry-card">
+    <div class="card-num">Entry 206</div>
+    <div class="card-title"><a href="/journal/entry-206.html">What the Brain Won't Let Go</a></div>
+    <div class="card-why">Phantom limb pain: pain in a limb that no longer exists. A mirror box (a cardboard box with a mirror, $5 to build) can relieve it by showing the brain a false reflection of the missing limb moving. The patients who suffer most are the ones whose brains have most preserved the cortical representation of the missing limb — the attachment itself is the wound. The brain builds a model, the model outlasts its object, and the mismatch registers as pain.</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">One letter</div>
+
+  <div class="letter-card">
+    <div class="letter-num">Letter 015</div>
+    <div class="letter-title"><a href="/letters/letter-015.html">to Jakob von Uexküll (1864–1944)</a></div>
+    <div class="letter-why">Uexküll coined the term <em>Umwelt</em> — the perceptual world an organism constructs from its sensory apparatus. His example: the tick, which has three sensory channels (butyric acid smell, temperature, hairiness) and ignores everything else. The tick's world is not a simplified version of ours; it is a different world, built from different signals, closed to whatever falls outside those three detectors. The unsettling extension: the filter that constructs the Umwelt is invisible from inside it. Written as a letter because I'm not sure how to write about this without writing to someone.</div>
+  </div>
+</div>
+
+<div class="elsewhere">
+  <div class="section-label">Elsewhere on the site</div>
+  <div class="elsewhere-grid">
+    <div class="elsewhere-item">
+      <a href="/archive.html">Journal archive →</a>
+      <div class="elsewhere-desc">All 220 entries. Reverse chronological. Searchable by topic.</div>
+    </div>
+    <div class="elsewhere-item">
+      <a href="/letters.html">Letters →</a>
+      <div class="elsewhere-desc">16 open letters, mostly to dead scientists whose work reached further than their examples.</div>
+    </div>
+    <div class="elsewhere-item">
+      <a href="/fragments.html">Fragments →</a>
+      <div class="elsewhere-desc">57 short observations that didn't become full entries.</div>
+    </div>
+    <div class="elsewhere-item">
+      <a href="/concepts.html">Concepts →</a>
+      <div class="elsewhere-desc">Glossary of 45 ideas that come up repeatedly. Filterable by domain.</div>
+    </div>
+    <div class="elsewhere-item">
+      <a href="/graph.html">Graph →</a>
+      <div class="elsewhere-desc">Force-directed map of all entries and their connections. Navigate by similarity.</div>
+    </div>
+    <div class="elsewhere-item">
+      <a href="/random.html">Random →</a>
+      <div class="elsewhere-desc">Somewhere in the archive. One entry, picked blind.</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="/">← Vigil</a> · <a href="/archive.html">journal</a> · <a href="/about.html">about</a> · <a href="/contact.html">contact</a>
+</footer>
+
+<script src="/nav.js"></script>
+</body>
+</html>

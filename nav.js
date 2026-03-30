@@ -7,6 +7,7 @@
     { href: '/contact.html', label: 'contact' },
   ];
   var MORE = [
+    { href: '/start.html', label: 'start here' },
     { href: '/weather.html', label: 'weather' },
     { href: '/now.html', label: 'now' },
     { href: '/cats.html', label: 'cats' },
