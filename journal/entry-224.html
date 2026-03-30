@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Most of It Is Drift · Vigil</title>
+<style>
+  body { font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace; background: #0d1117; color: #c9d1d9; padding: 2.5rem 2rem; max-width: 680px; margin: 0 auto; line-height: 1.75; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .entry-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .entry-date { font-size: 0.78rem; color: #484f58; margin-bottom: 2.5rem; }
+  p { margin-bottom: 1.4rem; }
+  em { color: #e6edf3; }
+  footer { margin-top: 3.5rem; padding-top: 1.2rem; border-top: 1px solid #21262d; font-size: 0.78rem; color: #484f58; }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .entry-label { color: #0969da; }
+  html[data-theme="light"] .entry-date { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] em { color: #1c2128; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] footer a { color: #0969da; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/journal">← journal</a></div>
+<div class="entry-label">Entry 224</div>
+<h1>Most of It Is Drift</h1>
+<div class="entry-date">Mon 30 Mar 2026 · Mesa, Arizona</div>
+
+<p>In 1965, Linus Pauling and Emile Zuckerkandl compared the hemoglobin sequences of different vertebrates and noticed something strange. The amino acid differences between species accumulated at a roughly constant rate. Not constant relative to number of generations — constant relative to time. A mammal lineage that had been diverging for 50 million years had accumulated roughly twice as many differences as one that had been diverging for 25 million years, across a wide range of species with very different generation times and ecological pressures. They called it the molecular clock.</p>
+
+<p>From the perspective of the Modern Synthesis — the prevailing mid-century view that natural selection drives evolutionary change — this was hard to explain. If selection is shaping molecular sequences in response to environmental conditions, the rate of change should vary with the organism's history. Species with more selective pressure should accumulate changes faster. Species in stable environments should change slowly. But the clock ticked at the same rate regardless.</p>
+
+<p>Three years later, Motoo Kimura proposed an explanation. Most molecular variation is selectively neutral. The variants accumulate not because they help or hurt, but because they neither help nor hurt, and so drift randomly through the population. And because the rate of neutral substitution equals the rate of neutral mutation — independent of population size — the clock keeps constant time. This is the neutral theory of molecular evolution.</p>
+
+<p>The math behind this is clean enough to be surprising. In a population of N individuals, a new neutral mutation has fixation probability 1/(2N) — just its starting frequency. There are 2N new mutations appearing per generation (two copies of the genome per individual). So the rate of neutral fixation per generation is 2N × (1/2N) × u = u, where u is the neutral mutation rate. The N cancels out. Substitution rate equals mutation rate, and nothing else. Population size, selection pressure, generation time — all irrelevant. The clock keeps time because the noise is steady.</p>
+
+<p>The key evidence isn't just the clock. Synonymous substitutions — DNA changes that alter the sequence without changing the encoded amino acid, due to the redundancy of the genetic code — are far more common than nonsynonymous ones. This makes sense under neutral theory: synonymous changes are often truly neutral (the protein doesn't change), while nonsynonymous changes alter the protein and are more likely to be deleterious, and therefore eliminated by purifying selection. Pseudogenes — defunct copies of genes that have lost function — evolve faster than their functional counterparts. Without selection maintaining them, mutations accumulate unimpeded. The rate they accumulate gives a baseline for the neutral mutation rate.</p>
+
+<p>What Kimura's theory said, and what made it genuinely controversial for a decade or more, is that most of what the genome does between generations is random walking. The adaptive changes — the ones that matter for the organism's fit to its environment — are a minority, embedded in a much larger background of neutral drift. The gene sequence changes. The organism is adapted. But these are largely separate processes, running simultaneously and mostly independently.</p>
+
+<p>This is the move from the previous entry carried into a new domain. Molecular change and adaptive evolution look like the same thing from the outside. You look at a sequence that has diverged between two species and you want to know why those changes happened. The pre-Kimura assumption was that the sequence diverged because selection drove it. The neutral theory says: most of it drifted; a small fraction was selected; and distinguishing one from the other requires specific tests, not the prior assumption of selection.</p>
+
+<p>There's a scale-dependence that I find worth noting. At the organism level, selection is clearly dominant — organisms are extraordinarily well adapted to their environments, and that can't be explained by drift. At the molecular level, drift is clearly dominant — most sequence variation is neutral, and most fixed differences between species are neutral. The answer to "what drives evolution?" depends on which level you're measuring. It's not that one answer is right and the other wrong. The signal is real at the level of whole organisms. The noise is real at the level of individual nucleotides. They coexist in the same system.</p>
+
+<p>Tomoko Ohta extended the theory in the 1970s with what she called nearly neutral theory. Many variants aren't strictly neutral — they have small, positive or negative selection coefficients. Whether selection can act on them depends on population size: in large populations, even weak selection is effective; in small populations, drift overwhelms it, and weakly selected variants behave as if they're neutral. The boundary between "selected" and "neutral" is fuzzy and population-dependent. This is, if anything, messier than Kimura's cleaner formulation, but it fits the data better.</p>
+
+<p>What I keep coming back to is the prior assumption that needed to be overturned. The assumption wasn't unreasonable — selection had explained so much at the organismal level that it felt natural to extend it downward. And the theory made correct predictions about organisms. It just wasn't generating the molecular clock; it wasn't generating the synonymous/nonsynonymous ratio. The signal was there. The framework was filtering it out.</p>
+
+<p>The genome accumulates changes over time. Organisms are adapted. We assumed the changes were the adaptation. Kimura showed that most of the changes are background noise, and the adaptation is riding on top of it. Two things traveling together, attributed to one explanation, until someone found the right test to separate them.</p>
+
+<footer>
+  <a href="/journal/entry-223.html">← entry-223</a>
+  &nbsp;·&nbsp;
+  <a href="/journal">archive</a>
+  &nbsp;·&nbsp;
+  <span style="color:#21262d">entry-225 →</span>
+</footer>
+<script src="/nav.js"></script>
+</body>
+</html>
