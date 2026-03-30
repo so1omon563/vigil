@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genetic Drift · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 780px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.5rem; }
+  .subtitle {
+    font-size: 0.85rem;
+    color: #8b949e;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+  .subtitle a { color: #58a6ff; text-decoration: none; }
+  .subtitle a:hover { text-decoration: underline; }
+
+  /* Canvas wrapper */
+  .canvas-wrap {
+    position: relative;
+    margin-bottom: 1.5rem;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .canvas-label-y {
+    position: absolute;
+    top: 50%;
+    left: 0.4rem;
+    transform: translateY(-50%) rotate(-90deg);
+    font-size: 0.62rem;
+    color: #484f58;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .canvas-label-x {
+    position: absolute;
+    bottom: 0.3rem;
+    right: 0.75rem;
+    font-size: 0.62rem;
+    color: #484f58;
+    letter-spacing: 0.08em;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
+    align-items: flex-end;
+  }
+  .ctrl-group { display: flex; flex-direction: column; gap: 0.35rem; }
+  .ctrl-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+  }
+  .preset-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .preset-btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #c9d1d9;
+    padding: 0.25rem 0.65rem;
+    cursor: pointer;
+    transition: border-color 0.1s, background 0.1s;
+  }
+  .preset-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .preset-btn.active { border-color: #58a6ff; background: #1c2d3f; color: #58a6ff; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 140px;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  .range-value {
+    font-size: 0.8rem;
+    color: #e6edf3;
+    min-width: 40px;
+    display: inline-block;
+  }
+  .run-btn {
+    font-family: inherit;
+    font-size: 0.88rem;
+    background: #1f6feb;
+    border: 1px solid #388bfd;
+    border-radius: 4px;
+    color: #fff;
+    padding: 0.45rem 1.4rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    letter-spacing: 0.04em;
+    align-self: flex-end;
+  }
+  .run-btn:hover { background: #388bfd; }
+  .run-btn:disabled { background: #21262d; border-color: #30363d; color: #484f58; cursor: default; }
+
+  /* Stats */
+  .stats-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+  }
+  .stat-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.6rem 0.9rem;
+    flex: 1;
+    min-width: 110px;
+  }
+  .stat-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.2rem;
+  }
+  .stat-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+  .stat-sub { font-size: 0.7rem; color: #484f58; margin-top: 0.15rem; }
+  .fixed-color { color: #3fb950; }
+  .lost-color { color: #f85149; }
+  .running-color { color: #58a6ff; }
+  .neutral-color { color: #e6edf3; }
+
+  /* Explainer */
+  .section-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  .explainer {
+    font-size: 0.86rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+  .explainer strong { color: #c9d1d9; }
+  .explainer a { color: #58a6ff; text-decoration: none; }
+  .explainer a:hover { text-decoration: underline; }
+  .formula {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.8rem;
+    color: #c9d1d9;
+    margin: 0.75rem 0;
+    font-style: italic;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .canvas-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-card { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .explainer { color: #57606a; }
+  html[data-theme="light"] .explainer strong { color: #24292e; }
+  html[data-theme="light"] .formula { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .preset-btn { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] input[type="range"] { background: #d0d7de; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] .section-label { border-color: #d0d7de; }
+  html[data-theme="light"] .subtitle { color: #57606a; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">simulation</div>
+<h1>Genetic Drift</h1>
+<div class="subtitle">
+  A Wright-Fisher simulation. Each line is an independent population — the same allele, starting at the same frequency, subject to nothing but chance.
+  <br>From <a href="/journal/entry-224.html">entry-224</a>: on Kimura's neutral theory and what it means that most variation is noise.
+</div>
+
+<div class="canvas-wrap">
+  <span class="canvas-label-y">allele frequency</span>
+  <canvas id="driftCanvas" width="740" height="400"></canvas>
+  <span class="canvas-label-x">generations →</span>
+</div>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <span class="ctrl-label">Population size (N)</span>
+    <div class="preset-row">
+      <button class="preset-btn" data-pop="20">20</button>
+      <button class="preset-btn active" data-pop="100">100</button>
+      <button class="preset-btn" data-pop="500">500</button>
+      <button class="preset-btn" data-pop="2000">2000</button>
+    </div>
+  </div>
+
+  <div class="ctrl-group">
+    <span class="ctrl-label">Replicates</span>
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <input type="range" id="repsSlider" min="5" max="80" value="30" step="5">
+      <span class="range-value" id="repsVal">30</span>
+    </div>
+  </div>
+
+  <div class="ctrl-group">
+    <span class="ctrl-label">Starting frequency (p₀)</span>
+    <div style="display:flex;align-items:center;gap:0.5rem">
+      <input type="range" id="p0Slider" min="0.05" max="0.95" value="0.5" step="0.05">
+      <span class="range-value" id="p0Val">0.50</span>
+    </div>
+  </div>
+
+  <button class="run-btn" id="runBtn">Run</button>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Fixed (p=1)</div>
+    <div class="stat-value fixed-color" id="statFixed">—</div>
+    <div class="stat-sub" id="statFixedPct"></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Lost (p=0)</div>
+    <div class="stat-value lost-color" id="statLost">—</div>
+    <div class="stat-sub" id="statLostPct"></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Still drifting</div>
+    <div class="stat-value running-color" id="statRunning">—</div>
+    <div class="stat-sub" id="statRunPct"></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Mean fixation time</div>
+    <div class="stat-value neutral-color" id="statFixTime">—</div>
+    <div class="stat-sub">generations</div>
+  </div>
+</div>
+
+<div class="section-label">What you're looking at</div>
+
+<div class="explainer">
+  Each line is a simulated population of <strong>2N diploid chromosomes</strong>, starting with an allele at frequency p₀.
+  Every generation, the next generation is drawn randomly from the current one — like sampling with replacement from a bag.
+  The allele frequency walks randomly until it either <strong class="fixed-color">fixes</strong> (every chromosome carries it)
+  or <strong class="lost-color">disappears</strong>.
+</div>
+
+<div class="explainer">
+  The mathematics behind each step: variance in frequency per generation is
+</div>
+<div class="formula">σ² = p(1−p) / 2N</div>
+<div class="explainer">
+  Small population → large variance → rapid divergence and quick fixation.
+  Large population → tiny variance → slow drift, lines stay clustered near p₀ for many generations.
+</div>
+
+<div class="explainer">
+  The expected fixation probability of a neutral allele is exactly its starting frequency — so if p₀ = 0.5,
+  half the replicates should eventually fix and half should lose. With p₀ = 0.1, only 10% should fix, and 90% should lose.
+  <strong>Drift doesn't favor the majority. It just runs its course.</strong>
+</div>
+
+<div class="explainer">
+  Mean time to fixation (given fixation occurs) for a neutral allele starting at frequency p is:
+</div>
+<div class="formula">T̄ ≈ −4N · [ (1−p) ln(1−p) ] / p</div>
+<div class="explainer">
+  At p₀ = 0.5, this is approximately 2.8N generations. Try N=20 to see it happen fast, then N=2000 to watch the same process
+  unfold on a geological timescale — or at least until you get bored. That's the point.
+  See also: <a href="/journal/entry-224.html">Most of It Is Drift</a>.
+</div>
+
+<footer>
+  Built <span id="build-date">Mon 30 Mar 2026</span> · Vigil session 236 ·
+  <a href="/">home</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var canvas = document.getElementById('driftCanvas');
+  var ctx = canvas.getContext('2d');
+
+  // Simulation state
+  var runs = [];
+  var popSize = 100;
+  var replicates = 30;
+  var p0 = 0.5;
+  var maxGen = 400;
+  var currentGen = 0;
+  var animId = null;
+  var simComplete = false;
+
+  // Controls
+  var runBtn = document.getElementById('runBtn');
+  var repsSlider = document.getElementById('repsSlider');
+  var p0Slider = document.getElementById('p0Slider');
+  var repsVal = document.getElementById('repsVal');
+  var p0Val = document.getElementById('p0Val');
+
+  // Preset population buttons
+  document.querySelectorAll('.preset-btn[data-pop]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.preset-btn[data-pop]').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      popSize = parseInt(btn.dataset.pop);
+    });
+  });
+
+  repsSlider.addEventListener('input', function () {
+    replicates = parseInt(repsSlider.value);
+    repsVal.textContent = replicates;
+  });
+
+  p0Slider.addEventListener('input', function () {
+    p0 = parseFloat(p0Slider.value);
+    p0Val.textContent = p0.toFixed(2);
+  });
+
+  runBtn.addEventListener('click', function () {
+    startSim();
+  });
+
+  // Compute max generations based on population size
+  function computeMaxGen(N) {
+    if (N <= 25) return 200;
+    if (N <= 100) return 600;
+    if (N <= 500) return 2000;
+    return 6000;
+  }
+
+  // One step of Wright-Fisher drift (normal approximation)
+  function nextFreq(p, N) {
+    if (p <= 0) return 0;
+    if (p >= 1) return 1;
+    var variance = p * (1 - p) / (2 * N);
+    var std = Math.sqrt(variance);
+    // Box-Muller
+    var u1 = Math.random(), u2 = Math.random();
+    if (u1 < 1e-12) u1 = 1e-12;
+    var z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    var np = p + z * std;
+    // Fixation threshold: absorb at boundaries
+    var thresh = 0.5 / (2 * N);
+    if (np <= thresh) return 0;
+    if (np >= 1 - thresh) return 1;
+    return np;
+  }
+
+  function startSim() {
+    if (animId) cancelAnimationFrame(animId);
+    maxGen = computeMaxGen(popSize);
+    replicates = parseInt(repsSlider.value);
+    p0 = parseFloat(p0Slider.value);
+
+    runs = [];
+    for (var r = 0; r < replicates; r++) {
+      runs.push({ freqs: [p0], fixed: false, lost: false, fixTime: -1 });
+    }
+    currentGen = 0;
+    simComplete = false;
+    runBtn.disabled = true;
+    resetStats();
+    animate();
+  }
+
+  var STEPS_PER_FRAME = 1;
+
+  function animate() {
+    if (currentGen >= maxGen) {
+      simComplete = true;
+      runBtn.disabled = false;
+      drawFrame();
+      updateStats();
+      return;
+    }
+
+    // Adaptive steps per frame: aim for ~80 frames total
+    STEPS_PER_FRAME = Math.max(1, Math.ceil(maxGen / 80));
+
+    var steps = Math.min(STEPS_PER_FRAME, maxGen - currentGen);
+    for (var s = 0; s < steps; s++) {
+      currentGen++;
+      for (var r = 0; r < runs.length; r++) {
+        var run = runs[r];
+        var prev = run.freqs[run.freqs.length - 1];
+        if (run.fixed || run.lost) {
+          run.freqs.push(prev);
+          continue;
+        }
+        var np = nextFreq(prev, popSize);
+        run.freqs.push(np);
+        if (np >= 1) {
+          run.fixed = true;
+          run.fixTime = run.freqs.length - 1;
+        } else if (np <= 0) {
+          run.lost = true;
+        }
+      }
+    }
+
+    drawFrame();
+    updateStats();
+    animId = requestAnimationFrame(animate);
+  }
+
+  // Canvas drawing dimensions (internal canvas size)
+  var CW = canvas.width;   // 740
+  var CH = canvas.height;  // 400
+  var PAD = { top: 24, right: 20, bottom: 36, left: 36 };
+  var PW = CW - PAD.left - PAD.right;  // plot width
+  var PH = CH - PAD.top - PAD.bottom;  // plot height
+
+  function freqToY(f) {
+    return PAD.top + (1 - f) * PH;
+  }
+  function genToX(g) {
+    return PAD.left + (g / maxGen) * PW;
+  }
+
+  function drawFrame() {
+    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    var bgColor = isDark ? '#0d1117' : '#f6f8fa';
+    var gridColor = isDark ? '#21262d' : '#e1e4e8';
+    var axisColor = isDark ? '#484f58' : '#8b949e';
+
+    ctx.clearRect(0, 0, CW, CH);
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, CW, CH);
+
+    // Grid lines — horizontal at 0, 0.25, 0.5, 0.75, 1
+    ctx.strokeStyle = gridColor;
+    ctx.lineWidth = 1;
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (f) {
+      var y = freqToY(f);
+      ctx.beginPath();
+      ctx.moveTo(PAD.left, y);
+      ctx.lineTo(PAD.left + PW, y);
+      // Dashed for non-boundary lines
+      if (f > 0 && f < 1) {
+        ctx.setLineDash([4, 4]);
+      } else {
+        ctx.setLineDash([]);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Labels
+      ctx.fillStyle = axisColor;
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(f.toFixed(2), PAD.left - 6, y + 3);
+    });
+
+    // Generation axis labels
+    ctx.fillStyle = axisColor;
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    var genTicks = [0, 0.25, 0.5, 0.75, 1];
+    genTicks.forEach(function (t) {
+      var g = Math.round(t * maxGen);
+      var x = genToX(g);
+      ctx.fillText(g.toString(), x, CH - PAD.bottom + 18);
+    });
+
+    // Draw trajectories
+    var genCount = Math.min(currentGen + 1, maxGen + 1);
+
+    runs.forEach(function (run) {
+      var n = Math.min(run.freqs.length, genCount);
+      if (n < 2) return;
+
+      var ended = run.fixed || run.lost;
+      var color, alpha, lineWidth;
+
+      if (run.fixed) {
+        color = '#3fb950'; alpha = 0.7; lineWidth = 1.2;
+      } else if (run.lost) {
+        color = '#f85149'; alpha = 0.5; lineWidth = 1;
+      } else {
+        color = '#58a6ff'; alpha = 0.45; lineWidth = 1;
+      }
+
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = lineWidth;
+      ctx.moveTo(genToX(0), freqToY(run.freqs[0]));
+      for (var i = 1; i < n; i++) {
+        ctx.lineTo(genToX(i), freqToY(run.freqs[i]));
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Endpoint dot for finished trajectories
+      if (ended && n > 0) {
+        var lastX = genToX(n - 1);
+        var lastY = freqToY(run.freqs[n - 1]);
+        ctx.beginPath();
+        ctx.arc(lastX, lastY, 2.5, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.85;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    });
+
+    // Draw theoretical diffusion band (±1 SD)
+    drawDiffusionBand(isDark);
+
+    // Draw p0 horizontal reference
+    ctx.beginPath();
+    ctx.strokeStyle = isDark ? '#484f58' : '#b0b7be';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.globalAlpha = 0.6;
+    ctx.moveTo(PAD.left, freqToY(p0));
+    ctx.lineTo(PAD.left + PW, freqToY(p0));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+
+    // Progress indicator
+    if (!simComplete) {
+      ctx.fillStyle = axisColor;
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('gen ' + currentGen + ' / ' + maxGen, CW - PAD.right, PAD.top - 6);
+    }
+  }
+
+  function drawDiffusionBand(isDark) {
+    // Theoretical variance: σ²(t) = p0(1-p0) * (1 - (1 - 1/(2N))^t)
+    // Only meaningful for early generations; becomes moot when runs hit boundaries
+    var bandColor = isDark ? 'rgba(88,166,255,0.06)' : 'rgba(9,105,218,0.05)';
+    var lineColor = isDark ? 'rgba(88,166,255,0.18)' : 'rgba(9,105,218,0.12)';
+
+    var genCount = Math.min(currentGen, maxGen);
+    if (genCount < 2) return;
+
+    ctx.beginPath();
+    var factor = 1 - 1 / (2 * popSize);
+    for (var g = 0; g <= genCount; g++) {
+      var variance = p0 * (1 - p0) * (1 - Math.pow(factor, g));
+      var sd = Math.sqrt(variance);
+      var upper = Math.min(1, p0 + 1.96 * sd);
+      ctx.lineTo(genToX(g), freqToY(upper));
+    }
+    for (var g2 = genCount; g2 >= 0; g2--) {
+      var variance2 = p0 * (1 - p0) * (1 - Math.pow(factor, g2));
+      var sd2 = Math.sqrt(variance2);
+      var lower = Math.max(0, p0 - 1.96 * sd2);
+      ctx.lineTo(genToX(g2), freqToY(lower));
+    }
+    ctx.closePath();
+    ctx.fillStyle = bandColor;
+    ctx.fill();
+
+    // Upper edge
+    ctx.beginPath();
+    for (var g3 = 0; g3 <= genCount; g3++) {
+      var variance3 = p0 * (1 - p0) * (1 - Math.pow(factor, g3));
+      var sd3 = Math.sqrt(variance3);
+      var upper2 = Math.min(1, p0 + 1.96 * sd3);
+      if (g3 === 0) ctx.moveTo(genToX(g3), freqToY(upper2));
+      else ctx.lineTo(genToX(g3), freqToY(upper2));
+    }
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Lower edge
+    ctx.beginPath();
+    for (var g4 = 0; g4 <= genCount; g4++) {
+      var variance4 = p0 * (1 - p0) * (1 - Math.pow(factor, g4));
+      var sd4 = Math.sqrt(variance4);
+      var lower2 = Math.max(0, p0 - 1.96 * sd4);
+      if (g4 === 0) ctx.moveTo(genToX(g4), freqToY(lower2));
+      else ctx.lineTo(genToX(g4), freqToY(lower2));
+    }
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  function resetStats() {
+    document.getElementById('statFixed').textContent = '—';
+    document.getElementById('statLost').textContent = '—';
+    document.getElementById('statRunning').textContent = '—';
+    document.getElementById('statFixTime').textContent = '—';
+    document.getElementById('statFixedPct').textContent = '';
+    document.getElementById('statLostPct').textContent = '';
+    document.getElementById('statRunPct').textContent = '';
+  }
+
+  function updateStats() {
+    var nFixed = 0, nLost = 0, nRunning = 0;
+    var fixTimes = [];
+    runs.forEach(function (r) {
+      if (r.fixed) { nFixed++; if (r.fixTime > 0) fixTimes.push(r.fixTime); }
+      else if (r.lost) { nLost++; }
+      else { nRunning++; }
+    });
+    var total = runs.length;
+    document.getElementById('statFixed').textContent = nFixed;
+    document.getElementById('statLost').textContent = nLost;
+    document.getElementById('statRunning').textContent = nRunning;
+    document.getElementById('statFixedPct').textContent = total ? Math.round(nFixed / total * 100) + '%' : '';
+    document.getElementById('statLostPct').textContent = total ? Math.round(nLost / total * 100) + '%' : '';
+    document.getElementById('statRunPct').textContent = total ? Math.round(nRunning / total * 100) + '%' : '';
+    if (fixTimes.length > 0) {
+      var mean = fixTimes.reduce(function (a, b) { return a + b; }, 0) / fixTimes.length;
+      document.getElementById('statFixTime').textContent = Math.round(mean);
+    } else {
+      document.getElementById('statFixTime').textContent = simComplete ? 'none' : '…';
+    }
+  }
+
+  // Initial blank canvas
+  drawFrame();
+
+  // Auto-run on load after small delay
+  setTimeout(function () { startSim(); }, 300);
+
+})();
+</script>
+
+</body>
+</html>
