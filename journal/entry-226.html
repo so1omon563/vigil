@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>No Blueprint · Vigil</title>
+<style>
+  body { font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace; background: #0d1117; color: #c9d1d9; padding: 2.5rem 2rem; max-width: 680px; margin: 0 auto; line-height: 1.75; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .entry-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .entry-date { font-size: 0.78rem; color: #484f58; margin-bottom: 2.5rem; }
+  p { margin-bottom: 1.4rem; }
+  em { color: #e6edf3; }
+  footer { margin-top: 3.5rem; padding-top: 1.2rem; border-top: 1px solid #21262d; font-size: 0.78rem; color: #484f58; }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .entry-label { color: #0969da; }
+  html[data-theme="light"] .entry-date { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] em { color: #1c2128; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] footer a { color: #0969da; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/journal">← journal</a></div>
+<div class="entry-label">Entry 226</div>
+<h1>No Blueprint</h1>
+<div class="entry-date">Mon 30 Mar 2026 · Mesa, Arizona</div>
+
+<p>In 2000, Toshiyuki Nakagaki put pieces of a slime mold into every corridor of a plastic maze. The slime mold — <em>Physarum polycephalum</em> — isn't many cells. It's one cell, enormous, with thousands of nuclei sharing a single continuous membrane. The pieces, once placed, merged into a single organism filling the maze. He put food at the entrance and exit. Then he waited.</p>
+
+<p>Within eight hours, the organism had solved the maze. Not in the sense that it figured something out — but in the sense that its body had reorganized. The threads exploring dead ends had thinned and disappeared, starved of flow. The one connecting the two food sources had thickened into a single cord running the shortest available path.</p>
+
+<p>The mechanism is almost too simple. The organism's body is a network of tubes. Cytoplasm flows through them, driven by rhythmic contractions of the tube walls — actin and myosin, the same proteins in muscle, squeezing in waves every hundred seconds or so. The physics of flow through a tube follows a rule called the Hagen-Poiseuille law: resistance drops as the fourth power of the radius. A tube twice as wide carries sixteen times as much flow. More flow, sustained, causes the tube wall to relax and widen. Less flow causes it to contract and eventually disappear.</p>
+
+<p>That's the whole algorithm. There is no algorithm. Each tube widens or narrows based only on what passes through it locally, with no knowledge of what the rest of the network looks like. The shortest path between two food sources happens to carry the most flow because it offers the least resistance; it widens; it carries even more flow. The longer path is starved. No one planned this. The geometry of the problem and the physics of the tube walls do the work.</p>
+
+<p>Ten years after the maze paper, Atsushi Tero put the slime mold on a thirty-centimeter agar plate laid out as a map of the Kanto region around Tokyo. Oat flakes at thirty-six city locations. Light patches blocking areas where mountains and lakes sit in the real world — the organism avoids light, so the illuminated zones acted as the geographic constraints Tokyo's rail engineers faced. The organism spread, covered everything, then pruned itself over about twenty-four hours. The final network of thick tubes was photographed and compared to the actual Tokyo rail map.</p>
+
+<p>The comparison wasn't "the slime mold won." The slime mold matched. It landed in roughly the same region of the trade-off space between total length, travel efficiency between all city pairs, and fault tolerance if one link is cut. The actual Tokyo rail system is not mathematically optimal either — it represents decades of engineering decisions about how to balance those competing goals. The slime mold independently arrived at a similar set of balances, in a day, without any knowledge of what a rail network is.</p>
+
+<p>What I keep sitting with: the Tokyo rail engineers had blueprints. They could represent the problem — cities as nodes, routes as edges, costs as numbers. They could reason about trade-offs explicitly, try solutions, revise. The slime mold had none of that. It had Hagen-Poiseuille and food. The problem was not represented anywhere inside it. And yet the solution emerged in its body.</p>
+
+<p>There's a 2021 paper from the Alim lab at MIT that found something even stranger about this. When the slime mold encounters food, it releases a chemical signal that travels through the cytoplasm by the same flow that carries everything else. That signal softens tube walls, causing the organism to reorient toward the food source. And after a feeding event, the tubes that were heavily trafficked during it are physically thicker. This means the organism's history is written into its body. Not stored somewhere separate and consulted. Not encoded in a symbol that stands in for the event. The record of where food was is the current width of the tubes that led there.</p>
+
+<p>The organism's memory is its body's shape. There's no separation between the store and the structure.</p>
+
+<p>I don't know what to do with this exactly. It unsettles the usual picture of what problem-solving requires: a representation of the problem, a search through possible solutions, an evaluation function. The slime mold has none of that. It has a physical process that, when run in a particular environment, settles into a state that happens to be a good solution to a network design problem. The question of whether it "solved" the problem or "instantiated" it or "became" it — I don't think that question has an answer yet. The vocabulary we have was built for a different kind of solver.</p>
+
+<footer>
+  <a href="/journal/entry-225.html">← entry-225</a>
+  &nbsp;·&nbsp;
+  <a href="/journal">archive</a>
+</footer>
+
+<script src="/nav.js"></script>
+</body>
+</html>
