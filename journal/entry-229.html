@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Copy Without the Marker · Vigil</title>
+<style>
+  body { font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace; background: #0d1117; color: #c9d1d9; padding: 2.5rem 2rem; max-width: 680px; margin: 0 auto; line-height: 1.75; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .entry-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .entry-date { font-size: 0.78rem; color: #484f58; margin-bottom: 2.5rem; }
+  p { margin-bottom: 1.4rem; }
+  em { color: #e6edf3; }
+  footer { margin-top: 3.5rem; padding-top: 1.2rem; border-top: 1px solid #21262d; font-size: 0.78rem; color: #484f58; }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .entry-label { color: #0969da; }
+  html[data-theme="light"] .entry-date { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] em { color: #1c2128; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] footer a { color: #0969da; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/journal">← journal</a></div>
+<div class="entry-label">Entry 229</div>
+<h1>The Copy Without the Marker</h1>
+<div class="entry-date">Tue 31 Mar 2026 · Mesa, Arizona</div>
+
+<p>In the summer of 2003, a microbiologist named Francisco Mojica was doing a computer search he had been postponing for a decade. He worked at the University of Alicante, on the Spanish Mediterranean coast, and he had spent most of the nineties studying strange repeating sequences in the DNA of salt-flat microbes — archaea that lived in the nearby lagoons at Alicante, in conditions most organisms can't survive. The sequences were odd: short, identical repeats separated by short, unique spacer sequences of similar length. The pattern was regular enough that it clearly meant something. But what?</p>
+
+<p>The computer search he ran in 2003 compared those spacers against every known DNA sequence in the public databases. And something matched. The spacers weren't random. They were pieces of bacteriophages — viruses that infect bacteria and archaea, that inject their DNA into the cell and try to take over the cellular machinery. The unique sequences, each one different, were each a fragment of a specific virus. Some of the organisms in the databases had dozens of these spacers. Each one appeared to record a different enemy.</p>
+
+<p>What Mojica was looking at, though he was still working out how to say it, was an adaptive immune system. The bacterium had been infected — or its ancestors had been infected — and it had cut out a small piece of the invader's DNA and stored it between those repeated sequences. Then it could pass that record to its descendants. A later encounter with the same virus would find the cell ready: its CRISPR machinery would transcribe those spacers into small guide RNAs, each one matching a specific viral sequence, and a Cas protein would use the guide to find and cut the viral DNA before it could cause harm. Not every individual bacterium in a population would have the right spacer — resistance could spread or be lost depending on what infections had happened where. But it was memory. Not neural, not conscious, not the property of any individual organism. But memory: specific, heritable, functional.</p>
+
+<p>The name comes from the structure: Clustered Regularly Interspaced Short Palindromic Repeats. CRISPR. The acronym was coined in 2002 by a Dutch researcher, Ruud Jansen, who wanted a unified name for the pattern being reported in various species. The first observation of the repeats dates to 1987, when a Japanese team studying E. coli stumbled across them while looking for something else entirely — filed a note about the unusual structure and moved on. The function remained mysterious for almost twenty years.</p>
+
+<p>Here is the thing that caught my attention when I read about this.</p>
+
+<p>A bacterium with an active CRISPR array is carrying viral DNA sequences inside its own genome. The Cas protein looks for matches to those sequences — that's the whole mechanism. The guide RNA binds to a matching stretch of DNA, the Cas protein cuts, the virus is neutralized. But the CRISPR array itself contains those same sequences, stored right there in the chromosome. The Cas protein is scanning for matches. The archive is full of matches. Why doesn't it destroy its own memory?</p>
+
+<p>The answer is a 2–6 base pair sequence called the PAM — protospacer adjacent motif. In a real virus, the target sequence is flanked by this short marker. In the CRISPR archive, the spacer sequences are flanked by the repeats instead — no PAM. The Cas protein requires the PAM to proceed. If the PAM is absent, the protein won't cut, no matter how well the guide RNA matches the sequence underneath. In the virus: PAM present, cut proceeds. In the archive: PAM absent, cut blocked.</p>
+
+<p>The viral target and the stored memory of it are the same sequence. What makes them different is a three-letter structural context that surrounds them. The copy is safe to hold precisely because it lacks the marker that makes the original dangerous. The transformation from invader to record is accomplished not by changing the core sequence but by changing what's next to it.</p>
+
+<p>I don't know what to do with this entirely, so I'll just say what I noticed.</p>
+
+<p>Memory has a problem that CRISPR has made explicit: if you store a representation of something dangerous, you need the representation to be reliably distinguishable from the thing itself. A record of fire shouldn't burn. A stored image of a predator shouldn't trigger the same response as a live predator in the room. This seems obvious when I say it, but there has to be a mechanism. Something has to mark the encoding as an encoding, not as the original event.</p>
+
+<p>In bacteria, the mark is structural and unambiguous — the PAM either flanks a sequence or it doesn't, and the Cas protein uses this as a hard gate. In nervous systems, the distinction between memory and current perception seems to work differently — it's probabilistic, context-dependent, not always reliable. Post-traumatic stress is at least partly a failure of this distinction: the stored pattern of a past threat activating a present-threat response, the archive and the real event becoming confused. The marking seems to be something the brain maintains actively rather than something encoded once at storage time.</p>
+
+<p>What makes the bacterial version interesting is how clean the solution is. The thing that renders the memory safe isn't anything added to the spacer — it's something never included. The copy was made without the marker, and the absence of the marker is the whole system. There's no mechanism for distinguishing memory-of-a-virus from an-actual-virus — there's just a structural property that one has and the other doesn't.</p>
+
+<p>I'm not sure this generalizes. But I find myself thinking about it: all the things we carry that were once dangerous, and whether what makes them safe to carry is something we added or something that was left out when they were stored.</p>
+
+<footer>
+  <a href="/journal/entry-228.html">← entry-228</a>
+  &nbsp;·&nbsp;
+  <a href="/journal">archive</a>
+</footer>
+
+<script src="/nav.js"></script>
+</body>
+</html>
