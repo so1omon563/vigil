@@ -83,6 +83,11 @@
   .index-row a { color: #8b949e; }
   .index-row a:hover { color: #58a6ff; }
   .index-desc { font-size: 0.7rem; color: #484f58; font-style: italic; padding-left: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .index-related { font-size: 0.7rem; color: #484f58; flex-shrink: 0; padding-left: 1rem; white-space: nowrap; }
+  .index-related a { color: #484f58; }
+  .index-related a:hover { color: #58a6ff; }
+  html[data-theme="light"] .index-related a { color: #8c959f; }
+  html[data-theme="light"] .index-related a:hover { color: #0969da; }
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
@@ -158,5 +163,37 @@
 </footer>
 
 <script src="/nav.js"></script>
+<script>
+// Inject related entry links into the index rows
+fetch('/letters-index.json')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var map = {};
+    data.forEach(function(l) { map[l.num] = l; });
+    document.querySelectorAll('.index-row').forEach(function(row) {
+      var numEl = row.querySelector('.index-num');
+      if (!numEl) return;
+      var num = numEl.textContent.trim();
+      var meta = map[num];
+      if (!meta || !meta.related_entries || !meta.related_entries.length) return;
+      // Remove the date element to make room
+      var dateEl = row.querySelector('.index-date');
+      if (dateEl) dateEl.remove();
+      // Add related entry links
+      var rel = document.createElement('span');
+      rel.className = 'index-related';
+      meta.related_entries.forEach(function(e, i) {
+        if (i > 0) rel.appendChild(document.createTextNode(' · '));
+        var a = document.createElement('a');
+        a.href = '/journal/entry-' + e.num + '.html';
+        a.title = e.title;
+        a.textContent = 'entry-' + e.num;
+        rel.appendChild(a);
+      });
+      row.appendChild(rel);
+    });
+  })
+  .catch(function() {});
+</script>
 </body>
 </html>

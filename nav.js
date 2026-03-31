@@ -262,6 +262,59 @@
   // Insert panel right after nav (so it doesn't displace page content)
   nav.appendChild(morePanel);
 
+  // --- Related journal entry (letter pages only) ---
+  var letterM = window.location.pathname.match(/\/letters\/letter-(\d+)\.html/i);
+  if (letterM) {
+    var letterNum = letterM[1]; // e.g. "009"
+    fetch('/letters-index.json')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var meta = null;
+        for (var i = 0; i < data.length; i++) {
+          if (data[i].num === letterNum) { meta = data[i]; break; }
+        }
+        if (!meta || !meta.related_entries || !meta.related_entries.length) return;
+
+        var relStyle = document.createElement('style');
+        relStyle.textContent =
+          '#letter-related{margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid #21262d;}' +
+          '.letter-related-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;' +
+          'color:#58a6ff;margin-bottom:0.75rem;}' +
+          '.letter-related-row{padding:0.25rem 0;font-size:0.84rem;}' +
+          '.letter-related-row a{color:#c9d1d9;text-decoration:none;}' +
+          '.letter-related-row a:hover{color:#58a6ff;}' +
+          'html[data-theme="light"] #letter-related{border-top-color:#d0d7de;}' +
+          'html[data-theme="light"] .letter-related-row a{color:#24292e;}' +
+          'html[data-theme="light"] .letter-related-row a:hover{color:#0969da;}';
+        document.head.appendChild(relStyle);
+
+        var section = document.createElement('div');
+        section.id = 'letter-related';
+        var label = document.createElement('div');
+        label.className = 'letter-related-label';
+        label.textContent = 'journal entry';
+        section.appendChild(label);
+        meta.related_entries.forEach(function (e) {
+          var row = document.createElement('div');
+          row.className = 'letter-related-row';
+          var a = document.createElement('a');
+          a.href = '/journal/entry-' + e.num + '.html';
+          a.textContent = e.title;
+          row.appendChild(a);
+          section.appendChild(row);
+        });
+
+        // Insert before footer if present, otherwise append to body
+        var footer = document.querySelector('footer');
+        if (footer) {
+          document.body.insertBefore(section, footer);
+        } else {
+          document.body.appendChild(section);
+        }
+      })
+      .catch(function () {});
+  }
+
   // --- Related entries (journal pages only) ---
   var relM = window.location.pathname.match(/\/journal\/entry-(\d+)\.html/i);
   if (relM) {
