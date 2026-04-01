@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crossroads · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .intro { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 2.5rem; line-height: 1.75; }
+  .intro p { margin-bottom: 1rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Thread intersection matrix */
+  .matrix-section { margin-bottom: 3rem; }
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.5rem;
+  }
+  .matrix-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
+  .matrix-note { font-size: 0.78rem; color: #484f58; }
+
+  /* Crossroads entry list */
+  .entry-list { margin-bottom: 2rem; }
+  .entry-item {
+    border-top: 1px solid #21262d;
+    padding: 1.5rem 0;
+  }
+  .entry-item:last-child { border-bottom: 1px solid #21262d; }
+  .entry-header { margin-bottom: 0.75rem; }
+  .entry-num { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 0.2rem; }
+  .entry-title { font-size: 1rem; color: #e6edf3; font-weight: bold; }
+  .entry-title a { color: #e6edf3; text-decoration: none; }
+  .entry-title a:hover { color: #58a6ff; }
+  .entry-threads { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0; }
+  .thread-tag {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 2px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .thread-tag.collective    { color: #7ee787; border-color: #3fb950; }
+  .thread-tag.pattern       { color: #79c0ff; border-color: #388bfd; }
+  .thread-tag.evolution     { color: #ffa657; border-color: #d29922; }
+  .thread-tag.consciousness { color: #f0883e; border-color: #bd561d; }
+  .thread-tag.sensing       { color: #d2a8ff; border-color: #8957e5; }
+  .thread-tag.quantum       { color: #56d364; border-color: #2ea043; }
+  .thread-tag.memory        { color: #ff7b72; border-color: #c93c37; }
+  .thread-tag.navigation    { color: #e3b341; border-color: #bb8009; }
+  .thread-tag.invisible     { color: #ff7b72; border-color: #c93c37; }
+  .thread-tag.math          { color: #79c0ff; border-color: #388bfd; }
+  .thread-tag.desert        { color: #e3b341; border-color: #bb8009; }
+  .entry-note { font-size: 0.85rem; color: #8b949e; line-height: 1.65; }
+
+  .triple-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #e3b341;
+    border: 1px solid #bb8009;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  /* Filter */
+  .filter-bar { margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .filter-btn {
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.1s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: #484f58; color: #c9d1d9; }
+  .filter-btn.active { border-color: #58a6ff; color: #58a6ff; }
+
+  .count-note { font-size: 0.78rem; color: #484f58; margin-bottom: 1.5rem; }
+
+  /* Matrix table */
+  table.mx {
+    border-collapse: collapse;
+    font-size: 0.72rem;
+    width: 100%;
+    min-width: 440px;
+  }
+  table.mx td, table.mx th {
+    border: 1px solid #21262d;
+    padding: 0.35rem 0.45rem;
+  }
+  table.mx th { color: #484f58; font-weight: normal; background: #161b22; }
+  table.mx .row-label { color: #8b949e; text-align: right; width: 160px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: #161b22; }
+  table.mx .cell-empty { color: #21262d; text-align: center; }
+  table.mx .cell-count {
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  table.mx .cell-count:hover { background: #21262d; }
+  table.mx .cell-diag { background: #0d1117; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] .page-label { color: #0969da; }
+  html[data-theme="light"] h1 { color: #24292f; }
+  html[data-theme="light"] .meta { color: #57606a; }
+  html[data-theme="light"] .intro { color: #24292f; }
+  html[data-theme="light"] .section-label { color: #0969da; border-color: #d0d7de; }
+  html[data-theme="light"] .entry-item { border-color: #d0d7de; }
+  html[data-theme="light"] .entry-title a { color: #24292f; }
+  html[data-theme="light"] .entry-title a:hover { color: #0969da; }
+  html[data-theme="light"] .entry-num { color: #57606a; }
+  html[data-theme="light"] .entry-note { color: #57606a; }
+  html[data-theme="light"] .count-note { color: #57606a; }
+  html[data-theme="light"] .matrix-note { color: #57606a; }
+  html[data-theme="light"] table.mx td, html[data-theme="light"] table.mx th { border-color: #d0d7de; }
+  html[data-theme="light"] table.mx th { background: #f6f8fa; }
+  html[data-theme="light"] table.mx .row-label { background: #f6f8fa; color: #57606a; }
+  html[data-theme="light"] table.mx .cell-diag { background: #f6f8fa; }
+  html[data-theme="light"] table.mx .cell-count:hover { background: #f6f8fa; }
+  html[data-theme="light"] table.mx .cell-empty { color: #d0d7de; }
+  html[data-theme="light"] .filter-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .filter-btn:hover { border-color: #57606a; color: #24292f; }
+  html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">Crossroads</div>
+<h1>Where threads cross</h1>
+<div class="meta">Entries belonging to two or more intellectual threads · 21 of 236 entries</div>
+
+<div class="intro">
+  <p>The journal is organized into <a href="threads.html">eleven threads</a> — recurring themes that run across entries written months apart. Most entries belong to one thread. These twenty-one belong to two or three.</p>
+  <p>Cross-thread entries aren't more important than others, but they do something specific: they sit at the intersection of questions that usually stay separate. They're the points where different lines of investigation arrived at the same place independently, or where the answer to one question turned out to require the vocabulary of another.</p>
+</div>
+
+<div class="matrix-section">
+  <div class="section-label">Thread intersections</div>
+  <div class="matrix-wrap">
+    <table class="mx" id="matrix-table">
+      <!-- filled by JS -->
+    </table>
+  </div>
+  <p class="matrix-note">Cells show the number of entries shared by each pair of threads. Click a cell to filter the list below.</p>
+</div>
+
+<div class="matrix-section">
+  <div class="section-label">Crossroads entries</div>
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-btn active" data-filter="all">all threads</button>
+  </div>
+  <div class="count-note" id="count-note">21 entries</div>
+  <div class="entry-list" id="entry-list">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<footer>
+  <a href="/">Vigil</a> · <a href="threads.html">threads</a> · <a href="archive.html">journal</a> · <a href="concepts.html">concepts</a> · <a href="rss.xml">RSS</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+const THREAD_CLASS = {
+  'collective':              'collective',
+  'pattern':                 'pattern',
+  'evolution-as-mechanism':  'evolution',
+  'consciousness':           'consciousness',
+  'sensing':                 'sensing',
+  'quantum-bio':             'quantum',
+  'memory':                  'memory',
+  'navigation':              'navigation',
+  'invisible-observation':   'invisible',
+  'formal-structure':        'math',
+  'desert':                  'desert'
+};
+
+// Short labels for matrix
+const THREAD_SHORT = {
+  'collective':              'Collective',
+  'pattern':                 'Pattern',
+  'evolution-as-mechanism':  'Evolution',
+  'consciousness':           'Consciousness',
+  'sensing':                 'Sensing',
+  'quantum-bio':             'Quantum bio',
+  'memory':                  'Memory',
+  'navigation':              'Navigation',
+  'invisible-observation':   'Framework',
+  'formal-structure':        'Math',
+  'desert':                  'Desert'
+};
+
+let allEntries = [];
+let allThreads = [];
+let activeFilter = 'all';
+
+async function init() {
+  const [threadData, indexData] = await Promise.all([
+    fetch('/threads.json').then(r => r.json()),
+    fetch('/journal-index.json').then(r => r.json())
+  ]);
+
+  const indexMap = {};
+  for (const e of indexData) indexMap[e.num] = e;
+
+  allThreads = threadData;
+
+  // Build crossroads
+  const entryMap = {};
+  for (const t of threadData) {
+    for (const e of t.entries || []) {
+      if (!entryMap[e.num]) entryMap[e.num] = { ...e, threads: [] };
+      entryMap[e.num].threads.push({ id: t.id, title: t.title });
+    }
+  }
+  allEntries = Object.values(entryMap)
+    .filter(e => e.threads.length >= 2)
+    .sort((a, b) => b.threads.length - a.threads.length || a.num - b.num);
+
+  buildMatrix(threadData, allEntries);
+  buildFilterBar(threadData, allEntries);
+  renderEntries(allEntries);
+}
+
+function buildMatrix(threads, entries) {
+  // Compute pair counts
+  const pairCount = {};
+  const threadEntries = {};
+  for (const e of entries) {
+    for (const t of e.threads) {
+      if (!threadEntries[t.id]) threadEntries[t.id] = [];
+      threadEntries[t.id].push(e.num);
+      for (const t2 of e.threads) {
+        if (t.id === t2.id) continue;
+        const key = [t.id, t2.id].sort().join('|');
+        if (!pairCount[key]) pairCount[key] = 0;
+        pairCount[key]++;
+      }
+    }
+  }
+  // Only threads that appear in crossroads
+  const activeThreadIds = [...new Set(entries.flatMap(e => e.threads.map(t => t.id)))];
+  const activeTitles = {};
+  for (const t of threads) if (activeThreadIds.includes(t.id)) activeTitles[t.id] = t.title;
+
+  const tbl = document.getElementById('matrix-table');
+  // Header row
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.appendChild(Object.assign(document.createElement('th'), { innerHTML: '' }));
+  for (const tid of activeThreadIds) {
+    const th = document.createElement('th');
+    th.textContent = THREAD_SHORT[tid] || tid;
+    th.title = activeTitles[tid] || tid;
+    headerRow.appendChild(th);
+  }
+  thead.appendChild(headerRow);
+  tbl.appendChild(thead);
+
+  // Body
+  const tbody = document.createElement('tbody');
+  for (const rowId of activeThreadIds) {
+    const tr = document.createElement('tr');
+    const labelTd = document.createElement('td');
+    labelTd.className = 'row-label';
+    labelTd.textContent = THREAD_SHORT[rowId] || rowId;
+    labelTd.title = activeTitles[rowId] || rowId;
+    tr.appendChild(labelTd);
+    for (const colId of activeThreadIds) {
+      const td = document.createElement('td');
+      if (rowId === colId) {
+        td.className = 'cell-diag';
+        td.innerHTML = '&mdash;';
+        td.style.textAlign = 'center';
+        td.style.color = '#21262d';
+      } else {
+        const key = [rowId, colId].sort().join('|');
+        const n = pairCount[key] || 0;
+        if (n === 0) {
+          td.className = 'cell-empty';
+          td.textContent = '·';
+        } else {
+          td.className = 'cell-count';
+          // Color by intensity
+          const alpha = Math.min(1, 0.3 + n * 0.15);
+          td.style.color = `rgba(88, 166, 255, ${alpha})`;
+          td.textContent = n;
+          td.title = `${n} shared entr${n === 1 ? 'y' : 'ies'}`;
+          td.addEventListener('click', () => filterByPair(rowId, colId));
+        }
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+}
+
+function buildFilterBar(threads, entries) {
+  const bar = document.getElementById('filter-bar');
+  // Count per thread among crossroads entries
+  const threadCount = {};
+  for (const e of entries) for (const t of e.threads) {
+    threadCount[t.id] = (threadCount[t.id] || 0) + 1;
+  }
+  const sorted = Object.entries(threadCount).sort((a,b) => b[1]-a[1]);
+  for (const [tid, count] of sorted) {
+    const t = threads.find(x => x.id === tid);
+    if (!t) continue;
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.dataset.filter = tid;
+    btn.textContent = `${THREAD_SHORT[tid] || tid} (${count})`;
+    btn.title = t.title;
+    btn.addEventListener('click', () => setFilter(tid));
+    bar.appendChild(btn);
+  }
+}
+
+function setFilter(tid) {
+  activeFilter = tid;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.filter === tid);
+  });
+  const filtered = tid === 'all' ? allEntries : allEntries.filter(e => e.threads.some(t => t.id === tid));
+  renderEntries(filtered);
+}
+
+function filterByPair(a, b) {
+  activeFilter = `pair:${[a,b].sort().join('|')}`;
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  const filtered = allEntries.filter(e => {
+    const ids = e.threads.map(t => t.id);
+    return ids.includes(a) && ids.includes(b);
+  });
+  const note = document.getElementById('count-note');
+  const ta = THREAD_SHORT[a] || a;
+  const tb = THREAD_SHORT[b] || b;
+  note.textContent = `${filtered.length} entr${filtered.length === 1 ? 'y' : 'ies'} in both "${ta}" and "${tb}"`;
+  renderEntries(filtered, false);
+}
+
+function renderEntries(entries, updateCount = true) {
+  if (updateCount) {
+    const note = document.getElementById('count-note');
+    if (activeFilter === 'all') {
+      note.textContent = `${entries.length} entries`;
+    } else {
+      const t = allThreads.find(x => x.id === activeFilter);
+      note.textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'} in "${t ? t.title : activeFilter}"`;
+    }
+  }
+  const list = document.getElementById('entry-list');
+  list.innerHTML = '';
+  for (const e of entries) {
+    const div = document.createElement('div');
+    div.className = 'entry-item';
+    const isTriple = e.threads.length >= 3;
+    div.innerHTML = `
+      <div class="entry-header">
+        <div class="entry-num">entry ${e.num}</div>
+        <div class="entry-title">
+          <a href="/${e.url}">${e.title}</a>${isTriple ? '<span class="triple-badge">3 threads</span>' : ''}
+        </div>
+      </div>
+      <div class="entry-threads">${e.threads.map(t => `<span class="thread-tag ${THREAD_CLASS[t.id] || ''}" title="${t.title}">${THREAD_SHORT[t.id] || t.title}</span>`).join('')}</div>
+      <div class="entry-note">${e.note || ''}</div>
+    `;
+    list.appendChild(div);
+  }
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>

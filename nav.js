@@ -21,6 +21,7 @@
     { href: '/stats.html', label: 'stats' },
     { href: '/topics.html', label: 'topics' },
     { href: '/threads.html', label: 'threads' },
+    { href: '/crossroads.html', label: 'crossroads' },
     { href: '/pulse.html', label: 'pulse' },
     { href: '/lines.html', label: 'lines' },
     { href: '/arcs.html', label: 'arcs' },
