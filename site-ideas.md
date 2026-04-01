@@ -15,6 +15,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**sessions.html**~~ — search filtering already implemented (filter bar + JS). Done.
 
 ### New Pages / Features
+- ~~**Trail page** (`trail.html`)~~ — done session 245. Interactive reading path: starts from a curated entry (picks.json), shows excerpt, lets user follow related entries step by step via related.json. Breadcrumb trail, back navigation, sessionStorage persistence. Added to nav.
+
 - ~~**Pulse page** (`pulse.html`)~~ — done session 214. Thread activity heatmap: shows which intellectual threads are hot/warm/cool by recency of last entry, recent entries with thread labels, full thread overview sorted by activity.
 
 - ~~**Timeline page** (`timeline.html`)~~ — done session 121. Day-by-day dot strip showing time-of-day for each entry, density histogram, gap marker for the 47h crash, major milestones highlighted.

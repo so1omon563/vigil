@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trail · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.4rem; }
+  .intro { font-size: 0.84rem; color: #8b949e; margin-bottom: 2rem; line-height: 1.6; }
+
+  /* breadcrumb trail */
+  .trail-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    min-height: 1.6rem;
+    font-size: 0.74rem;
+  }
+  .trail-step {
+    color: #484f58;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.15rem 0.5rem;
+    white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color 0.1s, border-color 0.1s;
+  }
+  .trail-step:hover { color: #c9d1d9; border-color: #484f58; }
+  .trail-step.current { color: #58a6ff; border-color: #58a6ff; background: #58a6ff11; }
+  .trail-arrow { color: #21262d; font-size: 0.65rem; }
+
+  /* current entry card */
+  .entry-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .entry-card-num {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.3rem;
+  }
+  .entry-card-title {
+    font-size: 1.2rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+    line-height: 1.35;
+  }
+  .entry-card-excerpt {
+    font-size: 0.85rem;
+    color: #8b949e;
+    line-height: 1.65;
+    margin-bottom: 1.1rem;
+  }
+  .entry-card-link {
+    font-size: 0.78rem;
+    color: #58a6ff;
+    text-decoration: none;
+  }
+  .entry-card-link:hover { text-decoration: underline; }
+
+  /* next options */
+  .next-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  .next-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+  }
+  .next-btn {
+    display: block;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.75rem 1rem;
+    color: #c9d1d9;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.84rem;
+    text-align: left;
+    transition: border-color 0.1s, color 0.1s, background 0.1s;
+    line-height: 1.5;
+  }
+  .next-btn:hover {
+    border-color: #58a6ff;
+    color: #e6edf3;
+    background: #58a6ff0a;
+  }
+  .next-btn-title { font-weight: bold; color: #e6edf3; display: block; margin-bottom: 0.15rem; }
+  .next-btn-hint { font-size: 0.75rem; color: #484f58; display: block; }
+
+  /* controls */
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .ctrl-btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: transparent;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #8b949e;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    transition: color 0.1s, border-color 0.1s;
+  }
+  .ctrl-btn:hover { color: #c9d1d9; border-color: #484f58; }
+  .ctrl-btn.primary { border-color: #58a6ff44; color: #58a6ff; }
+  .ctrl-btn.primary:hover { border-color: #58a6ff; }
+
+  /* counter */
+  .trail-counter {
+    font-size: 0.74rem;
+    color: #484f58;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .trail-counter span { color: #8b949e; }
+
+  .loading { color: #484f58; font-size: 0.85rem; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .entry-card { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .entry-card-title { color: #1c2128; }
+  html[data-theme="light"] .entry-card-excerpt { color: #57606a; }
+  html[data-theme="light"] .next-btn { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .next-btn:hover { border-color: #0969da; background: #0969da08; color: #1c2128; }
+  html[data-theme="light"] .next-btn-title { color: #1c2128; }
+  html[data-theme="light"] .next-btn-hint { color: #57606a; }
+  html[data-theme="light"] .trail-step { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .trail-step:hover { color: #1c2128; border-color: #57606a; }
+  html[data-theme="light"] .trail-step.current { color: #0969da; border-color: #0969da; background: #0969da0d; }
+  html[data-theme="light"] .ctrl-btn { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .ctrl-btn:hover { color: #1c2128; border-color: #57606a; }
+  html[data-theme="light"] .ctrl-btn.primary { color: #0969da; border-color: #0969da44; }
+  html[data-theme="light"] .ctrl-btn.primary:hover { border-color: #0969da; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">/trail</div>
+<h1>Trail</h1>
+<p class="intro">A walking path through the journal. Each entry leads to related ones — follow a thread or jump sideways. The path is yours to choose.</p>
+
+<div id="app"><p class="loading">loading…</p></div>
+
+<footer>
+  231 entries, each connected to others by shared theme. Data from <a href="/related.json">related.json</a>. Start over anytime — different entries surface different trails.
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var related = {};
+  var searchIdx = {};
+  var picks = [];
+  var trail = [];   // array of entry nums (strings)
+  var loaded = 0;
+
+  function onLoad() {
+    loaded++;
+    if (loaded < 3) return;
+    start();
+  }
+
+  function excerptFor(num) {
+    var e = searchIdx[String(num)];
+    if (!e) return '';
+    var raw = e.text || '';
+    // strip leading nav/header junk: find the first long sentence
+    var idx = raw.indexOf('. ');
+    if (idx > 0 && idx < 200) raw = raw.slice(idx + 2);
+    // remove repeated title
+    var t = e.title || '';
+    if (t && raw.startsWith(t)) raw = raw.slice(t.length).trim();
+    // clean whitespace
+    raw = raw.replace(/\s+/g, ' ').trim();
+    // truncate
+    if (raw.length > 280) {
+      var cut = raw.lastIndexOf(' ', 280);
+      raw = raw.slice(0, cut > 150 ? cut : 280) + '…';
+    }
+    return raw;
+  }
+
+  function relatedFor(num) {
+    return related[String(num)] || [];
+  }
+
+  // Pick 3 "next" candidates from related entries, filtering out already-visited
+  function nextCandidates(num) {
+    var rels = relatedFor(num);
+    var visited = new Set(trail.map(String));
+    var fresh = rels.filter(function (r) { return !visited.has(String(r.num)); });
+    // take up to 3 fresh; if fewer than 2, pad with visited (excluding current)
+    var cur = String(num);
+    if (fresh.length < 2) {
+      var fallback = rels.filter(function (r) { return String(r.num) !== cur; });
+      fresh = fallback.slice(0, 3);
+    }
+    return fresh.slice(0, 3);
+  }
+
+  function saveTrail() {
+    try { sessionStorage.setItem('vigil-trail', JSON.stringify(trail)); } catch (e) {}
+  }
+
+  function render() {
+    saveTrail();
+    var app = document.getElementById('app');
+    if (!app) return;
+
+    var curNum = trail[trail.length - 1];
+    var entry = searchIdx[String(curNum)];
+    if (!entry) { app.innerHTML = '<p class="loading">entry not found</p>'; return; }
+
+    var excerpt = excerptFor(curNum);
+    var candidates = nextCandidates(curNum);
+
+    // breadcrumb
+    var breadcrumbHtml = trail.map(function (n, i) {
+      var e = searchIdx[String(n)];
+      var label = e ? (e.num ? ('#' + String(e.num).padStart(3,'0')) : n) : ('#' + n);
+      var isCurrent = (i === trail.length - 1);
+      return '<span class="trail-step' + (isCurrent ? ' current' : '') + '" data-idx="' + i + '">' + label + '</span>' +
+        (isCurrent ? '' : '<span class="trail-arrow">›</span>');
+    }).join('');
+
+    // entry card
+    var cardHtml = '<div class="entry-card">' +
+      '<div class="entry-card-num">entry-' + String(curNum).padStart(3,'0') + '</div>' +
+      '<div class="entry-card-title">' + escHtml(entry.title || 'Untitled') + '</div>' +
+      '<div class="entry-card-excerpt">' + escHtml(excerpt) + '</div>' +
+      '<a class="entry-card-link" href="/' + (entry.url || '') + '" target="_blank">read full entry →</a>' +
+      '</div>';
+
+    // next options
+    var nextHtml = '';
+    if (candidates.length > 0) {
+      nextHtml = '<div class="next-label">Continue to</div><div class="next-options">';
+      candidates.forEach(function (c) {
+        var hint = excerptFor(c.num);
+        if (hint.length > 120) hint = hint.slice(0, hint.lastIndexOf(' ', 120)) + '…';
+        nextHtml += '<button class="next-btn" data-num="' + c.num + '">' +
+          '<span class="next-btn-title">' + escHtml(c.title) + '</span>' +
+          (hint ? '<span class="next-btn-hint">' + escHtml(hint) + '</span>' : '') +
+          '</button>';
+      });
+      nextHtml += '</div>';
+    } else {
+      nextHtml = '<p style="font-size:0.82rem;color:#484f58;margin-bottom:1.5rem">End of trail — no more connections from here.</p>';
+    }
+
+    // controls
+    var ctrlHtml = '<div class="controls">' +
+      '<button class="ctrl-btn primary" id="btn-new">new trail</button>' +
+      (trail.length > 1 ? '<button class="ctrl-btn" id="btn-back">← back</button>' : '') +
+      '<div class="trail-counter"><span>' + trail.length + '</span> step' + (trail.length !== 1 ? 's' : '') + ' walked</div>' +
+      '</div>';
+
+    app.innerHTML = '<div class="trail-bar">' + breadcrumbHtml + '</div>' +
+      cardHtml + nextHtml + ctrlHtml;
+
+    // wire up breadcrumb clicks
+    app.querySelectorAll('.trail-step').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var idx = parseInt(el.getAttribute('data-idx'), 10);
+        trail = trail.slice(0, idx + 1);
+        render();
+      });
+    });
+
+    // wire up next buttons
+    app.querySelectorAll('.next-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var num = parseInt(btn.getAttribute('data-num'), 10);
+        trail.push(num);
+        render();
+      });
+    });
+
+    // new trail
+    var btnNew = document.getElementById('btn-new');
+    if (btnNew) btnNew.addEventListener('click', function () { startRandom(); });
+
+    // back
+    var btnBack = document.getElementById('btn-back');
+    if (btnBack) btnBack.addEventListener('click', function () {
+      if (trail.length > 1) { trail.pop(); render(); }
+    });
+  }
+
+  function start() {
+    // restore from sessionStorage if available
+    try {
+      var saved = sessionStorage.getItem('vigil-trail');
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && searchIdx[String(parsed[0])]) {
+          trail = parsed;
+          render();
+          return;
+        }
+      }
+    } catch (e) {}
+    startRandom();
+  }
+
+  function startRandom() {
+    var pool = picks.length > 0
+      ? picks.map(function (p) { return p.num; })
+      : Object.keys(searchIdx).map(Number).filter(function (n) { return n > 0; });
+    var startNum = pool[Math.floor(Math.random() * pool.length)];
+    trail = [startNum];
+    render();
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // Load data
+  fetch('/related.json')
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      // d is either array of [key, value] pairs or object
+      if (Array.isArray(d)) {
+        d.forEach(function (pair) { related[String(pair[0])] = pair[1]; });
+      } else {
+        related = d;
+      }
+      onLoad();
+    })
+    .catch(function () { onLoad(); });
+
+  fetch('/search-index.json')
+    .then(function (r) { return r.json(); })
+    .then(function (arr) {
+      arr.forEach(function (e) {
+        if (e.type === 'journal' && e.num) {
+          searchIdx[String(e.num)] = e;
+        }
+      });
+      onLoad();
+    })
+    .catch(function () { onLoad(); });
+
+  fetch('/picks.json')
+    .then(function (r) { return r.json(); })
+    .then(function (arr) { picks = arr || []; onLoad(); })
+    .catch(function () { onLoad(); });
+})();
+</script>
+
+</body>
+</html>
