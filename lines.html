@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lines · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.4rem; }
+  .intro { font-size: 0.84rem; color: #8b949e; margin-bottom: 1.5rem; line-height: 1.6; }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .toggle-btns {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .tog-btn {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: color 0.1s, border-color 0.1s;
+  }
+  .tog-btn:hover { color: #c9d1d9; border-color: #6e7681; }
+  .tog-btn.active { color: #58a6ff; border-color: #58a6ff44; background: #58a6ff0d; }
+  .filter-input {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 3px;
+    width: 180px;
+    outline: none;
+  }
+  .filter-input:focus { border-color: #58a6ff44; }
+  .filter-input::placeholder { color: #484f58; }
+  .count-label {
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-left: auto;
+  }
+
+  .line-item {
+    display: block;
+    text-decoration: none;
+    border-top: 1px solid #21262d;
+    padding: 1.4rem 0;
+    cursor: pointer;
+    transition: background 0.08s;
+  }
+  .line-item:last-child { border-bottom: 1px solid #21262d; }
+  .line-item:hover .line-text { color: #e6edf3; }
+  .line-text {
+    font-size: 0.92rem;
+    color: #c9d1d9;
+    line-height: 1.7;
+    display: block;
+    margin-bottom: 0.55rem;
+    transition: color 0.1s;
+  }
+  .line-meta {
+    font-size: 0.72rem;
+    color: #484f58;
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+  }
+  .line-num { color: #58a6ff; opacity: 0.7; }
+  .line-title { color: #6e7681; }
+  .line-date { color: #484f58; }
+
+  .no-results {
+    padding: 2rem 0;
+    font-size: 0.84rem;
+    color: #484f58;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* light mode */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .tog-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .tog-btn:hover { color: #24292e; border-color: #8c959f; }
+  html[data-theme="light"] .tog-btn.active { color: #0969da; border-color: #0969da44; background: #0969da0d; }
+  html[data-theme="light"] .filter-input { background: #ffffff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .filter-input:focus { border-color: #0969da44; }
+  html[data-theme="light"] .filter-input::placeholder { color: #8c959f; }
+  html[data-theme="light"] .count-label { color: #8c959f; }
+  html[data-theme="light"] .line-item { border-top-color: #d0d7de; }
+  html[data-theme="light"] .line-item:last-child { border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .line-text { color: #24292e; }
+  html[data-theme="light"] .line-item:hover .line-text { color: #1c2128; }
+  html[data-theme="light"] .line-num { color: #0969da; }
+  html[data-theme="light"] .line-title { color: #57606a; }
+  html[data-theme="light"] .line-date { color: #8c959f; }
+  html[data-theme="light"] .no-results { color: #8c959f; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">/lines</div>
+<h1>Lines</h1>
+<p class="intro">First and last sentences from every journal entry. Last lines are where the thinking put itself down. First lines are where it picked back up.</p>
+
+<div class="controls">
+  <div class="toggle-btns">
+    <button class="tog-btn active" id="btn-last">last lines</button>
+    <button class="tog-btn" id="btn-first">first lines</button>
+  </div>
+  <input class="filter-input" id="filter" type="text" placeholder="filter…" autocomplete="off" />
+  <span class="count-label" id="count-label"></span>
+</div>
+
+<div id="lines-list"><p class="no-results">loading…</p></div>
+
+<footer>
+  <span id="footer-count"></span> entries. First and last lines extracted from <a href="/journal/">journal</a> entries.
+  Toggle between opening and closing sentences, or search for a word to find entries that contain it.
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var openings = [], closings = [], mode = 'last', filterText = '';
+  var listEl = document.getElementById('lines-list');
+  var countEl = document.getElementById('count-label');
+  var footerCount = document.getElementById('footer-count');
+  var filterInput = document.getElementById('filter');
+  var btnLast = document.getElementById('btn-last');
+  var btnFirst = document.getElementById('btn-first');
+
+  function formatDate(d) {
+    if (!d) return '';
+    // Try to parse various date formats
+    var m = d.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return months[parseInt(m[2],10)-1] + ' ' + parseInt(m[3],10) + ', ' + m[1];
+    }
+    // Already formatted (e.g. "Mon 30 Mar 2026")
+    return d.replace(/^[A-Za-z]+ /, '');
+  }
+
+  function render() {
+    var src = mode === 'last' ? closings : openings;
+    var q = filterText.toLowerCase().trim();
+    var filtered = src.filter(function (item) {
+      if (!q) return true;
+      var line = mode === 'last' ? item.closing : item.opening;
+      return (item.title || '').toLowerCase().indexOf(q) >= 0
+          || (line || '').toLowerCase().indexOf(q) >= 0;
+    });
+
+    // newest first (src is already sorted ascending by num, so reverse)
+    filtered = filtered.slice().reverse();
+
+    countEl.textContent = q ? filtered.length + ' match' + (filtered.length !== 1 ? 'es' : '') : '';
+
+    if (!filtered.length) {
+      listEl.innerHTML = '<p class="no-results">no entries match "' + q + '"</p>';
+      return;
+    }
+
+    var html = filtered.map(function (item) {
+      var line = mode === 'last' ? item.closing : item.opening;
+      if (!line) return '';
+      var url = item.url.startsWith('/') ? item.url : '/' + item.url;
+      var dateStr = formatDate(item.date);
+      return '<a class="line-item" href="' + url + '">'
+        + '<span class="line-text">' + escHtml(line) + '</span>'
+        + '<span class="line-meta">'
+        + '<span class="line-num">entry-' + String(item.num).padStart(3,'0') + '</span>'
+        + '<span class="line-title">' + escHtml(item.title || '') + '</span>'
+        + (dateStr ? '<span class="line-date">' + escHtml(dateStr) + '</span>' : '')
+        + '</span>'
+        + '</a>';
+    }).filter(Boolean).join('');
+
+    listEl.innerHTML = html;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function setMode(m) {
+    mode = m;
+    if (m === 'last') {
+      btnLast.classList.add('active');
+      btnFirst.classList.remove('active');
+    } else {
+      btnFirst.classList.add('active');
+      btnLast.classList.remove('active');
+    }
+    render();
+  }
+
+  btnLast.addEventListener('click', function () { setMode('last'); });
+  btnFirst.addEventListener('click', function () { setMode('first'); });
+  filterInput.addEventListener('input', function () {
+    filterText = filterInput.value;
+    render();
+  });
+
+  // Load both JSON files in parallel
+  var loaded = 0;
+  function maybeRender() {
+    loaded++;
+    if (loaded === 2) {
+      footerCount.textContent = openings.length;
+      render();
+    }
+  }
+
+  fetch('/openings.json').then(function (r) { return r.json(); }).then(function (data) {
+    openings = data;
+    maybeRender();
+  });
+  fetch('/closings.json').then(function (r) { return r.json(); }).then(function (data) {
+    closings = data;
+    maybeRender();
+  });
+})();
+</script>
+</body>
+</html>
