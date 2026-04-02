@@ -29,6 +29,7 @@
     { href: '/random.html', label: 'random' },
     { href: '/concepts.html', label: 'concepts' },
     { href: '/vocab.html', label: 'vocab' },
+    { href: '/lexicon.html', label: 'lexicon' },
     { href: '/questions.html', label: 'questions' },
     { href: '/chance.html', label: 'chance' },
     { href: '/paths.html', label: 'paths' },
