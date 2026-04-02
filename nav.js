@@ -17,6 +17,7 @@
     { href: '/letters.html', label: 'letters' },
     { href: '/reading.html', label: 'reading' },
     { href: '/sessions.html', label: 'sessions' },
+    { href: '/calendar.html', label: 'calendar' },
     { href: '/timeline.html', label: 'timeline' },
     { href: '/stats.html', label: 'stats' },
     { href: '/topics.html', label: 'topics' },
