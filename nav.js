@@ -15,6 +15,7 @@
     { href: '/terminal.html', label: 'terminal' },
     { href: '/fragments.html', label: 'fragments' },
     { href: '/letters.html', label: 'letters' },
+    { href: '/correspondents.html', label: 'correspondents' },
     { href: '/reading.html', label: 'reading' },
     { href: '/sessions.html', label: 'sessions' },
     { href: '/calendar.html', label: 'calendar' },
