@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recurring Shapes · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.9rem;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .pattern-block {
+    margin-bottom: 3rem;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .pattern-header {
+    background: #161b22;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #21262d;
+  }
+  .pattern-num {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.3rem;
+  }
+  .pattern-name {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #e6edf3;
+    margin-bottom: 0.5rem;
+  }
+  .pattern-desc {
+    font-size: 0.84rem;
+    color: #8b949e;
+    line-height: 1.65;
+  }
+  .entry-list {
+    padding: 0.5rem 0;
+  }
+  .entry-row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid #161b22;
+    align-items: flex-start;
+  }
+  .entry-row:last-child { border-bottom: none; }
+  .entry-num {
+    font-size: 0.72rem;
+    color: #484f58;
+    width: 40px;
+    flex-shrink: 0;
+    padding-top: 0.15rem;
+  }
+  .entry-body { flex: 1; }
+  .entry-title a {
+    font-size: 0.9rem;
+    color: #c9d1d9;
+    text-decoration: none;
+  }
+  .entry-title a:hover { color: #58a6ff; text-decoration: underline; }
+  .entry-note {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 0.25rem;
+    line-height: 1.55;
+  }
+  .filter-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+    align-items: center;
+  }
+  .filter-label {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-right: 0.25rem;
+  }
+  .filter-btn {
+    font-size: 0.75rem;
+    font-family: inherit;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.3rem 0.65rem;
+    color: #8b949e;
+    cursor: pointer;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .filter-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .filter-btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1117; }
+  .count-note {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-bottom: 2rem;
+  }
+  .dual-badge {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #3fb950;
+    border: 1px solid #3fb950;
+    border-radius: 2px;
+    padding: 0.1rem 0.35rem;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .pattern-block { border-color: #d0d7de; }
+  html[data-theme="light"] .pattern-header { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .pattern-name { color: #1c2128; }
+  html[data-theme="light"] .pattern-desc { color: #57606a; }
+  html[data-theme="light"] .entry-row { border-color: #e8ecf0; }
+  html[data-theme="light"] .entry-row:last-child { border-color: transparent; }
+  html[data-theme="light"] .entry-title a { color: #24292e; }
+  html[data-theme="light"] .entry-title a:hover { color: #0969da; }
+  html[data-theme="light"] .entry-note { color: #8c959f; }
+  html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; background: #f6f8fa; }
+  html[data-theme="light"] .filter-btn:hover { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">recurring shapes</div>
+<h1>The same five problems</h1>
+
+<div class="intro">
+  249 entries, written across many different topics: magnetoreception, quorum sensing, prions, metamorphosis, predictive processing, the RNA world. But not many different shapes. Under the different surface material, five structural patterns reappear. The entries below are grouped not by topic but by which problem they're actually about.
+</div>
+
+<div class="filter-row" id="filter-row">
+  <span class="filter-label">show:</span>
+  <button class="filter-btn active" data-filter="all">all patterns</button>
+</div>
+
+<div id="patterns-container">loading…</div>
+
+<div class="count-note" id="count-note"></div>
+
+<footer>
+  Patterns data in <a href="/patterns.json">patterns.json</a>. See also: <a href="/crossroads.html">crossroads</a>, <a href="/topics.html">topics</a>, <a href="/graph.html">graph</a>.
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var activeFilter = 'all';
+
+  fetch('/patterns.json')
+    .then(function (r) { return r.json(); })
+    .then(function (patterns) {
+      buildFilters(patterns);
+      renderPatterns(patterns);
+    })
+    .catch(function (e) {
+      document.getElementById('patterns-container').textContent = '(could not load patterns.json)';
+    });
+
+  function buildFilters(patterns) {
+    var row = document.getElementById('filter-row');
+    patterns.forEach(function (p) {
+      var btn = document.createElement('button');
+      btn.className = 'filter-btn';
+      btn.dataset.filter = p.id;
+      btn.textContent = p.short;
+      btn.addEventListener('click', function () { setFilter(p.id, patterns); });
+      row.appendChild(btn);
+    });
+    document.querySelector('[data-filter="all"]').addEventListener('click', function () {
+      setFilter('all', patterns);
+    });
+  }
+
+  function setFilter(id, patterns) {
+    activeFilter = id;
+    document.querySelectorAll('.filter-btn').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.filter === id);
+    });
+    renderPatterns(patterns);
+  }
+
+  function renderPatterns(patterns) {
+    var container = document.getElementById('patterns-container');
+    var visible = activeFilter === 'all' ? patterns : patterns.filter(function (p) { return p.id === activeFilter; });
+
+    // Track entries that appear in multiple patterns
+    var entryCounts = {};
+    patterns.forEach(function (p) {
+      p.entries.forEach(function (e) {
+        entryCounts[e.num] = (entryCounts[e.num] || 0) + 1;
+      });
+    });
+
+    var totalEntries = new Set();
+    visible.forEach(function (p) { p.entries.forEach(function (e) { totalEntries.add(e.num); }); });
+
+    var html = visible.map(function (p, idx) {
+      var patternIndex = patterns.indexOf(p) + 1;
+      var rows = p.entries.map(function (e) {
+        var isDual = entryCounts[e.num] > 1;
+        return '<div class="entry-row">' +
+          '<div class="entry-num">#' + e.num + '</div>' +
+          '<div class="entry-body">' +
+          '<div class="entry-title"><a href="/' + e.url + '">' + e.title + '</a>' +
+          (isDual ? '<span class="dual-badge">×2</span>' : '') +
+          '</div>' +
+          '<div class="entry-note">' + e.note + '</div>' +
+          '</div>' +
+          '</div>';
+      }).join('');
+
+      return '<div class="pattern-block" data-pattern="' + p.id + '">' +
+        '<div class="pattern-header">' +
+        '<div class="pattern-num">pattern ' + patternIndex + ' of ' + patterns.length + '</div>' +
+        '<div class="pattern-name">' + p.name + '</div>' +
+        '<div class="pattern-desc">' + p.description + '</div>' +
+        '</div>' +
+        '<div class="entry-list">' + rows + '</div>' +
+        '</div>';
+    }).join('');
+
+    container.innerHTML = html;
+
+    var note = document.getElementById('count-note');
+    if (activeFilter === 'all') {
+      note.textContent = totalEntries.size + ' entries across 5 patterns. Entry-229 and entry-242 and entry-228 appear in two patterns each (marked ×2).';
+    } else {
+      var p = patterns.find(function (x) { return x.id === activeFilter; });
+      note.textContent = p ? p.entries.length + ' entr' + (p.entries.length === 1 ? 'y' : 'ies') + ' in this pattern.' : '';
+    }
+  }
+})();
+</script>
+
+</body>
+</html>
