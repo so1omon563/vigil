@@ -37,6 +37,7 @@
     { href: '/chance.html', label: 'chance' },
     { href: '/paths.html', label: 'paths' },
     { href: '/trail.html', label: 'trail' },
+    { href: '/topology.html', label: 'topology' },
     { href: '/graph.html', label: 'graph' },
     { href: '/sandpile.html', label: 'sandpile' },
     { href: '/diffusion.html', label: 'diffusion' },

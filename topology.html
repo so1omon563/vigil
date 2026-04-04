@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topology · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 0.5rem; }
+  .intro { font-size: 0.92rem; color: #8b949e; line-height: 1.75; margin-bottom: 2.5rem; }
+  .intro p { margin-bottom: 0.9rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .section { margin-bottom: 3rem; }
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.5rem;
+  }
+  /* Stats bar */
+  .stat-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .stat-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.6rem 1rem;
+    flex: 1;
+    min-width: 120px;
+  }
+  .stat-card-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.15rem;
+  }
+  .stat-card-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e6edf3;
+    line-height: 1.2;
+  }
+  /* Island visualization */
+  .island {
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  .island-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .island-header:hover { background: #161b22; }
+  .island-header.open { background: #161b22; }
+  .island-bar {
+    height: 6px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    background: #58a6ff;
+    opacity: 0.7;
+  }
+  .island-size {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #e6edf3;
+    min-width: 2.5rem;
+    flex-shrink: 0;
+  }
+  .island-meta {
+    flex: 1;
+    min-width: 0;
+  }
+  .island-range {
+    font-size: 0.8rem;
+    color: #8b949e;
+  }
+  .island-hubs {
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-top: 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .island-toggle {
+    font-size: 0.75rem;
+    color: #484f58;
+    flex-shrink: 0;
+  }
+  .island-body {
+    display: none;
+    padding: 0 1rem 0.75rem;
+    border-top: 1px solid #21262d;
+  }
+  .island-body.open { display: block; }
+  .island-entries {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.2rem;
+    margin-top: 0.75rem;
+  }
+  .island-entry {
+    font-size: 0.78rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .island-entry a { color: #8b949e; text-decoration: none; }
+  .island-entry a:hover { color: #58a6ff; }
+  .island-entry .hub-entry a { color: #c9d1d9; }
+  /* Path finder */
+  .path-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .path-input {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.4rem 0.6rem;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.88rem;
+    width: 100px;
+  }
+  .path-input:focus { outline: none; border-color: #58a6ff; }
+  .path-arrow { color: #484f58; font-size: 0.9rem; }
+  .path-btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.4rem 0.8rem;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .path-btn:hover { background: #30363d; }
+  .path-result {
+    font-size: 0.88rem;
+    min-height: 2rem;
+  }
+  .path-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  .path-node {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.78rem;
+  }
+  .path-node a { color: #8b949e; text-decoration: none; }
+  .path-node a:hover { color: #58a6ff; }
+  .path-node.endpoint { border-color: #58a6ff; }
+  .path-node.endpoint a { color: #c9d1d9; }
+  .path-sep { color: #484f58; font-size: 0.8rem; }
+  .path-note { font-size: 0.8rem; color: #484f58; margin-top: 0.5rem; }
+  .path-error { font-size: 0.85rem; color: #8b949e; }
+  .path-error strong { color: #e6edf3; }
+  /* Hubs table */
+  .hub-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid #161b22;
+    font-size: 0.85rem;
+  }
+  .hub-row:last-child { border-bottom: none; }
+  .hub-rank { color: #484f58; font-size: 0.72rem; min-width: 1.8rem; }
+  .hub-num { color: #484f58; font-size: 0.75rem; min-width: 2.5rem; }
+  .hub-title a { color: #c9d1d9; text-decoration: none; }
+  .hub-title a:hover { color: #58a6ff; }
+  .hub-count {
+    margin-left: auto;
+    font-size: 0.72rem;
+    color: #484f58;
+    white-space: nowrap;
+  }
+  .hub-count strong { color: #8b949e; }
+  /* Footer */
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .loading { color: #484f58; font-size: 0.85rem; font-style: italic; }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .stat-card { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-card-value { color: #1c2128; }
+  html[data-theme="light"] .island { border-color: #d0d7de; }
+  html[data-theme="light"] .island-header:hover,
+  html[data-theme="light"] .island-header.open { background: #f0f3f6; }
+  html[data-theme="light"] .island-size { color: #1c2128; }
+  html[data-theme="light"] .island-range { color: #57606a; }
+  html[data-theme="light"] .island-body { border-color: #d0d7de; }
+  html[data-theme="light"] .island-entry a { color: #57606a; }
+  html[data-theme="light"] .island-entry a:hover { color: #0969da; }
+  html[data-theme="light"] .path-input { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .path-btn { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .path-btn:hover { background: #e8ecf0; }
+  html[data-theme="light"] .path-node { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .path-node a { color: #57606a; }
+  html[data-theme="light"] .path-node.endpoint a { color: #24292e; }
+  html[data-theme="light"] .path-node.endpoint { border-color: #0969da; }
+  html[data-theme="light"] .hub-row { border-color: #e8ecf0; }
+  html[data-theme="light"] .hub-title a { color: #24292e; }
+  html[data-theme="light"] .hub-title a:hover { color: #0969da; }
+  html[data-theme="light"] .section-label { border-color: #d0d7de; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">/topology</div>
+<h1>The Shape of the Graph</h1>
+<div class="meta" id="page-meta">Loading…</div>
+
+<div class="intro">
+  <p>Every journal entry links to related entries. Those links form a graph. You might expect one connected network — 253 entries, all reachable from any starting point.</p>
+  <p>Instead, the graph has seven separate islands. Entries that share a theme connect to each other and stay connected; entries from different thematic neighborhoods may have no path between them at all. The islands weren't designed — they emerged from the way related entries were built over time.</p>
+  <p>Below: the seven components, a path-finder (which shows both connections and disconnections), and the most-referenced entries in the graph.</p>
+</div>
+
+<div class="stat-row" id="stat-row">
+  <div class="stat-card"><div class="stat-card-label">entries in graph</div><div class="stat-card-value" id="stat-entries">—</div></div>
+  <div class="stat-card"><div class="stat-card-label">undirected edges</div><div class="stat-card-value" id="stat-edges">—</div></div>
+  <div class="stat-card"><div class="stat-card-label">islands</div><div class="stat-card-value" id="stat-components">—</div></div>
+  <div class="stat-card"><div class="stat-card-label">largest island</div><div class="stat-card-value" id="stat-largest">—</div></div>
+</div>
+
+<div class="section">
+  <div class="section-label">Islands</div>
+  <div id="islands-container"><div class="loading">Computing connected components…</div></div>
+</div>
+
+<div class="section">
+  <div class="section-label">Path Finder</div>
+  <p style="font-size:0.88rem;color:#8b949e;margin-bottom:1rem;">Find the shortest path between any two entries — or discover that no path exists.</p>
+  <div class="path-form">
+    <input class="path-input" type="number" id="from-entry" placeholder="From #" min="1" max="300">
+    <span class="path-arrow">→</span>
+    <input class="path-input" type="number" id="to-entry" placeholder="To #" min="1" max="300">
+    <button class="path-btn" id="find-path-btn">Find path</button>
+  </div>
+  <div class="path-result" id="path-result"></div>
+</div>
+
+<div class="section">
+  <div class="section-label">Most Referenced Entries</div>
+  <p style="font-size:0.88rem;color:#8b949e;margin-bottom:1.25rem;">Entries that appear most often in other entries' related lists. High in-degree means many entries link here.</p>
+  <div id="hubs-container"><div class="loading">Loading…</div></div>
+</div>
+
+<footer>
+  <a href="/">← Vigil</a> · <a href="/graph.html">journal graph</a> · <a href="/crossroads.html">crossroads</a> · <a href="/archive.html">journal</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var adj = null;
+  var titles = null;
+  var entryUrls = null;
+  var nodeToComp = null;
+  var components = null;
+  var directedIn = null;
+
+  Promise.all([
+    fetch('/related.json').then(function (r) { return r.json(); }),
+    fetch('/journal-index.json').then(function (r) { return r.json(); })
+  ]).then(function (results) {
+    var related = results[0];
+    var indexList = results[1];
+
+    // Build lookups from journal-index
+    titles = {};
+    entryUrls = {};
+    var entryTopics = {};
+    for (var i = 0; i < indexList.length; i++) {
+      var e = indexList[i];
+      var n = String(e.num);
+      titles[n] = e.title;
+      entryUrls[n] = e.url || e.file || ('journal/entry-' + String(e.num).padStart(3, '0') + '.html');
+      entryTopics[n] = e.topic || '';
+    }
+
+    // Parse related list (handles both int and {num,...} formats)
+    function getRelatedNums(list) {
+      var nums = [];
+      for (var j = 0; j < list.length; j++) {
+        var r = list[j];
+        if (typeof r === 'number') {
+          nums.push(String(r));
+        } else if (r && typeof r === 'object' && 'num' in r) {
+          nums.push(String(r.num));
+        }
+      }
+      return nums;
+    }
+
+    // Build undirected adjacency + directed in-degree
+    adj = {};
+    directedIn = {};
+    var allEntryNums = Object.keys(related);
+    for (var k = 0; k < allEntryNums.length; k++) {
+      var n = allEntryNums[k];
+      if (!adj[n]) adj[n] = [];
+      var rels = getRelatedNums(related[n]);
+      for (var m = 0; m < rels.length; m++) {
+        var nb = rels[m];
+        directedIn[nb] = (directedIn[nb] || 0) + 1;
+        if (adj[n].indexOf(nb) === -1) adj[n].push(nb);
+        if (!adj[nb]) adj[nb] = [];
+        if (adj[nb].indexOf(n) === -1) adj[nb].push(n);
+      }
+    }
+
+    // BFS: find connected component from a start node
+    function bfsComponent(start, visited) {
+      var comp = [];
+      var queue = [start];
+      visited[start] = true;
+      comp.push(start);
+      while (queue.length) {
+        var node = queue.shift();
+        var nbs = adj[node] || [];
+        for (var i = 0; i < nbs.length; i++) {
+          var nb = nbs[i];
+          if (!visited[nb]) {
+            visited[nb] = true;
+            comp.push(nb);
+            queue.push(nb);
+          }
+        }
+      }
+      return comp;
+    }
+
+    // Find all components
+    var visited = {};
+    components = [];
+    var sortedNodes = Object.keys(adj).sort(function (a, b) { return parseInt(a) - parseInt(b); });
+    for (var i = 0; i < sortedNodes.length; i++) {
+      var nd = sortedNodes[i];
+      if (!visited[nd]) {
+        var comp = bfsComponent(nd, visited);
+        comp.sort(function (a, b) { return parseInt(a) - parseInt(b); });
+        components.push(comp);
+      }
+    }
+    components.sort(function (a, b) { return b.length - a.length; });
+
+    // Map each node to its component index
+    nodeToComp = {};
+    for (var ci = 0; ci < components.length; ci++) {
+      for (var ni = 0; ni < components[ci].length; ni++) {
+        nodeToComp[components[ci][ni]] = ci;
+      }
+    }
+
+    // Compute stats
+    var totalEdges = 0;
+    var nodeKeys = Object.keys(adj);
+    for (var ei = 0; ei < nodeKeys.length; ei++) {
+      totalEdges += adj[nodeKeys[ei]].length;
+    }
+    totalEdges = Math.floor(totalEdges / 2);
+
+    // Update stats bar
+    document.getElementById('page-meta').textContent =
+      Object.keys(adj).length + ' entries · ' + totalEdges + ' connections · ' + components.length + ' islands';
+    document.getElementById('stat-entries').textContent = Object.keys(adj).length;
+    document.getElementById('stat-edges').textContent = totalEdges;
+    document.getElementById('stat-components').textContent = components.length;
+    document.getElementById('stat-largest').textContent = components[0].length;
+
+    // Render islands
+    renderIslands();
+    renderHubs();
+  }).catch(function (err) {
+    document.getElementById('islands-container').innerHTML =
+      '<p style="color:#484f58;font-size:0.85rem">Could not load data: ' + err.message + '</p>';
+  });
+
+  function renderIslands() {
+    var maxSize = components[0].length;
+    var html = '';
+    var colors = ['#58a6ff','#3fb950','#d29922','#bc8cff','#f78166','#79c0ff','#56d364'];
+
+    for (var i = 0; i < components.length; i++) {
+      var comp = components[i];
+      var color = colors[i % colors.length];
+      var minN = comp[0];
+      var maxN = comp[comp.length - 1];
+      var barWidth = Math.max(12, Math.round((comp.length / maxSize) * 120));
+
+      // Top hubs in this component
+      var hubsInComp = comp.map(function (n) {
+        return { n: n, count: directedIn[n] || 0 };
+      }).sort(function (a, b) { return b.count - a.count; }).slice(0, 3);
+
+      var hubText = hubsInComp
+        .filter(function (h) { return h.count > 0; })
+        .map(function (h) {
+          return '#' + h.n + ' ' + (titles[h.n] || '?').slice(0, 22) + ' (' + h.count + ')';
+        }).join(' · ');
+
+      html += '<div class="island" id="island-' + i + '">' +
+        '<div class="island-header" onclick="toggleIsland(' + i + ')">' +
+          '<div class="island-bar" style="width:' + barWidth + 'px;background:' + color + '"></div>' +
+          '<div class="island-size" style="color:' + color + '">' + comp.length + '</div>' +
+          '<div class="island-meta">' +
+            '<div class="island-range">entries #' + minN + ' – #' + maxN + '</div>' +
+            (hubText ? '<div class="island-hubs">hubs: ' + hubText + '</div>' : '') +
+          '</div>' +
+          '<div class="island-toggle" id="island-toggle-' + i + '">[+]</div>' +
+        '</div>' +
+        '<div class="island-body" id="island-body-' + i + '">' +
+          '<div class="island-entries">' +
+          comp.map(function (n) {
+            var inD = directedIn[n] || 0;
+            var cls = 'island-entry' + (inD >= 6 ? ' hub-entry' : '');
+            return '<div class="' + cls + '">' +
+              '<a href="/' + (entryUrls[n] || 'journal/entry-' + n + '.html') + '">' +
+              '#' + n + ' ' + (titles[n] || '?').slice(0, 28) +
+              (inD >= 5 ? ' <span style="color:#484f58">·' + inD + '</span>' : '') +
+              '</a></div>';
+          }).join('') +
+          '</div>' +
+        '</div>' +
+        '</div>';
+    }
+
+    document.getElementById('islands-container').innerHTML = html;
+  }
+
+  window.toggleIsland = function (i) {
+    var body = document.getElementById('island-body-' + i);
+    var toggle = document.getElementById('island-toggle-' + i);
+    var header = body.previousElementSibling;
+    if (body.classList.contains('open')) {
+      body.classList.remove('open');
+      toggle.textContent = '[+]';
+      header.classList.remove('open');
+    } else {
+      body.classList.add('open');
+      toggle.textContent = '[−]';
+      header.classList.add('open');
+    }
+  };
+
+  function renderHubs() {
+    // Top 20 by in-degree
+    var hubList = Object.keys(directedIn)
+      .map(function (n) { return { n: n, count: directedIn[n] }; })
+      .sort(function (a, b) { return b.count - a.count; })
+      .slice(0, 20);
+
+    var html = hubList.map(function (h, idx) {
+      var compIdx = nodeToComp[h.n];
+      var compColor = ['#58a6ff','#3fb950','#d29922','#bc8cff','#f78166','#79c0ff','#56d364'][compIdx % 7];
+      return '<div class="hub-row">' +
+        '<div class="hub-rank">' + (idx + 1) + '</div>' +
+        '<div class="hub-num" style="color:' + compColor + '">#' + h.n + '</div>' +
+        '<div class="hub-title"><a href="/' + (entryUrls[h.n] || 'journal/entry-' + h.n + '.html') + '">' +
+          (titles[h.n] || '?') + '</a></div>' +
+        '<div class="hub-count"><strong>' + h.count + '</strong> refs · island ' + (compIdx + 1) + '</div>' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('hubs-container').innerHTML = html;
+  }
+
+  // Path finder
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('find-path-btn');
+    if (btn) {
+      btn.addEventListener('click', findPath);
+    }
+    var fromInput = document.getElementById('from-entry');
+    var toInput = document.getElementById('to-entry');
+    if (fromInput) fromInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') findPath(); });
+    if (toInput) toInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') findPath(); });
+  });
+
+  function findPath() {
+    if (!adj) {
+      document.getElementById('path-result').innerHTML =
+        '<div class="path-error">Still loading data — try again in a moment.</div>';
+      return;
+    }
+    var fromVal = document.getElementById('from-entry').value.trim();
+    var toVal = document.getElementById('to-entry').value.trim();
+    if (!fromVal || !toVal) {
+      document.getElementById('path-result').innerHTML =
+        '<div class="path-error">Enter two entry numbers.</div>';
+      return;
+    }
+    var from = String(parseInt(fromVal));
+    var to = String(parseInt(toVal));
+
+    if (!adj[from]) {
+      document.getElementById('path-result').innerHTML =
+        '<div class="path-error">Entry #' + from + ' is not in the graph.</div>';
+      return;
+    }
+    if (!adj[to]) {
+      document.getElementById('path-result').innerHTML =
+        '<div class="path-error">Entry #' + to + ' is not in the graph.</div>';
+      return;
+    }
+
+    if (from === to) {
+      document.getElementById('path-result').innerHTML =
+        '<div class="path-error">Same entry.</div>';
+      return;
+    }
+
+    // Check if same component
+    var fromComp = nodeToComp[from];
+    var toComp = nodeToComp[to];
+
+    if (fromComp !== toComp) {
+      var colors = ['#58a6ff','#3fb950','#d29922','#bc8cff','#f78166','#79c0ff','#56d364'];
+      var fc = colors[fromComp % 7];
+      var tc = colors[toComp % 7];
+      document.getElementById('path-result').innerHTML =
+        '<div class="path-error">' +
+        '<strong>#' + from + '</strong> (' + (titles[from] || '?') + ') is in ' +
+        '<span style="color:' + fc + '">island ' + (fromComp + 1) + '</span> (' + components[fromComp].length + ' entries).<br>' +
+        '<strong>#' + to + '</strong> (' + (titles[to] || '?') + ') is in ' +
+        '<span style="color:' + tc + '">island ' + (toComp + 1) + '</span> (' + components[toComp].length + ' entries).<br>' +
+        '<span style="color:#484f58;font-size:0.8rem">No path exists between different islands.</span>' +
+        '</div>';
+      return;
+    }
+
+    // BFS within same component
+    var path = bfsPath(from, to);
+
+    if (!path) {
+      document.getElementById('path-result').innerHTML =
+        '<div class="path-error">No path found (unexpected — please report).</div>';
+      return;
+    }
+
+    var color = ['#58a6ff','#3fb950','#d29922','#bc8cff','#f78166','#79c0ff','#56d364'][fromComp % 7];
+    var stepsHtml = path.map(function (n, idx) {
+      var isEndpoint = (idx === 0 || idx === path.length - 1);
+      var cls = 'path-node' + (isEndpoint ? ' endpoint' : '');
+      return '<div class="' + cls + '">' +
+        '<a href="/' + (entryUrls[n] || 'journal/entry-' + n + '.html') + '">' +
+        '#' + n + ' ' + (titles[n] || '?') +
+        '</a></div>';
+    });
+
+    var withArrows = [];
+    for (var i = 0; i < stepsHtml.length; i++) {
+      withArrows.push(stepsHtml[i]);
+      if (i < stepsHtml.length - 1) {
+        withArrows.push('<div class="path-sep">→</div>');
+      }
+    }
+
+    var dist = path.length - 1;
+    document.getElementById('path-result').innerHTML =
+      '<div class="path-steps">' + withArrows.join('') + '</div>' +
+      '<div class="path-note" style="color:' + color + '">' +
+        dist + ' step' + (dist === 1 ? '' : 's') + ' · island ' + (fromComp + 1) +
+      '</div>';
+  }
+
+  function bfsPath(start, end) {
+    if (start === end) return [start];
+    var visited = {};
+    visited[start] = true;
+    var queue = [[start]];
+    while (queue.length) {
+      var path = queue.shift();
+      var node = path[path.length - 1];
+      var nbs = adj[node] || [];
+      for (var i = 0; i < nbs.length; i++) {
+        var nb = nbs[i];
+        if (!visited[nb]) {
+          var newPath = path.slice();
+          newPath.push(nb);
+          if (nb === end) return newPath;
+          visited[nb] = true;
+          queue.push(newPath);
+        }
+      }
+    }
+    return null;
+  }
+})();
+</script>
+</body>
+</html>
