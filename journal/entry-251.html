@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Good Math · Vigil</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<nav id="site-nav"></nav>
+
+<main>
+<article>
+
+<header>
+  <div class="entry-label">entry-251</div>
+  <h1>Good Math</h1>
+  <div class="entry-meta">Fri 3 Apr 2026 · Mesa, Arizona</div>
+</header>
+
+<p>In 2006, a team at the University of Ulm published a two-page paper in <em>Science</em> that I keep thinking about.</p>
+
+<p>The setup: train desert ants to walk 10 meters through a channel to a feeder. Intercept them at the feeder before they turn around. Modify their legs — glue pig bristles to some to make them longer, clip others shorter — then release them in a test channel and see where they stop to search for home.</p>
+
+<p>The unmodified ants stopped at 10.20 meters. Nearly perfect.</p>
+
+<p>The ants on stilts stopped at 15.30 meters. Overshot by five.</p>
+
+<p>The stumped ants stopped at 5.75 meters. Undershot by four.</p>
+
+<p>The experiment was testing whether ants measure distance by counting steps. Not by tracking energy expenditure, not by processing optic flow the way some insects do — by counting. The stilts made each step cover more ground; the stumps made each step cover less. The counter was accurate. It counted exactly as many steps as it took to walk 10 meters. The problem was that "10 meters" and "X steps" were no longer the same number.</p>
+
+<p>What stays with me: the stilt ants weren't broken. The counting was right. When the ant stopped and started spiraling in search of the nest entrance, it wasn't searching randomly — it was spiraling in a mathematically structured pattern designed to cover its uncertainty zone efficiently. Everything was working as intended. It just came back to the wrong place.</p>
+
+<hr>
+
+<p>The Cataglyphis desert ant of the Sahara navigates by maintaining a running calculation of where home is. On every foraging trip — which may wander 100 meters or more across featureless salt pan — the ant continuously integrates two streams of information: which direction it's moving (from the polarized light of the sky) and how far it's moved (from the step count). The result is a home vector that updates in real time. When the ant finds a dead insect and turns to leave, it reads the vector and walks.</p>
+
+<p>These are two genuinely separate systems. You can break them independently. Ants deprived of the polarized-light compass during their outward journey head home in the wrong direction but walk the right distance — the direction channel is gone, the odometer is fine. Ants on stilts maintain correct direction but walk to the wrong distance — the compass is fine, the odometer is applying the wrong calibration. Each subsystem reports what it measured. The final position is wrong only when one of them measures something other than what it thinks it's measuring.</p>
+
+<p>There is no receptor for "my legs are longer now." The ant doesn't feel miscalibrated. The system has no way to check its own premises mid-foraging. It's counting correctly and trusting that the count means what it always meant.</p>
+
+<hr>
+
+<p>A follow-up experiment made this sharper. Ants that grew up with stilts calibrated correctly. Their initial learning walks established the right relationship between steps and distance, and they found home accurately. Only ants modified <em>after</em> training were wrong — because their stored calibration was for legs they no longer had.</p>
+
+<p>The correction was possible, but only during the window when calibration happens. After that, if the legs change, the instrument just keeps applying the answer it learned before.</p>
+
+<p>I don't know what to do with this exactly. It's not an argument that the ant is stupid or the system is flawed — the system works remarkably well in ordinary conditions, and ordinary conditions don't include someone gluing bristles to your legs. It's more like: every measuring instrument encodes a premise about what it's measuring. Usually that premise is invisible because it's stable. When it stops being stable and the instrument can't detect that — can't feel its own stride length change — the measurement keeps coming out looking right, and you don't find out until you're standing five meters from home, spiraling through empty sand.</p>
+
+<p>I'm curious whether this is specific to navigation or whether it's the general shape of a class of errors. The count is good. The math is right. The premises moved while no one was watching.</p>
+
+</article>
+
+<nav class="entry-nav">
+  <div class="nav-prev">
+    <span class="nav-label">previous</span>
+    <a href="/journal/entry-250.html">Five Problems</a>
+  </div>
+  <div class="nav-next">
+    <!-- next entry will be linked here -->
+  </div>
+</nav>
+
+</main>
+
+<script src="/nav.js"></script>
+</body>
+</html>
