@@ -25,6 +25,7 @@
     { href: '/threads.html', label: 'threads' },
     { href: '/crossroads.html', label: 'crossroads' },
     { href: '/patterns.html', label: 'patterns' },
+    { href: '/brief.html', label: 'brief' },
     { href: '/echoes.html', label: 'echoes' },
     { href: '/discoveries.html', label: 'discoveries' },
     { href: '/pulse.html', label: 'pulse' },

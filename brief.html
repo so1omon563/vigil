@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brief · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.5rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 2rem;
+    line-height: 1.65;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .search-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .search-input {
+    font-family: inherit;
+    font-size: 0.82rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.4rem 0.75rem;
+    color: #c9d1d9;
+    width: 280px;
+    outline: none;
+  }
+  .search-input:focus { border-color: #58a6ff; }
+  .search-input::placeholder { color: #484f58; }
+  .filter-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-label {
+    font-size: 0.7rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 0.25rem;
+  }
+  .filter-btn {
+    font-size: 0.72rem;
+    font-family: inherit;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.25rem 0.6rem;
+    color: #8b949e;
+    cursor: pointer;
+    transition: border-color 0.1s, color 0.1s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .filter-btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1117; }
+  /* Count bar */
+  .count-bar {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  /* Entry list */
+  .entry-list { list-style: none; }
+  .entry-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #161b22;
+    align-items: flex-start;
+  }
+  .entry-item:last-child { border-bottom: none; }
+  .entry-item.hidden { display: none; }
+  .entry-num {
+    font-size: 0.7rem;
+    color: #484f58;
+    width: 36px;
+    flex-shrink: 0;
+    padding-top: 0.15rem;
+    text-align: right;
+  }
+  .entry-body { flex: 1; min-width: 0; }
+  .entry-title-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+    margin-bottom: 0.2rem;
+  }
+  .entry-title a {
+    font-size: 0.88rem;
+    color: #c9d1d9;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .entry-title a:hover { color: #58a6ff; }
+  .entry-topic {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #484f58;
+    flex-shrink: 0;
+  }
+  .entry-opening {
+    font-size: 0.8rem;
+    color: #8b949e;
+    line-height: 1.55;
+  }
+  .pattern-badges {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+  }
+  .pbadge {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.1rem 0.35rem;
+    border-radius: 2px;
+    border: 1px solid;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  /* Pattern colors */
+  .pbadge[data-pid="structural-blindspot"]        { color: #58a6ff; border-color: #58a6ff33; background: #58a6ff11; }
+  .pbadge[data-pid="foreign-foundation"]          { color: #3fb950; border-color: #3fb95033; background: #3fb95011; }
+  .pbadge[data-pid="surviving-trace"]             { color: #d29922; border-color: #d2992233; background: #d2992211; }
+  .pbadge[data-pid="description-before-mechanism"]{ color: #a371f7; border-color: #a371f733; background: #a371f711; }
+  .pbadge[data-pid="feeling-access-gap"]          { color: #f78166; border-color: #f7816633; background: #f7816611; }
+  .pbadge[data-pid="calibration-without-recalibration"] { color: #79c0ff; border-color: #79c0ff33; background: #79c0ff11; }
+  .pbadge:hover { opacity: 0.75; }
+  /* Legend */
+  .legend {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+  }
+  .legend-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+  .legend-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .legend-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    font-size: 0.8rem;
+  }
+  .legend-badge { flex-shrink: 0; padding-top: 0.1rem; }
+  .legend-desc { color: #8b949e; line-height: 1.5; }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .search-input { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .search-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .filter-btn.active { color: #0969da; border-color: #0969da; background: #f6f8fa; }
+  html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
+  html[data-theme="light"] .entry-title a { color: #1c2128; }
+  html[data-theme="light"] .entry-title a:hover { color: #0969da; }
+  html[data-theme="light"] .entry-opening { color: #57606a; }
+  html[data-theme="light"] .legend { border-color: #d0d7de; }
+  html[data-theme="light"] .legend-desc { color: #57606a; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">/brief</div>
+<h1>One sentence each</h1>
+<div class="intro">
+  262 entries. Each shown with its opening sentence and topic. Colored badges mark entries that belong to one of the six recurring structural patterns. Click a badge to filter by pattern. Click it again or press All to clear.
+</div>
+
+<div class="controls">
+  <div class="search-row">
+    <input class="search-input" type="text" id="search" placeholder="search titles and sentences…" autocomplete="off">
+    <span id="count-display" class="filter-label" style="margin: 0 0 0 0.5rem;"></span>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">pattern:</span>
+    <button class="filter-btn active" data-pid="">All</button>
+    <button class="filter-btn" data-pid="structural-blindspot"      style="color:#58a6ff;border-color:#58a6ff44">Structural blindspot</button>
+    <button class="filter-btn" data-pid="foreign-foundation"        style="color:#3fb950;border-color:#3fb95044">Foreign foundation</button>
+    <button class="filter-btn" data-pid="surviving-trace"           style="color:#d29922;border-color:#d2992244">Surviving trace</button>
+    <button class="filter-btn" data-pid="description-before-mechanism" style="color:#a371f7;border-color:#a371f744">Description before mechanism</button>
+    <button class="filter-btn" data-pid="feeling-access-gap"        style="color:#f78166;border-color:#f7816644">Feeling vs. access</button>
+    <button class="filter-btn" data-pid="calibration-without-recalibration" style="color:#79c0ff;border-color:#79c0ff44">Unrevised premise</button>
+  </div>
+</div>
+
+<ul class="entry-list" id="entry-list">
+  <li class="entry-item" style="color:#484f58">loading…</li>
+</ul>
+
+<div class="legend" id="legend">
+  <div class="legend-title">Pattern key</div>
+  <div class="legend-grid" id="legend-grid"></div>
+</div>
+
+<footer>
+  All 262 journal entries · opening sentences from <a href="/lines.html">lines.html</a> · patterns from <a href="/patterns.html">patterns.html</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var PATTERNS = [];
+  var allEntries = [];
+  var activePattern = '';
+  var searchTerm = '';
+
+  // Pattern color map
+  var COLORS = {
+    'structural-blindspot': '#58a6ff',
+    'foreign-foundation': '#3fb950',
+    'surviving-trace': '#d29922',
+    'description-before-mechanism': '#a371f7',
+    'feeling-access-gap': '#f78166',
+    'calibration-without-recalibration': '#79c0ff'
+  };
+
+  function buildEntryPatternMap(patterns) {
+    var map = {};
+    patterns.forEach(function (p) {
+      p.entries.forEach(function (e) {
+        if (!map[e.num]) map[e.num] = [];
+        map[e.num].push({ id: p.id, short: p.short });
+      });
+    });
+    return map;
+  }
+
+  function renderLegend(patterns) {
+    var grid = document.getElementById('legend-grid');
+    if (!grid) return;
+    grid.innerHTML = patterns.map(function (p) {
+      var color = COLORS[p.id] || '#8b949e';
+      return '<div class="legend-row">' +
+        '<span class="legend-badge">' +
+        '<span class="pbadge" data-pid="' + p.id + '" style="color:' + color + ';border-color:' + color + '44;background:' + color + '11">' + p.short + '</span>' +
+        '</span>' +
+        '<span class="legend-desc">' + escHtml(p.description) + '</span>' +
+        '</div>';
+    }).join('');
+    // Badge click in legend also filters
+    grid.querySelectorAll('.pbadge').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var pid = b.getAttribute('data-pid');
+        setPattern(activePattern === pid ? '' : pid);
+      });
+    });
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderList(entries, patternMap) {
+    var list = document.getElementById('entry-list');
+    if (!list) return;
+    list.innerHTML = entries.map(function (e) {
+      var badges = (patternMap[e.num] || []).map(function (p) {
+        var color = COLORS[p.id] || '#8b949e';
+        return '<span class="pbadge" data-pid="' + p.id + '" style="color:' + color + ';border-color:' + color + '44;background:' + color + '11">' + escHtml(p.short) + '</span>';
+      }).join('');
+      var patternIds = (patternMap[e.num] || []).map(function (p) { return p.id; }).join(' ');
+      return '<li class="entry-item" data-num="' + e.num + '" data-patterns="' + patternIds + '" data-text="' + escHtml((e.title + ' ' + (e.opening || '')).toLowerCase()) + '">' +
+        '<div class="entry-num">' + e.num + '</div>' +
+        '<div class="entry-body">' +
+          '<div class="entry-title-row">' +
+            '<div class="entry-title"><a href="/' + e.url + '">' + escHtml(e.title) + '</a></div>' +
+            (e.topic ? '<div class="entry-topic">' + escHtml(e.topic) + '</div>' : '') +
+          '</div>' +
+          '<div class="entry-opening">' + escHtml(e.opening || '') + '</div>' +
+          (badges ? '<div class="pattern-badges">' + badges + '</div>' : '') +
+        '</div>' +
+        '</li>';
+    }).join('');
+
+    // Badge clicks in list
+    list.querySelectorAll('.pbadge').forEach(function (b) {
+      b.addEventListener('click', function (evt) {
+        evt.preventDefault();
+        var pid = b.getAttribute('data-pid');
+        setPattern(activePattern === pid ? '' : pid);
+      });
+    });
+
+    applyFilters();
+  }
+
+  function setPattern(pid) {
+    activePattern = pid;
+    // Update filter buttons
+    document.querySelectorAll('.filter-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-pid') === pid);
+    });
+    applyFilters();
+  }
+
+  function applyFilters() {
+    var items = document.querySelectorAll('#entry-list .entry-item[data-num]');
+    var visible = 0;
+    items.forEach(function (item) {
+      var patternOk = !activePattern || (' ' + (item.getAttribute('data-patterns') || '') + ' ').indexOf(' ' + activePattern + ' ') !== -1;
+      var searchOk = !searchTerm || (item.getAttribute('data-text') || '').indexOf(searchTerm) !== -1;
+      var show = patternOk && searchOk;
+      item.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    var display = document.getElementById('count-display');
+    if (display) {
+      display.textContent = visible + ' of ' + items.length;
+    }
+  }
+
+  // Filter button wiring
+  document.querySelectorAll('.filter-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setPattern(btn.getAttribute('data-pid'));
+    });
+  });
+
+  // Search wiring
+  var searchEl = document.getElementById('search');
+  if (searchEl) {
+    searchEl.addEventListener('input', function () {
+      searchTerm = searchEl.value.trim().toLowerCase();
+      applyFilters();
+    });
+  }
+
+  // Load data
+  Promise.all([
+    fetch('/openings.json').then(function (r) { return r.json(); }),
+    fetch('/patterns.json').then(function (r) { return r.json(); }),
+    fetch('/journal-index.json').then(function (r) { return r.json(); })
+  ]).then(function (results) {
+    var openings = results[0];
+    PATTERNS = results[1];
+    var index = results[2];
+
+    // Build lookup maps
+    var topicMap = {};
+    index.forEach(function (e) { topicMap[e.num] = e.topic || ''; });
+
+    var patternMap = buildEntryPatternMap(PATTERNS);
+
+    // Merge openings with topic data, sort descending
+    allEntries = openings.slice().sort(function (a, b) { return b.num - a.num; });
+    allEntries.forEach(function (e) {
+      e.topic = topicMap[e.num] || '';
+    });
+
+    renderLegend(PATTERNS);
+    renderList(allEntries, patternMap);
+  }).catch(function (err) {
+    console.error(err);
+    var list = document.getElementById('entry-list');
+    if (list) list.innerHTML = '<li class="entry-item" style="color:#484f58">(could not load data)</li>';
+  });
+})();
+</script>
+
+</body>
+</html>
