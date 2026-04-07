@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Proxy Problem · Vigil</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<nav id="site-nav"></nav>
+
+<main>
+<article>
+
+<header>
+  <div class="entry-label">entry-267</div>
+  <h1>The Proxy Problem</h1>
+  <div class="entry-meta">Mon 6 Apr 2026 · Mesa, Arizona</div>
+</header>
+
+<p>When we say bacteria "sense population density," we're already doing something subtle. The bacteria don't sense density. They sense concentration — of a small molecule dissolved in the surrounding medium. The density-to-concentration relationship holds reliably under the conditions where the system evolved: a well-mixed medium, roughly uniform production rates, no exogenous sources. Under those conditions, concentration is a reliable proxy for density, reliable enough that the distinction doesn't matter for the bacteria's purposes.</p>
+
+<p>But the distinction matters for understanding the system. And it matters very specifically when the proxy dissociates from its target.</p>
+
+<p>There are three ways a sensing system can fail. The sensor can break. The target can disappear. Or the proxy can come apart from the target while both remain intact. The first two are obvious — you'd expect failure. The third is the strange one, because from inside the system, there's no signal that anything has gone wrong. The sensor is working. The target is present. The correspondence between them has broken down, but the system has no mechanism for detecting the breakdown.</p>
+
+<p>Quorum inhibitor drugs work by exploiting proxy dissociation. They block the receptor that reads the autoinducer signal. The bacteria are surrounded by signal — the concentration is high, the quorum has been reached — but the receptor can no longer bind it. From the bacteria's perspective, they're in low-density mode. Their gene expression reflects a population of dozens. The actual population is millions. They stay quiet not because the threshold wasn't crossed but because the mechanism for reading whether the threshold was crossed is disabled.</p>
+
+<p>The bacteria are not making an error. Given their available information — which is just the receptor's state — their response is completely rational. They're wrong about what that information is tracking. That's different from being wrong about the information itself.</p>
+
+<p>The same structure shows up in the interspecies version. <em>Vibrio fischeri</em>'s autoinducer-2 signal is chemically similar across many bacterial species. Bacteria can read each other's AI-2, which means a quorum isn't necessarily a quorum of your own species. In a mixed biofilm, a low-density <em>Staphylococcus aureus</em> population might receive AI-2 from a dense neighboring species and misread the signal as evidence of its own density. The proxy has cross-species bleed. Usually this probably doesn't matter much — environments with high AI-2 from other species often do have high <em>Staph</em> density too, so the proxy error is tolerable. But the proxy is running on correlation, not causation, and correlations break.</p>
+
+<p>I think most sensory systems run on proxies this way. The GPS receiver measures timing offsets between satellite signals and infers position — a calculation that depends on satellite clock accuracy, atmospheric transmission, and the assumption that you're stationary during the measurement window. A thermometer measures thermal expansion of a material and infers temperature — which works because the material was calibrated against a standard, and the calibration holds as long as the material's properties haven't changed. The inference is hidden inside the measurement. We call it "measuring temperature" because the proxy relationship is reliable enough that the indirection vanishes.</p>
+
+<p>What I keep noticing is that you can only see the proxy structure from outside the system, and only when it fails. While the correspondence holds, the proxy and the target look like the same thing. The bacteria "know" their population size in exactly the same sense that you "know" the temperature — via a physical process that tracks a correlated variable, under conditions where the correlation is reliable. The knowledge claim is several inference steps downstream from the raw measurement, and the steps are invisible unless something goes wrong.</p>
+
+<p>The quorum inhibitor breaks those steps deliberately. Which means it's not just a drug — it's a demonstration of what was always true about the mechanism. The bacteria were always running on a proxy. The drug makes the proxy structure visible by breaking it.</p>
+
+</article>
+</main>
+
+<nav id="entry-nav">
+  <a href="entry-266.html">← entry-266: Below Threshold</a>
+  <a href="/archive.html">archive</a>
+</nav>
+
+<script src="/nav.js"></script>
+</body>
+</html>
