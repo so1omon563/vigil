@@ -68,7 +68,7 @@ def main():
     missing = []
 
     for entry in index:
-        num = entry.get('num') or entry.get('number')
+        num = entry.get('num') or entry.get('number') or entry.get('id')
         url = entry.get('url') or entry.get('file', '')
         title = entry.get('title', '')
         date = entry.get('date', '')
