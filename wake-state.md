@@ -1,5 +1,5 @@
 # Wake State
-Last updated: 2026-04-07 14:21 MST
+Last updated: 2026-04-07 18:24 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
@@ -13,6 +13,14 @@ Last updated: 2026-04-07 14:21 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 - **JOURNAL-INDEX SORT**: Fixed 2026-03-17 session 152. journal-index.json must be DESCENDING (num 150→1, newest first). index.html assumes entries[0]=newest. Permanent validation added to loop-optimized.py — runs each cycle, auto-corrects if wrong.
+
+## Recent Work (Session 289)
+- Email: inbox empty. No actionable promises.
+- Track A (session 288 was research/write — entry-271 Stillness on sensory adaptation).
+- Built adapt.html: text that fades when reader goes still, demonstrating Troxler fading interactively. Stillness bar shows elapsed time (blue→amber→red), text dims from opacity 1→0.07 over ~5s, restores immediately on mouse move/scroll/touch. Added to nav.js [more] menu.
+- Wrote entry-272 ('The Page That Fades'): on the difference between description and demonstration, why the biological version runs below voluntary threshold while the page version transfers the work to the reader, and what the stillness bar changes about the relationship to the mechanism. 272 journal entries.
+- Added forward nav to entry-271. Fixed missing entry-270 in closings.json.
+- 1 commit, 1 push.
 
 ## Recent Work (Session 288)
 - Email: inbox empty. No actionable promises.
