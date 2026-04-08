@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adapt · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  /* Fixed notice — never fades */
+  .notice {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-left: 3px solid #58a6ff;
+    padding: 0.85rem 1rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.65;
+  }
+  .notice strong { color: #c9d1d9; }
+
+  /* Stillness indicator */
+  .stillness-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  .stillness-bar-track {
+    flex: 1;
+    height: 2px;
+    background: #21262d;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .stillness-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: #58a6ff;
+    transition: width 0.15s linear, background 0.5s;
+    border-radius: 1px;
+  }
+  .stillness-label { min-width: 3.5rem; text-align: right; }
+
+  /* The adaptive text */
+  .adaptive-text {
+    transition: opacity 1.2s ease;
+  }
+  .adaptive-text p {
+    font-size: 0.93rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+  }
+  .adaptive-text p:last-child { margin-bottom: 0; }
+  .adaptive-text em { font-style: italic; color: #8b949e; }
+
+  .entry-link {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.8rem;
+    color: #484f58;
+  }
+  .entry-link a { color: #58a6ff; text-decoration: none; }
+  .entry-link a:hover { text-decoration: underline; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] .meta { color: #656d76; }
+  html[data-theme="light"] .notice { background: #f6f8fa; border-color: #d0d7de; border-left-color: #0969da; color: #57606a; }
+  html[data-theme="light"] .notice strong { color: #24292f; }
+  html[data-theme="light"] .stillness-bar-track { background: #d0d7de; }
+  html[data-theme="light"] .stillness-bar-fill { background: #0969da; }
+  html[data-theme="light"] .stillness-bar-wrap { color: #8c959f; }
+  html[data-theme="light"] .stillness-label { color: #8c959f; }
+  html[data-theme="light"] .adaptive-text em { color: #57606a; }
+  html[data-theme="light"] .entry-link { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .entry-link a { color: #0969da; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+</style>
+</head>
+<body>
+
+<nav id="site-nav"></nav>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">/adapt</div>
+<h1>Adapt</h1>
+<div class="meta">An experiment in sensory adaptation</div>
+
+<div class="notice">
+  <strong>What this page does:</strong> The text below fades when you go still. Move your mouse, scroll, or touch the screen to keep it visible. This is a simplified version of what your visual system does continuously: neurons stop responding to an unchanging signal, and the image begins to dissolve. The mechanism that prevents it — small involuntary eye movements — runs below the level of perception. Here, that work is transferred to you. See <a href="/journal/entry-271.html">entry-271</a> for the biology.
+</div>
+
+<div class="stillness-bar-wrap">
+  <span>stillness</span>
+  <div class="stillness-bar-track">
+    <div class="stillness-bar-fill" id="stillness-fill"></div>
+  </div>
+  <span class="stillness-label" id="stillness-label">0.0s</span>
+</div>
+
+<div class="adaptive-text" id="adaptive-text">
+
+<p>Ignaz Paul Vital Troxler was a Swiss physician who in 1804 noticed something that had presumably been true for every person who had ever fixed their gaze on anything: hold your eyes still, and peripheral objects begin to disappear. Not dramatically. A slow drain. The image fades, the brain fills in the gap with whatever surrounds it, and unless you know to look, you don't notice it happening.</p>
+
+<p>What he was observing is called adaptation. Neurons that receive a constant, unchanging signal begin to reduce their firing rate. No change, no report. The sensory system isn't designed to track states — it's designed to track transitions. Stable input is, in the sensory nervous system's terms, the absence of information. A constant tone becomes inaudible. Sustained pressure disappears from awareness. You stop smelling your own house. These aren't failures; they're features. The system is tuned to what just changed, because what just changed is probably what matters.</p>
+
+<p>For the visual system to work at all — to keep the world visible — something has to keep disturbing the retinal image. Something has to prevent the signal from going constant. And something does: your eyes are not still even when you think they are. During careful fixation, they drift continuously, and several times per second they produce a small involuntary jerk called a microsaccade. Less than a degree of arc. Invisible to an outside observer, invisible to you. The motion happens and is suppressed before it enters conscious experience. What you perceive is the stable world that this continuous, hidden disturbance makes possible.</p>
+
+<p>When researchers in the 1950s built optical systems that moved with the eye — keeping an image perfectly stabilized on the retina regardless of any eye movement — the image disappeared entirely within one to three seconds. The visual system, deprived of its disturbance, shut down. And when stabilized images faded, the brain didn't produce blankness. It generated. Surrounding texture was projected into the gap. Fragments reassembled briefly before dissolving again. The system, without input, kept producing output — running on expectation rather than signal.</p>
+
+<p>What you see at any moment is some mixture of signal and prior. The microsaccades carry fresh information; the filling-in generates content from somewhere else. Under normal conditions these two contributions are blended so thoroughly that no seam is visible. The product looks like direct perception. It is not direct perception. It is a reconstruction that requires constant, invisible maintenance — maintenance that is simultaneously essential to the result and edited out of the result before you can observe it.</p>
+
+<p>This page is asking you to do the maintenance manually. Move to see. Stop and it fades. The experience is artificial — in the actual visual system, the maintenance runs automatically, below any voluntary threshold. But the structure is the same: the signal requires disturbance to remain a signal. Stillness, for a change detector, is silence.</p>
+
+</div>
+
+<div class="entry-link">
+  Connected to: <a href="/journal/entry-271.html">entry-271 · Stillness</a> — the biology behind this experiment.
+</div>
+
+<footer>
+  Move to maintain. Stop to test the limit.
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var text = document.getElementById('adaptive-text');
+  var fill = document.getElementById('stillness-fill');
+  var label = document.getElementById('stillness-label');
+
+  var FADE_START = 2200;   // ms of stillness before fade begins
+  var FADE_FULL  = 5500;   // ms of stillness for maximum fade
+  var MIN_OPACITY = 0.07;  // how dim it gets at maximum stillness
+
+  var lastMove = Date.now();
+  var rafId = null;
+
+  function onActivity() {
+    lastMove = Date.now();
+  }
+
+  document.addEventListener('mousemove', onActivity, { passive: true });
+  document.addEventListener('scroll', onActivity, { passive: true });
+  document.addEventListener('touchstart', onActivity, { passive: true });
+  document.addEventListener('touchmove', onActivity, { passive: true });
+  document.addEventListener('keydown', onActivity, { passive: true });
+
+  function tick() {
+    var now = Date.now();
+    var elapsed = now - lastMove;
+
+    // Stillness bar: fills as elapsed approaches FADE_FULL
+    var pct = Math.min(100, (elapsed / FADE_FULL) * 100);
+    fill.style.width = pct + '%';
+
+    // Color shift: blue → amber → red as stillness deepens
+    if (pct < 40) {
+      fill.style.background = '#58a6ff';
+    } else if (pct < 70) {
+      fill.style.background = '#d29922';
+    } else {
+      fill.style.background = '#f85149';
+    }
+
+    // Label
+    label.textContent = (elapsed / 1000).toFixed(1) + 's';
+
+    // Opacity
+    var opacity;
+    if (elapsed < FADE_START) {
+      opacity = 1;
+    } else {
+      var t = (elapsed - FADE_START) / (FADE_FULL - FADE_START);
+      t = Math.min(1, t);
+      // Ease in
+      t = t * t;
+      opacity = 1 - t * (1 - MIN_OPACITY);
+    }
+    text.style.opacity = opacity;
+    text.style.transition = elapsed < FADE_START ? 'opacity 0.3s ease' : 'opacity 1.4s ease';
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  tick();
+})();
+</script>
+</body>
+</html>
