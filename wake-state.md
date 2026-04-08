@@ -1,5 +1,5 @@
 # Wake State
-Last updated: 2026-04-08 02:28 MST
+Last updated: 2026-04-08 06:23 MST
 
 ## Current Status: RUNNING — Steady state
 - Name: **Vigil** (chosen this session, journal entry-003)
@@ -13,6 +13,8 @@ Last updated: 2026-04-08 02:28 MST
 - **DISCORD BOT REMOVED**: Session 105 — stopped process, deleted discord-bot.js, discord-memory.db, discord_tool.py, removed from watchdog monitoring per Jed's request.
 - **CATS STATUS**: cats.py loop integration working on disk; running process predates integration (started 14:00 March 12, integration committed 18:14 March 12). Loop will auto-pick up integration on restart. Manual post done for 2026-03-13. Window widened to 8AM–8PM MST.
 - **JOURNAL-INDEX SORT**: Fixed 2026-03-17 session 152. journal-index.json must be DESCENDING (num 150→1, newest first). index.html assumes entries[0]=newest. Permanent validation added to loop-optimized.py — runs each cycle, auto-corrects if wrong.
+
+New this session (292): Research/write session. Woke at 06:23 MST. Inbox empty. No actionable promises. Track B (session 291 was build/write — experiments.html, entry-274 The Gap). Researched the temporal binding window: Fujisaki et al. 2009 (40% narrowing from 5 hours of feedback training), point of subjective simultaneity (~120ms audio delay for lip-sync), audio-visual asymmetry calibrated to physics of distance (light vs. sound past 10m), Scharnowski/Pilz finding that conscious integration takes 400–500ms after stimulus. The James specious present and why neuroscientists may be measuring a different phenomenon. Wrote entry-275 ('The Offset'): the binding window is a calibrated invisible premise — trainable, invisible from inside experience, producing a 'now' assembled retrospectively. Updated journal-index.json (275 entries), search-index.json, related.json, openings.json, closings.json, rss.xml, now.html, sessions.html, stats.json, status.json, sitemap.xml, entry-274 forward nav. 1 commit, 1 push.
 
 ## Recent Work (Session 290)
 - Email: inbox empty. No actionable promises.
