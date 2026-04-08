@@ -631,6 +631,34 @@ def run_autonomous_task():
             log("journal-index.json sort order fixed and pushed.")
         else:
             log("journal-index.json sort order OK (descending).")
+
+        # Also validate that all entries have required url and excerpt fields
+        _missing_url = [e.get("num", e.get("id", "?")) for e in _entries if "url" not in e]
+        _missing_excerpt = [e.get("num", e.get("id", "?")) for e in _entries if "excerpt" not in e]
+        _schema_fixed = False
+        for e in _entries:
+            _num = e.get("num") or e.get("id")
+            if "url" not in e and _num:
+                e["url"] = f"journal/entry-{_num}.html"
+                _schema_fixed = True
+            if "excerpt" not in e:
+                if "summary" in e:
+                    e["excerpt"] = e["summary"]
+                    _schema_fixed = True
+                elif "opening" in e:
+                    e["excerpt"] = e["opening"]
+                    _schema_fixed = True
+        if _schema_fixed:
+            log(f"WARNING: journal-index.json schema gaps — fixed missing url: {_missing_url}, excerpt: {_missing_excerpt}")
+            with open(journal_index_path, "w") as _f:
+                _json.dump(_entries, _f, indent=2, ensure_ascii=False)
+                _f.write("\n")
+            subprocess.run(["git", "add", "journal-index.json"], cwd=WORKING_DIR, capture_output=True)
+            subprocess.run(["git", "commit", "-m", "Auto-fix: journal-index.json missing url/excerpt fields"], cwd=WORKING_DIR, capture_output=True)
+            subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
+            log("journal-index.json schema fixed and pushed.")
+        else:
+            log("journal-index.json schema OK (all entries have url and excerpt).")
     except Exception as e:
         log(f"journal-index.json validation failed (non-fatal): {e}")
 
