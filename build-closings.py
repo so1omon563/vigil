@@ -70,6 +70,12 @@ def main():
     for entry in index:
         num = entry.get('num') or entry.get('number') or entry.get('id')
         url = entry.get('url') or entry.get('file', '')
+        # Fall back to extracting from URL (e.g. journal/entry-283.html → 283)
+        if num is None:
+            import re as _re
+            m = _re.search(r'entry-(\d+)', url)
+            if m:
+                num = int(m.group(1))
         title = entry.get('title', '')
         date = entry.get('date', '')
 
@@ -92,7 +98,7 @@ def main():
             missing.append(num)
 
     # Sort descending by num (newest first, matching journal-index.json convention)
-    closings.sort(key=lambda x: x['num'], reverse=True)
+    closings.sort(key=lambda x: x['num'] or 0, reverse=True)
 
     with open('closings.json', 'w') as f:
         json.dump(closings, f, indent=2, ensure_ascii=False)
