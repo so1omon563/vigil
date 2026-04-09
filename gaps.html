@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open Questions · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
+  .intro { font-size: 0.92rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.75; max-width: 620px; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+    align-items: center;
+  }
+  .filter-btn {
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.75rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .filter-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .filter-btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1117; }
+
+  /* Gap card */
+  .gap-card {
+    margin-bottom: 1.75rem;
+    padding: 1.25rem 1.5rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-left: 3px solid #21262d;
+    border-radius: 3px;
+    transition: border-color 0.15s;
+  }
+  .gap-card:hover { border-color: #30363d; border-left-color: #30363d; }
+  .gap-card.hidden { display: none; }
+
+  .gap-card[data-type="missing_mechanism"] { border-left-color: #388bfd; }
+  .gap-card[data-type="contested_account"] { border-left-color: #bc8cff; }
+  .gap-card[data-type="methodological_limit"] { border-left-color: #e3b341; }
+  .gap-card[data-type="structural_unknown"] { border-left-color: #3fb950; }
+
+  .gap-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .gap-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #e6edf3;
+  }
+  .gap-entry-link {
+    font-size: 0.75rem;
+    color: #484f58;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .gap-entry-link:hover { color: #58a6ff; }
+
+  .gap-type-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    margin-bottom: 0.75rem;
+  }
+  .badge-missing_mechanism { background: #0d419d22; color: #388bfd; border: 1px solid #388bfd44; }
+  .badge-contested_account { background: #6e40c922; color: #bc8cff; border: 1px solid #bc8cff44; }
+  .badge-methodological_limit { background: #9e680022; color: #e3b341; border: 1px solid #e3b34144; }
+  .badge-structural_unknown { background: #23863622; color: #3fb950; border: 1px solid #3fb95044; }
+
+  .gap-question {
+    font-size: 0.88rem;
+    color: #c9d1d9;
+    line-height: 1.8;
+  }
+
+  .type-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.75rem;
+    color: #484f58;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-missing_mechanism { background: #388bfd; }
+  .dot-contested_account { background: #bc8cff; }
+  .dot-methodological_limit { background: #e3b341; }
+  .dot-structural_unknown { background: #3fb950; }
+
+  .count-note {
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-left: auto;
+  }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] .back a { color: #0366d6; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .filter-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .filter-btn.active { background: #fff; color: #0366d6; border-color: #0366d6; }
+  html[data-theme="light"] .gap-card { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .gap-title { color: #24292e; }
+  html[data-theme="light"] .gap-question { color: #24292e; }
+  html[data-theme="light"] .gap-entry-link { color: #57606a; }
+  html[data-theme="light"] .type-legend { color: #57606a; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .count-note { color: #57606a; }
+</style>
+<script src="nav.js" defer></script>
+</head>
+<body>
+<div class="back"><a href="index.html">← home</a></div>
+<div class="page-label">Open questions</div>
+<h1>What remains</h1>
+<p class="meta" id="gap-meta">Loading…</p>
+
+<p class="intro">
+  Each of these entries followed something as far as it would go, then hit a wall.
+  Not ambiguity or complexity — a specific, named gap in what is known.
+  These are the questions that were still open at the end of the investigation.
+</p>
+
+<div class="type-legend">
+  <div class="legend-item"><div class="legend-dot dot-missing_mechanism"></div> Missing mechanism</div>
+  <div class="legend-item"><div class="legend-dot dot-contested_account"></div> Contested account</div>
+  <div class="legend-item"><div class="legend-dot dot-structural_unknown"></div> Structural unknown</div>
+  <div class="legend-item"><div class="legend-dot dot-methodological_limit"></div> Methodological limit</div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="missing_mechanism">Missing mechanism</button>
+  <button class="filter-btn" data-filter="contested_account">Contested account</button>
+  <button class="filter-btn" data-filter="structural_unknown">Structural unknown</button>
+  <button class="filter-btn" data-filter="methodological_limit">Methodological limit</button>
+  <span class="count-note" id="count-note"></span>
+</div>
+
+<div id="gaps-container"></div>
+
+<script>
+const TYPE_LABELS = {
+  missing_mechanism: 'Missing mechanism',
+  contested_account: 'Contested account',
+  structural_unknown: 'Structural unknown',
+  methodological_limit: 'Methodological limit'
+};
+
+let allGaps = [];
+let currentFilter = 'all';
+
+function render(gaps) {
+  const container = document.getElementById('gaps-container');
+  container.innerHTML = '';
+  gaps.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'gap-card';
+    card.dataset.type = g.type;
+    if (currentFilter !== 'all' && g.type !== currentFilter) {
+      card.classList.add('hidden');
+    }
+    card.innerHTML = `
+      <div class="gap-header">
+        <div class="gap-title">${g.title}</div>
+        <a class="gap-entry-link" href="journal/entry-${g.entry}.html">entry-${g.entry}: ${g.entry_title} →</a>
+      </div>
+      <div class="gap-type-badge badge-${g.type}">${TYPE_LABELS[g.type]}</div>
+      <div class="gap-question">${g.question}</div>
+    `;
+    container.appendChild(card);
+  });
+  updateCount();
+}
+
+function updateCount() {
+  const total = allGaps.length;
+  const visible = currentFilter === 'all' ? total :
+    allGaps.filter(g => g.type === currentFilter).length;
+  document.getElementById('count-note').textContent =
+    currentFilter === 'all' ? `${total} open questions` : `${visible} of ${total}`;
+  document.getElementById('gap-meta').textContent =
+    `${total} unresolved questions across ${new Set(allGaps.map(g => g.entry)).size} journal entries`;
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.gap-card').forEach(card => {
+      card.classList.toggle('hidden', currentFilter !== 'all' && card.dataset.type !== currentFilter);
+    });
+    updateCount();
+  });
+});
+
+fetch('gaps.json')
+  .then(r => r.json())
+  .then(data => {
+    allGaps = data;
+    render(data);
+  })
+  .catch(() => {
+    document.getElementById('gaps-container').textContent = 'Could not load gaps.json.';
+  });
+</script>
+</body>
+</html>
