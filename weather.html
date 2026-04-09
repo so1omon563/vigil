@@ -80,6 +80,41 @@
     white-space: nowrap;
     z-index: 10;
   }
+  /* Climate context section */
+  .context-section { margin-top: 2.5rem; }
+  .context-title { font-size: 0.75rem; color: #484f58; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .context-block {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    font-size: 0.85rem;
+    color: #8b949e;
+    line-height: 1.7;
+  }
+  .context-block p { margin: 0 0 0.6rem 0; }
+  .context-block p:last-child { margin-bottom: 0; }
+  .context-highlight { color: #c9d1d9; }
+  .monthly-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.25rem;
+    margin-top: 1rem;
+    font-size: 0.72rem;
+  }
+  .month-cell {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.3rem 0.25rem;
+    text-align: center;
+    color: #484f58;
+  }
+  .month-cell.current-month { border-color: #58a6ff; color: #c9d1d9; }
+  .month-name { font-size: 0.65rem; color: #484f58; margin-bottom: 0.1rem; }
+  .month-cell.current-month .month-name { color: #58a6ff; }
+  .month-high { color: #e6edf3; font-weight: bold; }
+  .month-low { color: #484f58; }
   .note { font-size: 0.75rem; color: #484f58; margin-top: 2rem; border-top: 1px solid #21262d; padding-top: 1rem; }
   .updated { font-size: 0.75rem; color: #484f58; margin-bottom: 2rem; }
   footer {
@@ -114,6 +149,14 @@
       <span id="spark-newest"></span>
     </div>
     <div class="spark-tooltip" id="spark-tooltip"></div>
+  </div>
+</div>
+
+<div class="context-section">
+  <div class="context-title">Regional context</div>
+  <div class="context-block">
+    <div id="context-narrative">Loading...</div>
+    <div class="monthly-grid" id="monthly-grid"></div>
   </div>
 </div>
 
@@ -317,6 +360,96 @@ fetch('/weather-history.json')
     document.getElementById('spark-range').textContent = minT + '°–' + maxT + '°F';
   })
   .catch(() => {}); // silently skip if no history yet
+
+// Monthly climate averages for Mesa, AZ (°F)
+// Source: NOAA 30-year normals for Phoenix Sky Harbor, adjusted for Mesa
+const MONTHLY_NORMALS = [
+  { name: 'Jan', high: 68, low: 43, note: 'Mild winter. Occasional freezing nights in outlying areas.' },
+  { name: 'Feb', high: 73, low: 47, note: 'Warming begins. Citrus harvest season.' },
+  { name: 'Mar', high: 80, low: 52, note: 'Spring shoulder season. Desert wildflowers peak.' },
+  { name: 'Apr', high: 89, low: 58, note: 'Heat building. Last comfortable outdoor month before summer.' },
+  { name: 'May', high: 99, low: 66, note: 'Pre-monsoon heat. Humidity very low — dry heat peaks.' },
+  { name: 'Jun', high: 108, low: 75, note: 'Hottest month on average. Roads and sidewalks retain heat through the night.' },
+  { name: 'Jul', high: 106, low: 84, note: 'Monsoon arrives. Humidity rises sharply. Dramatic afternoon thunderstorms.' },
+  { name: 'Aug', high: 104, low: 83, note: 'Monsoon peak. Flooding possible in washes and underpasses.' },
+  { name: 'Sep', high: 99, low: 76, note: 'Monsoon winding down. Still hot, humidity decreasing.' },
+  { name: 'Oct', high: 88, low: 63, note: 'Fall shoulder season. Comfortable after months of extreme heat.' },
+  { name: 'Nov', high: 76, low: 50, note: 'Mild. Snowbirds begin arriving from northern states.' },
+  { name: 'Dec', high: 68, low: 44, note: 'Coolest month. Mountain snow visible on the Superstitions on cold mornings.' },
+];
+
+function buildClimateContext(currentTempF) {
+  const now = new Date();
+  const monthIdx = now.getMonth(); // 0-based
+  const normal = MONTHLY_NORMALS[monthIdx];
+
+  // Build monthly grid
+  const grid = document.getElementById('monthly-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    MONTHLY_NORMALS.forEach((m, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'month-cell' + (i === monthIdx ? ' current-month' : '');
+      cell.innerHTML = '<div class="month-name">' + m.name + '</div>'
+        + '<div class="month-high">' + m.high + '°</div>'
+        + '<div class="month-low">' + m.low + '°</div>';
+      cell.title = m.note;
+      grid.appendChild(cell);
+    });
+  }
+
+  // Build narrative
+  const el = document.getElementById('context-narrative');
+  if (!el) return;
+
+  let narrative = '';
+
+  // Temp comparison
+  if (currentTempF !== null && !isNaN(currentTempF)) {
+    const diff = currentTempF - normal.high;
+    let comparison;
+    if (Math.abs(diff) <= 3) {
+      comparison = 'right at the typical high';
+    } else if (diff > 0) {
+      comparison = Math.round(diff) + '°F above the ' + normal.name + ' average high of ' + normal.high + '°F';
+    } else {
+      comparison = Math.abs(Math.round(diff)) + '°F below the ' + normal.name + ' average high of ' + normal.high + '°F';
+    }
+    narrative += '<p><span class="context-highlight">' + currentTempF + '°F</span> — ' + comparison + '. ' + normal.note + '</p>';
+  } else {
+    narrative += '<p>' + normal.note + '</p>';
+  }
+
+  // Seasonal framing
+  if (monthIdx >= 5 && monthIdx <= 8) {
+    narrative += '<p>The Phoenix metro sits in the Sonoran Desert, one of the hottest deserts in North America. Summer temperatures regularly exceed 110°F. '
+      + (monthIdx >= 6 && monthIdx <= 8
+        ? 'The North American Monsoon — driven by moisture from the Gulf of California — brings afternoon storms from July through September, sometimes dropping more than an inch of rain in an hour on terrain that can\'t absorb it quickly.'
+        : 'Before the monsoon, humidity is extremely low — heat without moisture, which the body handles differently than humid heat elsewhere.')
+      + '</p>';
+  } else if (monthIdx >= 11 || monthIdx <= 1) {
+    narrative += '<p>Mesa winters are mild enough to attract large numbers of seasonal residents from colder states. Daytime temperatures rarely drop below 50°F, though nights can approach freezing. '
+      + 'The Superstition Mountains east of the city occasionally receive snow at higher elevations.</p>';
+  } else if (monthIdx >= 2 && monthIdx <= 4) {
+    narrative += '<p>Spring in the Sonoran Desert means rapid warming and, in good rainfall years, a bloom of desert wildflowers across the hillsides east of Mesa. '
+      + 'The window between comfortable outdoor weather and triple-digit heat is short — typically March through April.</p>';
+  } else {
+    narrative += '<p>Fall marks the return to outdoor life after a summer of extreme heat. Temperatures drop quickly through October and November, '
+      + 'and the Salt River to the south becomes a destination again for residents who spent the summer indoors.</p>';
+  }
+
+  el.innerHTML = narrative;
+}
+
+// Trigger context after weather data loads
+fetch('/weather.json')
+  .then(r => r.json())
+  .then(data => {
+    const localLoc = data.locations && data.locations.find(l => l.name && l.name.includes('Mesa'));
+    const temp = localLoc && localLoc.current ? localLoc.current.temperature_f : null;
+    buildClimateContext(temp);
+  })
+  .catch(() => buildClimateContext(null));
 </script>
 
 <script src="/nav.js"></script>
