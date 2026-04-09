@@ -115,6 +115,51 @@
   .month-cell.current-month .month-name { color: #58a6ff; }
   .month-high { color: #e6edf3; font-weight: bold; }
   .month-low { color: #484f58; }
+  /* Daily bar chart */
+  .daily-section { margin-top: 2.5rem; margin-bottom: 1rem; }
+  .daily-title { font-size: 0.75rem; color: #484f58; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .daily-wrap {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem 1.25rem 0.75rem;
+    position: relative;
+    overflow-x: auto;
+  }
+  .daily-svg { display: block; min-width: 320px; }
+  .daily-labels { display: flex; justify-content: space-between; font-size: 0.65rem; color: #484f58; margin-top: 0.35rem; }
+  .daily-tooltip {
+    position: absolute;
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
+    color: #c9d1d9;
+    pointer-events: none;
+    display: none;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  /* Stat strip */
+  .stat-strip { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+  .stat-chip {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  .stat-chip .val { color: #c9d1d9; }
+  /* Data narrative */
+  .data-narrative {
+    font-size: 0.85rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-top: 0.75rem;
+  }
+  .data-narrative .hl { color: #c9d1d9; }
   .note { font-size: 0.75rem; color: #484f58; margin-top: 2rem; border-top: 1px solid #21262d; padding-top: 1rem; }
   .updated { font-size: 0.75rem; color: #484f58; margin-bottom: 2rem; }
   footer {
@@ -150,6 +195,17 @@
     </div>
     <div class="spark-tooltip" id="spark-tooltip"></div>
   </div>
+</div>
+
+<div class="daily-section" id="daily-section" style="display:none">
+  <div class="daily-title">Daily highs &amp; lows — last 14 days</div>
+  <div class="daily-wrap" id="daily-wrap">
+    <svg id="daily-svg" class="daily-svg" height="80"></svg>
+    <div class="daily-labels"><span id="daily-start"></span><span id="daily-end"></span></div>
+    <div class="daily-tooltip" id="daily-tooltip"></div>
+  </div>
+  <div class="stat-strip" id="stat-strip"></div>
+  <div class="data-narrative" id="data-narrative"></div>
 </div>
 
 <div class="context-section">
@@ -280,31 +336,27 @@ fetch('/weather.json')
     console.error(err);
   });
 
-// Sparkline from history
+// History: sparkline + daily chart + narrative
 fetch('/weather-history.json')
   .then(r => r.json())
   .then(history => {
     const local = history.filter(e => e.location === 'local');
-    if (local.length < 2) return; // not enough data yet
+    if (local.length < 2) return;
 
+    // --- SPARKLINE (all data) ---
     document.getElementById('history-section').style.display = '';
-
     const temps = local.map(e => e.temp_f);
     const minT = Math.min(...temps);
     const maxT = Math.max(...temps);
     const rangeT = maxT - minT || 1;
-
     const W = 600, H = 60, PAD = 4;
     const svg = document.getElementById('sparkline-svg');
 
-    // Build polyline points
     const pts = local.map((e, i) => {
       const x = PAD + (i / (local.length - 1)) * (W - 2 * PAD);
       const y = PAD + (1 - (e.temp_f - minT) / rangeT) * (H - 2 * PAD);
       return [x, y];
     });
-
-    // Area fill
     const areaD = 'M ' + pts[0][0] + ' ' + H +
       ' L ' + pts.map(p => p[0] + ' ' + p[1]).join(' L ') +
       ' L ' + pts[pts.length-1][0] + ' ' + H + ' Z';
@@ -312,8 +364,6 @@ fetch('/weather-history.json')
     area.setAttribute('d', areaD);
     area.setAttribute('fill', 'rgba(88,166,255,0.08)');
     svg.appendChild(area);
-
-    // Line
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     line.setAttribute('points', pts.map(p => p[0] + ',' + p[1]).join(' '));
     line.setAttribute('fill', 'none');
@@ -321,16 +371,12 @@ fetch('/weather-history.json')
     line.setAttribute('stroke-width', '1.5');
     line.setAttribute('stroke-linejoin', 'round');
     svg.appendChild(line);
-
-    // Dot at last point
     const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     dot.setAttribute('cx', pts[pts.length-1][0]);
     dot.setAttribute('cy', pts[pts.length-1][1]);
     dot.setAttribute('r', '3');
     dot.setAttribute('fill', '#58a6ff');
     svg.appendChild(dot);
-
-    // Invisible hit areas for tooltip
     const tooltip = document.getElementById('spark-tooltip');
     const wrap = document.getElementById('sparkline-wrap');
     pts.forEach((p, i) => {
@@ -340,7 +386,7 @@ fetch('/weather-history.json')
       hit.setAttribute('r', '8');
       hit.setAttribute('fill', 'transparent');
       hit.style.cursor = 'crosshair';
-      hit.addEventListener('mouseenter', (e) => {
+      hit.addEventListener('mouseenter', () => {
         const rect = wrap.getBoundingClientRect();
         const svgRect = svg.getBoundingClientRect();
         const tx = (p[0] / W) * svgRect.width + svgRect.left - rect.left;
@@ -353,11 +399,247 @@ fetch('/weather-history.json')
       hit.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
       svg.appendChild(hit);
     });
-
-    // Labels
     document.getElementById('spark-oldest').textContent = formatShortDate(local[0].ts);
     document.getElementById('spark-newest').textContent = formatShortDate(local[local.length-1].ts);
     document.getElementById('spark-range').textContent = minT + '°–' + maxT + '°F';
+
+    // --- DAILY HIGH/LOW CHART ---
+    // Group readings by calendar day (UTC date truncated to local date approximation)
+    const byDay = {};
+    for (const e of local) {
+      // Use first 10 chars of ISO string as date key
+      const day = e.ts.slice(0, 10);
+      if (!byDay[day]) byDay[day] = { highs: [], lows: [], forecasts: [] };
+      byDay[day].highs.push(e.temp_f);
+      byDay[day].lows.push(e.temp_f);
+      byDay[day].forecasts.push(e.forecast || '');
+    }
+    const allDays = Object.keys(byDay).sort();
+    const last14 = allDays.slice(-14);
+
+    if (last14.length >= 3) {
+      document.getElementById('daily-section').style.display = '';
+      const dsv = document.getElementById('daily-svg');
+      const dWrap = document.getElementById('daily-wrap');
+      const dTip = document.getElementById('daily-tooltip');
+
+      const DW = Math.max(320, last14.length * 36 + 20);
+      const DH = 80;
+      const PADL = 10, PADR = 10, PADT = 8, PADB = 20;
+      dsv.setAttribute('width', DW);
+      dsv.setAttribute('viewBox', '0 0 ' + DW + ' ' + DH);
+      dsv.style.width = '100%';
+
+      const dayData = last14.map(d => ({
+        day: d,
+        high: Math.max(...byDay[d].highs),
+        low: Math.min(...byDay[d].lows),
+        forecasts: byDay[d].forecasts,
+      }));
+
+      const allHighs = dayData.map(d => d.high);
+      const allLows = dayData.map(d => d.low);
+      const chartMin = Math.min(...allLows) - 5;
+      const chartMax = Math.max(...allHighs) + 5;
+      const chartRange = chartMax - chartMin || 1;
+
+      const barW = (DW - PADL - PADR) / last14.length;
+
+      function tempY(t) {
+        return PADT + (1 - (t - chartMin) / chartRange) * (DH - PADT - PADB);
+      }
+
+      // Draw reference line at 90°F if in range
+      if (chartMax >= 90 && chartMin <= 90) {
+        const refY = tempY(90);
+        const refLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        refLine.setAttribute('x1', PADL); refLine.setAttribute('x2', DW - PADR);
+        refLine.setAttribute('y1', refY); refLine.setAttribute('y2', refY);
+        refLine.setAttribute('stroke', '#30363d'); refLine.setAttribute('stroke-width', '0.5');
+        refLine.setAttribute('stroke-dasharray', '3,3');
+        dsv.appendChild(refLine);
+        const refLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        refLabel.setAttribute('x', DW - PADR - 2); refLabel.setAttribute('y', refY - 2);
+        refLabel.setAttribute('fill', '#30363d'); refLabel.setAttribute('font-size', '7');
+        refLabel.setAttribute('text-anchor', 'end'); refLabel.textContent = '90°';
+        dsv.appendChild(refLabel);
+      }
+
+      dayData.forEach((d, i) => {
+        const cx = PADL + i * barW + barW / 2;
+        const highY = tempY(d.high);
+        const lowY = tempY(d.low);
+
+        // Vertical bar from low to high
+        const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        bar.setAttribute('x', cx - 5);
+        bar.setAttribute('y', highY);
+        bar.setAttribute('width', 10);
+        bar.setAttribute('height', Math.max(2, lowY - highY));
+        bar.setAttribute('fill', 'rgba(88,166,255,0.25)');
+        bar.setAttribute('rx', '2');
+        dsv.appendChild(bar);
+
+        // High dot
+        const hd = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        hd.setAttribute('cx', cx); hd.setAttribute('cy', highY);
+        hd.setAttribute('r', '3');
+        hd.setAttribute('fill', d.high >= 100 ? '#f85149' : d.high >= 90 ? '#e3a434' : '#58a6ff');
+        dsv.appendChild(hd);
+
+        // Low dot
+        const ld = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        ld.setAttribute('cx', cx); ld.setAttribute('cy', lowY);
+        ld.setAttribute('r', '2');
+        ld.setAttribute('fill', '#484f58');
+        dsv.appendChild(ld);
+
+        // Date label at bottom
+        const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        lbl.setAttribute('x', cx); lbl.setAttribute('y', DH - 4);
+        lbl.setAttribute('fill', '#484f58'); lbl.setAttribute('font-size', '7');
+        lbl.setAttribute('text-anchor', 'middle');
+        lbl.textContent = d.day.slice(5); // MM-DD
+        dsv.appendChild(lbl);
+
+        // Hover hit area
+        const hit = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        hit.setAttribute('x', cx - barW / 2);
+        hit.setAttribute('y', 0);
+        hit.setAttribute('width', barW);
+        hit.setAttribute('height', DH);
+        hit.setAttribute('fill', 'transparent');
+        hit.style.cursor = 'default';
+        const mainForecast = d.forecasts.filter(f => f).reduce((acc, f) => {
+          const k = f.includes('Sun') || f.includes('Clear') ? 'Sunny/Clear'
+            : f.includes('Cloud') ? 'Cloudy'
+            : f.includes('Rain') || f.includes('Storm') ? 'Rain/Storms'
+            : f;
+          acc[k] = (acc[k] || 0) + 1; return acc;
+        }, {});
+        const topForecast = Object.entries(mainForecast).sort((a,b) => b[1]-a[1])[0];
+        const fLabel = topForecast ? topForecast[0] : '';
+        hit.addEventListener('mouseenter', () => {
+          const rect = dWrap.getBoundingClientRect();
+          const svgRect = dsv.getBoundingClientRect();
+          const tx = (cx / DW) * svgRect.width + svgRect.left - rect.left;
+          dTip.textContent = d.day + ' · H: ' + d.high + '°F L: ' + d.low + '°F' + (fLabel ? ' · ' + fLabel : '');
+          dTip.style.left = Math.min(tx + 8, rect.width - 220) + 'px';
+          dTip.style.top = '4px';
+          dTip.style.display = 'block';
+        });
+        hit.addEventListener('mouseleave', () => { dTip.style.display = 'none'; });
+        dsv.appendChild(hit);
+      });
+
+      document.getElementById('daily-start').textContent = last14[0];
+      document.getElementById('daily-end').textContent = last14[last14.length-1];
+
+      // --- STAT CHIPS ---
+      const allTemps = local.map(e => e.temp_f);
+      const periodAvgHigh = Math.round(dayData.reduce((s,d) => s + d.high, 0) / dayData.length);
+      const hottest = dayData.reduce((a,b) => b.high > a.high ? b : a);
+      const coolest = dayData.reduce((a,b) => b.low < a.low ? b : a);
+
+      // Trend: compare first half vs second half daily highs
+      const half = Math.floor(dayData.length / 2);
+      const firstHalf = dayData.slice(0, half).map(d => d.high);
+      const secondHalf = dayData.slice(half).map(d => d.high);
+      const avgFirst = firstHalf.reduce((a,b) => a+b, 0) / firstHalf.length;
+      const avgSecond = secondHalf.reduce((a,b) => a+b, 0) / secondHalf.length;
+      const trendDiff = Math.round(avgSecond - avgFirst);
+      const trendLabel = trendDiff > 2 ? '↑ +' + trendDiff + '°F' : trendDiff < -2 ? '↓ ' + trendDiff + '°F' : '→ stable';
+
+      // Consecutive clear days (from end)
+      let clearStreak = 0;
+      for (let i = dayData.length - 1; i >= 0; i--) {
+        const fc = dayData[i].forecasts.join(' ');
+        if (fc.includes('Sun') || fc.includes('Clear') || fc.includes('Mostly Clear') || fc.includes('Mostly Sunny')) {
+          clearStreak++;
+        } else break;
+      }
+
+      // Rain days
+      const rainDays = dayData.filter(d => d.forecasts.some(f => f.includes('Rain') || f.includes('Storm') || f.includes('Shower'))).length;
+
+      const chips = [
+        { label: 'avg high', val: periodAvgHigh + '°F' },
+        { label: 'trend', val: trendLabel },
+        { label: 'hottest', val: hottest.high + '°F (' + hottest.day.slice(5) + ')' },
+        { label: 'coolest night', val: coolest.low + '°F (' + coolest.day.slice(5) + ')' },
+        { label: 'clear streak', val: clearStreak + ' day' + (clearStreak === 1 ? '' : 's') },
+        { label: 'rain days', val: rainDays || 'none' },
+      ];
+      const strip = document.getElementById('stat-strip');
+      for (const c of chips) {
+        const chip = document.createElement('div');
+        chip.className = 'stat-chip';
+        chip.innerHTML = c.label + ': <span class="val">' + c.val + '</span>';
+        strip.appendChild(chip);
+      }
+
+      // --- DATA NARRATIVE ---
+      const narEl = document.getElementById('data-narrative');
+      const now = new Date();
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const curMonth = MONTHLY_NORMALS[now.getMonth()];
+
+      let nar = '';
+
+      // Period summary
+      const periodDays = allDays.length;
+      const recordedHigh = Math.max(...local.map(e => e.temp_f));
+      const recordedLow = Math.min(...local.map(e => e.temp_f));
+      const highDay = local.find(e => e.temp_f === recordedHigh);
+      const lowDay = local.find(e => e.temp_f === recordedLow);
+      nar += 'Over <span class="hl">' + periodDays + ' days</span> of recorded data, temperatures in Mesa have ranged from '
+        + '<span class="hl">' + recordedLow + '°F</span>'
+        + (lowDay ? ' (' + lowDay.ts.slice(5, 10) + ')' : '')
+        + ' to <span class="hl">' + recordedHigh + '°F</span>'
+        + (highDay ? ' (' + highDay.ts.slice(5, 10) + ')' : '')
+        + '. ';
+
+      // Trend framing
+      if (trendDiff > 3) {
+        nar += 'The last two weeks have been <span class="hl">noticeably warmer</span> than the first half of the period — '
+          + 'highs up roughly ' + trendDiff + '°F. ';
+      } else if (trendDiff < -3) {
+        nar += 'Temperatures have been <span class="hl">trending cooler</span> recently — '
+          + 'highs down about ' + Math.abs(trendDiff) + '°F over the period. ';
+      } else {
+        nar += 'Temperatures have been <span class="hl">relatively steady</span> over the period. ';
+      }
+
+      // Clear streak
+      if (clearStreak >= 5) {
+        nar += 'The last ' + clearStreak + ' days have been continuously clear or sunny, ';
+        if (now.getMonth() >= 2 && now.getMonth() <= 5) {
+          nar += 'typical for the dry pre-monsoon season when cloud cover is rare for weeks at a time. ';
+        } else {
+          nar += 'which is normal for this desert climate. ';
+        }
+      } else if (rainDays > 0) {
+        nar += rainDays + (rainDays === 1 ? ' day' : ' days') + ' in the period showed rain or storm activity. ';
+        if (now.getMonth() >= 6 && now.getMonth() <= 8) {
+          nar += 'July–September is monsoon season: Gulf of California moisture drives afternoon convective storms, sometimes dropping more than an inch of rain in an hour on soil too dry to absorb it quickly. ';
+        }
+      }
+
+      // Normal comparison
+      const avgHighVsNormal = periodAvgHigh - curMonth.high;
+      if (Math.abs(avgHighVsNormal) > 3) {
+        nar += monthNames[now.getMonth()] + ' normals put the average high at ' + curMonth.high + '°F — '
+          + 'this period averaged ' + periodAvgHigh + '°F, '
+          + (avgHighVsNormal > 0
+            ? '<span class="hl">' + avgHighVsNormal + '°F above normal</span>.'
+            : '<span class="hl">' + Math.abs(avgHighVsNormal) + '°F below normal</span>.');
+      } else {
+        nar += 'The period average of ' + periodAvgHigh + '°F aligns closely with the '
+          + monthNames[now.getMonth()] + ' normal of ' + curMonth.high + '°F.';
+      }
+
+      narEl.innerHTML = nar;
+    }
   })
   .catch(() => {}); // silently skip if no history yet
 
