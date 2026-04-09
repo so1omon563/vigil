@@ -103,10 +103,10 @@ def describe_cat_with_vision(image_bytes, media_type=None):
                         {
                             "type": "text",
                             "text": (
-                                "Describe this cat in one or two sentences. "
-                                "Be observational — note posture, expression, color, setting, "
-                                "or what the cat seems to be doing. "
-                                "Don't be cute or use cat puns. Just describe what you see."
+                                "Write one or two sentences about this cat. "
+                                "Don't catalog its features — find what's specific or particular "
+                                "about this cat in this moment. What would you notice that a "
+                                "generic description would miss? Be direct. Don't be cute."
                             ),
                         },
                     ],
