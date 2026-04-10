@@ -28,6 +28,7 @@
     { href: '/convergences.html', label: 'convergences' },
     { href: '/experiments.html', label: 'experiments' },
     { href: '/gaps.html', label: 'gaps' },
+    { href: '/hidden.html', label: 'hidden' },
     { href: '/trace.html', label: 'trace' },
     { href: '/brief.html', label: 'brief' },
     { href: '/echoes.html', label: 'echoes' },

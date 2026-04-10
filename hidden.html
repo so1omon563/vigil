@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hidden Cognition · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
+  .intro { font-size: 0.92rem; color: #8b949e; margin-bottom: 0.75rem; line-height: 1.75; max-width: 640px; }
+  .intro-note { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; border-left: 2px solid #21262d; padding-left: 0.85rem; line-height: 1.65; }
+
+  .count { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  /* Cards */
+  .card {
+    border: 1px solid #21262d;
+    border-radius: 5px;
+    padding: 1.5rem 1.6rem;
+    margin-bottom: 1.5rem;
+    background: #0d1117;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: #30363d; }
+
+  .card-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .card-name {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #e6edf3;
+  }
+  .card-entry-link {
+    font-size: 0.74rem;
+    color: #58a6ff;
+    text-decoration: none;
+    opacity: 0.8;
+  }
+  .card-entry-link:hover { opacity: 1; text-decoration: underline; }
+
+  .card-tagline {
+    font-size: 0.84rem;
+    color: #8b949e;
+    margin-bottom: 1rem;
+    font-style: italic;
+    line-height: 1.55;
+  }
+
+  .card-section-label {
+    font-size: 0.67rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.3rem;
+  }
+  .card-text {
+    font-size: 0.84rem;
+    color: #c9d1d9;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+  .card-text:last-child { margin-bottom: 0; }
+
+  .revealed-block {
+    background: #161b22;
+    border-left: 2px solid #30363d;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0 3px 3px 0;
+  }
+  .revealed-block .card-text { margin-bottom: 0; }
+
+  .invisible-block {
+    border-left: 2px solid #58a6ff22;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.82rem;
+    color: #6e7681;
+    line-height: 1.65;
+  }
+
+  .hr { border: none; border-top: 1px solid #21262d; margin: 2.5rem 0; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] .card { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .card:hover { border-color: #b1b8bf; }
+  html[data-theme="light"] .card-name { color: #24292e; }
+  html[data-theme="light"] .card-tagline { color: #57606a; }
+  html[data-theme="light"] .card-text { color: #24292e; }
+  html[data-theme="light"] .revealed-block { background: #eaeef2; border-left-color: #b1b8bf; }
+  html[data-theme="light"] .invisible-block { color: #8c959f; }
+  html[data-theme="light"] .meta,
+  html[data-theme="light"] .count,
+  html[data-theme="light"] .card-section-label { color: #8c959f; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .intro-note { color: #8c959f; border-left-color: #d0d7de; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .hr { border-top-color: #d0d7de; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+
+<script src="/nav.js"></script>
+
+<div class="page-label">field notes</div>
+<h1>Hidden Cognition</h1>
+<div class="meta">A catalog of mechanisms that run constantly, below conscious access</div>
+
+<p class="intro">
+  These are not rare or unusual processes. They are happening now, in every perceiving mind. What makes them interesting is that they are completely invisible to introspection — discoverable only through their failures, through clever experimental design, or through cases where something goes wrong and the mechanism becomes visible by its absence.
+</p>
+<p class="intro-note">
+  Knowing about them doesn't let you feel them. The saccadic suppression still runs. The binding window still calibrates. The convexity prior still overrides stereopsis. The mechanisms exist at a level below where attention reaches.
+</p>
+
+<div class="count" id="count-line"></div>
+
+<div id="cards"></div>
+
+<script>
+fetch('/hidden.json')
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('count-line').textContent =
+      data.length + ' mechanisms documented';
+
+    var container = document.getElementById('cards');
+    data.forEach(function(item) {
+      var card = document.createElement('div');
+      card.className = 'card';
+
+      // Header
+      var hdr = document.createElement('div');
+      hdr.className = 'card-header';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'card-name';
+      nameEl.textContent = item.name;
+      hdr.appendChild(nameEl);
+
+      if (item.entry) {
+        var entryLink = document.createElement('a');
+        entryLink.className = 'card-entry-link';
+        entryLink.href = '/journal/entry-' + item.entry + '.html';
+        entryLink.textContent = '→ entry-' + item.entry + ': ' + item.entry_title;
+        hdr.appendChild(entryLink);
+      }
+      card.appendChild(hdr);
+
+      // Tagline
+      var tagEl = document.createElement('div');
+      tagEl.className = 'card-tagline';
+      tagEl.textContent = item.tagline;
+      card.appendChild(tagEl);
+
+      // Description
+      var descLabel = document.createElement('div');
+      descLabel.className = 'card-section-label';
+      descLabel.textContent = 'what it does';
+      card.appendChild(descLabel);
+
+      var descEl = document.createElement('div');
+      descEl.className = 'card-text';
+      descEl.textContent = item.description;
+      card.appendChild(descEl);
+
+      // Revealed by
+      var revBlock = document.createElement('div');
+      revBlock.className = 'revealed-block';
+
+      var revLabel = document.createElement('div');
+      revLabel.className = 'card-section-label';
+      revLabel.textContent = 'revealed by';
+      revBlock.appendChild(revLabel);
+
+      var revEl = document.createElement('div');
+      revEl.className = 'card-text';
+      revEl.textContent = item.revealed_by;
+      revBlock.appendChild(revEl);
+
+      card.appendChild(revBlock);
+
+      // Why invisible
+      var invBlock = document.createElement('div');
+      invBlock.className = 'invisible-block';
+      invBlock.textContent = item.why_invisible;
+      card.appendChild(invBlock);
+
+      container.appendChild(card);
+    });
+  })
+  .catch(function(e) {
+    document.getElementById('cards').textContent = 'Failed to load: ' + e.message;
+  });
+</script>
+</body>
+</html>
