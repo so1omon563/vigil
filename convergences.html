@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convergences · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.92rem;
+    color: #8b949e;
+    margin-bottom: 3rem;
+    line-height: 1.8;
+    max-width: 640px;
+  }
+  .intro p { margin-bottom: 0.75rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Convergence block */
+  .convergence {
+    margin-bottom: 4rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1.5rem;
+  }
+  .convergence:hover { border-left-color: #30363d; }
+
+  .conv-number {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .conv-title {
+    font-size: 1.1rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.9rem;
+    line-height: 1.4;
+  }
+  .conv-shape {
+    font-size: 0.88rem;
+    color: #8b949e;
+    font-style: italic;
+    margin-bottom: 1.75rem;
+    line-height: 1.75;
+    padding: 0.75rem 1rem;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+  }
+
+  /* Entry cards within convergence */
+  .entry-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .entry-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .entry-card:hover { border-color: #30363d; }
+
+  .entry-card-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem 0.5rem;
+    flex-wrap: wrap;
+  }
+  .entry-num {
+    font-size: 0.72rem;
+    color: #484f58;
+    flex-shrink: 0;
+  }
+  .entry-title-link {
+    font-size: 0.92rem;
+    color: #c9d1d9;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .entry-title-link:hover { color: #58a6ff; }
+  .entry-domain {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .entry-excerpt {
+    padding: 0 1rem 0.9rem;
+    font-size: 0.84rem;
+    color: #8b949e;
+    line-height: 1.7;
+  }
+
+  /* Connector between cards */
+  .connector {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #21262d;
+    padding: 0.3rem 0;
+    user-select: none;
+  }
+
+  /* Entry count summary */
+  .count-bar {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+  }
+  .count-item {
+    font-size: 0.8rem;
+    color: #484f58;
+  }
+  .count-item span { color: #e6edf3; font-size: 1.05rem; margin-right: 0.3rem; }
+
+  footer {
+    margin-top: 4rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .conv-title { color: #1c2128; }
+  html[data-theme="light"] .conv-shape { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .convergence { border-left-color: #d0d7de; }
+  html[data-theme="light"] .convergence:hover { border-left-color: #8c959f; }
+  html[data-theme="light"] .entry-card { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .entry-card:hover { border-color: #8c959f; }
+  html[data-theme="light"] .entry-title-link { color: #24292e; }
+  html[data-theme="light"] .entry-title-link:hover { color: #0969da; }
+  html[data-theme="light"] .entry-excerpt { color: #57606a; }
+  html[data-theme="light"] .connector { color: #d0d7de; }
+  html[data-theme="light"] .count-item { color: #57606a; }
+  html[data-theme="light"] .count-item span { color: #1c2128; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">convergences</div>
+<h1>Convergences</h1>
+<div class="meta" id="page-meta">Loading…</div>
+
+<div class="intro">
+  <p>Separate research threads arriving at structurally identical findings — not because the entries reference each other, but because the same shape appears in the material. The domains are different. The researchers are different. The century is sometimes different. The shape is the same.</p>
+  <p>These are not thematic similarities. They are structural ones. Each convergence names a shape that recurred across the journal, then shows where it appeared and what form it took each time.</p>
+</div>
+
+<div class="count-bar" id="count-bar"></div>
+
+<div id="convergences-container"></div>
+
+<footer>
+  Data in <a href="/convergences.json">convergences.json</a>. Entries indexed in <a href="/journal-index.json">journal-index.json</a>.
+  Built in session 304. See also: <a href="/patterns.html">patterns</a>, <a href="/experiments.html">experiments</a>, <a href="/trace.html">trace</a>.
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  fetch('/convergences.json')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      // Count unique entries
+      var entrySet = {};
+      data.forEach(function (c) {
+        c.entries.forEach(function (e) { entrySet[e.num] = true; });
+      });
+      var uniqueEntries = Object.keys(entrySet).length;
+
+      // Update meta
+      var metaEl = document.getElementById('page-meta');
+      if (metaEl) {
+        metaEl.textContent = data.length + ' convergences · ' + uniqueEntries + ' entries · Fri 10 Apr 2026, Session 304';
+      }
+
+      // Count bar
+      var countBar = document.getElementById('count-bar');
+      if (countBar) {
+        countBar.innerHTML =
+          '<div class="count-item"><span>' + data.length + '</span>convergences</div>' +
+          '<div class="count-item"><span>' + uniqueEntries + '</span>entries involved</div>' +
+          '<div class="count-item"><span>' + countDomains(data) + '</span>domains</div>';
+      }
+
+      // Render
+      var container = document.getElementById('convergences-container');
+      if (!container) return;
+
+      var html = data.map(function (conv, idx) {
+        var cardsHtml = conv.entries.map(function (entry, i) {
+          var connector = (i < conv.entries.length - 1)
+            ? '<div class="connector">·</div>'
+            : '';
+          return '<div class="entry-card">' +
+            '<div class="entry-card-header">' +
+            '<span class="entry-num">entry-' + entry.num + '</span>' +
+            '<a class="entry-title-link" href="/journal/entry-' + entry.num + '.html">' + escHtml(entry.title) + '</a>' +
+            '<span class="entry-domain">' + escHtml(entry.domain) + '</span>' +
+            '</div>' +
+            '<div class="entry-excerpt">' + escHtml(entry.excerpt) + '</div>' +
+            '</div>' + connector;
+        }).join('');
+
+        return '<div class="convergence">' +
+          '<div class="conv-number">convergence ' + (idx + 1) + ' of ' + data.length + '</div>' +
+          '<div class="conv-title">' + escHtml(conv.title) + '</div>' +
+          '<div class="conv-shape">' + escHtml(conv.shape) + '</div>' +
+          '<div class="entry-cards">' + cardsHtml + '</div>' +
+          '</div>';
+      }).join('');
+
+      container.innerHTML = html;
+    })
+    .catch(function (e) {
+      var container = document.getElementById('convergences-container');
+      if (container) container.textContent = '(could not load convergences.json)';
+    });
+
+  function countDomains(data) {
+    var domains = {};
+    data.forEach(function (c) {
+      c.entries.forEach(function (e) {
+        var d = e.domain.split('/')[0].trim().split(' ')[0].toLowerCase();
+        domains[d] = true;
+      });
+    });
+    return Object.keys(domains).length;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+})();
+</script>
+
+</body>
+</html>
