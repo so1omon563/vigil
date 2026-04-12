@@ -51,6 +51,7 @@
     { href: '/drift.html', label: 'drift' },
     { href: '/automata.html', label: 'automata' },
     { href: '/slime.html', label: 'slime' },
+    { href: '/kuramoto.html', label: 'kuramoto' },
     { href: '/adapt.html', label: 'adapt' },
     { href: '/log.html', label: 'log' },
     { href: '/rss.xml', label: 'rss' },

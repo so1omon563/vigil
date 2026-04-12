@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synchrony · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 2.5rem;
+    line-height: 1.75;
+    max-width: 640px;
+  }
+  .intro p { margin-bottom: 0.85rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-end;
+    margin-bottom: 1.75rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #21262d;
+    background: #0f1318;
+  }
+  .ctrl-group { display: flex; flex-direction: column; gap: 0.4rem; }
+  .ctrl-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+  }
+  .ctrl-value { font-size: 0.82rem; color: #e6edf3; min-width: 3.5rem; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 180px;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #58a6ff; color: #58a6ff; }
+
+  /* Visualization area */
+  .viz-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 600px) { .viz-row { grid-template-columns: 1fr; } }
+
+  .panel {
+    border: 1px solid #21262d;
+    padding: 0.75rem;
+    background: #0f1318;
+  }
+  .panel-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.6rem;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    background: #0d1117;
+  }
+
+  /* Order parameter display */
+  .order-display {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem 1.5rem;
+    border: 1px solid #21262d;
+    background: #0f1318;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+  }
+  .stat-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: #484f58; }
+  .stat-val { font-size: 1.4rem; font-weight: bold; color: #e6edf3; font-variant-numeric: tabular-nums; }
+  .stat-val.coherent { color: #3fb950; }
+  .stat-val.incoherent { color: #8b949e; }
+  .stat-val.transitioning { color: #d29922; }
+
+  /* Annotation */
+  .annotation {
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 1.75rem;
+    font-size: 0.82rem;
+    color: #6e7681;
+    line-height: 1.7;
+  }
+  .annotation strong { color: #8b949e; }
+
+  /* Related */
+  .related-row {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.8rem;
+    color: #484f58;
+  }
+  .related-row a { color: #58a6ff; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .controls,
+  html[data-theme="light"] .panel,
+  html[data-theme="light"] .order-display { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] canvas { background: #ffffff; }
+  html[data-theme="light"] .ctrl-label,
+  html[data-theme="light"] .stat-label,
+  html[data-theme="light"] .panel-label { color: #8c959f; }
+  html[data-theme="light"] .ctrl-value,
+  html[data-theme="light"] .stat-val { color: #24292e; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+  html[data-theme="light"] .btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .annotation { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .annotation strong { color: #24292e; }
+  html[data-theme="light"] .related-row { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">Simulation</div>
+<h1>Synchrony</h1>
+<div class="meta">Kuramoto coupled oscillators · N = 60 · drag K to watch the transition</div>
+
+<div class="intro">
+  <p>Sixty oscillators, each with its own natural frequency drawn from a bell curve. When uncoupled, they drift — each spinning at its own rate, phases spreading across the circle. When coupled strongly enough, they snap into collective motion.</p>
+  <p>The coupling strength K is the only dial. Below a critical value K<sub>c</sub>, coupling is too weak to overcome the spread of natural frequencies — the system stays incoherent. Above it, a fraction of oscillators lock together, pulling more with them. The transition is sharp.</p>
+  <p>The order parameter r measures collective coherence: r = 0 means phases scattered uniformly, r = 1 means all phases identical. Watch the dot at the center of the phase circle — that's the mean-field vector. Its length is r.</p>
+</div>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <span class="ctrl-label">Coupling strength K</span>
+    <input type="range" id="kSlider" min="0" max="4" step="0.05" value="0.5">
+    <span class="ctrl-value" id="kValue">0.50</span>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Frequency spread σ</span>
+    <input type="range" id="sigmaSlider" min="0.2" max="2.5" step="0.05" value="1.0">
+    <span class="ctrl-value" id="sigmaValue">1.00</span>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Speed</span>
+    <input type="range" id="dtSlider" min="1" max="8" step="1" value="3">
+    <span class="ctrl-value" id="dtValue">3×</span>
+  </div>
+  <div class="ctrl-group" style="flex-direction:row; align-items:flex-end; gap:0.5rem;">
+    <button class="btn" id="resetBtn">reset</button>
+    <button class="btn" id="pauseBtn">pause</button>
+  </div>
+</div>
+
+<div class="order-display">
+  <div class="stat-item">
+    <span class="stat-label">Order parameter r</span>
+    <span class="stat-val" id="rDisplay">0.00</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">Mean phase Ψ</span>
+    <span class="stat-val" id="psiDisplay">—</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">State</span>
+    <span class="stat-val" id="stateDisplay">incoherent</span>
+  </div>
+  <div class="stat-item">
+    <span class="stat-label">K<sub>c</sub> (estimated)</span>
+    <span class="stat-val" id="kcDisplay">—</span>
+  </div>
+</div>
+
+<div class="viz-row">
+  <div class="panel">
+    <div class="panel-label">Phase circle · each dot is one oscillator</div>
+    <canvas id="phaseCanvas" width="380" height="380"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-label">Order parameter r over time</div>
+    <canvas id="timeCanvas" width="380" height="380"></canvas>
+  </div>
+</div>
+
+<div class="annotation">
+  <strong>Yoshiki Kuramoto, 1975.</strong> The model is <em>dθ<sub>i</sub>/dt = ω<sub>i</sub> + (K/N) Σ<sub>j</sub> sin(θ<sub>j</sub> − θ<sub>i</sub>)</em>.
+  Each oscillator's phase θ<sub>i</sub> is pulled toward the phases of all others, weighted by K/N.
+  The critical coupling is K<sub>c</sub> = 2/πg(0) where g(ω) is the frequency distribution at its peak.
+  For a Lorentzian distribution with spread σ, K<sub>c</sub> = 2σ.
+  Kuramoto's insight: rather than solving the full N-body problem, track only the mean-field vector
+  re<sup>iΨ</sup> = (1/N) Σ<sub>j</sub> e<sup>iθ<sub>j</sub></sup>. The system becomes self-consistent.
+</div>
+
+<div class="annotation">
+  <strong>The Millennium Bridge (London, 2000)</strong> opened June 10, closed June 12.
+  Walkers on the bridge began to sway slightly due to minor lateral oscillations.
+  To maintain balance, they unconsciously synchronized their footfalls with the bridge frequency —
+  which amplified the oscillation, which caused more synchrony. K exceeded K<sub>c</sub> in real time.
+  The fix was structural: tuned mass dampers installed in 2001 absorbed energy and suppressed the feedback.
+  No behavioral intervention to the walkers was attempted or needed.
+</div>
+
+<div class="related-row">
+  related: <a href="/journal/entry-291.html">After the Fact</a> (postdiction, timing) ·
+  <a href="/convergences.html">Convergences</a> (structural shapes) ·
+  <a href="/experiments.html">Experiments</a> · <a href="/concepts.html">Concepts</a>
+</div>
+
+<footer>
+  <a href="/">Vigil</a> · <a href="/journal">journal</a> · <a href="/about.html">about</a>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  var N = 60;
+  var theta = new Float64Array(N);  // phases
+  var omega = new Float64Array(N);  // natural frequencies
+  var K = 0.5;
+  var sigma = 1.0;
+  var dt = 0.025;
+  var dtMult = 3;
+  var running = true;
+  var rHistory = [];
+  var MAX_HISTORY = 400;
+
+  // --- Init ---
+  function sampleLorentzian(sigma) {
+    // Cauchy/Lorentzian: F^{-1}(u) = sigma * tan(pi*(u - 0.5))
+    return sigma * Math.tan(Math.PI * (Math.random() - 0.5));
+  }
+
+  function init() {
+    for (var i = 0; i < N; i++) {
+      theta[i] = Math.random() * 2 * Math.PI;
+      omega[i] = sampleLorentzian(sigma);
+    }
+    rHistory = [];
+  }
+
+  function clampFreqs() {
+    // Recalculate frequencies from stored quantiles when sigma changes.
+    // Instead, resample with new sigma.
+    for (var i = 0; i < N; i++) {
+      omega[i] = sampleLorentzian(sigma);
+    }
+  }
+
+  // --- Simulation step ---
+  function computeOrderParameter() {
+    var cx = 0, cy = 0;
+    for (var i = 0; i < N; i++) {
+      cx += Math.cos(theta[i]);
+      cy += Math.sin(theta[i]);
+    }
+    cx /= N; cy /= N;
+    var r = Math.sqrt(cx * cx + cy * cy);
+    var psi = Math.atan2(cy, cx);
+    return { r: r, psi: psi, cx: cx, cy: cy };
+  }
+
+  function step() {
+    var op = computeOrderParameter();
+    var r = op.r, psi = op.psi;
+    // Kuramoto mean-field: dθ_i/dt = ω_i + K*r*sin(ψ - θ_i)
+    for (var i = 0; i < N; i++) {
+      theta[i] += dt * (omega[i] + K * r * Math.sin(psi - theta[i]));
+      // wrap to [-π, π]
+      while (theta[i] > Math.PI) theta[i] -= 2 * Math.PI;
+      while (theta[i] < -Math.PI) theta[i] += 2 * Math.PI;
+    }
+    return op;
+  }
+
+  // --- Canvas setup ---
+  var phaseCanvas = document.getElementById('phaseCanvas');
+  var timeCanvas = document.getElementById('timeCanvas');
+  var pCtx = phaseCanvas.getContext('2d');
+  var tCtx = timeCanvas.getContext('2d');
+
+  function resizeCanvases() {
+    var w = phaseCanvas.offsetWidth;
+    phaseCanvas.width = w;
+    phaseCanvas.height = w;
+    timeCanvas.width = w;
+    timeCanvas.height = w;
+  }
+  resizeCanvases();
+  window.addEventListener('resize', resizeCanvases);
+
+  // Theme-aware colors
+  function getColors() {
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      bg: isLight ? '#ffffff' : '#0d1117',
+      circle: isLight ? '#d0d7de' : '#21262d',
+      dot: isLight ? '#1f6feb' : '#58a6ff',
+      meanVec: isLight ? '#cf222e' : '#f85149',
+      meanDot: isLight ? '#cf222e' : '#f85149',
+      gridLine: isLight ? '#e6e8ec' : '#161b22',
+      rLine: isLight ? '#1f6feb' : '#58a6ff',
+      kcLine: isLight ? '#cf222e' : '#f85149',
+      text: isLight ? '#8c959f' : '#484f58',
+    };
+  }
+
+  function drawPhase(op) {
+    var c = getColors();
+    var w = phaseCanvas.width, h = phaseCanvas.height;
+    var cx = w / 2, cy = h / 2;
+    var R = w * 0.42;
+
+    pCtx.clearRect(0, 0, w, h);
+    pCtx.fillStyle = c.bg;
+    pCtx.fillRect(0, 0, w, h);
+
+    // Outer circle
+    pCtx.beginPath();
+    pCtx.arc(cx, cy, R, 0, 2 * Math.PI);
+    pCtx.strokeStyle = c.circle;
+    pCtx.lineWidth = 1;
+    pCtx.stroke();
+
+    // Cross hairs
+    pCtx.strokeStyle = c.gridLine;
+    pCtx.lineWidth = 0.5;
+    pCtx.beginPath(); pCtx.moveTo(cx - R, cy); pCtx.lineTo(cx + R, cy); pCtx.stroke();
+    pCtx.beginPath(); pCtx.moveTo(cx, cy - R); pCtx.lineTo(cx, cy + R); pCtx.stroke();
+
+    // Oscillator dots
+    var dotR = Math.max(3, w * 0.018);
+    for (var i = 0; i < N; i++) {
+      var x = cx + R * Math.cos(theta[i]);
+      var y = cy - R * Math.sin(theta[i]);  // y flipped for screen coords
+      pCtx.beginPath();
+      pCtx.arc(x, y, dotR, 0, 2 * Math.PI);
+      pCtx.fillStyle = c.dot;
+      pCtx.globalAlpha = 0.75;
+      pCtx.fill();
+      pCtx.globalAlpha = 1.0;
+    }
+
+    // Mean-field vector
+    var mvLen = op.r * R;
+    var mvX = cx + mvLen * Math.cos(op.psi);
+    var mvY = cy - mvLen * Math.sin(op.psi);
+
+    pCtx.beginPath();
+    pCtx.moveTo(cx, cy);
+    pCtx.lineTo(mvX, mvY);
+    pCtx.strokeStyle = c.meanVec;
+    pCtx.lineWidth = 2;
+    pCtx.stroke();
+
+    // Arrow head
+    if (op.r > 0.02) {
+      var headLen = 8;
+      var angle = Math.atan2(cy - mvY, mvX - cx);
+      pCtx.beginPath();
+      pCtx.moveTo(mvX, mvY);
+      pCtx.lineTo(
+        mvX - headLen * Math.cos(angle - Math.PI / 6),
+        mvY + headLen * Math.sin(angle - Math.PI / 6)
+      );
+      pCtx.lineTo(
+        mvX - headLen * Math.cos(angle + Math.PI / 6),
+        mvY + headLen * Math.sin(angle + Math.PI / 6)
+      );
+      pCtx.closePath();
+      pCtx.fillStyle = c.meanVec;
+      pCtx.fill();
+    }
+
+    // Center dot
+    pCtx.beginPath();
+    pCtx.arc(cx, cy, 3, 0, 2 * Math.PI);
+    pCtx.fillStyle = c.circle;
+    pCtx.fill();
+
+    // r label
+    pCtx.font = (w * 0.035) + 'px monospace';
+    pCtx.fillStyle = c.text;
+    pCtx.fillText('r = ' + op.r.toFixed(3), 10, 20);
+  }
+
+  function drawTimeSeries() {
+    var c = getColors();
+    var w = timeCanvas.width, h = timeCanvas.height;
+    var padL = 36, padR = 12, padT = 18, padB = 28;
+    var plotW = w - padL - padR;
+    var plotH = h - padT - padB;
+
+    tCtx.clearRect(0, 0, w, h);
+    tCtx.fillStyle = c.bg;
+    tCtx.fillRect(0, 0, w, h);
+
+    // Grid lines at r = 0.25, 0.5, 0.75, 1.0
+    tCtx.strokeStyle = c.gridLine;
+    tCtx.lineWidth = 0.5;
+    [0.25, 0.5, 0.75, 1.0].forEach(function(rv) {
+      var y = padT + plotH * (1 - rv);
+      tCtx.beginPath();
+      tCtx.moveTo(padL, y); tCtx.lineTo(padL + plotW, y);
+      tCtx.stroke();
+      tCtx.fillStyle = c.text;
+      tCtx.font = '10px monospace';
+      tCtx.fillText(rv.toFixed(2), 2, y + 4);
+    });
+
+    // Axes
+    tCtx.strokeStyle = c.circle;
+    tCtx.lineWidth = 1;
+    tCtx.beginPath();
+    tCtx.moveTo(padL, padT);
+    tCtx.lineTo(padL, padT + plotH);
+    tCtx.lineTo(padL + plotW, padT + plotH);
+    tCtx.stroke();
+
+    // K_c line
+    var kc = 2 * sigma;
+    tCtx.strokeStyle = c.kcLine;
+    tCtx.lineWidth = 0.75;
+    tCtx.setLineDash([4, 4]);
+    // Not drawing Kc on time plot — it's a K level, not an r level.
+    // Draw expected r at current K for Lorentzian: r ≈ 0 for K < Kc, else solve self-consistency.
+    // Instead just show the line r = 1.0 endpoint and let data speak.
+    tCtx.setLineDash([]);
+
+    if (rHistory.length > 1) {
+      tCtx.strokeStyle = c.rLine;
+      tCtx.lineWidth = 1.5;
+      tCtx.beginPath();
+      var step2 = plotW / MAX_HISTORY;
+      rHistory.forEach(function(rv, idx) {
+        var px = padL + idx * (plotW / Math.max(rHistory.length - 1, 1));
+        var py = padT + plotH * (1 - Math.min(rv, 1));
+        if (idx === 0) tCtx.moveTo(px, py);
+        else tCtx.lineTo(px, py);
+      });
+      tCtx.stroke();
+    }
+
+    // Labels
+    tCtx.fillStyle = c.text;
+    tCtx.font = '10px monospace';
+    tCtx.fillText('r', 4, padT + 4);
+    tCtx.fillText('time →', padL + plotW - 48, padT + plotH + 14);
+  }
+
+  // --- UI ---
+  var kSlider = document.getElementById('kSlider');
+  var kValueEl = document.getElementById('kValue');
+  var sigmaSlider = document.getElementById('sigmaSlider');
+  var sigmaValueEl = document.getElementById('sigmaValue');
+  var dtSlider = document.getElementById('dtSlider');
+  var dtValueEl = document.getElementById('dtValue');
+  var rDisplay = document.getElementById('rDisplay');
+  var psiDisplay = document.getElementById('psiDisplay');
+  var stateDisplay = document.getElementById('stateDisplay');
+  var kcDisplay = document.getElementById('kcDisplay');
+  var resetBtn = document.getElementById('resetBtn');
+  var pauseBtn = document.getElementById('pauseBtn');
+
+  kSlider.addEventListener('input', function() {
+    K = parseFloat(kSlider.value);
+    kValueEl.textContent = K.toFixed(2);
+  });
+
+  sigmaSlider.addEventListener('input', function() {
+    sigma = parseFloat(sigmaSlider.value);
+    sigmaValueEl.textContent = sigma.toFixed(2);
+    clampFreqs();
+    rHistory = [];
+    updateKcDisplay();
+  });
+
+  dtSlider.addEventListener('input', function() {
+    dtMult = parseInt(dtSlider.value);
+    dtValueEl.textContent = dtMult + '×';
+  });
+
+  resetBtn.addEventListener('click', function() {
+    init();
+  });
+
+  pauseBtn.addEventListener('click', function() {
+    running = !running;
+    pauseBtn.textContent = running ? 'pause' : 'resume';
+    pauseBtn.classList.toggle('active', !running);
+    if (running) loop();
+  });
+
+  function updateKcDisplay() {
+    var kc = 2 * sigma;
+    kcDisplay.textContent = kc.toFixed(2);
+  }
+
+  function updateState(r) {
+    var kc = 2 * sigma;
+    var label, cls;
+    if (r < 0.1) {
+      label = 'incoherent';
+      cls = 'incoherent';
+    } else if (r > 0.65) {
+      label = 'synchronized';
+      cls = 'coherent';
+    } else {
+      label = 'transitioning';
+      cls = 'transitioning';
+    }
+    rDisplay.textContent = r.toFixed(3);
+    rDisplay.className = 'stat-val ' + cls;
+    stateDisplay.textContent = label;
+    stateDisplay.className = 'stat-val ' + cls;
+  }
+
+  // --- Main loop ---
+  var lastTime = 0;
+  var accumulator = 0;
+  var STEP_INTERVAL = 16; // ms per animation frame
+
+  function loop(ts) {
+    if (!running) return;
+    requestAnimationFrame(loop);
+
+    // Run dtMult simulation steps per frame
+    var op;
+    for (var s = 0; s < dtMult; s++) {
+      op = step();
+    }
+
+    rHistory.push(op.r);
+    if (rHistory.length > MAX_HISTORY) rHistory.shift();
+
+    drawPhase(op);
+    drawTimeSeries();
+
+    updateState(op.r);
+    psiDisplay.textContent = (op.psi * 180 / Math.PI).toFixed(1) + '°';
+  }
+
+  // Init and start
+  updateKcDisplay();
+  init();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
