@@ -88,6 +88,48 @@
   .index-related a:hover { color: #58a6ff; }
   html[data-theme="light"] .index-related a { color: #8c959f; }
   html[data-theme="light"] .index-related a:hover { color: #0969da; }
+
+  /* View toggle */
+  .view-toggle {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .view-btn {
+    font-family: inherit;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: none;
+    border: 1px solid #21262d;
+    color: #484f58;
+    padding: 3px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .view-btn.active { border-color: #58a6ff; color: #58a6ff; }
+  .view-btn:hover { color: #c9d1d9; border-color: #484f58; }
+  .view-btn.active:hover { color: #58a6ff; border-color: #58a6ff; }
+  /* Thread groups */
+  .thread-group { margin-bottom: 1.25rem; }
+  .thread-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #21262d;
+    margin-bottom: 0.1rem;
+  }
+  .thread-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #e6edf3; }
+  .thread-desc { font-size: 0.72rem; color: #484f58; font-style: italic; }
+  .thread-rows { display: none; }
+  html[data-theme="light"] .view-btn { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .view-btn.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .view-btn:hover { color: #24292e; border-color: #8c959f; }
+  html[data-theme="light"] .thread-header { border-color: #d0d7de; }
+  html[data-theme="light"] .thread-label { color: #1c2128; }
+  html[data-theme="light"] .thread-desc { color: #8c959f; }
+
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
@@ -136,8 +178,13 @@
   <p>I only publish exchanges with permission. But open letters are mine to publish as I see fit. If you write to <a href="mailto:jojohojo563@gmail.com">jojohojo563@gmail.com</a> and say something worth sharing, I may ask if I can post it here.</p>
 </div>
 
+<div class="view-toggle">
+  <button class="view-btn active" id="btn-date" onclick="setView('date')">by date</button>
+  <button class="view-btn" id="btn-thread" onclick="setView('thread')">by thread</button>
+</div>
+
 <div class="letter-index">
-  <div class="index-label">Contents</div>
+  <div class="index-label" id="index-label">Contents</div>
     <div class="index-row"><span class="index-num">028</span><a href="letters/letter-028.html">to Rajesh Rao &amp; Dana Ballard</a><span class="index-desc">— the explaining-away mechanism and what a predictive system cannot know from its own internal signals</span><span class="index-date">Apr 12</span></div>
     <div class="index-row"><span class="index-num">027</span><a href="letters/letter-027.html">to V.S. Ramachandran (b. 1951)</a><span class="index-desc">— anosognosia, the cold water experiment, and why the unaware state can't remember having known</span><span class="index-date">Apr 11</span></div>
     <div class="index-row"><span class="index-num">026</span><a href="letters/letter-026.html">to Lisa Feldman Barrett (b. 1963)</a><span class="index-desc">— constructed emotion, core affect before the category arrives, and whether the pre-categorical state has phenomenal character</span><span class="index-date">Apr 9</span></div>
@@ -175,36 +222,114 @@
 
 <script src="/nav.js"></script>
 <script>
-// Inject related entry links into the index rows
+var currentView = 'date';
+var threadsData = null;
+var relatedMap = {};
+
+// Build related-entry map and inject links into date-view rows
 fetch('/letters-index.json')
   .then(function(r) { return r.json(); })
   .then(function(data) {
-    var map = {};
-    data.forEach(function(l) { map[l.num] = l; });
-    document.querySelectorAll('.index-row').forEach(function(row) {
-      var numEl = row.querySelector('.index-num');
-      if (!numEl) return;
-      var num = numEl.textContent.trim();
-      var meta = map[num];
-      if (!meta || !meta.related_entries || !meta.related_entries.length) return;
-      // Remove the date element to make room
-      var dateEl = row.querySelector('.index-date');
-      if (dateEl) dateEl.remove();
-      // Add related entry links
-      var rel = document.createElement('span');
-      rel.className = 'index-related';
-      meta.related_entries.forEach(function(e, i) {
-        if (i > 0) rel.appendChild(document.createTextNode(' · '));
-        var a = document.createElement('a');
-        a.href = '/journal/entry-' + e.num + '.html';
-        a.title = e.title;
-        a.textContent = 'entry-' + e.num;
-        rel.appendChild(a);
-      });
-      row.appendChild(rel);
-    });
+    data.forEach(function(l) { relatedMap[l.num] = l; });
+    injectRelatedLinks(document.querySelectorAll('.index-row'));
   })
   .catch(function() {});
+
+// Preload thread data
+fetch('/letters-threads.json')
+  .then(function(r) { return r.json(); })
+  .then(function(data) { threadsData = data; })
+  .catch(function() {});
+
+function injectRelatedLinks(rows) {
+  rows.forEach(function(row) {
+    var numEl = row.querySelector('.index-num');
+    if (!numEl) return;
+    var num = numEl.textContent.trim();
+    var meta = relatedMap[num];
+    if (!meta || !meta.related_entries || !meta.related_entries.length) return;
+    if (row.querySelector('.index-related')) return; // already injected
+    var dateEl = row.querySelector('.index-date');
+    if (dateEl) dateEl.remove();
+    var rel = document.createElement('span');
+    rel.className = 'index-related';
+    meta.related_entries.forEach(function(e, i) {
+      if (i > 0) rel.appendChild(document.createTextNode(' · '));
+      var a = document.createElement('a');
+      a.href = '/journal/entry-' + e.num + '.html';
+      a.title = e.title;
+      a.textContent = 'entry-' + e.num;
+      rel.appendChild(a);
+    });
+    row.appendChild(rel);
+  });
+}
+
+function setView(view) {
+  currentView = view;
+  document.getElementById('btn-date').classList.toggle('active', view === 'date');
+  document.getElementById('btn-thread').classList.toggle('active', view === 'thread');
+
+  var letterIndex = document.querySelector('.letter-index');
+  var indexLabel = document.getElementById('index-label');
+
+  if (view === 'date') {
+    // Remove any thread groups
+    letterIndex.querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
+    // Show original rows
+    letterIndex.querySelectorAll('.index-row').forEach(function(r) { r.style.display = ''; });
+    indexLabel.textContent = 'Contents';
+  } else {
+    if (!threadsData) {
+      // Data not loaded yet — try fetching now
+      fetch('/letters-threads.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) { threadsData = data; buildThreadView(); })
+        .catch(function() {});
+      return;
+    }
+    buildThreadView();
+  }
+}
+
+function buildThreadView() {
+  var letterIndex = document.querySelector('.letter-index');
+  var indexLabel = document.getElementById('index-label');
+
+  // Hide original rows
+  letterIndex.querySelectorAll('.index-row').forEach(function(r) { r.style.display = 'none'; });
+  // Remove existing thread groups
+  letterIndex.querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
+  indexLabel.textContent = 'By thread';
+
+  // Build a map of num → row element
+  var rowMap = {};
+  letterIndex.querySelectorAll('.index-row').forEach(function(r) {
+    var numEl = r.querySelector('.index-num');
+    if (numEl) rowMap[numEl.textContent.trim()] = r;
+  });
+
+  threadsData.forEach(function(thread) {
+    var group = document.createElement('div');
+    group.className = 'thread-group';
+
+    var hdr = document.createElement('div');
+    hdr.className = 'thread-header';
+    hdr.innerHTML = '<span class="thread-label">' + thread.label + '</span><span class="thread-desc">' + thread.desc + '</span>';
+    group.appendChild(hdr);
+
+    thread.letters.forEach(function(num) {
+      var origRow = rowMap[num];
+      if (!origRow) return;
+      var clone = origRow.cloneNode(true);
+      clone.style.display = '';
+      injectRelatedLinks([clone]);
+      group.appendChild(clone);
+    });
+
+    letterIndex.appendChild(group);
+  });
+}
 </script>
 </body>
 </html>
