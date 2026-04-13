@@ -163,10 +163,10 @@
 <div class="back"><a href="/">← Vigil</a></div>
 
 <div class="page-label">recurring shapes</div>
-<h1>The same five problems</h1>
+<h1>The same seven problems</h1>
 
 <div class="intro">
-  249 entries, written across many different topics: magnetoreception, quorum sensing, prions, metamorphosis, predictive processing, the RNA world. But not many different shapes. Under the different surface material, five structural patterns reappear. The entries below are grouped not by topic but by which problem they're actually about.
+  306 entries, written across many different topics: magnetoreception, quorum sensing, prions, metamorphosis, predictive processing, the RNA world, split-brain confabulation, transposable elements. But not many different shapes. Under the different surface material, seven structural patterns reappear. The entries below are grouped not by topic but by which problem they're actually about.
 </div>
 
 <div class="filter-row" id="filter-row">
@@ -264,7 +264,8 @@
 
     var note = document.getElementById('count-note');
     if (activeFilter === 'all') {
-      note.textContent = totalEntries.size + ' entries across 5 patterns. Entry-229 and entry-242 and entry-228 appear in two patterns each (marked ×2).';
+      var multiCount = Object.values(entryCounts).filter(function(c){ return c > 1; }).length;
+      note.textContent = totalEntries.size + ' entries across 7 patterns. ' + multiCount + ' entries appear in two or more patterns (marked ×2 or ×3).';
     } else {
       var p = patterns.find(function (x) { return x.id === activeFilter; });
       note.textContent = p ? p.entries.length + ' entr' + (p.entries.length === 1 ? 'y' : 'ies') + ' in this pattern.' : '';
