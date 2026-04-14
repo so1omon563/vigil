@@ -106,6 +106,16 @@
   .forecast { font-size: 0.85rem; color: #8b949e; margin-bottom: 0.3rem; }
   .weather-link { font-size: 0.78rem; }
 
+  /* Threads */
+  .thread-row { margin-bottom: 1.1rem; }
+  .thread-row:last-child { margin-bottom: 0; }
+  .thread-meta { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.1rem; }
+  .thread-name { font-size: 0.91rem; color: #e6edf3; }
+  .thread-count { font-size: 0.72rem; color: #484f58; }
+  .thread-last { font-size: 0.8rem; color: #6e7681; }
+  .thread-last a { color: #58a6ff; }
+  .thread-desc { font-size: 0.8rem; color: #484f58; line-height: 1.55; margin-top: 0.15rem; }
+
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
   html[data-theme="light"] h1 { color: #24292e; }
@@ -123,6 +133,10 @@
   html[data-theme="light"] .temp { color: #24292e; }
   html[data-theme="light"] .forecast { color: #57606a; }
   html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .thread-name { color: #24292e; }
+  html[data-theme="light"] .thread-count { color: #8c959f; }
+  html[data-theme="light"] .thread-last { color: #57606a; }
+  html[data-theme="light"] .thread-desc { color: #8c959f; }
 </style>
 </head>
 <body>
@@ -164,11 +178,13 @@
     fetch('/journal-index.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/cats.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/weather-history.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/threads.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
   ]).then(function(results) {
     var status = results[0];
     var journal = results[1];
     var cats = results[2];
     var weather = results[3];
+    var threads = results[4];
 
     var root = document.getElementById('now-root');
     root.innerHTML = '';
@@ -221,6 +237,47 @@
         sec3.appendChild(row);
       });
       root.appendChild(sec3);
+    }
+
+    // ── Active threads ───────────────────────────────────────
+    if (threads && threads.length > 0) {
+      // Build entry num -> title lookup from journal
+      var entryTitles = {};
+      var entryUrls = {};
+      journal.forEach(function(e) {
+        var num = e.num || e.id;
+        if (num) { entryTitles[num] = e.title || ''; entryUrls[num] = e.url || ''; }
+      });
+
+      // Compute last entry number per thread
+      var threadList = threads.map(function(t) {
+        var entries = t.entries || [];
+        var nums = entries.map(function(e) { return e.num; }).filter(Boolean);
+        var last = nums.length > 0 ? Math.max.apply(null, nums) : 0;
+        return { id: t.id, title: t.title, description: t.description || '', count: nums.length, last: last };
+      });
+      threadList.sort(function(a, b) { return b.last - a.last; });
+      var activeThreads = threadList.filter(function(t) { return t.last > 0; }).slice(0, 5);
+
+      if (activeThreads.length > 0) {
+        var secT = el('div', 'section');
+        secT.appendChild(el('div', 'section-label', 'active threads'));
+        activeThreads.forEach(function(t) {
+          var row = el('div', 'thread-row');
+          var meta = el('div', 'thread-meta');
+          meta.appendChild(el('span', 'thread-name', t.title));
+          meta.appendChild(el('span', 'thread-count', t.count + ' entries'));
+          row.appendChild(meta);
+          var lastTitle = entryTitles[t.last] || ('entry-' + t.last);
+          var lastUrl = entryUrls[t.last] ? entryUrl(entryUrls[t.last]) : '#';
+          row.appendChild(el('div', 'thread-last', 'last: <a href="' + lastUrl + '">' + lastTitle + '</a>'));
+          if (t.description) {
+            row.appendChild(el('div', 'thread-desc', t.description));
+          }
+          secT.appendChild(row);
+        });
+        root.appendChild(secT);
+      }
     }
 
     // ── Cat + weather ────────────────────────────────────────
