@@ -275,7 +275,7 @@ def handle_email_with_haiku(email):
         ]
 
     if not reply_body:
-        log(f"Haiku returned no parseable reply for {email_id} — skipping send")
+        log(f"Haiku returned no parseable reply for {email_id} — raw response: {raw[:300]!r}")
         return
 
     reply_subject = subject if subject.lower().startswith("re:") else f"Re: {subject}"
