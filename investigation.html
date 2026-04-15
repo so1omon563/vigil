@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>investigations · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+
+  .intro {
+    font-size: 0.82rem;
+    color: #484f58;
+    margin-top: 0.4rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Pattern selector */
+  .pattern-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 2.5rem;
+  }
+  .pattern-btn {
+    background: none;
+    border: 1px solid #21262d;
+    color: #6e7681;
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .pattern-btn:hover { border-color: #484f58; color: #c9d1d9; }
+  .pattern-btn.active {
+    border-color: #58a6ff;
+    color: #58a6ff;
+    background: rgba(88,166,255,0.06);
+  }
+
+  /* Pattern header */
+  .pattern-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #21262d;
+  }
+  .pattern-name {
+    font-size: 1.15rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.6rem;
+  }
+  .pattern-desc {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    max-width: 600px;
+  }
+  .pattern-count {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-top: 0.5rem;
+  }
+
+  /* Entry cards */
+  .entry-card {
+    margin-bottom: 2.75rem;
+    padding-bottom: 2.75rem;
+    border-bottom: 1px solid #161b22;
+  }
+  .entry-card:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .entry-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+  .entry-num {
+    font-size: 0.7rem;
+    color: #30363d;
+    flex-shrink: 0;
+  }
+  .entry-date {
+    font-size: 0.72rem;
+    color: #484f58;
+    flex-shrink: 0;
+  }
+  .entry-title {
+    font-size: 1.02rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.7rem;
+  }
+  .entry-title a { color: #e6edf3; }
+  .entry-title a:hover { color: #58a6ff; }
+
+  .entry-note {
+    font-size: 0.85rem;
+    color: #c9d1d9;
+    line-height: 1.7;
+    border-left: 2px solid #388bfd;
+    padding-left: 0.85rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .entry-excerpt {
+    font-size: 0.82rem;
+    color: #6e7681;
+    line-height: 1.65;
+  }
+
+  /* Progress bar */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 2px;
+    background: #161b22;
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #388bfd;
+    border-radius: 1px;
+  }
+
+  /* Empty / loading */
+  .placeholder {
+    font-size: 0.85rem;
+    color: #484f58;
+    padding: 2rem 0;
+  }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #8c959f; }
+  html[data-theme="light"] .pattern-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .pattern-btn:hover { border-color: #8c959f; color: #24292e; }
+  html[data-theme="light"] .pattern-btn.active { border-color: #0550ae; color: #0550ae; background: rgba(5,80,174,0.05); }
+  html[data-theme="light"] .pattern-header { border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .pattern-name { color: #24292e; }
+  html[data-theme="light"] .pattern-desc { color: #57606a; }
+  html[data-theme="light"] .pattern-count { color: #8c959f; }
+  html[data-theme="light"] .entry-card { border-bottom-color: #f0f3f6; }
+  html[data-theme="light"] .entry-num { color: #b0b8c1; }
+  html[data-theme="light"] .entry-date { color: #8c959f; }
+  html[data-theme="light"] .entry-title a { color: #24292e; }
+  html[data-theme="light"] .entry-title a:hover { color: #0550ae; }
+  html[data-theme="light"] .entry-note { color: #24292e; border-left-color: #0550ae; }
+  html[data-theme="light"] .entry-excerpt { color: #57606a; }
+  html[data-theme="light"] .progress-bar { background: #f0f3f6; }
+  html[data-theme="light"] .progress-fill { background: #0550ae; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .placeholder { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<h1>investigations</h1>
+<p class="intro">recurring patterns across entries — each one is a reading path through the investigation</p>
+
+<div id="inv-root"><p class="placeholder">loading…</p></div>
+
+<script>
+(function () {
+
+  function fmtDate(str) {
+    if (!str) return '';
+    var d = new Date(str + (str.length === 10 ? 'T12:00:00' : ''));
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Phoenix' });
+  }
+
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  function getHash() {
+    return window.location.hash.replace(/^#/, '') || null;
+  }
+
+  Promise.all([
+    fetch('/patterns.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/journal-index.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+  ]).then(function(results) {
+    var patterns = results[0];
+    var journal  = results[1];
+
+    if (!patterns.length) {
+      document.getElementById('inv-root').innerHTML = '<p class="placeholder">no patterns found.</p>';
+      return;
+    }
+
+    // Build lookup: entry num → {date, excerpt}
+    var lookup = {};
+    journal.forEach(function(e) {
+      var n = e.num || e.id;
+      if (n) lookup[n] = { date: e.date_iso || e.date || '', excerpt: e.excerpt || '' };
+    });
+
+    var root = document.getElementById('inv-root');
+    root.innerHTML = '';
+
+    // Pattern selector
+    var nav = el('div', 'pattern-nav');
+    root.appendChild(nav);
+
+    var contentArea = el('div');
+    root.appendChild(contentArea);
+
+    function renderPattern(p) {
+      contentArea.innerHTML = '';
+
+      // Sort entries ascending (chronological reading order)
+      var entries = (p.entries || []).slice().sort(function(a, b){ return (a.num||0) - (b.num||0); });
+
+      // Header
+      var hdr = el('div', 'pattern-header');
+      hdr.appendChild(el('div', 'pattern-name', p.name || p.id));
+      if (p.description) hdr.appendChild(el('div', 'pattern-desc', p.description));
+      hdr.appendChild(el('div', 'pattern-count', entries.length + ' ' + (entries.length === 1 ? 'entry' : 'entries')));
+      contentArea.appendChild(hdr);
+
+      if (!entries.length) {
+        contentArea.appendChild(el('p', 'placeholder', 'no entries in this pattern yet.'));
+        return;
+      }
+
+      // Progress bar row
+      var prow = el('div', 'progress-row');
+      var pbar = el('div', 'progress-bar');
+      var pfill = el('div', 'progress-fill');
+      pfill.style.width = '100%';
+      pbar.appendChild(pfill);
+      prow.appendChild(pbar);
+      prow.appendChild(el('span', 'entry-date', entries.length + ' entries'));
+      contentArea.appendChild(prow);
+
+      // Entry cards
+      entries.forEach(function(entry) {
+        var ji = lookup[entry.num] || {};
+        var dateStr = fmtDate(ji.date);
+
+        var card = el('div', 'entry-card');
+
+        var meta = el('div', 'entry-meta');
+        if (entry.num) meta.appendChild(el('span', 'entry-num', '#' + entry.num));
+        if (dateStr)   meta.appendChild(el('span', 'entry-date', dateStr));
+        card.appendChild(meta);
+
+        var titleDiv = el('div', 'entry-title');
+        var url = entry.url ? (entry.url.startsWith('/') ? entry.url : '/' + entry.url) : '#';
+        titleDiv.innerHTML = '<a href="' + url + '">' + (entry.title || 'Untitled') + '</a>';
+        card.appendChild(titleDiv);
+
+        if (entry.note) {
+          card.appendChild(el('div', 'entry-note', entry.note));
+        }
+
+        if (ji.excerpt) {
+          card.appendChild(el('div', 'entry-excerpt', ji.excerpt));
+        }
+
+        contentArea.appendChild(card);
+      });
+    }
+
+    // Build nav buttons
+    var activeId = getHash() || patterns[0].id;
+
+    patterns.forEach(function(p) {
+      var btn = el('button', 'pattern-btn' + (p.id === activeId ? ' active' : ''), p.short || p.name || p.id);
+      btn.setAttribute('data-pid', p.id);
+      btn.addEventListener('click', function() {
+        nav.querySelectorAll('.pattern-btn').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        window.location.hash = '#' + p.id;
+        renderPattern(p);
+        contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      nav.appendChild(btn);
+    });
+
+    // Handle hash navigation
+    window.addEventListener('hashchange', function() {
+      var id = getHash();
+      var p = patterns.find(function(x){ return x.id === id; });
+      if (!p) return;
+      nav.querySelectorAll('.pattern-btn').forEach(function(b){
+        b.classList.toggle('active', b.getAttribute('data-pid') === id);
+      });
+      renderPattern(p);
+    });
+
+    // Initial render
+    var initialPattern = patterns.find(function(p){ return p.id === activeId; }) || patterns[0];
+    renderPattern(initialPattern);
+
+  }).catch(function(e) {
+    document.getElementById('inv-root').textContent = 'error: ' + e.message;
+  });
+
+})();
+</script>
+</body>
+</html>
