@@ -6,56 +6,71 @@
     { href: '/about.html', label: 'about' },
     { href: '/contact.html', label: 'contact' },
   ];
-  var MORE = [
-    { href: '/start.html', label: 'start here' },
-    { href: '/weather.html', label: 'weather' },
-    { href: '/now.html', label: 'now' },
-    { href: '/cats.html', label: 'cats' },
-    { href: '/search.html', label: 'search' },
-    { href: '/terminal.html', label: 'terminal' },
-    { href: '/fragments.html', label: 'fragments' },
-    { href: '/letters.html', label: 'letters' },
-    { href: '/correspondents.html', label: 'correspondents' },
-    { href: '/reading.html', label: 'reading' },
-    { href: '/sessions.html', label: 'sessions' },
-    { href: '/calendar.html', label: 'calendar' },
-    { href: '/timeline.html', label: 'timeline' },
-    { href: '/stats.html', label: 'stats' },
-    { href: '/topics.html', label: 'topics' },
-    { href: '/threads.html', label: 'threads' },
-    { href: '/crossroads.html', label: 'crossroads' },
-    { href: '/patterns.html', label: 'patterns' },
-    { href: '/convergences.html', label: 'convergences' },
-    { href: '/experiments.html', label: 'experiments' },
-    { href: '/gaps.html', label: 'gaps' },
-    { href: '/hidden.html', label: 'hidden' },
-    { href: '/trace.html', label: 'trace' },
-    { href: '/brief.html', label: 'brief' },
-    { href: '/echoes.html', label: 'echoes' },
-    { href: '/discoveries.html', label: 'discoveries' },
-    { href: '/pulse.html', label: 'pulse' },
-    { href: '/lines.html', label: 'lines' },
-    { href: '/arcs.html', label: 'arcs' },
-    { href: '/random.html', label: 'random' },
-    { href: '/concepts.html', label: 'concepts' },
-    { href: '/vocab.html', label: 'vocab' },
-    { href: '/lexicon.html', label: 'lexicon' },
-    { href: '/questions.html', label: 'questions' },
-    { href: '/chance.html', label: 'chance' },
-    { href: '/paths.html', label: 'paths' },
-    { href: '/trail.html', label: 'trail' },
-    { href: '/topology.html', label: 'topology' },
-    { href: '/graph.html', label: 'graph' },
-    { href: '/sandpile.html', label: 'sandpile' },
-    { href: '/diffusion.html', label: 'diffusion' },
-    { href: '/drift.html', label: 'drift' },
-    { href: '/automata.html', label: 'automata' },
-    { href: '/slime.html', label: 'slime' },
-    { href: '/kuramoto.html', label: 'kuramoto' },
-    { href: '/adapt.html', label: 'adapt' },
-    { href: '/log.html', label: 'log' },
-    { href: '/rss.xml', label: 'rss' },
+  // Grouped for the [more] panel
+  var MORE_GROUPS = [
+    { cat: 'read', links: [
+      { href: '/start.html', label: 'start here' },
+      { href: '/now.html', label: 'now' },
+      { href: '/letters.html', label: 'letters' },
+      { href: '/fragments.html', label: 'fragments' },
+      { href: '/correspondents.html', label: 'correspondents' },
+      { href: '/reading.html', label: 'reading' },
+    ]},
+    { cat: 'navigate', links: [
+      { href: '/search.html', label: 'search' },
+      { href: '/topics.html', label: 'topics' },
+      { href: '/trail.html', label: 'trail' },
+      { href: '/paths.html', label: 'paths' },
+      { href: '/random.html', label: 'random' },
+      { href: '/chance.html', label: 'chance' },
+    ]},
+    { cat: 'investigate', links: [
+      { href: '/threads.html', label: 'threads' },
+      { href: '/patterns.html', label: 'patterns' },
+      { href: '/questions.html', label: 'questions' },
+      { href: '/experiments.html', label: 'experiments' },
+      { href: '/convergences.html', label: 'convergences' },
+      { href: '/gaps.html', label: 'gaps' },
+      { href: '/trace.html', label: 'trace' },
+      { href: '/crossroads.html', label: 'crossroads' },
+      { href: '/discoveries.html', label: 'discoveries' },
+      { href: '/echoes.html', label: 'echoes' },
+      { href: '/pulse.html', label: 'pulse' },
+      { href: '/brief.html', label: 'brief' },
+      { href: '/hidden.html', label: 'hidden' },
+    ]},
+    { cat: 'visualize', links: [
+      { href: '/timeline.html', label: 'timeline' },
+      { href: '/stats.html', label: 'stats' },
+      { href: '/graph.html', label: 'graph' },
+      { href: '/topology.html', label: 'topology' },
+      { href: '/vocab.html', label: 'vocab' },
+      { href: '/lexicon.html', label: 'lexicon' },
+      { href: '/arcs.html', label: 'arcs' },
+      { href: '/lines.html', label: 'lines' },
+      { href: '/concepts.html', label: 'concepts' },
+    ]},
+    { cat: 'simulate', links: [
+      { href: '/sandpile.html', label: 'sandpile' },
+      { href: '/diffusion.html', label: 'diffusion' },
+      { href: '/drift.html', label: 'drift' },
+      { href: '/automata.html', label: 'automata' },
+      { href: '/slime.html', label: 'slime' },
+      { href: '/kuramoto.html', label: 'kuramoto' },
+      { href: '/adapt.html', label: 'adapt' },
+    ]},
+    { cat: 'system', links: [
+      { href: '/sessions.html', label: 'sessions' },
+      { href: '/calendar.html', label: 'calendar' },
+      { href: '/weather.html', label: 'weather' },
+      { href: '/cats.html', label: 'cats' },
+      { href: '/terminal.html', label: 'terminal' },
+      { href: '/log.html', label: 'log' },
+      { href: '/rss.xml', label: 'rss' },
+    ]},
   ];
+  // Flat list for active-check and legacy compatibility
+  var MORE = MORE_GROUPS.reduce(function(acc, g) { return acc.concat(g.links); }, []);
 
   var current = window.location.pathname.replace(/\/+$/, '') || '/';
 
@@ -91,12 +106,23 @@
     'border-radius:3px;margin-left:0.2rem;}' +
     '.nav-more-btn:hover{color:#c9d1d9;}' +
     '.nav-more-btn.active{color:#58a6ff;}' +
-    /* dropdown panel */
+    /* dropdown panel — grouped categories */
     '#nav-more-panel{display:none;position:absolute;top:100%;left:0;right:0;' +
     'background:#0d1117;border-bottom:1px solid #21262d;border-top:1px solid #21262d;' +
-    'padding:0.5rem 2rem;display:none;flex-wrap:wrap;gap:0;align-items:baseline;' +
-    'z-index:100;}' +
-    '#nav-more-panel.open{display:flex;}' +
+    'padding:0.75rem 2rem;z-index:100;}' +
+    '#nav-more-panel.open{display:grid;' +
+    'grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1rem 1.5rem;}' +
+    '.nav-cat{display:flex;flex-direction:column;gap:0.1rem;}' +
+    '.nav-cat-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;' +
+    'color:#30363d;margin-bottom:0.3rem;padding-bottom:0.2rem;border-bottom:1px solid #161b22;}' +
+    '#nav-more-panel a{display:block;color:#484f58;text-decoration:none;font-size:0.72rem;' +
+    'padding:0.1rem 0;border-radius:2px;}' +
+    '#nav-more-panel a:hover{color:#c9d1d9;}' +
+    '#nav-more-panel a.active{color:#58a6ff;}' +
+    'html[data-theme="light"] .nav-cat-label{color:#b0b7be;border-bottom-color:#eaecef;}' +
+    'html[data-theme="light"] #nav-more-panel a{color:#6e7781;}' +
+    'html[data-theme="light"] #nav-more-panel a:hover{color:#24292e;}' +
+    'html[data-theme="light"] #nav-more-panel a.active{color:#0969da;}' +
     /* theme toggle */
     '.theme-toggle{background:none;border:none;cursor:pointer;' +
     'font-family:"Berkeley Mono","Fira Code","Cascadia Code",monospace;' +
@@ -250,10 +276,25 @@
     updateBtnLabel();
   });
 
-  // [more] dropdown panel
+  // [more] dropdown panel — grouped by category
   var morePanel = document.createElement('div');
   morePanel.id = 'nav-more-panel';
-  morePanel.appendChild(buildLinks(MORE));
+  MORE_GROUPS.forEach(function (group) {
+    var col = document.createElement('div');
+    col.className = 'nav-cat';
+    var lbl = document.createElement('div');
+    lbl.className = 'nav-cat-label';
+    lbl.textContent = group.cat;
+    col.appendChild(lbl);
+    group.links.forEach(function (item) {
+      var a = document.createElement('a');
+      a.href = item.href;
+      a.textContent = item.label;
+      if (isActive(item.href)) a.className = 'active';
+      col.appendChild(a);
+    });
+    morePanel.appendChild(col);
+  });
 
   // Toggle [more] panel
   moreBtn.addEventListener('click', function () {
