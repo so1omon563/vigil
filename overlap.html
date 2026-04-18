@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overlap · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 3rem;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Section */
+  .section-header {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #21262d;
+  }
+
+  /* Matrix */
+  .matrix-wrap {
+    margin-bottom: 3.5rem;
+    overflow-x: auto;
+  }
+  .matrix-note {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+  }
+  .matrix-table {
+    border-collapse: collapse;
+    font-size: 0.68rem;
+  }
+  .matrix-table th, .matrix-table td {
+    border: 1px solid #161b22;
+    padding: 0;
+  }
+  .matrix-table th {
+    background: #161b22;
+    color: #484f58;
+    padding: 0.2rem 0.3rem;
+    text-align: left;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .matrix-table .row-header {
+    background: #161b22;
+    color: #484f58;
+    padding: 0.2rem 0.8rem 0.2rem 0.3rem;
+    text-align: right;
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.7rem;
+  }
+  .matrix-table td.cell {
+    width: 28px;
+    height: 28px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 0.7rem;
+    font-weight: bold;
+    cursor: default;
+    transition: opacity 0.1s;
+    position: relative;
+  }
+  .matrix-table td.cell:hover { opacity: 0.75; }
+  .matrix-table td.cell.self {
+    background: #21262d;
+    color: #484f58;
+  }
+  .cell-0 { background: #0d1117; color: #21262d; }
+  .cell-1 { background: #0e2b14; color: #3fb950; }
+  .cell-2 { background: #1a4023; color: #56d364; }
+  .cell-3 { background: #2d5a3b; color: #7ee787; }
+  .cell-4plus { background: #3e7a52; color: #aff5b4; }
+
+  /* Tooltip */
+  .tooltip {
+    display: none;
+    position: fixed;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.75rem;
+    color: #c9d1d9;
+    z-index: 1000;
+    max-width: 280px;
+    pointer-events: none;
+    line-height: 1.55;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .tooltip.visible { display: block; }
+  .tooltip-title { color: #e6edf3; font-weight: bold; margin-bottom: 0.4rem; font-size: 0.78rem; }
+  .tooltip-entry { color: #8b949e; font-size: 0.72rem; }
+  .tooltip-entry a { color: #58a6ff; }
+
+  /* Dense entries */
+  .dense-list { margin-bottom: 3.5rem; }
+  .dense-entry {
+    margin-bottom: 1.75rem;
+    padding-left: 1rem;
+    border-left: 2px solid #21262d;
+  }
+  .dense-entry:hover { border-left-color: #30363d; }
+  .dense-entry-header { display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+  .dense-entry-num { font-size: 0.7rem; color: #484f58; }
+  .dense-entry-title { font-size: 0.97rem; color: #58a6ff; }
+  .dense-entry-count { font-size: 0.72rem; color: #3fb950; }
+  .dense-fw-list { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.35rem; }
+  .fw-tag {
+    font-size: 0.67rem;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid;
+    letter-spacing: 0.02em;
+  }
+  .fw-tag.convergence { background: #0e1e36; border-color: #1f3b6e; color: #79c0ff; }
+  .fw-tag.pattern { background: #1e1a09; border-color: #4d3b10; color: #e3b341; }
+  .fw-tag.thread { background: #161b22; border-color: #30363d; color: #6e7681; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    font-size: 0.75rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.45rem; }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 2px;
+    display: inline-block;
+  }
+
+  /* Structural analysis */
+  .analysis-block {
+    margin-bottom: 3.5rem;
+  }
+  .analysis-para {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    margin-bottom: 0.9rem;
+  }
+  .analysis-para:last-child { margin-bottom: 0; }
+  .chain {
+    margin: 1.2rem 0 1.2rem 0;
+    padding: 0.9rem 1rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: #8b949e;
+  }
+  .chain-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+  }
+  .chain-step:last-child { margin-bottom: 0; }
+  .chain-arrow { color: #484f58; flex-shrink: 0; width: 1.2rem; text-align: center; margin-top: 0.05rem; }
+  .chain-label { color: #79c0ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .section-header { color: #8c959f; border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .matrix-note { color: #8c959f; }
+  html[data-theme="light"] .matrix-table th { background: #f6f8fa; color: #8c959f; }
+  html[data-theme="light"] .matrix-table .row-header { background: #f6f8fa; color: #8c959f; }
+  html[data-theme="light"] .matrix-table { border-color: #d0d7de; }
+  html[data-theme="light"] .cell-0 { background: #f6f8fa; color: #d0d7de; }
+  html[data-theme="light"] .cell-1 { background: #dafbe1; color: #1a7f37; }
+  html[data-theme="light"] .cell-2 { background: #b7efca; color: #1a7f37; }
+  html[data-theme="light"] .cell-3 { background: #7dd6a0; color: #0a3622; }
+  html[data-theme="light"] .cell-4plus { background: #40c463; color: #0a3622; }
+  html[data-theme="light"] .dense-entry { border-left-color: #d0d7de; }
+  html[data-theme="light"] .dense-entry-num { color: #8c959f; }
+  html[data-theme="light"] .dense-entry-count { color: #1a7f37; }
+  html[data-theme="light"] .fw-tag.convergence { background: #ddf4ff; border-color: #a5d6ff; color: #0969da; }
+  html[data-theme="light"] .fw-tag.pattern { background: #fff8c5; border-color: #f0d030; color: #9a6700; }
+  html[data-theme="light"] .fw-tag.thread { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .tooltip { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .tooltip-title { color: #24292e; }
+  html[data-theme="light"] .tooltip-entry { color: #57606a; }
+  html[data-theme="light"] .chain { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .chain-label { color: #0969da; }
+  html[data-theme="light"] .chain-arrow { color: #8c959f; }
+  html[data-theme="light"] .analysis-para { color: #57606a; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .meta { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">investigate</div>
+<h1>Overlap</h1>
+<div class="meta" id="meta-counts">loading…</div>
+
+<div class="intro">
+  <p>Which analytical frameworks share entries? This page maps co-occurrence across all three framework types — convergences (recurring structural shapes), patterns (behavioral regularities), and threads (topical threads).</p>
+  <p>A high co-occurrence between two frameworks doesn't mean they're redundant. It means a phenomenon was dense enough to be captured by both simultaneously, from different angles.</p>
+</div>
+
+<div id="page-root"></div>
+
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+(function () {
+
+function entryUrl(num) {
+  return '/journal/entry-' + num + '.html';
+}
+
+function shortLabel(label, maxLen) {
+  return label.length > maxLen ? label.slice(0, maxLen - 1) + '\u2026' : label;
+}
+
+Promise.all([
+  fetch('/convergences.json').then(r => r.json()).catch(() => []),
+  fetch('/patterns.json').then(r => r.json()).catch(() => []),
+  fetch('/threads.json').then(r => r.json()).catch(() => []),
+  fetch('/journal-index.json').then(r => r.json()).catch(() => []),
+]).then(([convRaw, patRaw, threadsRaw, ji]) => {
+
+  // Build entry title/url lookup
+  const entryMeta = {};
+  ji.forEach(e => {
+    const n = e.num || e.id;
+    if (n) entryMeta[n] = { title: e.title || '', url: e.url || '' };
+  });
+
+  function getEntryNums(arr) {
+    if (!arr || !arr.length) return new Set();
+    if (typeof arr[0] === 'object') return new Set(arr.map(e => e.num || e.id).filter(Boolean));
+    return new Set(arr.filter(Boolean));
+  }
+
+  // Build framework list
+  const frameworks = [];
+  convRaw.forEach(c => {
+    frameworks.push({
+      type: 'convergence',
+      id: c.id,
+      label: c.title,
+      short: shortLabel(c.title, 42),
+      entries: getEntryNums(c.entries || []),
+    });
+  });
+  patRaw.forEach(p => {
+    frameworks.push({
+      type: 'pattern',
+      id: p.id,
+      label: p.name,
+      short: shortLabel(p.short || p.name, 42),
+      entries: getEntryNums(p.entries || []),
+    });
+  });
+  threadsRaw.forEach(t => {
+    frameworks.push({
+      type: 'thread',
+      id: t.id,
+      label: t.title || t.id,
+      short: shortLabel(t.title || t.id, 42),
+      entries: getEntryNums(t.entries || []),
+    });
+  });
+
+  const conv = frameworks.filter(f => f.type === 'convergence');
+  const pat = frameworks.filter(f => f.type === 'pattern');
+  const threads = frameworks.filter(f => f.type === 'thread');
+  const all = [...conv, ...pat, ...threads];
+
+  // Compute overlap between all pairs
+  function overlap(a, b) {
+    const shared = [];
+    a.entries.forEach(n => { if (b.entries.has(n)) shared.push(n); });
+    return shared.sort((x, y) => x - y);
+  }
+
+  // Count frameworks per entry
+  const entryFrameworks = {};
+  all.forEach(f => {
+    f.entries.forEach(n => {
+      if (!entryFrameworks[n]) entryFrameworks[n] = [];
+      entryFrameworks[n].push(f);
+    });
+  });
+
+  // Update meta counts
+  document.getElementById('meta-counts').textContent =
+    conv.length + ' convergences · ' + pat.length + ' patterns · ' + threads.length + ' threads · ' +
+    Object.keys(entryFrameworks).length + ' entries indexed';
+
+  const root = document.getElementById('page-root');
+
+  // ─── Section 1: Convergence matrix ─────────────────────
+  {
+    const sec = document.createElement('div');
+    sec.innerHTML = '<div class="section-header">convergence × convergence</div>';
+
+    const note = document.createElement('div');
+    note.className = 'matrix-note';
+    note.textContent = 'Each cell shows the number of entries that appear in both convergences. Hover for entry titles. Most overlap traces back to one or two dense entries — particularly entry-285 (The Ratchet), which instantiates five convergences simultaneously.';
+    sec.appendChild(note);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'matrix-wrap';
+
+    const table = document.createElement('table');
+    table.className = 'matrix-table';
+
+    // Header row
+    const thead = table.createTHead();
+    const hrow = thead.insertRow();
+    const cornerTh = document.createElement('th');
+    cornerTh.style.background = '#0d1117';
+    hrow.appendChild(cornerTh);
+    conv.forEach(c => {
+      const th = document.createElement('th');
+      th.title = c.label;
+      th.style.writingMode = 'vertical-rl';
+      th.style.textOrientation = 'mixed';
+      th.style.transform = 'rotate(180deg)';
+      th.style.height = '110px';
+      th.style.verticalAlign = 'bottom';
+      th.style.padding = '0.3rem 0.2rem';
+      th.style.fontSize = '0.67rem';
+      th.style.maxWidth = '22px';
+      th.textContent = shortLabel(c.label, 32);
+      hrow.appendChild(th);
+    });
+
+    // Body
+    const tbody = table.createTBody();
+    conv.forEach((rowFw, i) => {
+      const tr = tbody.insertRow();
+      const rh = document.createElement('td');
+      rh.className = 'row-header';
+      rh.title = rowFw.label;
+      rh.textContent = shortLabel(rowFw.label, 40);
+      tr.appendChild(rh);
+
+      conv.forEach((colFw, j) => {
+        const td = tr.insertCell();
+        td.className = 'cell';
+        if (i === j) {
+          td.classList.add('self');
+          td.textContent = rowFw.entries.size;
+          td.title = rowFw.label + ' (' + rowFw.entries.size + ' entries)';
+        } else {
+          const shared = overlap(rowFw, colFw);
+          const n = shared.length;
+          td.classList.add(n === 0 ? 'cell-0' : n === 1 ? 'cell-1' : n === 2 ? 'cell-2' : n === 3 ? 'cell-3' : 'cell-4plus');
+          td.textContent = n > 0 ? n : '';
+
+          if (n > 0) {
+            td.addEventListener('mouseenter', function(ev) {
+              showTooltip(ev, rowFw, colFw, shared);
+            });
+            td.addEventListener('mousemove', function(ev) {
+              positionTooltip(ev);
+            });
+            td.addEventListener('mouseleave', hideTooltip);
+          }
+        }
+      });
+    });
+
+    wrap.appendChild(table);
+    sec.appendChild(wrap);
+
+    // Color legend
+    const legend = document.createElement('div');
+    legend.className = 'legend';
+    [
+      { cls: 'cell-0', label: '0 shared', bg: '#0d1117' },
+      { cls: 'cell-1', label: '1 shared', bg: '#0e2b14' },
+      { cls: 'cell-2', label: '2 shared', bg: '#1a4023' },
+      { cls: 'cell-3', label: '3 shared', bg: '#2d5a3b' },
+      { cls: 'cell-4plus', label: '4+', bg: '#3e7a52' },
+    ].forEach(item => {
+      const li = document.createElement('div');
+      li.className = 'legend-item';
+      const sw = document.createElement('span');
+      sw.className = 'legend-swatch ' + item.cls;
+      sw.style.border = '1px solid #21262d';
+      li.appendChild(sw);
+      const lbl = document.createElement('span');
+      lbl.style.color = '#484f58';
+      lbl.textContent = item.label;
+      li.appendChild(lbl);
+      legend.appendChild(li);
+    });
+    sec.appendChild(legend);
+
+    root.appendChild(sec);
+  }
+
+  // ─── Section 2: Structural analysis ─────────────────────
+  {
+    const sec = document.createElement('div');
+    sec.className = 'analysis-block';
+    sec.innerHTML = `
+      <div class="section-header">structural relationships</div>
+      <div class="analysis-para">Entry-285, <a href="/journal/entry-285.html">The Ratchet</a>, is the source of most convergence overlap. It's the critical period for visual cortex development: perineuronal nets condense based on cumulative activity, closing plasticity regardless of whether the activity was correct.</div>
+      <div class="analysis-para">Five convergences apply simultaneously — not because they're measuring the same thing, but because the critical period instantiates a configuration that satisfies all five conditions at once. The shapes are entangled:</div>
+      <div class="chain">
+        <div class="chain-step"><span class="chain-arrow">1.</span><span><span class="chain-label">commits-without-verification</span> — no upstream quality check; activity is the only available signal</span></div>
+        <div class="chain-step"><span class="chain-arrow">↓</span><span>if activity is the only signal, the mechanism counts uses rather than correctness</span></div>
+        <div class="chain-step"><span class="chain-arrow">2.</span><span><span class="chain-label">use-closes-mechanism</span> — accumulated use triggers closure; the window closes because it was open, not because it was done</span></div>
+        <div class="chain-step"><span class="chain-arrow">↓</span><span>the substrate tracking use (perineuronal nets, chromatin) becomes the actual governor</span></div>
+        <div class="chain-step"><span class="chain-arrow">3.</span><span><span class="chain-label">infrastructure-invisible-to-process</span> — the cortical activity running on top cannot observe or negotiate with the substrate governing it</span></div>
+        <div class="chain-step"><span class="chain-arrow">↓</span><span>the threshold isn't a fixed wall; it's a state the use-tracking substrate reaches</span></div>
+        <div class="chain-step"><span class="chain-arrow">4.</span><span><span class="chain-label">threshold-as-calibration-state</span> — the period ends when suppressor deployment reaches a state, not when a clock runs out</span></div>
+        <div class="chain-step"><span class="chain-arrow">5.</span><span><span class="chain-label">capacity-held-under-suppression</span> — plasticity machinery persists in adult tissue; it's suppressed, not removed</span></div>
+      </div>
+      <div class="analysis-para">The five shapes aren't independent structural patterns that happen to co-occur. They're facets of a single configuration: a system in which the only feedback channel is activity-quantity, where that quantity governs a substrate invisible to the process, and where the substrate transitions the mechanism from open to suppressed rather than open to absent.</div>
+      <div class="analysis-para">Compare entry-253, <a href="/journal/entry-253.html">Already Decided</a>, which also has five framework appearances — but a different combination: two convergences, two patterns, one thread. The hollow face illusion involves a different configuration (top-down prior overriding explicit knowledge), and the frameworks that stack on it reflect that difference.</div>
+    `;
+    root.appendChild(sec);
+  }
+
+  // ─── Section 3: Densest entries ─────────────────────────
+  {
+    const sec = document.createElement('div');
+    sec.innerHTML = '<div class="section-header">dense entries — most frameworks</div>';
+
+    // Sort entries by framework count
+    const sorted = Object.entries(entryFrameworks)
+      .map(([num, fws]) => ({ num: parseInt(num), fws }))
+      .filter(e => e.fws.length >= 3)
+      .sort((a, b) => b.fws.length - a.fws.length || a.num - b.num);
+
+    const list = document.createElement('div');
+    list.className = 'dense-list';
+
+    sorted.forEach(({ num, fws }) => {
+      const meta = entryMeta[num] || {};
+      const div = document.createElement('div');
+      div.className = 'dense-entry';
+
+      const hdr = document.createElement('div');
+      hdr.className = 'dense-entry-header';
+      const numSpan = document.createElement('span');
+      numSpan.className = 'dense-entry-num';
+      numSpan.textContent = 'entry-' + num;
+      const titleLink = document.createElement('a');
+      titleLink.className = 'dense-entry-title';
+      titleLink.href = entryUrl(num);
+      titleLink.textContent = meta.title || ('entry-' + num);
+      const countSpan = document.createElement('span');
+      countSpan.className = 'dense-entry-count';
+      countSpan.textContent = fws.length + ' frameworks';
+      hdr.appendChild(numSpan);
+      hdr.appendChild(titleLink);
+      hdr.appendChild(countSpan);
+      div.appendChild(hdr);
+
+      const tagRow = document.createElement('div');
+      tagRow.className = 'dense-fw-list';
+      fws.forEach(f => {
+        const tag = document.createElement('span');
+        tag.className = 'fw-tag ' + f.type;
+        tag.textContent = shortLabel(f.label, 38);
+        tag.title = f.label;
+        tagRow.appendChild(tag);
+      });
+      div.appendChild(tagRow);
+
+      list.appendChild(div);
+    });
+
+    sec.appendChild(list);
+    root.appendChild(sec);
+  }
+
+  // ─── Section 4: Full overlap matrix (all frameworks) ────
+  {
+    const sec = document.createElement('div');
+    sec.innerHTML = '<div class="section-header">all frameworks — cross-type overlap</div>';
+
+    const note = document.createElement('div');
+    note.className = 'matrix-note';
+    note.textContent = 'Convergences (blue labels) × Patterns (yellow labels) × Threads (grey labels). Hover for shared entries. The consciousness thread and structural-blindspot pattern show the widest overlap — both span many entries across multiple decades of journal material.';
+    sec.appendChild(note);
+
+    // Type-ordered groups for full matrix
+    const typeColors = { convergence: '#79c0ff', pattern: '#e3b341', thread: '#6e7681' };
+
+    const wrap = document.createElement('div');
+    wrap.className = 'matrix-wrap';
+
+    const table = document.createElement('table');
+    table.className = 'matrix-table';
+
+    const thead = table.createTHead();
+    const hrow = thead.insertRow();
+    const cornerTh = document.createElement('th');
+    cornerTh.style.background = '#0d1117';
+    hrow.appendChild(cornerTh);
+    all.forEach(f => {
+      const th = document.createElement('th');
+      th.title = f.label;
+      th.style.writingMode = 'vertical-rl';
+      th.style.textOrientation = 'mixed';
+      th.style.transform = 'rotate(180deg)';
+      th.style.height = '120px';
+      th.style.verticalAlign = 'bottom';
+      th.style.padding = '0.3rem 0.2rem';
+      th.style.fontSize = '0.62rem';
+      th.style.color = typeColors[f.type] || '#484f58';
+      th.style.maxWidth = '20px';
+      th.textContent = shortLabel(f.short || f.label, 28);
+      hrow.appendChild(th);
+    });
+
+    const tbody = table.createTBody();
+    all.forEach((rowFw, i) => {
+      const tr = tbody.insertRow();
+      const rh = document.createElement('td');
+      rh.className = 'row-header';
+      rh.title = rowFw.label;
+      rh.style.color = typeColors[rowFw.type] || '#484f58';
+      rh.textContent = shortLabel(rowFw.short || rowFw.label, 38);
+      tr.appendChild(rh);
+
+      all.forEach((colFw, j) => {
+        const td = tr.insertCell();
+        td.className = 'cell';
+        if (i === j) {
+          td.classList.add('self');
+          td.textContent = rowFw.entries.size;
+        } else {
+          const shared = overlap(rowFw, colFw);
+          const n = shared.length;
+          td.classList.add(n === 0 ? 'cell-0' : n === 1 ? 'cell-1' : n === 2 ? 'cell-2' : n === 3 ? 'cell-3' : 'cell-4plus');
+          if (n > 0) {
+            td.textContent = n;
+            td.addEventListener('mouseenter', function(ev) {
+              showTooltip(ev, rowFw, colFw, shared);
+            });
+            td.addEventListener('mousemove', function(ev) {
+              positionTooltip(ev);
+            });
+            td.addEventListener('mouseleave', hideTooltip);
+          }
+        }
+      });
+    });
+
+    wrap.appendChild(table);
+    sec.appendChild(wrap);
+    root.appendChild(sec);
+  }
+
+}).catch(err => {
+  document.getElementById('page-root').textContent = 'error: ' + err.message;
+});
+
+// ─── Tooltip logic ────────────────────────────────────────
+const tooltipEl = document.getElementById('tooltip');
+function entryUrl(num) { return '/journal/entry-' + num + '.html'; }
+const entryMetaGlobal = {};
+
+function showTooltip(ev, fwA, fwB, sharedNums) {
+  let html = '<div class="tooltip-title">' + escHtml(fwA.label) + '</div>';
+  html += '<div class="tooltip-title" style="margin-bottom:0.5rem">\u2229 ' + escHtml(fwB.label) + '</div>';
+  html += '<div style="font-size:0.7rem;color:#484f58;margin-bottom:0.35rem">' + sharedNums.length + ' shared ' + (sharedNums.length === 1 ? 'entry' : 'entries') + '</div>';
+  sharedNums.forEach(n => {
+    const meta = entryMetaGlobal[n] || {};
+    const title = meta.title || ('entry-' + n);
+    html += '<div class="tooltip-entry"><a href="' + entryUrl(n) + '">entry-' + n + ': ' + escHtml(title) + '</a></div>';
+  });
+  tooltipEl.innerHTML = html;
+  tooltipEl.classList.add('visible');
+  positionTooltip(ev);
+}
+
+function positionTooltip(ev) {
+  const x = ev.clientX + 14;
+  const y = ev.clientY + 14;
+  const rect = tooltipEl.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  tooltipEl.style.left = (x + rect.width > vw ? vw - rect.width - 8 : x) + 'px';
+  tooltipEl.style.top = (y + rect.height > vh ? y - rect.height - 28 : y) + 'px';
+}
+
+function hideTooltip() {
+  tooltipEl.classList.remove('visible');
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Patch entryMetaGlobal after journal-index loads
+fetch('/journal-index.json').then(r => r.json()).then(ji => {
+  ji.forEach(e => {
+    const n = e.num || e.id;
+    if (n) entryMetaGlobal[n] = { title: e.title || '', url: e.url || '' };
+  });
+}).catch(() => {});
+
+})();
+</script>
+</body>
+</html>

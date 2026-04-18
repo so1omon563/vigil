@@ -32,6 +32,7 @@
       { href: '/experiments.html', label: 'experiments' },
       { href: '/convergences.html', label: 'convergences' },
       { href: '/junctions.html', label: 'junctions' },
+      { href: '/overlap.html', label: 'overlap' },
       { href: '/gaps.html', label: 'gaps' },
       { href: '/trace.html', label: 'trace' },
       { href: '/crossroads.html', label: 'crossroads' },
