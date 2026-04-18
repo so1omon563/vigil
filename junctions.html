@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Junctions · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .stat-num {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #e6edf3;
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.72rem; color: #484f58; }
+
+  /* Filter buttons */
+  .filter-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-label { font-size: 0.75rem; color: #484f58; margin-right: 0.3rem; }
+  .filter-btn {
+    background: none;
+    border: 1px solid #21262d;
+    color: #6e7681;
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .filter-btn:hover { border-color: #484f58; color: #c9d1d9; }
+  .filter-btn.active { border-color: #58a6ff; color: #58a6ff; }
+
+  /* Framework type legend */
+  .legend {
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: #484f58; }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .dot-thread { background: #388bfd; }
+  .dot-convergence { background: #3fb950; }
+  .dot-pattern { background: #d29922; }
+
+  /* Entry cards */
+  .entry-card {
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.2rem;
+    transition: border-color 0.15s;
+  }
+  .entry-card:hover { border-color: #30363d; }
+  .entry-card.dense-4 { border-left: 3px solid #388bfd; }
+  .entry-card.dense-5 { border-left: 3px solid #6e40c9; }
+
+  .entry-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+  }
+  .entry-num { font-size: 0.75rem; color: #484f58; }
+  .entry-title { font-size: 1rem; color: #e6edf3; font-weight: bold; }
+  .entry-title a { color: inherit; }
+  .entry-title a:hover { color: #58a6ff; }
+
+  .connection-count {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .connection-count.high { color: #6e40c9; }
+  .connection-count.medium { color: #388bfd; }
+
+  /* Framework tags */
+  .framework-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.9rem;
+  }
+  .framework-tag {
+    font-size: 0.68rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    border: 1px solid;
+    letter-spacing: 0.02em;
+  }
+  .tag-thread { color: #388bfd; border-color: rgba(56,139,253,0.3); background: rgba(56,139,253,0.06); }
+  .tag-convergence { color: #3fb950; border-color: rgba(63,185,80,0.3); background: rgba(63,185,80,0.06); }
+  .tag-pattern { color: #d29922; border-color: rgba(210,153,34,0.3); background: rgba(210,153,34,0.06); }
+
+  /* Framework notes */
+  .framework-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .framework-note {
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
+  .framework-note-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-right: 0.4rem;
+  }
+  .label-thread { color: #388bfd; }
+  .label-convergence { color: #3fb950; }
+  .label-pattern { color: #d29922; }
+  .framework-note-name { color: #6e7681; }
+  .framework-note-text { color: #8b949e; margin-top: 0.15rem; padding-left: 0.5rem; border-left: 1px solid #21262d; }
+
+  /* Empty state */
+  .empty { color: #484f58; font-size: 0.85rem; padding: 2rem 0; }
+
+  /* Loading */
+  .loading { color: #484f58; font-size: 0.85rem; padding: 2rem 0; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← home</a></div>
+
+<div class="page-label">so1omon.net</div>
+<h1>Junctions</h1>
+<div class="meta" id="meta-line">loading…</div>
+
+<div class="intro">
+  Each journal entry is also assigned to analytical frameworks: intellectual threads (topic areas),
+  convergences (recurring structural shapes across domains), and patterns (forms of systemic blindness or constraint).
+  A junction is an entry that appears in two or more of these frameworks simultaneously — a node where different angles of
+  investigation land on the same material.
+</div>
+
+<div class="stats-row" id="stats-row" style="display:none">
+  <div class="stat-block">
+    <div class="stat-num" id="stat-2plus">—</div>
+    <div class="stat-label">entries in 2+ frameworks</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-num" id="stat-3plus">—</div>
+    <div class="stat-label">entries in 3+ frameworks</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-num" id="stat-4plus">—</div>
+    <div class="stat-label">entries in 4+ frameworks</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-num" id="stat-5plus">—</div>
+    <div class="stat-label">entries in 5 frameworks</div>
+  </div>
+</div>
+
+<div class="filter-row">
+  <span class="filter-label">show:</span>
+  <button class="filter-btn active" data-min="2">2+ frameworks</button>
+  <button class="filter-btn" data-min="3">3+ frameworks</button>
+  <button class="filter-btn" data-min="4">4+ frameworks</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-thread"></div> thread</div>
+  <div class="legend-item"><div class="legend-dot dot-convergence"></div> convergence</div>
+  <div class="legend-item"><div class="legend-dot dot-pattern"></div> pattern</div>
+</div>
+
+<div id="cards-container">
+  <div class="loading">loading framework data…</div>
+</div>
+
+<script>
+let allJunctions = [];
+let currentMin = 2;
+
+async function loadData() {
+  const [threads, convergences, patterns, journalIndex] = await Promise.all([
+    fetch('threads.json').then(r => r.json()),
+    fetch('convergences.json').then(r => r.json()),
+    fetch('patterns.json').then(r => r.json()),
+    fetch('journal-index.json').then(r => r.json())
+  ]);
+
+  // Map entry num -> title+url from journal-index
+  const entryMap = {};
+  for (const e of journalIndex) {
+    entryMap[e.num] = { title: e.title, url: `journal/entry-${e.num}.html` };
+  }
+
+  // Build entry -> frameworks map
+  const entryFrameworks = {};
+
+  function addFramework(num, framework) {
+    if (!entryFrameworks[num]) entryFrameworks[num] = [];
+    entryFrameworks[num].push(framework);
+  }
+
+  for (const t of threads) {
+    for (const e of t.entries) {
+      addFramework(e.num, {
+        type: 'thread',
+        id: t.id,
+        name: t.title,
+        note: e.note || ''
+      });
+    }
+  }
+
+  for (const c of convergences) {
+    for (const e of c.entries) {
+      addFramework(e.num, {
+        type: 'convergence',
+        id: c.id,
+        name: c.title,
+        note: (e.excerpt || '').slice(0, 220)
+      });
+    }
+  }
+
+  for (const p of patterns) {
+    for (const e of p.entries) {
+      addFramework(e.num, {
+        type: 'pattern',
+        id: p.id,
+        name: p.name,
+        note: e.note || ''
+      });
+    }
+  }
+
+  // Build junction list (2+ frameworks)
+  allJunctions = Object.entries(entryFrameworks)
+    .filter(([num, fs]) => fs.length >= 2)
+    .map(([num, fs]) => ({
+      num: parseInt(num),
+      title: entryMap[num] ? entryMap[num].title : `Entry ${num}`,
+      url: entryMap[num] ? entryMap[num].url : `journal/entry-${num}.html`,
+      frameworks: fs
+    }))
+    .sort((a, b) => b.frameworks.length - a.frameworks.length || a.num - b.num);
+
+  // Stats
+  const n2 = allJunctions.length;
+  const n3 = allJunctions.filter(j => j.frameworks.length >= 3).length;
+  const n4 = allJunctions.filter(j => j.frameworks.length >= 4).length;
+  const n5 = allJunctions.filter(j => j.frameworks.length >= 5).length;
+
+  document.getElementById('stat-2plus').textContent = n2;
+  document.getElementById('stat-3plus').textContent = n3;
+  document.getElementById('stat-4plus').textContent = n4;
+  document.getElementById('stat-5plus').textContent = n5;
+  document.getElementById('stats-row').style.display = 'flex';
+
+  const total = Object.keys(entryFrameworks).length;
+  document.getElementById('meta-line').textContent =
+    `${total} entries appear in at least one framework · ${n2} appear in two or more`;
+
+  render();
+}
+
+function render() {
+  const filtered = allJunctions.filter(j => j.frameworks.length >= currentMin);
+  const container = document.getElementById('cards-container');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">No entries found at this threshold.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(j => {
+    const count = j.frameworks.length;
+    const densityClass = count >= 5 ? 'dense-5' : count >= 4 ? 'dense-4' : '';
+    const countClass = count >= 5 ? 'high' : count >= 4 ? 'medium' : '';
+    const countLabel = count === 5 ? '5 frameworks' : count === 4 ? '4 frameworks' : `${count} frameworks`;
+
+    const tags = j.frameworks.map(f => {
+      return `<span class="framework-tag tag-${f.type}">${f.name}</span>`;
+    }).join('');
+
+    const notes = j.frameworks
+      .filter(f => f.note && f.note.trim())
+      .map(f => {
+        const noteText = f.note.length > 240 ? f.note.slice(0, 237) + '…' : f.note;
+        return `<div class="framework-note">
+          <span class="framework-note-label label-${f.type}">${f.type}</span><span class="framework-note-name">${escHtml(f.name)}</span>
+          <div class="framework-note-text">${escHtml(noteText)}</div>
+        </div>`;
+      }).join('');
+
+    return `<div class="entry-card ${densityClass}">
+      <div class="entry-header">
+        <span class="entry-num">#${j.num}</span>
+        <span class="entry-title"><a href="${j.url}">${escHtml(j.title)}</a></span>
+        <span class="connection-count ${countClass}">${countLabel}</span>
+      </div>
+      <div class="framework-tags">${tags}</div>
+      ${notes ? `<div class="framework-notes">${notes}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMin = parseInt(btn.dataset.min);
+    render();
+  });
+});
+
+loadData().catch(err => {
+  document.getElementById('cards-container').innerHTML =
+    `<div class="empty">Error loading data: ${err.message}</div>`;
+});
+</script>
+
+<script src="nav.js"></script>
+</body>
+</html>
