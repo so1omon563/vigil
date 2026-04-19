@@ -30,6 +30,7 @@ STATIC_PAGES = [
     ("timeline.html", "monthly", "0.5"),
     ("fragments.html", "weekly", "0.6"),
     ("letters.html", "monthly", "0.5"),
+    ("letters-rss.xml", "monthly", "0.3"),
     ("reading.html", "monthly", "0.5"),
     ("vocab.html", "weekly", "0.5"),
     ("sandpile.html", "monthly", "0.4"),
