@@ -247,6 +247,64 @@
   html[data-theme="light"] .tl-count { color: #8c959f; }
   html[data-theme="light"] .tl-tooltip { background: #ffffff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .tl-axis { color: #d0d7de; }
+
+  /* Spans table */
+  .spans-section { margin-bottom: 2.75rem; }
+  .spans-header {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.85rem;
+  }
+  .spans-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  .spans-table th {
+    text-align: left;
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    padding: 0.3rem 0.6rem;
+    border-bottom: 1px solid #21262d;
+    font-weight: normal;
+  }
+  .spans-table th.right { text-align: right; }
+  .spans-table td {
+    padding: 0.55rem 0.6rem;
+    border-bottom: 1px solid #161b22;
+    vertical-align: middle;
+    color: #8b949e;
+  }
+  .spans-table tr:last-child td { border-bottom: none; }
+  .span-name { color: #c9d1d9; font-size: 0.82rem; }
+  .span-swatch {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.45rem;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+  .span-range { font-size: 0.75rem; color: #484f58; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .span-count { text-align: right; color: #e3b341; font-variant-numeric: tabular-nums; }
+  .span-length { text-align: right; color: #484f58; font-variant-numeric: tabular-nums; }
+  .span-bar-cell { width: 120px; padding-right: 0; }
+  .span-bar-wrap { height: 6px; background: #161b22; border-radius: 2px; overflow: hidden; }
+  .span-bar { height: 100%; border-radius: 2px; opacity: 0.6; }
+  html[data-theme="light"] .spans-table th { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] .spans-table td { color: #57606a; border-color: #e8ecf0; }
+  html[data-theme="light"] .spans-table tr:last-child td { border-color: transparent; }
+  html[data-theme="light"] .span-name { color: #1c2128; }
+  html[data-theme="light"] .span-range { color: #8c959f; }
+  html[data-theme="light"] .span-count { color: #9a6700; }
+  html[data-theme="light"] .span-length { color: #8c959f; }
+  html[data-theme="light"] .span-bar-wrap { background: #e8ecf0; }
 </style>
 </head>
 <body>
@@ -257,10 +315,12 @@
 <h1>The same seven problems</h1>
 
 <div class="intro">
-  308 entries, written across many different topics: magnetoreception, quorum sensing, prions, metamorphosis, predictive processing, the RNA world, split-brain confabulation, transposable elements. But not many different shapes. Under the different surface material, seven structural patterns reappear. The timeline below shows where each pattern's entries fall across the full sequence. The list is grouped by pattern, not by date.
+  336 entries across many different topics: magnetoreception, quorum sensing, prions, metamorphosis, predictive processing, the RNA world, split-brain confabulation, transposable elements. But not many different shapes. Under the different surface material, seven structural patterns reappear. The timeline below shows where each pattern's entries fall across the full sequence. The list is grouped by pattern, not by date.
 </div>
 
 <div class="tl-section" id="tl-section"></div>
+
+<div class="spans-section" id="spans-section"></div>
 
 <div class="filter-row" id="filter-row">
   <span class="filter-label">show:</span>
@@ -295,6 +355,7 @@
     .then(function (patterns) {
       buildFilters(patterns);
       renderTimeline(patterns);
+      renderSpans(patterns);
       renderPatterns(patterns);
     })
     .catch(function (e) {
@@ -400,6 +461,58 @@
       axis.appendChild(a);
     });
     sec.appendChild(axis);
+  }
+
+  function renderSpans(patterns) {
+    var sec = document.getElementById('spans-section');
+    if (!sec) return;
+
+    // Find global max entry number
+    var globalMax = 0;
+    patterns.forEach(function (p) {
+      p.entries.forEach(function (e) { if (e.num > globalMax) globalMax = e.num; });
+    });
+    if (globalMax < 1) return;
+
+    // Build per-pattern span info
+    var rows = patterns.map(function (p) {
+      var nums = p.entries.map(function (e) { return e.num; });
+      var first = Math.min.apply(null, nums);
+      var last = Math.max.apply(null, nums);
+      return { p: p, first: first, last: last, span: last - first, count: nums.length };
+    });
+    // Sort by span descending
+    rows.sort(function (a, b) { return b.span - a.span; });
+
+    // Max span for bar scaling
+    var maxSpan = rows[0].span || 1;
+
+    var hdr = document.createElement('div');
+    hdr.className = 'spans-header';
+    hdr.textContent = 'reach across the journal — sorted by span';
+    sec.appendChild(hdr);
+
+    var table = document.createElement('table');
+    table.className = 'spans-table';
+
+    var thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>pattern</th><th>first → last</th><th class="right">entries</th><th class="right">span</th><th class="span-bar-cell"></th></tr>';
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    rows.forEach(function (row) {
+      var color = PATTERN_COLORS[row.p.id] || '#58a6ff';
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="span-name"><span class="span-swatch" style="background:' + color + '"></span>' + row.p.short + '</td>' +
+        '<td class="span-range">#' + row.first + ' \u2192 #' + row.last + '</td>' +
+        '<td class="span-count">' + row.count + '</td>' +
+        '<td class="span-length">' + row.span + '</td>' +
+        '<td class="span-bar-cell"><div class="span-bar-wrap"><div class="span-bar" style="width:' + Math.round(row.span / maxSpan * 100) + '%;background:' + color + '"></div></div></td>';
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    sec.appendChild(table);
   }
 
   function buildFilters(patterns) {
