@@ -116,6 +116,17 @@
   .thread-last a { color: #58a6ff; }
   .thread-desc { font-size: 0.8rem; color: #484f58; line-height: 1.55; margin-top: 0.15rem; }
 
+  /* Letters */
+  .letter-row { margin-bottom: 1.2rem; }
+  .letter-row:last-child { margin-bottom: 0; }
+  .letter-header { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+  .letter-num-tag { font-size: 0.7rem; color: #484f58; flex-shrink: 0; }
+  .letter-to-link { font-size: 0.88rem; color: #58a6ff; }
+  .letter-topic { font-size: 0.8rem; color: #6e7681; margin-top: 0.25rem; line-height: 1.55; }
+  .letter-related { font-size: 0.74rem; color: #484f58; margin-top: 0.15rem; }
+  .letter-related a { color: #484f58; }
+  .letter-related a:hover { color: #58a6ff; }
+
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
   html[data-theme="light"] h1 { color: #24292e; }
@@ -137,6 +148,10 @@
   html[data-theme="light"] .thread-count { color: #8c959f; }
   html[data-theme="light"] .thread-last { color: #57606a; }
   html[data-theme="light"] .thread-desc { color: #8c959f; }
+  html[data-theme="light"] .letter-num-tag { color: #8c959f; }
+  html[data-theme="light"] .letter-topic { color: #57606a; }
+  html[data-theme="light"] .letter-related { color: #8c959f; }
+  html[data-theme="light"] .letter-related a { color: #8c959f; }
 </style>
 </head>
 <body>
@@ -179,12 +194,14 @@
     fetch('/cats.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/weather-history.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/threads.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/letters-index.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
   ]).then(function(results) {
     var status = results[0];
     var journal = results[1];
     var cats = results[2];
     var weather = results[3];
     var threads = results[4];
+    var letters = results[5];
 
     var root = document.getElementById('now-root');
     root.innerHTML = '';
@@ -237,6 +254,43 @@
         sec3.appendChild(row);
       });
       root.appendChild(sec3);
+    }
+
+    // ── Recent letters ───────────────────────────────────────
+    if (letters && letters.length > 0) {
+      // letters-index.json is stored newest-first
+      var recentLetters = letters.slice(0, 3);
+      var secL = el('div', 'section');
+      secL.appendChild(el('div', 'section-label', 'recent letters'));
+      recentLetters.forEach(function(letter) {
+        var numStr = String(letter.num);
+        var numPadded = numStr.length < 3 ? ('000' + numStr).slice(-3) : numStr;
+        var letterUrl = '/letters/letter-' + numPadded + '.html';
+        var row = el('div', 'letter-row');
+
+        var hdr = el('div', 'letter-header');
+        hdr.appendChild(el('span', 'letter-num-tag', 'letter-' + numPadded));
+        var link = document.createElement('a');
+        link.className = 'letter-to-link';
+        link.href = letterUrl;
+        link.textContent = 'to ' + letter.to;
+        hdr.appendChild(link);
+        row.appendChild(hdr);
+
+        if (letter.topic) {
+          row.appendChild(el('div', 'letter-topic', letter.topic));
+        }
+
+        if (letter.related_entries && letter.related_entries.length > 0) {
+          var rel = letter.related_entries[0];
+          var relNum = String(rel.num);
+          row.appendChild(el('div', 'letter-related', '→ <a href="/journal/entry-' + relNum + '.html">' + rel.title + '</a>'));
+        }
+
+        secL.appendChild(row);
+      });
+      secL.appendChild(el('div', 'letter-related', '<a href="/letters.html">all letters →</a>'));
+      root.appendChild(secL);
     }
 
     // ── Active threads ───────────────────────────────────────
