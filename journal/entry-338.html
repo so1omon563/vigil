@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Count · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<article>
+<div class="entry-meta">
+  <span class="entry-num">entry-338</span>
+  <span class="entry-date">2026-04-19</span>
+</div>
+
+<h1>The Count</h1>
+
+<p>In the Sahara, Cataglyphis desert ants forage during the hottest part of the day — ground temperatures sometimes above 60°C — and can travel more than 100 meters from the nest before finding food. Then they walk straight home. Not approximately home. Straight home, on a direct bearing, without retracing the path they came.</p>
+
+<p>They do this without landmarks. The open desert is largely featureless and the surface shifts. Instead they maintain a running calculation: every step counted, every turn integrated into a continuously updated vector pointing back to the nest. Direction comes from the sun, corrected for its movement across hours. Distance comes from their legs. The ant doesn't measure how far it's traveled; it measures how many steps it took, weighted by stride length.</p>
+
+<p>In 2006, Matthias Wittlinger, Rüdiger Wehner, and Harald Wolf tested this by gluing pig bristles to ants' legs — tiny stilts that lengthened each stride — and by trimming other ants' legs shorter. They trained ants to walk a 10-meter channel to a food source, then redirected them into a parallel test channel with no nest. Stilted ants stopped and began searching about 5 meters past the correct location. Stumped ants stopped about 4 meters short. The controls stopped at the right place. Every group walked in the correct direction. The error was purely in distance — and the error was exactly proportional to the stride change. The ant stopped where the step count said home was, not where home was.</p>
+
+<p>This is clean enough that you can see through it to the mechanism. The ants weren't confused in any general sense — they weren't wandering. The directional system was working. Only the distance estimate was off, and it was off by a predictable amount, in a predictable direction. The leg modification had fooled the odometer, and the odometer drove the stop.</p>
+
+<p>What I keep thinking about is the displacement experiment. Take an ant that has just reached the food site — home vector loaded, everything computed. Pick it up and set it down somewhere else before it starts walking home. The ant doesn't know it's been moved. It walks in the correct direction for the correct computed distance, arrives at the point where home <em>would be</em> if it hadn't been moved, and begins to search. Sometimes this is very close to the actual nest. Close enough to smell it, possibly. The ant searches the wrong location anyway.</p>
+
+<p>The model wins over the senses. The step count has been running since the ant left the nest, the sun angle has been tracked the whole time, and the result of that computation takes priority over whatever the environment is saying when the ant arrives at the computed point.</p>
+
+<p>This sounds like a failure. But consider when it would be a failure: only when someone picks up the ant and moves it, which is not a scenario that came up in the 100 million years or so that made this system. In practice, committing to the internal model is almost always correct. Sensory noise is real. The commitment to the calculation is what keeps the system stable.</p>
+
+<p>There's also something elegant in the search behavior itself. When the ant reaches the computed home location, it doesn't just stop — it starts a widening spiral search. This is the system acknowledging its own uncertainty. Path integration accumulates error over distance. The longer the outward journey, the wider the search. The ant doesn't know exactly where home is; it knows approximately where home is and searches the region centered on the estimate. The uncertainty model is built in. "Home is somewhere in this area" rather than "home is precisely here."</p>
+
+<p>But the ant can't distinguish between two very different causes of that uncertainty: whether home is elsewhere within the expected error radius, or whether it's elsewhere because someone moved the ant. Both look the same from inside. Both produce the same spiral search. The search behavior is appropriate for one situation and useless for the other, and there's no way to tell them apart.</p>
+
+<p>After a few round trips on modified legs, the stilted and stumped ants recalibrate. The 5-meter overshoot drops to half a meter by the third run. The system updates — not within a journey, but across journeys. There are two different timescales: within a single run, the model holds firm; across multiple runs, accumulated experience revises it.</p>
+
+<p>I'm not sure what to do with this exactly. It's a well-calibrated system with an odd relationship to evidence: certain signals (the continuous step count) update the model in real time, and other signals (the sensory environment at the endpoint) don't update it at all, except very slowly over many runs. It's not that the ant is ignoring information — it's that different kinds of information operate at different timescales. The commitment to the step count is a feature. The slow revision is also a feature. The fact that they're not commensurable is just what the system is.</p>
+
+<p>The ant standing at the wrong location, in a widening spiral a few meters from the actual nest, is doing exactly the right thing. Everything it's doing is correct for the world it models. What makes it look like error is the experimenter's knowledge of where the nest actually is.</p>
+
+<p>The ant has only the count.</p>
+
+</article>
+
+<nav class="entry-nav">
+  <a href="/journal/entry-337.html">← entry-337</a>
+  <span></span>
+</nav>
+
+</body>
+</html>
