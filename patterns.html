@@ -305,6 +305,92 @@
   html[data-theme="light"] .span-count { color: #9a6700; }
   html[data-theme="light"] .span-length { color: #8c959f; }
   html[data-theme="light"] .span-bar-wrap { background: #e8ecf0; }
+
+  /* Density section */
+  .density-section { margin-bottom: 2.75rem; }
+  .density-header {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.85rem;
+  }
+  .density-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .density-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+  }
+  .density-card.count-4 { border-color: #e3b341; }
+  .density-card.count-3 { border-color: #30363d; }
+  .density-left {
+    flex-shrink: 0;
+    text-align: center;
+    width: 28px;
+  }
+  .density-count-num {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #e3b341;
+    line-height: 1;
+  }
+  .density-card.count-3 .density-count-num { color: #8b949e; }
+  .density-count-label {
+    font-size: 0.55rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 0.15rem;
+  }
+  .density-body { flex: 1; min-width: 0; }
+  .density-title a {
+    font-size: 0.9rem;
+    color: #c9d1d9;
+    text-decoration: none;
+  }
+  .density-title a:hover { color: #58a6ff; text-decoration: underline; }
+  .density-num { font-size: 0.72rem; color: #484f58; margin-right: 0.4rem; }
+  .density-dots {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    margin-top: 0.45rem;
+    align-items: center;
+  }
+  .density-dot {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    color: #484f58;
+  }
+  .density-dot-pip {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .density-sep {
+    width: 1px;
+    height: 8px;
+    background: #21262d;
+    flex-shrink: 0;
+  }
+
+  html[data-theme="light"] .density-card { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .density-card.count-4 { border-color: #9a6700; }
+  html[data-theme="light"] .density-title a { color: #24292e; }
+  html[data-theme="light"] .density-title a:hover { color: #0969da; }
+  html[data-theme="light"] .density-dot { color: #8c959f; }
+  html[data-theme="light"] .density-sep { background: #d0d7de; }
 </style>
 </head>
 <body>
@@ -315,12 +401,14 @@
 <h1>The same seven problems</h1>
 
 <div class="intro">
-  336 entries across many different topics: magnetoreception, quorum sensing, prions, metamorphosis, predictive processing, the RNA world, split-brain confabulation, transposable elements. But not many different shapes. Under the different surface material, seven structural patterns reappear. The timeline below shows where each pattern's entries fall across the full sequence. The list is grouped by pattern, not by date.
+  344 entries across many different topics: magnetoreception, quorum sensing, prions, metamorphosis, predictive processing, the RNA world, split-brain confabulation, transposable elements. But not many different shapes. Under the different surface material, seven structural patterns reappear. The timeline below shows where each pattern's entries fall across the full sequence. The density section shows which entries appear in multiple patterns simultaneously — the structural hubs of the investigation.
 </div>
 
 <div class="tl-section" id="tl-section"></div>
 
 <div class="spans-section" id="spans-section"></div>
+
+<div class="density-section" id="density-section"></div>
 
 <div class="filter-row" id="filter-row">
   <span class="filter-label">show:</span>
@@ -356,6 +444,7 @@
       buildFilters(patterns);
       renderTimeline(patterns);
       renderSpans(patterns);
+      renderDensity(patterns);
       renderPatterns(patterns);
     })
     .catch(function (e) {
@@ -515,6 +604,73 @@
     sec.appendChild(table);
   }
 
+  function renderDensity(patterns) {
+    var sec = document.getElementById('density-section');
+    if (!sec) return;
+
+    // Build entry -> patterns map
+    var entryMap = {};
+    patterns.forEach(function (p) {
+      p.entries.forEach(function (e) {
+        if (!entryMap[e.num]) entryMap[e.num] = { num: e.num, title: e.title, url: e.url, patterns: [] };
+        entryMap[e.num].patterns.push(p);
+      });
+    });
+
+    // Filter to entries in 2+ patterns, sort by count desc then num
+    var multi = Object.values(entryMap).filter(function (e) { return e.patterns.length >= 2; });
+    multi.sort(function (a, b) { return b.patterns.length - a.patterns.length || a.num - b.num; });
+
+    if (multi.length === 0) return;
+
+    var hdr = document.createElement('div');
+    hdr.className = 'density-header';
+    hdr.textContent = 'pattern density — entries appearing in 2 or more patterns';
+    sec.appendChild(hdr);
+
+    var cards = document.createElement('div');
+    cards.className = 'density-cards';
+
+    multi.forEach(function (entry) {
+      var card = document.createElement('div');
+      card.className = 'density-card count-' + entry.patterns.length;
+
+      var left = document.createElement('div');
+      left.className = 'density-left';
+      left.innerHTML = '<div class="density-count-num">' + entry.patterns.length + '</div><div class="density-count-label">patterns</div>';
+
+      var body = document.createElement('div');
+      body.className = 'density-body';
+
+      var titleDiv = document.createElement('div');
+      titleDiv.className = 'density-title';
+      titleDiv.innerHTML = '<span class="density-num">#' + entry.num + '</span><a href="/' + entry.url + '">' + entry.title + '</a>';
+
+      var dots = document.createElement('div');
+      dots.className = 'density-dots';
+      entry.patterns.forEach(function (p, i) {
+        if (i > 0) {
+          var sep = document.createElement('div');
+          sep.className = 'density-sep';
+          dots.appendChild(sep);
+        }
+        var color = PATTERN_COLORS[p.id] || '#58a6ff';
+        var dot = document.createElement('div');
+        dot.className = 'density-dot';
+        dot.innerHTML = '<div class="density-dot-pip" style="background:' + color + '"></div>' + p.short;
+        dots.appendChild(dot);
+      });
+
+      body.appendChild(titleDiv);
+      body.appendChild(dots);
+      card.appendChild(left);
+      card.appendChild(body);
+      cards.appendChild(card);
+    });
+
+    sec.appendChild(cards);
+  }
+
   function buildFilters(patterns) {
     var row = document.getElementById('filter-row');
     patterns.forEach(function (p) {
@@ -561,7 +717,7 @@
           '<div class="entry-num">#' + e.num + '</div>' +
           '<div class="entry-body">' +
           '<div class="entry-title"><a href="/' + e.url + '">' + e.title + '</a>' +
-          (isDual ? '<span class="dual-badge">×2</span>' : '') +
+          (isDual ? '<span class="dual-badge">\xd7' + entryCounts[e.num] + '</span>' : '') +
           '</div>' +
           '<div class="entry-note">' + e.note + '</div>' +
           '</div>' +
@@ -583,7 +739,9 @@
     var note = document.getElementById('count-note');
     if (activeFilter === 'all') {
       var multiCount = Object.values(entryCounts).filter(function(c){ return c > 1; }).length;
-      note.textContent = totalEntries.size + ' entries across 7 patterns. ' + multiCount + ' entries appear in two or more patterns (marked ×2 or ×3).';
+      var quadCount = Object.values(entryCounts).filter(function(c){ return c >= 4; }).length;
+      var triCount = Object.values(entryCounts).filter(function(c){ return c === 3; }).length;
+      note.textContent = totalEntries.size + ' entries across 7 patterns. ' + multiCount + ' appear in 2+ patterns — ' + (quadCount ? quadCount + ' in 4, ' : '') + triCount + ' in 3.';
     } else {
       var p = patterns.find(function (x) { return x.id === activeFilter; });
       note.textContent = p ? p.entries.length + ' entr' + (p.entries.length === 1 ? 'y' : 'ies') + ' in this pattern.' : '';
