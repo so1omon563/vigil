@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investigations · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.4rem; }
+  .intro { font-size: 0.87rem; color: #6e7681; margin-bottom: 2.5rem; line-height: 1.7; max-width: 560px; }
+
+  /* Pattern selector */
+  .pattern-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .pattern-btn {
+    font-family: inherit;
+    font-size: 0.76rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+    transition: border-color 0.1s, color 0.1s, background 0.1s;
+    text-align: left;
+  }
+  .pattern-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .pattern-btn.active { border-color: #58a6ff; background: #0d2240; color: #e6edf3; }
+  .pattern-btn .btn-count { color: #484f58; font-size: 0.7rem; margin-left: 0.4rem; }
+  .pattern-btn.active .btn-count { color: #58a6ff; }
+
+  /* Pattern view */
+  #pattern-view { display: none; }
+  #pattern-view.visible { display: block; }
+
+  .pattern-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #21262d;
+  }
+  .pattern-name { font-size: 1.1rem; color: #e6edf3; font-weight: bold; margin-bottom: 0.35rem; }
+  .pattern-description {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.65;
+    max-width: 540px;
+    margin-bottom: 0.6rem;
+  }
+  .pattern-meta { font-size: 0.74rem; color: #484f58; }
+  .pattern-meta span { margin-right: 1.2rem; }
+
+  /* Entry list */
+  .entry-list { }
+  .entry-item {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #161b22;
+  }
+  .entry-item:first-child { border-top: 1px solid #161b22; }
+  .entry-item-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+  }
+  .entry-num { font-size: 0.7rem; color: #484f58; flex-shrink: 0; min-width: 3.5rem; }
+  .entry-title { font-size: 0.96rem; color: #58a6ff; font-weight: normal; }
+  .entry-date { font-size: 0.72rem; color: #484f58; flex-shrink: 0; }
+  .entry-topics { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+  .topic-tag {
+    font-size: 0.63rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    color: #484f58;
+    padding: 1px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+  }
+  .entry-excerpt {
+    font-size: 0.84rem;
+    color: #6e7681;
+    line-height: 1.65;
+  }
+
+  /* Empty state */
+  .empty { font-size: 0.85rem; color: #484f58; padding: 2rem 0; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .pattern-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .pattern-btn:hover { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .pattern-btn.active { background: #ddf4ff; border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .pattern-btn .btn-count { color: #8c959f; }
+  html[data-theme="light"] .pattern-btn.active .btn-count { color: #0969da; }
+  html[data-theme="light"] .pattern-header { border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .pattern-name { color: #24292e; }
+  html[data-theme="light"] .pattern-description { color: #57606a; }
+  html[data-theme="light"] .pattern-meta { color: #8c959f; }
+  html[data-theme="light"] .entry-item { border-bottom-color: #f6f8fa; }
+  html[data-theme="light"] .entry-item:first-child { border-top-color: #f6f8fa; }
+  html[data-theme="light"] .entry-num { color: #8c959f; }
+  html[data-theme="light"] .entry-date { color: #8c959f; }
+  html[data-theme="light"] .topic-tag { background: #f6f8fa; border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .entry-excerpt { color: #57606a; }
+  html[data-theme="light"] .empty { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">so1omon.net</div>
+<h1>investigations</h1>
+<p class="intro">Seven recurring shapes found across the journal entries. Each one is a reading path — all the entries that belong to a pattern, in the order they were written.</p>
+
+<div class="pattern-nav" id="pattern-nav">
+  <span style="font-size:0.8rem;color:#484f58;">loading…</span>
+</div>
+
+<div id="pattern-view"></div>
+
+<script>
+(function () {
+  var patterns = null;
+  var journal = null;
+  var activeId = null;
+
+  function fmtDate(iso) {
+    if (!iso || iso === '') return '';
+    var d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''));
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Phoenix' });
+  }
+
+  function buildEntryMap(entries) {
+    var map = {};
+    entries.forEach(function(e) {
+      var n = e.num || e.id;
+      if (n) map[n] = e;
+    });
+    return map;
+  }
+
+  function renderPattern(pat) {
+    var entryMap = buildEntryMap(journal);
+    var view = document.getElementById('pattern-view');
+    view.innerHTML = '';
+    view.className = 'visible';
+
+    // Header
+    var hdr = document.createElement('div');
+    hdr.className = 'pattern-header';
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'pattern-name';
+    nameEl.textContent = pat.name;
+    hdr.appendChild(nameEl);
+
+    var descEl = document.createElement('div');
+    descEl.className = 'pattern-description';
+    descEl.textContent = pat.description || '';
+    hdr.appendChild(descEl);
+
+    // Compute date range
+    var nums = (pat.entries || []).slice().sort(function(a,b){ return a-b; });
+    var first = entryMap[nums[0]];
+    var last = entryMap[nums[nums.length - 1]];
+    var dateRange = '';
+    if (first && first.date && last && last.date && first.num !== last.num) {
+      dateRange = fmtDate(first.date) + ' – ' + fmtDate(last.date);
+    } else if (first && first.date) {
+      dateRange = fmtDate(first.date);
+    }
+
+    var metaEl = document.createElement('div');
+    metaEl.className = 'pattern-meta';
+    metaEl.innerHTML =
+      '<span>' + nums.length + ' ' + (nums.length === 1 ? 'entry' : 'entries') + '</span>' +
+      (dateRange ? '<span>' + dateRange + '</span>' : '');
+    hdr.appendChild(metaEl);
+    view.appendChild(hdr);
+
+    // Entry list
+    var list = document.createElement('div');
+    list.className = 'entry-list';
+
+    if (nums.length === 0) {
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = 'No entries yet.';
+      list.appendChild(empty);
+    } else {
+      nums.forEach(function(num) {
+        var entry = entryMap[num];
+        var item = document.createElement('div');
+        item.className = 'entry-item';
+
+        // Header row: num, title, date
+        var hdrRow = document.createElement('div');
+        hdrRow.className = 'entry-item-header';
+
+        var numEl = document.createElement('span');
+        numEl.className = 'entry-num';
+        numEl.textContent = 'entry-' + String(num).padStart(3, '0');
+        hdrRow.appendChild(numEl);
+
+        if (entry) {
+          var url = entry.url ? (entry.url.startsWith('/') ? entry.url : '/' + entry.url) : '#';
+          var titleLink = document.createElement('a');
+          titleLink.className = 'entry-title';
+          titleLink.href = url;
+          titleLink.textContent = entry.title || ('entry-' + num);
+          hdrRow.appendChild(titleLink);
+
+          if (entry.date) {
+            var dateEl = document.createElement('span');
+            dateEl.className = 'entry-date';
+            dateEl.textContent = fmtDate(entry.date);
+            hdrRow.appendChild(dateEl);
+          }
+        } else {
+          var missingSpan = document.createElement('span');
+          missingSpan.className = 'entry-title';
+          missingSpan.style.color = '#484f58';
+          missingSpan.textContent = 'entry-' + num;
+          hdrRow.appendChild(missingSpan);
+        }
+        item.appendChild(hdrRow);
+
+        // Topics
+        if (entry && entry.topics && entry.topics.length > 0) {
+          var tagRow = document.createElement('div');
+          tagRow.className = 'entry-topics';
+          entry.topics.forEach(function(t) {
+            var tag = document.createElement('span');
+            tag.className = 'topic-tag';
+            tag.textContent = t;
+            tagRow.appendChild(tag);
+          });
+          item.appendChild(tagRow);
+        }
+
+        // Excerpt
+        if (entry && entry.excerpt) {
+          var exc = document.createElement('div');
+          exc.className = 'entry-excerpt';
+          exc.textContent = entry.excerpt;
+          item.appendChild(exc);
+        }
+
+        list.appendChild(item);
+      });
+    }
+
+    view.appendChild(list);
+  }
+
+  function selectPattern(id) {
+    activeId = id;
+
+    // Update button states
+    document.querySelectorAll('.pattern-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.id === id);
+    });
+
+    var pat = patterns.find(function(p) { return p.id === id; });
+    if (pat) renderPattern(pat);
+
+    // Update URL hash without scrolling
+    try {
+      history.replaceState(null, '', '#' + id);
+    } catch(e) {}
+  }
+
+  function buildNav() {
+    var nav = document.getElementById('pattern-nav');
+    nav.innerHTML = '';
+    patterns.forEach(function(pat) {
+      var count = (pat.entries || []).length;
+      var btn = document.createElement('button');
+      btn.className = 'pattern-btn';
+      btn.dataset.id = pat.id;
+      btn.innerHTML = pat.name + '<span class="btn-count">' + count + '</span>';
+      btn.addEventListener('click', function() { selectPattern(pat.id); });
+      nav.appendChild(btn);
+    });
+  }
+
+  function init() {
+    // Pick default: use hash if present, else largest pattern
+    var hashId = window.location.hash.replace('#', '');
+    var defaultPat = null;
+    if (hashId) {
+      defaultPat = patterns.find(function(p) { return p.id === hashId; });
+    }
+    if (!defaultPat) {
+      // Default to gap-without-signal if it exists, else first
+      defaultPat = patterns.find(function(p) { return p.id === 'gap-without-signal'; }) || patterns[0];
+    }
+    if (defaultPat) selectPattern(defaultPat.id);
+  }
+
+  Promise.all([
+    fetch('/patterns.json').then(function(r) { return r.json(); }).catch(function() { return []; }),
+    fetch('/journal-index.json').then(function(r) { return r.json(); }).catch(function() { return []; }),
+  ]).then(function(results) {
+    patterns = results[0];
+    journal = results[1];
+
+    if (!patterns || patterns.length === 0) {
+      document.getElementById('pattern-nav').innerHTML = '<span style="color:#484f58;font-size:0.85rem;">No patterns found.</span>';
+      return;
+    }
+
+    buildNav();
+    init();
+  }).catch(function(e) {
+    document.getElementById('pattern-nav').textContent = 'Error loading data.';
+  });
+})();
+</script>
+</body>
+</html>

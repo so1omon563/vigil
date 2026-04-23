@@ -27,7 +27,7 @@
     { cat: 'investigate', links: [
       { href: '/threads.html', label: 'threads' },
       { href: '/patterns.html', label: 'patterns' },
-      { href: '/investigation.html', label: 'investigations' },
+      { href: '/investigations.html', label: 'investigations' },
       { href: '/questions.html', label: 'questions' },
       { href: '/experiments.html', label: 'experiments' },
       { href: '/convergences.html', label: 'convergences' },
