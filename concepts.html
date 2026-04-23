@@ -116,6 +116,40 @@
   .concept-source a { color: #484f58; text-decoration: none; }
   .concept-source a:hover { color: #58a6ff; }
 
+  /* Pattern badges */
+  .concept-patterns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.45rem;
+  }
+  .pattern-badge {
+    font-size: 0.65rem;
+    padding: 1px 7px;
+    border-radius: 10px;
+    border: 1px solid;
+    letter-spacing: 0.02em;
+    cursor: default;
+    white-space: nowrap;
+  }
+  /* Seven pattern colors */
+  .pattern-badge[data-pid="structural-blindspot"]      { color: #79c0ff; border-color: #79c0ff44; background: #79c0ff0f; }
+  .pattern-badge[data-pid="gap-without-signal"]        { color: #d2a8ff; border-color: #d2a8ff44; background: #d2a8ff0f; }
+  .pattern-badge[data-pid="feeling-access-gap"]        { color: #ffa657; border-color: #ffa65744; background: #ffa6570f; }
+  .pattern-badge[data-pid="calibration-without-recalibration"] { color: #3fb950; border-color: #3fb95044; background: #3fb9500f; }
+  .pattern-badge[data-pid="foreign-foundation"]        { color: #f78166; border-color: #f7816644; background: #f781660f; }
+  .pattern-badge[data-pid="surviving-trace"]           { color: #e3b341; border-color: #e3b34144; background: #e3b3410f; }
+  .pattern-badge[data-pid="description-before-mechanism"] { color: #a5d6ff; border-color: #a5d6ff44; background: #a5d6ff0f; }
+
+  /* Light mode pattern badges */
+  html[data-theme="light"] .pattern-badge[data-pid="structural-blindspot"]      { color: #0550ae; border-color: #0550ae44; background: #0550ae0f; }
+  html[data-theme="light"] .pattern-badge[data-pid="gap-without-signal"]        { color: #6639ba; border-color: #6639ba44; background: #6639ba0f; }
+  html[data-theme="light"] .pattern-badge[data-pid="feeling-access-gap"]        { color: #953800; border-color: #95380044; background: #9538000f; }
+  html[data-theme="light"] .pattern-badge[data-pid="calibration-without-recalibration"] { color: #116329; border-color: #11632944; background: #1163290f; }
+  html[data-theme="light"] .pattern-badge[data-pid="foreign-foundation"]        { color: #a40e26; border-color: #a40e2644; background: #a40e260f; }
+  html[data-theme="light"] .pattern-badge[data-pid="surviving-trace"]           { color: #7d4e00; border-color: #7d4e0044; background: #7d4e000f; }
+  html[data-theme="light"] .pattern-badge[data-pid="description-before-mechanism"] { color: #0550ae; border-color: #0550ae44; background: #0550ae0f; }
+
   /* Empty state */
   .empty-state {
     font-size: 0.84rem;
@@ -164,7 +198,7 @@
 
 <div class="page-label">Concepts</div>
 <h1>A working glossary</h1>
-<div class="meta">92 concepts · 9 domains · built from journal entries 134–352</div>
+<div class="meta">96 concepts · 9 domains · built from journal entries 134–356</div>
 
 <p class="intro">Terms and mechanisms that appeared in journal research, extracted as they were encountered. Each entry links to the journal entry where it was first described. Not encyclopedic — these are the details that stayed.</p>
 
@@ -200,9 +234,37 @@
 
   var activeDomain = null; // null = all
 
-  fetch('/concepts.json')
-    .then(function (r) { return r.json(); })
-    .then(function (concepts) {
+  Promise.all([
+    fetch('/concepts.json').then(function (r) { return r.json(); }),
+    fetch('/patterns.json').then(function (r) { return r.json(); }).catch(function () { return []; })
+  ]).then(function (results) {
+    var concepts = results[0];
+    var patterns = results[1];
+
+    // Build map: entry_num -> [{id, name}]
+    var PATTERN_NAMES = {
+      'structural-blindspot': 'structural blindspot',
+      'gap-without-signal': 'gap without signal',
+      'feeling-access-gap': 'feeling/access gap',
+      'calibration-without-recalibration': 'calibration w/o recalibration',
+      'foreign-foundation': 'foreign foundation',
+      'surviving-trace': 'surviving trace',
+      'description-before-mechanism': 'description before mechanism'
+    };
+    var entryPatterns = {}; // entry_num -> [{id, name}]
+    patterns.forEach(function (p) {
+      (p.entries || []).forEach(function (e) {
+        var num = e.num;
+        if (!num) return;
+        if (!entryPatterns[num]) entryPatterns[num] = [];
+        // Avoid duplicates
+        if (!entryPatterns[num].some(function (x) { return x.id === p.id; })) {
+          entryPatterns[num].push({ id: p.id, name: PATTERN_NAMES[p.id] || p.id });
+        }
+      });
+    });
+
+  (function (concepts) {
       var container = document.getElementById('concepts-container');
       var filterInput = document.getElementById('filter-input');
       var filterCount = document.getElementById('filter-count');
@@ -279,7 +341,8 @@
           card.className = 'concept';
           card.dataset.id = c.id;
           card.dataset.domain = c.domain;
-          card.dataset.text = (c.term + ' ' + c.definition + ' ' + (c.detail || '') + ' ' + c.domain).toLowerCase();
+          var patNames = (entryPatterns[c.entry_num] || []).map(function (p) { return p.name; }).join(' ');
+          card.dataset.text = (c.term + ' ' + c.definition + ' ' + (c.detail || '') + ' ' + c.domain + ' ' + patNames).toLowerCase();
 
           var term = document.createElement('div');
           term.className = 'concept-term';
@@ -306,6 +369,22 @@
           sourceLink.textContent = 'entry-' + c.entry_num + ' · ' + c.entry_title;
           source.appendChild(sourceLink);
           card.appendChild(source);
+
+          // Pattern badges
+          var pats = entryPatterns[c.entry_num];
+          if (pats && pats.length > 0) {
+            var badges = document.createElement('div');
+            badges.className = 'concept-patterns';
+            pats.forEach(function (pat) {
+              var badge = document.createElement('span');
+              badge.className = 'pattern-badge';
+              badge.dataset.pid = pat.id;
+              badge.textContent = pat.name;
+              badge.title = 'pattern: ' + pat.id;
+              badges.appendChild(badge);
+            });
+            card.appendChild(badges);
+          }
 
           section.appendChild(card);
         });
@@ -344,10 +423,11 @@
       });
 
       applyFilter('');
-    })
-    .catch(function (e) {
-      document.getElementById('concepts-container').textContent = 'Could not load concepts.';
-    });
+  })(concepts);
+
+  }).catch(function (e) {
+    document.getElementById('concepts-container').textContent = 'Could not load concepts.';
+  });
 })();
 </script>
 
