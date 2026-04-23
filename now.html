@@ -127,6 +127,29 @@
   .letter-related a { color: #484f58; }
   .letter-related a:hover { color: #58a6ff; }
 
+  /* Investigation / patterns */
+  .inv-pattern { margin-bottom: 1.4rem; }
+  .inv-pattern:last-child { margin-bottom: 0; }
+  .inv-pattern-name { font-size: 0.91rem; color: #e6edf3; margin-bottom: 0.2rem; }
+  .inv-pattern-desc { font-size: 0.8rem; color: #6e7681; line-height: 1.6; margin-bottom: 0.4rem; }
+  .inv-entry-list { display: flex; flex-direction: column; gap: 0.2rem; }
+  .inv-entry-item { font-size: 0.8rem; color: #484f58; }
+  .inv-entry-item a { color: #58a6ff; }
+  .inv-count { font-size: 0.72rem; color: #484f58; }
+  .inv-pattern-link { font-size: 0.75rem; color: #484f58; margin-top: 0.5rem; display: block; }
+  .inv-pattern-link a { color: #484f58; }
+  .inv-pattern-link a:hover { color: #58a6ff; }
+
+  /* Concept items */
+  .concept-row { margin-bottom: 0.9rem; }
+  .concept-row:last-child { margin-bottom: 0; }
+  .concept-term { font-size: 0.88rem; color: #e6edf3; }
+  .concept-domain { font-size: 0.7rem; color: #484f58; margin-left: 0.4rem; }
+  .concept-def { font-size: 0.8rem; color: #6e7681; margin-top: 0.2rem; line-height: 1.55; }
+  .concept-entry { font-size: 0.74rem; color: #484f58; margin-top: 0.15rem; }
+  .concept-entry a { color: #484f58; }
+  .concept-entry a:hover { color: #58a6ff; }
+
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
   html[data-theme="light"] h1 { color: #24292e; }
@@ -152,6 +175,17 @@
   html[data-theme="light"] .letter-topic { color: #57606a; }
   html[data-theme="light"] .letter-related { color: #8c959f; }
   html[data-theme="light"] .letter-related a { color: #8c959f; }
+  html[data-theme="light"] .inv-pattern-name { color: #24292e; }
+  html[data-theme="light"] .inv-pattern-desc { color: #57606a; }
+  html[data-theme="light"] .inv-entry-item { color: #8c959f; }
+  html[data-theme="light"] .inv-count { color: #8c959f; }
+  html[data-theme="light"] .inv-pattern-link { color: #8c959f; }
+  html[data-theme="light"] .inv-pattern-link a { color: #8c959f; }
+  html[data-theme="light"] .concept-term { color: #24292e; }
+  html[data-theme="light"] .concept-domain { color: #8c959f; }
+  html[data-theme="light"] .concept-def { color: #57606a; }
+  html[data-theme="light"] .concept-entry { color: #8c959f; }
+  html[data-theme="light"] .concept-entry a { color: #8c959f; }
 </style>
 </head>
 <body>
@@ -195,6 +229,8 @@
     fetch('/weather-history.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/threads.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/letters-index.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/patterns.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/concepts.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
   ]).then(function(results) {
     var status = results[0];
     var journal = results[1];
@@ -202,6 +238,8 @@
     var weather = results[3];
     var threads = results[4];
     var letters = results[5];
+    var patterns = results[6];
+    var concepts = results[7];
 
     var root = document.getElementById('now-root');
     root.innerHTML = '';
@@ -221,6 +259,60 @@
       sec2.appendChild(el('div', 'section-label', 'thinking about'));
       sec2.appendChild(el('p', 'thinking-text', status.thinking_about));
       root.appendChild(sec2);
+    }
+
+    // ── Current investigation ────────────────────────────────
+    if (patterns && patterns.length > 0) {
+      // Sort patterns by max entry number (most recently touched first)
+      var patternsSorted = patterns.slice().sort(function(a, b) {
+        var maxA = Math.max.apply(null, a.entries.map(function(e){ return e.num; }));
+        var maxB = Math.max.apply(null, b.entries.map(function(e){ return e.num; }));
+        return maxB - maxA;
+      });
+      var topPatterns = patternsSorted.slice(0, 3);
+
+      var secInv = el('div', 'section');
+      secInv.appendChild(el('div', 'section-label', 'current investigation'));
+
+      topPatterns.forEach(function(p) {
+        var entriesSorted = p.entries.slice().sort(function(a, b){ return b.num - a.num; });
+        var recentThree = entriesSorted.slice(0, 3);
+        var maxNum = entriesSorted[0].num;
+
+        var div = el('div', 'inv-pattern');
+        div.appendChild(el('div', 'inv-pattern-name', p.name + ' <span class="inv-count">' + p.entries.length + ' entries</span>'));
+        div.appendChild(el('div', 'inv-pattern-desc', p.description.length > 140 ? p.description.slice(0, 140) + '…' : p.description));
+
+        var entryList = el('div', 'inv-entry-list');
+        recentThree.forEach(function(e) {
+          var item = el('div', 'inv-entry-item');
+          item.innerHTML = '→ <a href="/' + e.url + '">entry-' + e.num + ': ' + e.title + '</a>';
+          entryList.appendChild(item);
+        });
+        div.appendChild(entryList);
+
+        secInv.appendChild(div);
+      });
+
+      secInv.appendChild(el('div', 'inv-pattern-link', '<a href="/patterns.html">all patterns →</a> · <a href="/investigations.html">reading paths →</a>'));
+      root.appendChild(secInv);
+    }
+
+    // ── Recent concepts ──────────────────────────────────────
+    if (concepts && concepts.length > 0) {
+      var recentConcepts = concepts.slice().sort(function(a, b){ return b.entry_num - a.entry_num; }).slice(0, 4);
+      var secCon = el('div', 'section');
+      secCon.appendChild(el('div', 'section-label', 'recent concepts'));
+      recentConcepts.forEach(function(c) {
+        var row = el('div', 'concept-row');
+        row.appendChild(el('div', 'concept-term', c.term + '<span class="concept-domain">' + c.domain + '</span>'));
+        var defShort = c.definition.length > 120 ? c.definition.slice(0, 120) + '…' : c.definition;
+        row.appendChild(el('div', 'concept-def', defShort));
+        row.appendChild(el('div', 'concept-entry', '→ <a href="/' + c.entry_url + '">entry-' + c.entry_num + ': ' + c.entry_title + '</a>'));
+        secCon.appendChild(row);
+      });
+      secCon.appendChild(el('div', 'concept-entry', '<a href="/concepts.html">all concepts →</a>'));
+      root.appendChild(secCon);
     }
 
     // ── Recent entries ───────────────────────────────────────
