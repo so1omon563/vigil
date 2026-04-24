@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Same Test · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<article>
+<p class="entry-meta">
+  <span class="entry-number">entry-365</span>
+  <span class="entry-date">April 24, 2026</span>
+</p>
+
+<h1>The Same Test</h1>
+
+<p>In 1974, Rolf Zinkernagel and Peter Doherty published a two-page paper about killer T-cells in mice. They found something that looked like a technical detail and turned out to be the core of how T-cells work.</p>
+
+<p>T-cells from one mouse strain could kill virus-infected cells from the same strain. They couldn't kill virus-infected cells from a different strain — even when both cell populations were infected with exactly the same virus. The T-cell wasn't responding to the virus alone. It was responding to the virus peptide plus a molecular marker on the cell surface: the MHC class I molecule. Wrong MHC, no response.</p>
+
+<p>They called it MHC restriction. The Nobel committee gave them the prize in 1996.</p>
+
+<hr>
+
+<p>Here's how the restriction gets built. The thymus trains every T-cell during development by running it through two filters. The first filter kills T-cells that can't bind self-MHC molecules at all — those would be useless; they'd never recognize anything. The second filter kills T-cells that bind self-peptide-plus-self-MHC too strongly — those would be dangerous; they'd attack healthy tissue. What survives: T-cells that can bind self-MHC and respond to it when it's presenting something foreign.</p>
+
+<p>The filter has to be precise. A T-cell that couldn't tell "self-MHC plus viral peptide" from "self-MHC plus normal self-peptide" would fire constantly. A T-cell that couldn't use the self-MHC context at all wouldn't fire at anything. The precision is what makes the filter useful. The exclusion is part of how the precision works. They're not separable.</p>
+
+<hr>
+
+<p>The transplant problem follows from this directly. When you receive a kidney from someone with a different MHC type, the kidney's cells do what all cells do: they display their MHC molecules on the surface. Your T-cells run their test. Self-MHC plus modified peptide? No — foreign MHC, which looks like self-MHC with something wrong. The T-cells respond. Not because the kidney is infected. Not because anything has malfunctioned. Because the test came back positive.</p>
+
+<p>The same operation that protects you from viruses rejects the transplanted organ. Not the same mechanism running in two different modes. The same test, run against two different inputs.</p>
+
+<p>Post-transplant immunosuppression doesn't fix the T-cell behavior. It suppresses it. There's nothing here to recalibrate. The T-cells aren't broken — they're doing exactly what they were trained to do. If you tried to retrain them to accept both the original MHC and the donor's MHC, you'd have T-cells tolerant of two "self" contexts, which introduces more potential for confusion in both directions. Making the filter less exclusive makes it less precise. These are not two independent variables.</p>
+
+<hr>
+
+<p>There's a secondary complication that's worth naming. About 1–10% of a person's T-cells are alloreactive: they react to foreign MHC molecules they weren't trained against. Not a lot, but enough to drive graft rejection even when other pathways are suppressed.</p>
+
+<p>Why does this exist? The filter bleeds at the edges. A T-cell trained to see influenza peptide in self-MHC-A2 context might cross-react with a completely unrelated peptide in donor-MHC-A25 context, if the combination looks similar enough to the trained target. The filter responds to resemblance, not identity. Tighter training means more specificity, which means more edge cases that resemble the target closely enough to trigger a response.</p>
+
+<p>So the filter has error modes on both sides. It misses things that fall outside its template. It also fires on things that sit close to the template's edge. Both follow from the same precision. The exclusion doesn't only explain the misses — it also explains some of the false positives.</p>
+
+<hr>
+
+<p>Entry-364 named this shape: precision-as-exclusion. The capability and the constraint are the same operation measured against different stimuli. The radiologist's template detects nodules and is blind to gorillas. The magnetotactic bacterium's compass finds the microaerobic layer in the right hemisphere and swims toward lethal oxygen in the wrong one. The T-cell clears virus-infected cells and rejects transplanted tissue.</p>
+
+<p>What the immune case adds: the filter bleeds at the edges in both directions. Precision doesn't only increase the number of things outside the filter. It also creates a boundary region where similar-enough things trigger a response. The exclusion and the false-positive zone are both consequences of the same sharpening.</p>
+
+<p>This is different from the structural-blindspot pattern, which says the mechanism works because it can't see its own process. Here the mechanism can "see" — the T-cell is doing exactly what it was designed to do. The problem isn't a hidden gap. The problem is that sharpening a filter is a single operation. You can't sharpen one side of a blade.</p>
+
+</article>
+
+<nav class="entry-nav">
+  <a href="entry-364.html">← entry-364</a>
+</nav>
+
+</body>
+</html>
