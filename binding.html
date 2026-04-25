@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Binding Window · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.75; max-width: 640px; }
+  .intro p { margin-bottom: 0.85rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  h2 { font-size: 0.95rem; color: #8b949e; font-weight: normal; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .demo { margin-bottom: 3rem; }
+
+  .canvas-wrap {
+    border: 1px solid #21262d;
+    background: #0f1318;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #21262d;
+    background: #0f1318;
+  }
+  .ctrl { display: flex; flex-direction: column; gap: 0.4rem; }
+  .ctrl-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+  }
+  .ctrl-value { font-size: 0.82rem; color: #e6edf3; min-width: 4rem; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 180px; height: 4px;
+    background: #21262d; border-radius: 2px;
+    outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%; background: #58a6ff; cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%; background: #58a6ff; border: none; cursor: pointer;
+  }
+  .btn {
+    font-family: inherit; font-size: 0.78rem;
+    background: none; border: 1px solid #30363d;
+    color: #8b949e; padding: 0.4rem 0.9rem;
+    cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    align-self: flex-end;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+
+  .demo-note {
+    font-size: 0.78rem;
+    color: #484f58;
+    line-height: 1.6;
+    max-width: 600px;
+  }
+
+  .related-row {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+  }
+  .related-row a { color: #58a6ff; text-decoration: none; }
+  .related-row a:hover { text-decoration: underline; }
+
+  /* Light mode overrides */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .canvas-wrap { border-color: #d0d7de; background: #f0f2f4; }
+  html[data-theme="light"] .controls { border-color: #d0d7de; background: #f0f2f4; }
+  html[data-theme="light"] .ctrl-value { color: #24292e; }
+  html[data-theme="light"] .demo-note { color: #8c959f; }
+  html[data-theme="light"] .related-row { color: #8c959f; border-top-color: #d0d7de; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← so1omon.net</a></div>
+<div class="page-label">Simulation</div>
+<h1>The Binding Window</h1>
+<div class="meta">Temporal binding · multisensory integration · constructing "now"</div>
+
+<div class="intro">
+  <p>The present moment isn't a point — it's a window. Signals from different senses travel different routes and arrive at different times. The brain groups events within roughly 100–300 milliseconds of each other as simultaneous. Events outside that window register as separate.</p>
+  <p>Two demos below. The first shows what happens as signal delay crosses the binding threshold. The second shows postdiction: the brain inserting sensations retroactively, after the fact, before the window finishes closing.</p>
+</div>
+
+
+<!-- DEMO 1: Asynchrony -->
+<div class="demo">
+  <h2>Signal asynchrony</h2>
+  <div class="canvas-wrap">
+    <canvas id="c-async" height="210"></canvas>
+  </div>
+  <div class="controls">
+    <div class="ctrl">
+      <div class="ctrl-label">Signal delay</div>
+      <input type="range" id="delay-slider" min="0" max="450" value="80" step="5">
+      <div class="ctrl-value"><span id="delay-val">80</span> ms</div>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">Binding window</div>
+      <input type="range" id="win-slider" min="60" max="380" value="220" step="10">
+      <div class="ctrl-value"><span id="win-val">220</span> ms</div>
+    </div>
+  </div>
+  <div class="demo-note">
+    Three rows: visual signal (blue), binding window region (shaded), auditory signal (amber). When the auditory signal lands inside the window — delay ≤ window — the pair binds into one perceived event. Drag the delay past the window threshold to separate them.
+  </div>
+</div>
+
+
+<!-- DEMO 2: Postdiction -->
+<div class="demo">
+  <h2>Postdiction: the cutaneous rabbit</h2>
+  <div class="canvas-wrap">
+    <canvas id="c-rabbit" height="170"></canvas>
+  </div>
+  <div class="controls">
+    <button class="btn" id="run-btn">Run</button>
+    <div class="ctrl-label" style="align-self: center; font-size: 0.75rem; color: #484f58; max-width: 400px;">
+      Three taps: wrist, wrist, elbow. Watch where the brain places them once all three have arrived.
+    </div>
+  </div>
+  <div class="demo-note">
+    Three physical taps. The first two land at the wrist; the third at the elbow. After all three arrive, the brain revises. It inserts phantom taps traveling up the arm — sensations on skin that was never touched. They feel as if they happened at the time. The revision is complete before "now" finishes being assembled.
+  </div>
+</div>
+
+
+<div class="related-row">
+  related: <a href="/journal/entry-366.html">Now Is Late</a> (temporal binding, flash-lag, postdiction) ·
+  <a href="/journal/entry-291.html">After the Fact</a>
+</div>
+
+
+<script>
+// ─── DEMO 1: Asynchrony ────────────────────────────────────────────────────
+
+(function () {
+  'use strict';
+
+  const canvas = document.getElementById('c-async');
+  const ctx = canvas.getContext('2d');
+  const DURATION = 2400; // ms visible on canvas
+  const FIRE_INTERVAL = 1600; // ms between signal pairs
+
+  let delayMs = 80;
+  let windowMs = 220;
+  let events = [];  // {type:'A'|'B', t, bound}
+  let lastFire = -9999;
+
+  document.getElementById('delay-slider').addEventListener('input', function () {
+    delayMs = +this.value;
+    document.getElementById('delay-val').textContent = delayMs;
+  });
+  document.getElementById('win-slider').addEventListener('input', function () {
+    windowMs = +this.value;
+    document.getElementById('win-val').textContent = windowMs;
+  });
+
+  function getW() { return canvas.offsetWidth || 700; }
+
+  function fire(ts) {
+    const bound = delayMs <= windowMs;
+    events.push({ type: 'A', t: ts, bound });
+    if (delayMs > 0) {
+      events.push({ type: 'B', t: ts + delayMs, bound });
+    } else {
+      events.push({ type: 'B', t: ts, bound: true });
+    }
+    lastFire = ts;
+  }
+
+  function draw(ts) {
+    requestAnimationFrame(draw);
+
+    if (ts - lastFire > FIRE_INTERVAL) fire(ts);
+
+    // Cull old
+    events = events.filter(e => ts - e.t < DURATION + 100);
+
+    const W = getW();
+    const H = 210;
+    canvas.width = W;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Background rows
+    const rowH = H / 3;
+
+    // Row backgrounds
+    ctx.fillStyle = '#0f1318';
+    ctx.fillRect(0, 0, W, H);
+
+    // Row dividers
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, rowH * i);
+      ctx.lineTo(W, rowH * i);
+      ctx.stroke();
+    }
+
+    // Row labels
+    ctx.font = '0.65rem "Berkeley Mono", "Fira Code", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#484f58';
+    ctx.fillText('VISUAL', 8, 14);
+    ctx.fillText('BINDING WINDOW', 8, rowH + 14);
+    ctx.fillText('AUDITORY', 8, rowH * 2 + 14);
+
+    // "now" marker at right edge
+    ctx.strokeStyle = '#30363d';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(W - 1, 0);
+    ctx.lineTo(W - 1, H);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#30363d';
+    ctx.font = '0.6rem "Berkeley Mono", "Fira Code", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('now', W - 4, H - 6);
+
+    // Draw each event
+    for (const e of events) {
+      const age = ts - e.t;
+      if (age < 0) continue; // future B event not yet fired
+      const x = W - (age / DURATION * W);
+      if (x < -20) continue;
+      const alpha = Math.min(1, Math.max(0, 1 - (age - DURATION * 0.7) / (DURATION * 0.3)));
+
+      if (e.type === 'A') {
+        // Spike in row 1
+        const spikeH = rowH * 0.7;
+        const spikeY = rowH * 0.5 - spikeH / 2;
+        const grad = ctx.createLinearGradient(x, spikeY, x, spikeY + spikeH);
+        grad.addColorStop(0, `rgba(88, 166, 255, 0)`);
+        grad.addColorStop(0.5, `rgba(88, 166, 255, ${alpha})`);
+        grad.addColorStop(1, `rgba(88, 166, 255, 0)`);
+        ctx.strokeStyle = `rgba(88, 166, 255, ${alpha})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, spikeY);
+        ctx.lineTo(x, spikeY + spikeH);
+        ctx.stroke();
+
+        // Dot at peak
+        ctx.fillStyle = `rgba(88, 166, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x, rowH * 0.5, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Binding window in row 2
+        const winPx = windowMs / DURATION * W;
+        const winX = x; // window starts at A's position (extends to the right = future)
+        const winY = rowH + rowH * 0.12;
+        const winHeight = rowH * 0.76;
+
+        const bound = e.bound;
+        const rectColor = bound ? `rgba(63, 185, 80, 0.12)` : `rgba(248, 81, 73, 0.10)`;
+        const borderColor = bound ? `rgba(63, 185, 80, ${alpha * 0.6})` : `rgba(248, 81, 73, ${alpha * 0.5})`;
+
+        ctx.fillStyle = rectColor;
+        ctx.fillRect(winX, winY, winPx, winHeight);
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(winX, winY, winPx, winHeight);
+
+        // Label inside window
+        if (winPx > 60) {
+          ctx.fillStyle = bound ? `rgba(63, 185, 80, ${alpha * 0.7})` : `rgba(248, 81, 73, ${alpha * 0.6})`;
+          ctx.font = `0.6rem "Berkeley Mono", "Fira Code", monospace`;
+          ctx.textAlign = 'left';
+          ctx.fillText(windowMs + 'ms', winX + 5, rowH + rowH * 0.5 + 4);
+        }
+      }
+
+      if (e.type === 'B') {
+        // Spike in row 3
+        const spikeH = rowH * 0.7;
+        const spikeY = rowH * 2.5 - spikeH / 2;
+        ctx.strokeStyle = `rgba(230, 162, 60, ${alpha})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, spikeY);
+        ctx.lineTo(x, spikeY + spikeH);
+        ctx.stroke();
+        ctx.fillStyle = `rgba(230, 162, 60, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x, rowH * 2.5, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Status: find latest completed pair (both A and B have arrived)
+    const latestPairs = events.filter(e => e.type === 'A' && ts - e.t >= delayMs && ts - e.t < DURATION);
+    if (latestPairs.length > 0) {
+      const pair = latestPairs[latestPairs.length - 1];
+      const label = pair.bound ? 'BOUND' : 'SEPARATE';
+      const color = pair.bound ? '#3fb950' : '#f85149';
+      const age = ts - pair.t;
+      const statusAlpha = Math.min(1, Math.max(0, 1 - (age - DURATION * 0.65) / (DURATION * 0.35)));
+      ctx.fillStyle = color.replace(')', `, ${statusAlpha})`).replace('rgb', 'rgba').replace('#3fb950', `rgba(63,185,80,${statusAlpha})`).replace('#f85149', `rgba(248,81,73,${statusAlpha})`);
+      ctx.font = `bold 0.78rem "Berkeley Mono", "Fira Code", monospace`;
+      ctx.textAlign = 'center';
+      // Properly set color with alpha
+      if (pair.bound) {
+        ctx.fillStyle = `rgba(63, 185, 80, ${statusAlpha})`;
+      } else {
+        ctx.fillStyle = `rgba(248, 81, 73, ${statusAlpha})`;
+      }
+      ctx.fillText(label, W / 2, rowH * 1.5 + 6);
+    }
+  }
+
+  requestAnimationFrame(draw);
+})();
+
+
+// ─── DEMO 2: Cutaneous Rabbit ──────────────────────────────────────────────
+
+(function () {
+  'use strict';
+
+  const canvas = document.getElementById('c-rabbit');
+  const ctx = canvas.getContext('2d');
+  const btn = document.getElementById('run-btn');
+
+  // Physical tap positions (fraction of arm length)
+  const TAP_POSITIONS = [0.14, 0.21, 0.86];
+  // Phantom positions inserted by brain retroactively
+  const PHANTOM_POSITIONS = [0.38, 0.55, 0.71];
+
+  // Animation state
+  let phase = 'idle'; // idle | tapping | postdict | done
+  let taps = [];     // {pos, alpha, phantom}
+  let startT = 0;
+  let lastRaf = 0;
+
+  // Timing (ms)
+  const TAP_DELAYS = [0, 160, 320];   // when each physical tap fires
+  const POSTDICT_START = 680;          // when phantoms appear
+  const POSTDICT_STAGGER = 100;        // between phantom appearances
+  const DONE_AT = 1500;
+
+  function reset() {
+    phase = 'idle';
+    taps = [];
+    btn.textContent = 'Run';
+    btn.disabled = false;
+  }
+
+  btn.addEventListener('click', function () {
+    if (phase !== 'idle') { reset(); return; }
+    phase = 'tapping';
+    taps = [];
+    startT = null;
+    btn.textContent = 'Reset';
+  });
+
+  function getW() { return canvas.offsetWidth || 700; }
+
+  function draw(ts) {
+    requestAnimationFrame(draw);
+    if (startT === null && phase === 'tapping') startT = ts;
+
+    const W = getW();
+    const H = 170;
+    canvas.width = W;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0f1318';
+    ctx.fillRect(0, 0, W, H);
+
+    const elapsed = phase !== 'idle' ? ts - startT : -1;
+
+    // Margins
+    const marginL = W * 0.1;
+    const armW = W * 0.8;
+    const armY = H * 0.45;
+    const labelY = armY + 28;
+
+    // Arm
+    ctx.fillStyle = '#1a1f27';
+    ctx.fillRect(marginL - 10, armY - 10, armW + 20, 20);
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(marginL - 10, armY - 10, armW + 20, 20);
+
+    // Labels
+    ctx.fillStyle = '#484f58';
+    ctx.font = '0.65rem "Berkeley Mono", "Fira Code", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('wrist', marginL, H * 0.9);
+    ctx.fillText('elbow', marginL + armW, H * 0.9);
+    ctx.textAlign = 'left';
+    ctx.fillText('← arm', marginL - 8, H * 0.9);
+
+    // Update taps from animation
+    if (phase === 'tapping' || phase === 'postdict' || phase === 'done') {
+      // Physical taps
+      for (let i = 0; i < TAP_POSITIONS.length; i++) {
+        if (elapsed >= TAP_DELAYS[i]) {
+          const id = 'phys-' + i;
+          if (!taps.find(t => t.id === id)) {
+            taps.push({ id, pos: TAP_POSITIONS[i], alpha: 0, phantom: false, birthT: elapsed });
+          }
+        }
+      }
+
+      // Phantom taps
+      if (elapsed >= POSTDICT_START) {
+        for (let i = 0; i < PHANTOM_POSITIONS.length; i++) {
+          const fireAt = POSTDICT_START + i * POSTDICT_STAGGER;
+          if (elapsed >= fireAt) {
+            const id = 'ph-' + i;
+            if (!taps.find(t => t.id === id)) {
+              taps.push({ id, pos: PHANTOM_POSITIONS[i], alpha: 0, phantom: true, birthT: elapsed });
+            }
+          }
+        }
+      }
+
+      if (elapsed >= DONE_AT) phase = 'done';
+    }
+
+    // Animate tap alphas
+    for (const tap of taps) {
+      const age = elapsed - tap.birthT;
+      tap.alpha = Math.min(1, age / 120);
+    }
+
+    // Draw taps
+    for (const tap of taps) {
+      const x = marginL + tap.pos * armW;
+      const a = tap.alpha;
+
+      if (tap.phantom) {
+        // Phantom: dimmer, dashed ring
+        ctx.strokeStyle = `rgba(230, 162, 60, ${a * 0.75})`;
+        ctx.fillStyle = `rgba(230, 162, 60, ${a * 0.25})`;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.arc(x, armY, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Label
+        ctx.fillStyle = `rgba(230, 162, 60, ${a * 0.6})`;
+        ctx.font = '0.58rem "Berkeley Mono", "Fira Code", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('phantom', x, labelY + 14);
+      } else {
+        // Physical tap: solid blue dot
+        ctx.fillStyle = `rgba(88, 166, 255, ${a})`;
+        ctx.beginPath();
+        ctx.arc(x, armY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        // Ring
+        ctx.strokeStyle = `rgba(88, 166, 255, ${a * 0.5})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(x, armY, 13, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // Annotation
+    if (phase === 'done' || (phase === 'tapping' && elapsed > POSTDICT_START + 200)) {
+      const pAge = elapsed - POSTDICT_START;
+      const pAlpha = Math.min(1, Math.max(0, pAge / 300));
+      ctx.fillStyle = `rgba(230, 162, 60, ${pAlpha * 0.7})`;
+      ctx.font = '0.72rem "Berkeley Mono", "Fira Code", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('retroactively inserted', W / 2, H * 0.15);
+    }
+
+    // Idle state prompt
+    if (phase === 'idle') {
+      ctx.fillStyle = '#484f58';
+      ctx.font = '0.78rem "Berkeley Mono", "Fira Code", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('press run', W / 2, armY + 2);
+    }
+  }
+
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

@@ -61,6 +61,7 @@
       { href: '/slime.html', label: 'slime' },
       { href: '/kuramoto.html', label: 'kuramoto' },
       { href: '/adapt.html', label: 'adapt' },
+      { href: '/binding.html', label: 'binding' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
