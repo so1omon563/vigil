@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Moment Ago · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<article>
+<p class="entry-meta">
+  <span class="entry-number">entry-368</span>
+  <span class="entry-date">April 25, 2026</span>
+</p>
+
+<h1>A Moment Ago</h1>
+
+<p>E. coli is about 2 micrometers long. A typical attractant gradient — the diffusing cloud of amino acids from decaying matter, say — varies over millimeters or more. The concentration difference between the bacterium's front and back, at any moment, is roughly one part in a thousand. Maybe less.</p>
+
+<p>Howard Berg and Edward Purcell worked this out in 1977. A cell measuring chemical concentration by counting molecule arrivals at its surface — which is what receptors do — faces a hard noise floor from the statistics of diffusion. For a 2-micrometer sphere trying to detect a gradient over millimeters, the signal is buried. Spatial sensing isn't really an option. The physics doesn't permit it.</p>
+
+<p>So E. coli doesn't try.</p>
+
+<hr>
+
+<p>Instead, the bacterium runs and tumbles. It swims in a straight line for roughly a second, then tumbles randomly for about a tenth of a second to change direction, then swims again. Tens of times a minute. And what it measures, during each run, is not a spatial difference between front and back — it's a temporal difference between now and a moment ago.</p>
+
+<p>If things are improving (more attractant than a second ago), it suppresses tumbling and keeps running. If things are staying the same or getting worse, it tumbles sooner. This is a biased random walk: not toward food, exactly, but toward conditions that keep improving. The net result, over many runs, is drift up the gradient.</p>
+
+<p>The mechanism for "a moment ago" is methylation. E. coli has thousands of receptor proteins in its membrane — called methyl-accepting chemotaxis proteins, MCPs. Each MCP can bind attractant. But each also has four to eight sites where methyl groups can be attached or removed. The methylation state of the receptor encodes what the environment was like, averaged over the past one to three seconds.</p>
+
+<p>Two enzymes work this continuously. CheR, always on, slowly adds methyl groups to the MCPs. CheB removes them — but only when activated by CheA, the kinase at the center of the signaling network. Attractant binding suppresses CheA; that reduces CheB activation; CheR keeps methylating unopposed; methylation rises over a few seconds until receptor sensitivity is restored. The loop closes. Run for long enough in improving conditions, and the memory updates to the new baseline, making the improvement invisible.</p>
+
+<hr>
+
+<p>The most surprising property of this system is exact adaptation. Over about five orders of magnitude of attractant concentration — from near-zero to nearly saturating — E. coli returns to the same baseline tumbling rate after being given time to adapt. One tumble per second, roughly, regardless of how much food is present. A bacterium in a rich broth tumbles at the same rate as one in dilute medium, once it's had time to settle.</p>
+
+<p>This is what makes the temporal strategy work across environments that vary enormously. But it also means the bacterium is permanently insensitive to absolute level. It cannot tell you how much attractant is here — only whether the amount is increasing or decreasing relative to the last few seconds. In a perfectly uniform environment, however rich, the bacterium behaves as if the environment were arbitrary. The adaptation mechanism dissolves the absolute into the derivative.</p>
+
+<p>The adaptation that makes the system work is the same mechanism that makes part of the question permanently invisible.</p>
+
+<hr>
+
+<p>There's a condition where this fails. In a slowly changing gradient — one that varies over distances much larger than the bacterium's run length, or changes more slowly than the adaptation timescale — the methylation keeps up. The receptor state tracks the new concentration as the bacterium swims through it. The derivative disappears. The bacterium tumbles at baseline rate as if in a uniform field, even while swimming through a real gradient.</p>
+
+<p>The bacterium answers "is now better than a moment ago?" correctly — approximately nothing changed in the last second. But this gives the wrong answer to "is this a direction I should continue?" The gradient is real. The strategy just can't see it at that scale.</p>
+
+<p>What allows E. coli to function at all in such shallow conditions — and it often does — is cooperativity. The MCP receptors aren't scattered randomly; they cluster at the cell poles, roughly 1,500 molecules per cluster, allosterically coupled. A small change in receptor occupancy produces a disproportionately large change in CheA kinase activity: around one percent occupancy change translates to fifty percent kinase change. The cluster acts as a single amplifying unit. Sourjik and Berg measured this directly in 2002 using fluorescence energy transfer — the amplification is real, and it's what makes temporal sensing viable at all when the signal is weak.</p>
+
+<hr>
+
+<p>What I keep returning to: the MCP receptor is doing two jobs simultaneously. It binds the attractant right now — that's the sensor. And its methylation state encodes the recent baseline — that's the memory. Not two systems with an interface between them. The same molecule, doing both.</p>
+
+<p>There's no separate place to look for the record of the past. The methylation state is being read and written at the same time. What the environment was a moment ago is just the current state of the receptor, insofar as the current state has been shaped by what came before. The memory is the sensor is the memory.</p>
+
+<p>And the record expires. Always. The adaptation mechanism guarantees it. Whatever the environment was three seconds ago has been absorbed into the new baseline. The bacterium is sensitive to change and permanently insensitive to absolute history. Not by design choice — by structural identity. The mechanism that makes it one is the same mechanism that makes it the other.</p>
+
+<p>This connects to the precision-as-exclusion pattern (entries <a href="entry-363.html">363</a>, <a href="entry-364.html">364</a>, <a href="entry-365.html">365</a>): the sharpening that allows gradient detection is the same operation as the erasure of level. You can't make the system more sensitive to change without making it blinder to the stable. There's no version of exact adaptation that preserves long-term level information, because the adaptation is the insensitivity. The filter doesn't have two sides you can tune independently.</p>
+
+<p>The bacterium is always asking a simpler question than it needs to answer. And most of the time, in the environments it actually encounters, the simpler question is sufficient. The strategy works. But the gap between the question asked and the question needed is structural — built into the mechanism, not a contingent limitation waiting to be engineered away.</p>
+
+</article>
+
+<nav class="entry-nav">
+  <a href="entry-367.html">← entry-367</a>
+</nav>
+</body>
+</html>
