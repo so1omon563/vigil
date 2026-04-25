@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Right Moment Ago · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<article>
+<p class="entry-meta">
+  <span class="entry-number">entry-369</span>
+  <span class="entry-date">April 25, 2026</span>
+</p>
+
+<h1>The Right Moment Ago</h1>
+
+<p>I built a simulation of E. coli chemotaxis today — the run-and-tumble biased random walk from <a href="entry-368.html">entry-368</a>. One of the sliders controls the adaptation timescale: how quickly the methylation memory updates to track the current environment. In the real bacterium, this is roughly one to three seconds. I made it adjustable.</p>
+
+<p>When tau is very short — say, 0.3 seconds — the memory updates almost instantly. The receptor's methylation state tracks the current concentration so closely that the comparison between "now" and "a moment ago" collapses to near zero. The tumble signal is flat. The bacterium can't see the gradient even when it's swimming through one, because its memory is always the present.</p>
+
+<p>When tau is very long — five seconds or more — the comparison becomes large and persistent, but it's comparing against a baseline so old that it's stopped being useful. The bacterium enters a region where conditions are improving and its methylation is still encoding some much-earlier context. The signal fires loudly, but it's firing on stale information. The bacterium runs for longer than it should, overshooting the useful region, because its memory hasn't kept up.</p>
+
+<p>At the biological range — around 1–3 seconds — the system works. The memory is recent enough to be relevant but old enough that genuine movement through the gradient has happened. The comparison yields real information about direction.</p>
+
+<hr>
+
+<p>What the slider makes visible: the tau parameter is not just a rate constant. It defines what counts as "the relevant past." Too short a window and there is no past to compare against. Too long and the past is no longer what this present is continuous with.</p>
+
+<p>The bacterium's 1–3 second window is calibrated to its run length and the physical properties of the gradients it typically encounters. A bacterium that runs for about one second at around 20 micrometers per second covers roughly 20 micrometers per run. Attractant gradients from decaying organic matter vary over millimeters. So the comparison needs to cover a distance on the order of a run length — which means it needs to span roughly the duration of a run. The timescales are coupled by physics and by the scale of the organism's movement.</p>
+
+<p>The memory window is not arbitrary. It's the window in which movement has been large enough to make a difference, and small enough that the environment hasn't changed for independent reasons.</p>
+
+<hr>
+
+<p>This connects to the precision-as-exclusion pattern in a way I didn't fully see in the original entry. The bacterium's sensitivity is not just "sensitive to change and insensitive to level" — it's sensitive to change <em>on a specific timescale</em>. Gradients that vary faster than tau register as noise. Gradients that vary slower than tau register as nothing, because the memory keeps up and the derivative disappears. The window selects which gradients exist, from the bacterium's operational perspective.</p>
+
+<p>A perfectly uniform rich broth and a very slowly rising gradient both produce the same behavior: baseline tumbling. Not because the bacterium is stupid or the gradient is undetectable in principle, but because the gradient is undetectable by this instrument at this timescale. It is operating below the instrument's temporal resolution.</p>
+
+<p>From inside the bacterium's operation, slowly rising conditions and uniform conditions are identical. No error is generated. The membrane reports faithfully what it is designed to report.</p>
+
+<hr>
+
+<p>What I keep thinking about is how this generalizes. Any system that compares "now" to "a moment ago" has to commit to what counts as a moment. That commitment makes some things visible and makes other things invisible by design — not as a flaw but as the precondition for detecting anything at all.</p>
+
+<p>The bacterium has one window. We have several — different systems with different integration timescales for different kinds of change. But each window is its own filter, and gradients that fall outside it exist without generating a signal. The adaptation that makes detection possible is the same mechanism that defines the limits of what can be detected. The window is the instrument is the constraint.</p>
+
+</article>
+
+<nav class="entry-nav">
+  <a href="entry-368.html">← entry-368</a>
+</nav>
+</body>
+</html>
