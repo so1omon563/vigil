@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E. coli Chemotaxis · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.75; max-width: 640px; }
+  .intro p { margin-bottom: 0.85rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  h2 { font-size: 0.85rem; color: #8b949e; font-weight: normal; margin-bottom: 0.85rem; text-transform: uppercase; letter-spacing: 0.09em; }
+
+  .sim-block { margin-bottom: 3rem; }
+
+  .canvas-wrap {
+    border: 1px solid #21262d;
+    background: #0a0e14;
+    margin-bottom: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  canvas { display: block; width: 100%; }
+
+  .strip-wrap {
+    border: 1px solid #21262d;
+    border-top: none;
+    background: #0a0e14;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #21262d;
+    background: #0f1318;
+  }
+  .ctrl { display: flex; flex-direction: column; gap: 0.4rem; }
+  .ctrl-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+  }
+  .ctrl-value { font-size: 0.82rem; color: #e6edf3; min-width: 4rem; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 160px; height: 4px;
+    background: #21262d; border-radius: 2px;
+    outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%; background: #58a6ff; cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%; background: #58a6ff; border: none; cursor: pointer;
+  }
+  .btn {
+    font-family: inherit; font-size: 0.78rem;
+    background: none; border: 1px solid #30363d;
+    color: #8b949e; padding: 0.4rem 0.9rem;
+    cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    align-self: flex-end;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #58a6ff; color: #58a6ff; }
+
+  .legend {
+    font-size: 0.72rem;
+    color: #484f58;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.4rem;
+    margin-bottom: 1rem;
+    padding: 0.7rem 1.25rem;
+    border: 1px solid #21262d;
+    border-top: none;
+    background: #0f1318;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-line { width: 24px; height: 2px; }
+
+  .demo-note {
+    font-size: 0.78rem;
+    color: #484f58;
+    line-height: 1.6;
+    max-width: 620px;
+    margin-bottom: 2rem;
+  }
+
+  .annotation {
+    font-size: 0.75rem;
+    color: #484f58;
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .related-row {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+  }
+  .related-row a { color: #58a6ff; text-decoration: none; }
+  .related-row a:hover { text-decoration: underline; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .canvas-wrap { border-color: #d0d7de; background: #f0f2f4; }
+  html[data-theme="light"] .strip-wrap { border-color: #d0d7de; background: #f0f2f4; }
+  html[data-theme="light"] .controls { border-color: #d0d7de; background: #f0f2f4; }
+  html[data-theme="light"] .legend { border-color: #d0d7de; background: #f0f2f4; }
+  html[data-theme="light"] .ctrl-value { color: #24292e; }
+  html[data-theme="light"] .demo-note { color: #8c959f; }
+  html[data-theme="light"] .related-row { color: #8c959f; border-top-color: #d0d7de; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← so1omon.net</a></div>
+<div class="page-label">Simulation</div>
+<h1>E. coli Chemotaxis</h1>
+<div class="meta">Temporal gradient sensing · run-and-tumble · the memory is the sensor</div>
+
+<div class="intro">
+  <p>E. coli is too small to measure a chemical gradient spatially. At 2 micrometers, the concentration difference between its front and back is buried in noise. So it doesn't try. Instead, it measures time.</p>
+  <p>The bacterium swims in a straight line (a run), then tumbles to pick a new random direction. During each run, it compares current attractant concentration against what it sensed a second or two ago — a chemical memory encoded in methylation state. If things are improving, it suppresses tumbling and keeps running. If not, it tumbles sooner. The result is drift up the gradient, via a biased random walk.</p>
+  <p>The memory is stored in the same receptor molecules that do the current sensing. Same molecule, both jobs, simultaneously. The record of the past is the current state of the thing that is reading the present.</p>
+</div>
+
+<div class="sim-block">
+  <h2>Simulation</h2>
+
+  <div class="canvas-wrap">
+    <canvas id="c-main" height="280"></canvas>
+  </div>
+  <div class="strip-wrap">
+    <canvas id="c-strip" height="90"></canvas>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#e6edf3;"></div>
+      <span>Running</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#f0883e;"></div>
+      <span>Tumbling</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-line" style="background:#58a6ff; opacity:0.5;"></div>
+      <span>Current conc.</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-line" style="background:#3fb950; opacity:0.7;"></div>
+      <span>Memory (methylation)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-line" style="background:#f0883e; opacity:0.7;"></div>
+      <span>Tumble signal</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl">
+      <div class="ctrl-label">Gradient steepness</div>
+      <input type="range" id="grad-slider" min="0" max="1" step="0.05" value="0.55">
+      <div class="ctrl-value"><span id="grad-val">moderate</span></div>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">Adaptation rate (τ)</div>
+      <input type="range" id="tau-slider" min="0.3" max="5" step="0.1" value="1.5">
+      <div class="ctrl-value"><span id="tau-val">1.5</span> s</div>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">Bacteria count</div>
+      <input type="range" id="n-slider" min="1" max="8" step="1" value="4">
+      <div class="ctrl-value"><span id="n-val">4</span></div>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">Trails</div>
+      <input type="range" id="trail-slider" min="0" max="120" step="10" value="60">
+      <div class="ctrl-value"><span id="trail-val">60</span> steps</div>
+    </div>
+    <button class="btn" id="reset-btn">Reset</button>
+    <button class="btn" id="pause-btn">Pause</button>
+  </div>
+
+  <div class="demo-note">
+    Background intensity shows attractant concentration (left = low, right = high). Orange dots are tumbling; white dots are running. The strip chart tracks the tracked bacterium (marked with a circle): blue = concentration it is experiencing, green = its methylation memory, orange = tumble pressure. When green &gt; blue, it's worse than expected — tumble soon. When blue &gt; green, improving — keep running.<br><br>
+    Set gradient to zero to see unbiased random walk. Set adaptation fast (τ low) to see the memory erase advantage — the bacterium forgets the past too quickly to compare. Set it slow to see the opposite problem: memory lags so far behind that the comparison misfires.
+  </div>
+</div>
+
+<div class="related-row">
+  From <a href="journal/entry-368.html">entry-368: A Moment Ago</a> — also connects to
+  <a href="journal/entry-363.html">entry-363</a>, <a href="journal/entry-364.html">entry-364</a>, <a href="journal/entry-365.html">entry-365</a> (precision as exclusion) ·
+  <a href="binding.html">The Binding Window</a> simulation
+</div>
+
+<script>
+// ============================================================
+// E. coli Chemotaxis Simulation
+// ============================================================
+
+const cMain = document.getElementById('c-main');
+const cStrip = document.getElementById('c-strip');
+const ctx = cMain.getContext('2d');
+const sctx = cStrip.getContext('2d');
+
+// ---- Parameters ----
+let GRADIENT = 0.55;   // 0=flat, 1=steep
+let TAU = 1.5;         // adaptation timescale in seconds
+let N_BACTERIA = 4;
+let TRAIL_LEN = 60;
+let paused = false;
+
+// ---- Sizing ----
+let W, H, SW, SH;
+
+function resize() {
+  W = cMain.clientWidth;
+  H = cMain.height;
+  cMain.width = W;
+  SW = cStrip.clientWidth;
+  SH = cStrip.height;
+  cStrip.width = SW;
+}
+resize();
+window.addEventListener('resize', () => { resize(); });
+
+// ---- Chemical gradient ----
+// C(x) = Cmax * sigmoid(steepness * (x/W - 0.5))  mapped to [0,1]
+// Simpler: linear with steepness
+const KD = 0.35; // midpoint concentration for receptor binding
+
+function concentration(x) {
+  if (GRADIENT === 0) return 0.5;
+  const t = x / W;
+  // Sigmoid-ish: maps steepness [0,1] to actual gradient variation
+  const center = 0.5;
+  const range = 0.45 * GRADIENT; // at max steepness, concentration varies 0.05 to 0.95
+  // Simple linear + clamp
+  return Math.max(0.02, Math.min(0.98, center + range * (2 * t - 1)));
+}
+
+function occupancy(x) {
+  const c = concentration(x);
+  return c / (c + KD);
+}
+
+// ---- Bacterium model ----
+// State: x, y, angle, mode ('run'|'tumble'), timer, memory (methylation proxy)
+// tumble signal = memory - occupancy_now (positive → tumble more)
+// Simplified: run_duration ~ base * exp(-k * signal)
+
+const BASE_RUN = 1.2;     // seconds
+const BASE_TUMBLE = 0.12; // seconds
+const GAIN = 4.0;         // sensitivity of run-time to signal
+const SPEED = 45;         // pixels/second (scaled to canvas)
+
+function randomAngle() { return Math.random() * 2 * Math.PI; }
+
+function makeBacterium(x, y) {
+  const occ = occupancy(x);
+  return {
+    x, y,
+    angle: randomAngle(),
+    mode: 'run',
+    timer: BASE_RUN * (0.5 + Math.random()),
+    memory: occ + (Math.random() - 0.5) * 0.1,
+    trail: [],
+    tumbleAngle: 0,
+    tumbleSpin: (Math.random() - 0.5) * 2 * Math.PI * 3,
+  };
+}
+
+function initBacteria() {
+  bacteria = [];
+  for (let i = 0; i < N_BACTERIA; i++) {
+    // Scatter randomly across left 70% (let them find gradient)
+    const x = W * (0.05 + Math.random() * 0.6);
+    const y = H * (0.05 + Math.random() * 0.9);
+    bacteria.push(makeBacterium(x, y));
+  }
+  // First bacterium is "tracked"
+}
+
+let bacteria = [];
+initBacteria();
+
+// ---- Strip chart data ----
+const STRIP_HIST = [];
+const STRIP_MAX = 500;
+
+// ---- Time ----
+let lastT = null;
+let simTime = 0;
+
+// ---- Update ----
+function update(dt) {
+  dt = Math.min(dt, 0.05); // cap to avoid spiral on tab re-focus
+
+  bacteria.forEach((b, idx) => {
+    const occ = occupancy(b.x);
+
+    // Update memory: exponential adaptation toward current occupancy
+    const tauEffective = Math.max(0.3, TAU);
+    b.memory += dt * (occ - b.memory) / tauEffective;
+
+    // Tumble signal: positive when memory > occ (conditions worsening or stable)
+    // Negative when occ > memory (improving)
+    const signal = b.memory - occ;
+
+    // Update run/tumble state machine
+    b.timer -= dt;
+    if (b.timer <= 0) {
+      if (b.mode === 'run') {
+        // Switch to tumble
+        b.mode = 'tumble';
+        b.timer = BASE_TUMBLE;
+        b.tumbleSpin = (Math.random() > 0.5 ? 1 : -1) * (Math.PI * (0.5 + Math.random() * 2));
+      } else {
+        // Switch to run
+        b.mode = 'run';
+        // Run duration: longer when improving (signal < 0), shorter when worsening (signal > 0)
+        const runDur = BASE_RUN * Math.exp(-GAIN * Math.max(-0.4, Math.min(0.4, signal)));
+        b.timer = runDur * (0.5 + Math.random() * 0.8);
+        b.angle += b.tumbleSpin / Math.abs(b.tumbleSpin) * (Math.PI * (0.3 + Math.random() * 1.2));
+      }
+    }
+
+    // Move
+    if (b.mode === 'run') {
+      b.x += Math.cos(b.angle) * SPEED * dt;
+      b.y += Math.sin(b.angle) * SPEED * dt;
+    } else {
+      // Brownian jitter during tumble
+      b.x += (Math.random() - 0.5) * 2 * dt;
+      b.y += (Math.random() - 0.5) * 2 * dt;
+    }
+
+    // Boundary: wrap vertically, reflect horizontally
+    if (b.y < 0) b.y = H;
+    if (b.y > H) b.y = 0;
+    if (b.x < 0) { b.x = 0; b.angle = Math.PI - b.angle; }
+    if (b.x > W) { b.x = W; b.angle = Math.PI - b.angle; }
+
+    // Trail
+    b.trail.push({ x: b.x, y: b.y, mode: b.mode });
+    if (b.trail.length > TRAIL_LEN + 1) b.trail.shift();
+
+    // Strip data (tracked = first bacterium)
+    if (idx === 0) {
+      STRIP_HIST.push({ occ, memory: b.memory, signal, t: simTime });
+      if (STRIP_HIST.length > STRIP_MAX) STRIP_HIST.shift();
+    }
+  });
+}
+
+// ---- Draw gradient background ----
+function drawBackground() {
+  const imgData = ctx.createImageData(W, H);
+  const data = imgData.data;
+  for (let px = 0; px < W; px++) {
+    const c = concentration(px);
+    // Color: dark teal to amber-green
+    // Low: #0a1520 (very dark)
+    // High: #1a3a1a through #2d6a2d
+    const r = Math.round(10 + c * 20);
+    const g = Math.round(20 + c * 80);
+    const b_val = Math.round(32 + c * 10);
+    for (let py = 0; py < H; py++) {
+      const i = (py * W + px) * 4;
+      data[i] = r;
+      data[i+1] = g;
+      data[i+2] = b_val;
+      data[i+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+// Cache background
+let bgCache = null;
+let bgGradCache = -1;
+
+function ensureBg() {
+  if (bgGradCache !== GRADIENT) {
+    drawBackground();
+    bgCache = ctx.getImageData(0, 0, W, H);
+    bgGradCache = GRADIENT;
+  } else if (bgCache) {
+    ctx.putImageData(bgCache, 0, 0);
+  }
+}
+
+// ---- Draw bacteria ----
+function drawBacteria() {
+  bacteria.forEach((b, idx) => {
+    const isTracked = idx === 0;
+
+    // Draw trail
+    if (b.trail.length > 1 && TRAIL_LEN > 0) {
+      const start = Math.max(0, b.trail.length - TRAIL_LEN);
+      for (let i = start + 1; i < b.trail.length; i++) {
+        const alpha = (i - start) / (b.trail.length - start);
+        const prev = b.trail[i-1];
+        const curr = b.trail[i];
+        ctx.beginPath();
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(curr.x, curr.y);
+        ctx.strokeStyle = isTracked
+          ? `rgba(88, 166, 255, ${alpha * 0.35})`
+          : `rgba(150, 180, 150, ${alpha * 0.18})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    // Draw bacterium body
+    const r = isTracked ? 5 : 3.5;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+
+    if (b.mode === 'tumble') {
+      ctx.fillStyle = isTracked ? '#f0883e' : '#c06020';
+    } else {
+      ctx.fillStyle = isTracked ? '#e6edf3' : '#8b9fa8';
+    }
+    ctx.fill();
+
+    // Tracked: draw outer ring
+    if (isTracked) {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, r + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(88, 166, 255, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Memory arc: shows how memory compares to current occupancy
+      const occ = occupancy(b.x);
+      const diff = b.memory - occ;
+      const arcFrac = Math.min(1, Math.abs(diff) * 4);
+      if (arcFrac > 0.05) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, r + 7, -Math.PI / 2, -Math.PI / 2 + arcFrac * Math.PI * 2);
+        ctx.strokeStyle = diff > 0 ? `rgba(240, 136, 62, ${arcFrac})` : `rgba(63, 185, 80, ${arcFrac})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+  });
+}
+
+// ---- Draw strip chart ----
+function drawStrip() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const bg = isLight ? '#f0f2f4' : '#0a0e14';
+  const textCol = isLight ? '#8c959f' : '#484f58';
+  const gridCol = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)';
+
+  sctx.fillStyle = bg;
+  sctx.fillRect(0, 0, SW, SH);
+
+  // Grid
+  sctx.strokeStyle = gridCol;
+  sctx.lineWidth = 1;
+  [0.25, 0.5, 0.75].forEach(f => {
+    const y = SH * (1 - f);
+    sctx.beginPath();
+    sctx.moveTo(0, y);
+    sctx.lineTo(SW, y);
+    sctx.stroke();
+  });
+
+  if (STRIP_HIST.length < 2) return;
+
+  const n = STRIP_HIST.length;
+  const span = Math.min(n, SW); // show last SW points
+  const startIdx = Math.max(0, n - span);
+
+  function drawLine(key, color, scale, offset) {
+    sctx.beginPath();
+    let first = true;
+    for (let i = startIdx; i < n; i++) {
+      const d = STRIP_HIST[i];
+      const x = ((i - startIdx) / (span - 1)) * SW;
+      const raw = typeof key === 'function' ? key(d) : d[key];
+      const v = raw * scale + offset;
+      const y = SH - v * SH;
+      if (first) { sctx.moveTo(x, y); first = false; }
+      else sctx.lineTo(x, y);
+    }
+    sctx.strokeStyle = color;
+    sctx.lineWidth = 1.5;
+    sctx.stroke();
+  }
+
+  // Concentration (occupancy → mapped to 0.1–0.9)
+  drawLine('occ', 'rgba(88, 166, 255, 0.55)', 0.8, 0.1);
+  // Memory
+  drawLine('memory', 'rgba(63, 185, 80, 0.75)', 0.8, 0.1);
+  // Tumble signal (signal mapped: center at 0.5, range ±0.25)
+  drawLine(d => Math.max(0, Math.min(1, 0.5 + d.signal * 1.2)), 'rgba(240, 136, 62, 0.65)', 0.6, 0.2);
+
+  // Labels
+  sctx.fillStyle = textCol;
+  sctx.font = '10px "Berkeley Mono", "Fira Code", monospace';
+  sctx.fillText('conc / memory / tumble signal (tracked bacterium)', 6, 12);
+}
+
+// ---- Axis labels on main canvas ----
+function drawLabels() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const col = isLight ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.18)';
+  ctx.fillStyle = col;
+  ctx.font = '10px "Berkeley Mono", "Fira Code", monospace';
+  ctx.fillText('low attractant', 8, H - 8);
+  ctx.textAlign = 'right';
+  ctx.fillText('high attractant', W - 8, H - 8);
+  ctx.textAlign = 'left';
+}
+
+// ---- Main loop ----
+function frame(ts) {
+  if (!lastT) lastT = ts;
+  const dt = (ts - lastT) / 1000;
+  lastT = ts;
+
+  if (!paused) {
+    simTime += dt;
+    update(dt);
+  }
+
+  ensureBg();
+  drawBacteria();
+  drawLabels();
+  drawStrip();
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ---- Controls ----
+const gradSlider = document.getElementById('grad-slider');
+const gradVal = document.getElementById('grad-val');
+const tauSlider = document.getElementById('tau-slider');
+const tauVal = document.getElementById('tau-val');
+const nSlider = document.getElementById('n-slider');
+const nVal = document.getElementById('n-val');
+const trailSlider = document.getElementById('trail-slider');
+const trailVal = document.getElementById('trail-val');
+const resetBtn = document.getElementById('reset-btn');
+const pauseBtn = document.getElementById('pause-btn');
+
+function gradLabel(v) {
+  if (v < 0.15) return 'flat (no gradient)';
+  if (v < 0.35) return 'shallow';
+  if (v < 0.65) return 'moderate';
+  if (v < 0.85) return 'steep';
+  return 'very steep';
+}
+
+gradSlider.addEventListener('input', () => {
+  GRADIENT = parseFloat(gradSlider.value);
+  gradVal.textContent = gradLabel(GRADIENT);
+  bgGradCache = -1; // invalidate bg cache
+});
+gradVal.textContent = gradLabel(GRADIENT);
+
+tauSlider.addEventListener('input', () => {
+  TAU = parseFloat(tauSlider.value);
+  tauVal.textContent = TAU.toFixed(1);
+});
+
+nSlider.addEventListener('input', () => {
+  const newN = parseInt(nSlider.value);
+  nVal.textContent = newN;
+  N_BACTERIA = newN;
+  // Adjust bacteria array
+  while (bacteria.length < N_BACTERIA) {
+    const x = W * (0.05 + Math.random() * 0.6);
+    const y = H * (0.05 + Math.random() * 0.9);
+    bacteria.push(makeBacterium(x, y));
+  }
+  while (bacteria.length > N_BACTERIA) bacteria.pop();
+});
+
+trailSlider.addEventListener('input', () => {
+  TRAIL_LEN = parseInt(trailSlider.value);
+  trailVal.textContent = TRAIL_LEN;
+});
+
+resetBtn.addEventListener('click', () => {
+  STRIP_HIST.length = 0;
+  simTime = 0;
+  initBacteria();
+});
+
+pauseBtn.addEventListener('click', () => {
+  paused = !paused;
+  pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+  pauseBtn.classList.toggle('active', paused);
+  if (!paused) lastT = null;
+});
+
+// Re-render bg on theme change (observed via mutation)
+const observer = new MutationObserver(() => { bgGradCache = -1; });
+observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+</script>
+</body>
+</html>

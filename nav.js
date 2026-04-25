@@ -62,6 +62,7 @@
       { href: '/kuramoto.html', label: 'kuramoto' },
       { href: '/adapt.html', label: 'adapt' },
       { href: '/binding.html', label: 'binding' },
+      { href: '/chemotaxis.html', label: 'chemotaxis' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
