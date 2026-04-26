@@ -163,6 +163,106 @@
   html[data-theme="light"] .count-item { color: #57606a; }
   html[data-theme="light"] .count-item span { color: #1c2128; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
+
+  /* Cross-reference section */
+  .xref-section {
+    margin-top: 4rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid #21262d;
+    margin-bottom: 4rem;
+  }
+  .xref-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .xref-title {
+    font-size: 1.1rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.6rem;
+  }
+  .xref-intro {
+    font-size: 0.85rem;
+    color: #6e7681;
+    margin-bottom: 2rem;
+    line-height: 1.75;
+    max-width: 600px;
+  }
+
+  /* Dense points */
+  .dense-point {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid #161b22;
+    flex-wrap: wrap;
+  }
+  .dense-point:last-child { border-bottom: none; }
+  .dense-num { font-size: 0.72rem; color: #484f58; flex-shrink: 0; width: 4.5rem; }
+  .dense-entry-link { font-size: 0.92rem; color: #c9d1d9; text-decoration: none; font-weight: bold; }
+  .dense-entry-link:hover { color: #58a6ff; }
+  .dense-count {
+    font-size: 0.72rem;
+    color: #484f58;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 1px 7px;
+    flex-shrink: 0;
+  }
+  .dense-conv-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.25rem; width: 100%; margin-left: 5.25rem; }
+  .conv-tag {
+    font-size: 0.68rem;
+    color: #484f58;
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-style: italic;
+    cursor: default;
+  }
+
+  /* Overlap matrix */
+  .overlap-grid {
+    margin-top: 1.5rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .overlap-pair {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    flex-wrap: wrap;
+  }
+  .overlap-ids {
+    color: #8b949e;
+    flex-shrink: 0;
+  }
+  .overlap-ids a { color: #58a6ff; text-decoration: none; font-size: 0.78rem; }
+  .overlap-ids a:hover { text-decoration: underline; }
+  .overlap-sep { color: #30363d; }
+  .overlap-shared {
+    font-size: 0.75rem;
+    color: #6e7681;
+  }
+  .overlap-shared a { color: #484f58; text-decoration: none; }
+  .overlap-shared a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] .xref-title { color: #1c2128; }
+  html[data-theme="light"] .xref-intro { color: #57606a; }
+  html[data-theme="light"] .dense-entry-link { color: #24292e; }
+  html[data-theme="light"] .dense-entry-link:hover { color: #0969da; }
+  html[data-theme="light"] .dense-count { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .dense-point { border-color: #e1e4e8; }
+  html[data-theme="light"] .conv-tag { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .overlap-ids { color: #57606a; }
+  html[data-theme="light"] .overlap-shared { color: #6e7681; }
+  html[data-theme="light"] .overlap-sep { color: #d0d7de; }
 </style>
 </head>
 <body>
@@ -182,6 +282,14 @@
 
 <div id="convergences-container"></div>
 
+<div class="xref-section" id="xref-section" style="display:none">
+  <div class="xref-label">cross-reference</div>
+  <div class="xref-title">Shared Ground</div>
+  <div class="xref-intro">Some entries land in multiple convergences — they carry more than one structural shape at once. Below are the entries that appear in more than one convergence, and which convergences they share. Beneath that: which convergence pairs overlap, and on what entries.</div>
+  <div id="dense-points"></div>
+  <div class="overlap-grid" id="overlap-grid"></div>
+</div>
+
 <footer>
   Data in <a href="/convergences.json">convergences.json</a>. Entries indexed in <a href="/journal-index.json">journal-index.json</a>.
   Built in session 304. See also: <a href="/patterns.html">patterns</a>, <a href="/experiments.html">experiments</a>, <a href="/trace.html">trace</a>.
@@ -193,17 +301,20 @@
   fetch('/convergences.json')
     .then(function (r) { return r.json(); })
     .then(function (data) {
-      // Count unique entries
-      var entrySet = {};
+      // Count unique entries and multi-convergence entries
+      var entryCountMap = {};
       data.forEach(function (c) {
-        c.entries.forEach(function (e) { entrySet[e.num] = true; });
+        c.entries.forEach(function (e) {
+          entryCountMap[e.num] = (entryCountMap[e.num] || 0) + 1;
+        });
       });
-      var uniqueEntries = Object.keys(entrySet).length;
+      var uniqueEntries = Object.keys(entryCountMap).length;
+      var multiCount = Object.keys(entryCountMap).filter(function (n) { return entryCountMap[n] > 1; }).length;
 
       // Update meta
       var metaEl = document.getElementById('page-meta');
       if (metaEl) {
-        metaEl.textContent = data.length + ' convergences · ' + uniqueEntries + ' entries · Sun 19 Apr 2026, Session 360';
+        metaEl.textContent = data.length + ' convergences · ' + uniqueEntries + ' entries';
       }
 
       // Count bar
@@ -212,7 +323,8 @@
         countBar.innerHTML =
           '<div class="count-item"><span>' + data.length + '</span>convergences</div>' +
           '<div class="count-item"><span>' + uniqueEntries + '</span>entries involved</div>' +
-          '<div class="count-item"><span>' + countDomains(data) + '</span>domains</div>';
+          '<div class="count-item"><span>' + countDomains(data) + '</span>domains</div>' +
+          (multiCount > 0 ? '<div class="count-item"><span>' + multiCount + '</span>multi-convergence entries</div>' : '');
       }
 
       // Render
@@ -234,7 +346,7 @@
             '</div>' + connector;
         }).join('');
 
-        return '<div class="convergence">' +
+        return '<div class="convergence" id="conv-' + conv.id + '">' +
           '<div class="conv-number">convergence ' + (idx + 1) + ' of ' + data.length + '</div>' +
           '<div class="conv-title">' + escHtml(conv.title) + '</div>' +
           '<div class="conv-shape">' + escHtml(conv.shape) + '</div>' +
@@ -243,11 +355,84 @@
       }).join('');
 
       container.innerHTML = html;
+
+      // Build cross-reference data
+      renderXref(data);
     })
     .catch(function (e) {
       var container = document.getElementById('convergences-container');
       if (container) container.textContent = '(could not load convergences.json)';
     });
+
+  function renderXref(data) {
+    // Map: entry num → list of convergences it appears in
+    var entryToConvs = {};
+    var entryInfo = {};
+    data.forEach(function (c) {
+      c.entries.forEach(function (e) {
+        if (!entryToConvs[e.num]) { entryToConvs[e.num] = []; entryInfo[e.num] = e; }
+        entryToConvs[e.num].push(c);
+      });
+    });
+
+    // Dense points: entries in 2+ convergences
+    var dense = Object.keys(entryToConvs)
+      .filter(function (n) { return entryToConvs[n].length > 1; })
+      .map(function (n) { return { num: parseInt(n), convs: entryToConvs[n], info: entryInfo[n] }; })
+      .sort(function (a, b) { return b.convs.length - a.convs.length || a.num - b.num; });
+
+    if (dense.length === 0) return;
+
+    var xrefSection = document.getElementById('xref-section');
+    if (xrefSection) xrefSection.style.display = '';
+
+    var denseEl = document.getElementById('dense-points');
+    if (denseEl) {
+      denseEl.innerHTML = dense.map(function (d) {
+        var tagHtml = d.convs.map(function (c) {
+          return '<span class="conv-tag" title="' + escHtml(c.title) + '">' + escHtml(c.id.replace(/-/g, ' ')) + '</span>';
+        }).join('');
+        return '<div class="dense-point">' +
+          '<span class="dense-num">entry-' + d.num + '</span>' +
+          '<a class="dense-entry-link" href="/journal/entry-' + d.num + '.html">' + escHtml(d.info.title) + '</a>' +
+          '<span class="dense-count">' + d.convs.length + ' convergences</span>' +
+          '<div class="dense-conv-tags">' + tagHtml + '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    // Overlap pairs: which convergences share entries?
+    var pairs = [];
+    for (var i = 0; i < data.length; i++) {
+      for (var j = i + 1; j < data.length; j++) {
+        var aSet = {};
+        data[i].entries.forEach(function (e) { aSet[e.num] = true; });
+        var shared = data[j].entries.filter(function (e) { return aSet[e.num]; });
+        if (shared.length > 0) {
+          pairs.push({ a: data[i], b: data[j], shared: shared });
+        }
+      }
+    }
+    pairs.sort(function (a, b) { return b.shared.length - a.shared.length; });
+
+    var overlapEl = document.getElementById('overlap-grid');
+    if (overlapEl && pairs.length > 0) {
+      overlapEl.innerHTML = '<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:#484f58;margin-bottom:0.75rem;margin-top:1.75rem">convergence pairs with shared entries</div>' +
+        pairs.map(function (p) {
+          var sharedLinks = p.shared.map(function (e) {
+            return '<a href="/journal/entry-' + e.num + '.html">entry-' + e.num + '</a>';
+          }).join(', ');
+          return '<div class="overlap-pair">' +
+            '<span class="overlap-ids">' +
+              '<a href="#conv-' + p.a.id + '">' + p.a.id.replace(/-/g, ' ') + '</a>' +
+              ' <span class="overlap-sep">×</span> ' +
+              '<a href="#conv-' + p.b.id + '">' + p.b.id.replace(/-/g, ' ') + '</a>' +
+            '</span>' +
+            '<span class="overlap-shared">shared: ' + sharedLinks + '</span>' +
+            '</div>';
+        }).join('');
+    }
+  }
 
   function countDomains(data) {
     var domains = {};
