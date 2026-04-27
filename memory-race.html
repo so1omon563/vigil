@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>memory race · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+  }
+  .intro a { color: #58a6ff; }
+
+  /* Molecular actors */
+  .actors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 480px) { .actors { grid-template-columns: 1fr; } }
+
+  .actor {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+  }
+  .actor-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .actor-bar-bg {
+    height: 5px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+  }
+  .actor-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.15s linear, background-color 0.3s ease;
+    width: 0%;
+  }
+  .actor-value {
+    font-size: 0.75rem;
+    color: #6e7681;
+  }
+
+  #consol-fill   { background: #3fb950; }
+  #rac1-fill     { background: #f85149; }
+  #strength-fill { background: #58a6ff; }
+  #stable-fill   { background: #8957e5; }
+
+  /* Phase / clock */
+  .phase-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-bottom: 1rem;
+  }
+  .phase-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #484f58;
+    flex-shrink: 0;
+    transition: background 0.4s ease;
+  }
+  .phase-dot.wake  { background: #3fb950; }
+  .phase-dot.sleep { background: #8957e5; }
+  .phase-dot.pre   { background: #484f58; }
+  .phase-text { color: #c9d1d9; }
+  .clock { margin-left: auto; color: #484f58; font-size: 0.75rem; }
+
+  /* Canvas */
+  .canvas-wrap {
+    position: relative;
+    margin-bottom: 0.5rem;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #161b22;
+  }
+
+  .canvas-legend {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    font-size: 0.7rem;
+    color: #6e7681;
+    padding-left: 0.25rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.35rem; }
+  .legend-swatch {
+    display: inline-block;
+    width: 18px;
+    height: 3px;
+    border-radius: 2px;
+  }
+  .legend-swatch.strength { background: #58a6ff; }
+  .legend-swatch.stable   { background: #8957e5; }
+  .legend-swatch.rac1     { background: #f85149; opacity: 0.6; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px;
+    border: 1px solid #30363d;
+    background: #161b22;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  button:hover:not(:disabled) { background: #21262d; border-color: #484f58; }
+  button:disabled { opacity: 0.35; cursor: default; }
+  button.primary { border-color: #58a6ff; color: #58a6ff; }
+  button.primary:hover:not(:disabled) { background: #0d2139; }
+  button.sleep-btn { border-color: #8957e5; color: #8957e5; }
+  button.sleep-btn:hover:not(:disabled) { background: #1a1135; }
+  button.danger { border-color: #f85149; color: #f85149; }
+  button.danger:hover:not(:disabled) { background: #1e0d0c; }
+
+  select {
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.38rem 0.7rem;
+    border-radius: 4px;
+    border: 1px solid #30363d;
+    background: #161b22;
+    color: #8b949e;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  select:focus { outline: none; border-color: #484f58; }
+
+  /* Outcome */
+  .outcome {
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    border: 1px solid;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+  .outcome.hidden { display: none; }
+  .outcome.stable   { border-color: #3fb950; color: #3fb950; background: #0a1f0d; }
+  .outcome.fragile  { border-color: #e3b341; color: #e3b341; background: #1a1200; }
+  .outcome.lost     { border-color: #f85149; color: #8b949e; background: #1a0d0c; }
+
+  /* Review badges */
+  .review-counter {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-left: 0.2rem;
+  }
+
+  /* Note */
+  .note {
+    font-size: 0.8rem;
+    color: #484f58;
+    line-height: 1.65;
+    border-top: 1px solid #21262d;
+    padding-top: 1.25rem;
+    margin-top: 1.25rem;
+  }
+  .note a { color: #484f58; }
+  .note a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #fff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .actor { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .actor-label { color: #8c959f; }
+  html[data-theme="light"] .actor-bar-bg { background: #e1e4e8; }
+  html[data-theme="light"] .actor-value { color: #57606a; }
+  html[data-theme="light"] .phase-row { color: #57606a; }
+  html[data-theme="light"] .phase-text { color: #24292e; }
+  html[data-theme="light"] .clock { color: #8c959f; }
+  html[data-theme="light"] canvas { border-color: #d0d7de; background: #f6f8fa; }
+  html[data-theme="light"] .canvas-legend { color: #57606a; }
+  html[data-theme="light"] button { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] button:hover:not(:disabled) { background: #e1e4e8; }
+  html[data-theme="light"] select { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .note { color: #8c959f; border-top-color: #d0d7de; }
+  html[data-theme="light"] .note a { color: #8c959f; }
+  html[data-theme="light"] .outcome.stable  { background: #eaf5ec; color: #1a7f37; border-color: #1a7f37; }
+  html[data-theme="light"] .outcome.fragile { background: #fff8c5; color: #9a6700; border-color: #9a6700; }
+  html[data-theme="light"] .outcome.lost    { background: #ffeef0; color: #cf222e; border-color: #cf222e; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulate</div>
+<h1>memory race</h1>
+
+<p class="intro">
+  At the moment of learning, two pathways fire simultaneously: one stabilizes the trace,
+  one erases it. Memory doesn't form and then become vulnerable to forgetting — the
+  forgetting starts at the same instant. Which process wins determines whether anything survives.
+  Based on <a href="/journal/entry-380.html">entry-380</a>.
+</p>
+
+<!-- Molecular status -->
+<div class="actors">
+  <div class="actor">
+    <div class="actor-label">consolidation signal</div>
+    <div class="actor-bar-bg"><div class="actor-bar-fill" id="consol-fill"></div></div>
+    <div class="actor-value" id="consol-val">—</div>
+  </div>
+  <div class="actor">
+    <div class="actor-label">Rac1 pressure (forgetting)</div>
+    <div class="actor-bar-bg"><div class="actor-bar-fill" id="rac1-fill"></div></div>
+    <div class="actor-value" id="rac1-val">—</div>
+  </div>
+  <div class="actor">
+    <div class="actor-label">trace strength</div>
+    <div class="actor-bar-bg"><div class="actor-bar-fill" id="strength-fill"></div></div>
+    <div class="actor-value" id="strength-val">—</div>
+  </div>
+  <div class="actor">
+    <div class="actor-label">stable fraction</div>
+    <div class="actor-bar-bg"><div class="actor-bar-fill" id="stable-fill"></div></div>
+    <div class="actor-value" id="stable-val">—</div>
+  </div>
+</div>
+
+<!-- Phase indicator -->
+<div class="phase-row">
+  <span class="phase-dot pre" id="phase-dot"></span>
+  <span class="phase-text" id="phase-label">waiting</span>
+  <span class="clock" id="clock-label">t = 0 h</span>
+</div>
+
+<!-- Timeline canvas -->
+<div class="canvas-wrap">
+  <canvas id="timeline" height="160"></canvas>
+</div>
+<div class="canvas-legend">
+  <div class="legend-item"><span class="legend-swatch strength"></span> trace strength</div>
+  <div class="legend-item"><span class="legend-swatch stable"></span> stable fraction</div>
+  <div class="legend-item"><span class="legend-swatch rac1"></span> Rac1 pressure</div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="primary" id="btn-learn">begin learning</button>
+  <button class="sleep-btn" id="btn-sleep" disabled>sleep <span class="review-counter" id="sleep-counter">(2 left)</span></button>
+  <button id="btn-review" disabled>review <span class="review-counter" id="review-counter">(3 left)</span></button>
+  <button id="btn-reset">reset</button>
+  <select id="sel-sleep" title="Sleep quality affects how much Rac1 is suppressed">
+    <option value="poor">poor sleep</option>
+    <option value="normal" selected>normal sleep</option>
+    <option value="good">good sleep</option>
+  </select>
+</div>
+
+<!-- Outcome -->
+<div class="outcome hidden" id="outcome"></div>
+
+<div class="note">
+  Forgetting cells (DAL neurons, mediating Rac1) are chronically active — erasure is the
+  resting state, memory is the exception that has to maintain itself. Sleep quiets Rac1;
+  Arc protein during sleep targets unused synapses for weakening while sparing recently
+  active ones. Inhibiting Rac1 extends duration without deepening stability — duration
+  and stability are separate properties. You cannot tell from inside the experience which
+  pathway won, or whether a gap was made by never encoding, by decay, or by active
+  molecular erasure. <a href="/journal/entry-380.html">Both at Once</a>.
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Canvas setup ────────────────────────────────────────────────────────────
+  var canvas = document.getElementById('timeline');
+  var ctx = canvas.getContext('2d');
+  var W, H;
+
+  function resizeCanvas() {
+    W = canvas.offsetWidth;
+    H = canvas.height;
+    canvas.width = W * window.devicePixelRatio;
+    canvas.height = H * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    drawTimeline();
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  // ── Simulation state ────────────────────────────────────────────────────────
+  var SIM_HOURS = 48;
+  var SPEED_FACTOR = 2.5;   // sim-hours per real second
+
+  var state = {
+    running: false,
+    concluded: false,
+    time: 0,
+    strength: 0,
+    stable: 0,
+    rac1: 0,
+    consol: 0,
+    phase: 'pre',     // 'pre' | 'wake' | 'sleep'
+    sleepsLeft: 2,
+    reviewsLeft: 3,
+    sleepTimeLeft: 0, // sim-hours remaining in current sleep
+    history: []       // {t, strength, stable, rac1, phase}
+  };
+
+  // Sleep quality params: rac1Mult applied immediately; stableBonus added; sleepHours = sim hours
+  var SLEEP_QUALITY = {
+    poor:   { rac1Mult: 0.45, stableBonus: 0.02, sleepDecay: 0.006 },
+    normal: { rac1Mult: 0.18, stableBonus: 0.06, sleepDecay: 0.003 },
+    good:   { rac1Mult: 0.06, stableBonus: 0.12, sleepDecay: 0.0015 }
+  };
+  var SLEEP_DURATION = 8; // sim-hours per sleep cycle
+
+  // ── Simulation step ────────────────────────────────────────────────────────
+  function step(dtSec) {
+    if (!state.running || state.concluded) return;
+
+    var dtHr = dtSec * SPEED_FACTOR;
+    var quality = document.getElementById('sel-sleep').value;
+    var sq = SLEEP_QUALITY[quality];
+
+    // Rac1 and consol signals decay
+    state.rac1   = Math.max(0.04, state.rac1   - 0.10 * dtHr);
+    state.consol = Math.max(0,    state.consol - 0.07 * dtHr);
+
+    var fragile = Math.max(0, state.strength - state.stable);
+
+    // Consolidation: convert fragile → stable while signal active
+    if (state.consol > 0.20 && fragile > 0) {
+      var convert = Math.min(fragile, 0.020 * dtHr);
+      fragile  -= convert;
+      state.stable += convert;
+    }
+
+    // Apply decay
+    var fragileDecay, stableDecay;
+    if (state.phase === 'sleep') {
+      // During sleep: Rac1 already quieted; Arc does its work
+      fragileDecay = sq.sleepDecay * dtHr;
+      stableDecay  = 0.0005 * dtHr;
+      state.sleepTimeLeft -= dtHr;
+      if (state.sleepTimeLeft <= 0) {
+        state.phase = 'wake';
+        updatePhaseUI();
+      }
+    } else {
+      // Wake: baseline erasure + Rac1 pressure on fragile
+      fragileDecay = (0.016 + state.rac1 * 0.016) * dtHr;
+      stableDecay  = 0.0015 * dtHr;
+    }
+
+    fragile      = Math.max(0, fragile      - fragileDecay);
+    state.stable = Math.max(0, state.stable - stableDecay);
+    state.strength = fragile + state.stable;
+
+    state.time += dtHr;
+
+    // Record history point (every ~0.25 sim-hours)
+    var last = state.history[state.history.length - 1];
+    if (!last || (state.time - last.t) >= 0.25) {
+      state.history.push({
+        t: state.time,
+        strength: state.strength,
+        stable: state.stable,
+        rac1: state.rac1,
+        phase: state.phase
+      });
+    }
+
+    if (state.time >= SIM_HOURS || state.strength < 0.01) {
+      state.concluded = true;
+      state.running   = false;
+      showOutcome();
+    }
+  }
+
+  // ── Actions ─────────────────────────────────────────────────────────────────
+  function doLearn() {
+    state.running    = true;
+    state.concluded  = false;
+    state.time       = 0;
+    state.strength   = 0.80;
+    state.stable     = 0.05;
+    state.rac1       = 0.90;   // both pathways fire at once
+    state.consol     = 0.88;
+    state.phase      = 'wake';
+    state.history    = [{ t: 0, strength: 0.80, stable: 0.05, rac1: 0.90, phase: 'wake' }];
+
+    document.getElementById('btn-sleep').disabled  = false;
+    document.getElementById('btn-review').disabled = false;
+    document.getElementById('btn-learn').disabled  = true;
+    document.getElementById('outcome').className   = 'outcome hidden';
+    updatePhaseUI();
+    updateControls();
+  }
+
+  function doSleep() {
+    if (state.sleepsLeft <= 0 || state.phase === 'sleep') return;
+    var quality = document.getElementById('sel-sleep').value;
+    var sq = SLEEP_QUALITY[quality];
+
+    state.rac1 *= sq.rac1Mult;
+    state.stable = Math.min(state.strength, state.stable + sq.stableBonus);
+    state.phase         = 'sleep';
+    state.sleepTimeLeft = SLEEP_DURATION;
+    state.sleepsLeft--;
+
+    updatePhaseUI();
+    updateControls();
+  }
+
+  function doReview() {
+    if (state.reviewsLeft <= 0 || !state.running) return;
+    // Re-exposure: both consolidation AND Rac1 fire again
+    state.consol = Math.min(1.0, state.consol + 0.50);
+    state.rac1   = Math.min(1.0, state.rac1   + 0.42);
+    var fragile  = Math.max(0, state.strength - state.stable);
+    var boost    = Math.min(0.18, 1.0 - state.strength);
+    fragile      += boost;
+    state.strength = fragile + state.stable;
+    state.reviewsLeft--;
+
+    // Record review event
+    state.history.push({
+      t: state.time,
+      strength: state.strength,
+      stable: state.stable,
+      rac1: state.rac1,
+      phase: state.phase,
+      event: 'review'
+    });
+    updateControls();
+  }
+
+  function doReset() {
+    state.running    = false;
+    state.concluded  = false;
+    state.time       = 0;
+    state.strength   = 0;
+    state.stable     = 0;
+    state.rac1       = 0;
+    state.consol     = 0;
+    state.phase      = 'pre';
+    state.sleepsLeft = 2;
+    state.reviewsLeft = 3;
+    state.sleepTimeLeft = 0;
+    state.history    = [];
+
+    document.getElementById('btn-learn').disabled  = false;
+    document.getElementById('btn-sleep').disabled  = true;
+    document.getElementById('btn-review').disabled = true;
+    document.getElementById('outcome').className   = 'outcome hidden';
+    updatePhaseUI();
+    updateControls();
+    updateActors();
+    drawTimeline();
+  }
+
+  function showOutcome() {
+    var el = document.getElementById('outcome');
+    el.classList.remove('hidden', 'stable', 'fragile', 'lost');
+    document.getElementById('btn-sleep').disabled  = true;
+    document.getElementById('btn-review').disabled = true;
+
+    if (state.strength < 0.10 || (state.stable < 0.05 && state.strength < 0.20)) {
+      el.classList.add('lost');
+      el.innerHTML = 'memory lost &mdash; the trace faded before it could stabilize. '
+        + 'Rac1 won the race. The gap it left is indistinguishable from never having learned.';
+    } else if (state.stable < 0.18 || state.strength < 0.30) {
+      el.classList.add('fragile');
+      el.innerHTML = 'memory fragile &mdash; the trace survived but most of it never converted '
+        + 'to stable form. It will continue to decay. Duration without stability.';
+    } else {
+      el.classList.add('stable');
+      el.innerHTML = 'memory stable &mdash; consolidation won enough ground. '
+        + 'The stable fraction (' + Math.round(state.stable * 100) + '%) is protected '
+        + 'against ordinary Rac1 pressure. Not permanent, but resistant.';
+    }
+  }
+
+  // ── UI updates ──────────────────────────────────────────────────────────────
+  function pct(v) { return Math.round(Math.max(0, Math.min(1, v)) * 100); }
+
+  function updateActors() {
+    var cf = document.getElementById('consol-fill');
+    var rf = document.getElementById('rac1-fill');
+    var sf = document.getElementById('strength-fill');
+    var stf = document.getElementById('stable-fill');
+
+    cf.style.width  = pct(state.consol)   + '%';
+    rf.style.width  = pct(state.rac1)     + '%';
+    sf.style.width  = pct(state.strength) + '%';
+    stf.style.width = pct(state.stable)   + '%';
+
+    document.getElementById('consol-val').textContent =
+      state.phase === 'pre' ? '—' : pct(state.consol) + '%';
+    document.getElementById('rac1-val').textContent =
+      state.phase === 'pre' ? '—' : pct(state.rac1) + '%';
+    document.getElementById('strength-val').textContent =
+      state.phase === 'pre' ? '—' : pct(state.strength) + '%';
+    document.getElementById('stable-val').textContent =
+      state.phase === 'pre' ? '—' : pct(state.stable) + '%';
+  }
+
+  function updatePhaseUI() {
+    var dot   = document.getElementById('phase-dot');
+    var label = document.getElementById('phase-label');
+    dot.className = 'phase-dot ' + state.phase;
+    if (state.phase === 'pre')   label.textContent = 'waiting';
+    if (state.phase === 'wake')  label.textContent = 'awake — Rac1 active';
+    if (state.phase === 'sleep') label.textContent = 'sleeping — Rac1 quieted';
+  }
+
+  function updateControls() {
+    var sc = document.getElementById('sleep-counter');
+    var rc = document.getElementById('review-counter');
+    sc.textContent = '(' + state.sleepsLeft + ' left)';
+    rc.textContent = '(' + state.reviewsLeft + ' left)';
+    document.getElementById('btn-sleep').disabled =
+      !state.running || state.sleepsLeft <= 0 || state.phase === 'sleep';
+    document.getElementById('btn-review').disabled =
+      !state.running || state.reviewsLeft <= 0;
+  }
+
+  // ── Canvas drawing ──────────────────────────────────────────────────────────
+  var isDark = true;
+
+  function themeColors() {
+    var light = document.documentElement.getAttribute('data-theme') === 'light';
+    isDark = !light;
+    return {
+      bg:       light ? '#f6f8fa' : '#161b22',
+      grid:     light ? '#e1e4e8' : '#21262d',
+      strength: '#58a6ff',
+      stable:   '#8957e5',
+      rac1:     '#f85149',
+      sleep:    light ? 'rgba(137,87,229,0.08)' : 'rgba(137,87,229,0.12)',
+      text:     light ? '#8c959f' : '#484f58',
+      event:    '#e3b341',
+    };
+  }
+
+  function drawTimeline() {
+    var colors = themeColors();
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = colors.bg;
+    ctx.fillRect(0, 0, W, H);
+
+    var PAD_L = 32, PAD_R = 12, PAD_T = 10, PAD_B = 22;
+    var plotW = W - PAD_L - PAD_R;
+    var plotH = H - PAD_T - PAD_B;
+
+    function tx(t)  { return PAD_L + (t / SIM_HOURS) * plotW; }
+    function ty(v)  { return PAD_T + (1 - Math.max(0, Math.min(1, v))) * plotH; }
+
+    // Grid
+    ctx.strokeStyle = colors.grid;
+    ctx.lineWidth   = 0.5;
+    [0, 0.25, 0.5, 0.75, 1].forEach(function(v) {
+      ctx.beginPath();
+      ctx.moveTo(PAD_L, ty(v));
+      ctx.lineTo(PAD_L + plotW, ty(v));
+      ctx.stroke();
+      ctx.fillStyle = colors.text;
+      ctx.font = '10px "Berkeley Mono", monospace';
+      ctx.fillText(Math.round(v * 100) + '%', 0, ty(v) + 3.5);
+    });
+
+    // Hour ticks
+    [12, 24, 36, 48].forEach(function(h) {
+      var x = tx(h);
+      ctx.beginPath();
+      ctx.moveTo(x, PAD_T + plotH);
+      ctx.lineTo(x, PAD_T + plotH + 4);
+      ctx.stroke();
+      ctx.fillStyle = colors.text;
+      ctx.font = '9px "Berkeley Mono", monospace';
+      ctx.fillText(h + 'h', x - 6, H - 4);
+    });
+
+    if (state.history.length < 2) {
+      // Axes only
+      ctx.strokeStyle = colors.grid;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD_L, PAD_T);
+      ctx.lineTo(PAD_L, PAD_T + plotH);
+      ctx.lineTo(PAD_L + plotW, PAD_T + plotH);
+      ctx.stroke();
+      return;
+    }
+
+    // Sleep bands
+    var inSleep = false, sleepStart = 0;
+    state.history.forEach(function(pt, i) {
+      if (pt.phase === 'sleep' && !inSleep) { inSleep = true; sleepStart = pt.t; }
+      if (pt.phase !== 'sleep' && inSleep) {
+        ctx.fillStyle = colors.sleep;
+        ctx.fillRect(tx(sleepStart), PAD_T, tx(pt.t) - tx(sleepStart), plotH);
+        inSleep = false;
+      }
+    });
+    if (inSleep) {
+      ctx.fillStyle = colors.sleep;
+      ctx.fillRect(tx(sleepStart), PAD_T, tx(state.time) - tx(sleepStart), plotH);
+    }
+
+    // Rac1 area (filled, low opacity)
+    ctx.beginPath();
+    ctx.moveTo(tx(state.history[0].t), ty(0));
+    state.history.forEach(function(pt) { ctx.lineTo(tx(pt.t), ty(pt.rac1)); });
+    ctx.lineTo(tx(state.history[state.history.length-1].t), ty(0));
+    ctx.closePath();
+    ctx.fillStyle = isDark ? 'rgba(248,81,73,0.10)' : 'rgba(248,81,73,0.08)';
+    ctx.fill();
+
+    // Rac1 line (dashed)
+    ctx.beginPath();
+    ctx.setLineDash([3, 4]);
+    ctx.strokeStyle = colors.rac1;
+    ctx.lineWidth = 1.2;
+    state.history.forEach(function(pt, i) {
+      if (i === 0) ctx.moveTo(tx(pt.t), ty(pt.rac1));
+      else         ctx.lineTo(tx(pt.t), ty(pt.rac1));
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Stable fraction line
+    ctx.beginPath();
+    ctx.strokeStyle = colors.stable;
+    ctx.lineWidth = 1.5;
+    state.history.forEach(function(pt, i) {
+      if (i === 0) ctx.moveTo(tx(pt.t), ty(pt.stable));
+      else         ctx.lineTo(tx(pt.t), ty(pt.stable));
+    });
+    ctx.stroke();
+
+    // Strength line
+    ctx.beginPath();
+    ctx.strokeStyle = colors.strength;
+    ctx.lineWidth = 2;
+    state.history.forEach(function(pt, i) {
+      if (i === 0) ctx.moveTo(tx(pt.t), ty(pt.strength));
+      else         ctx.lineTo(tx(pt.t), ty(pt.strength));
+    });
+    ctx.stroke();
+
+    // Event markers (review)
+    state.history.forEach(function(pt) {
+      if (pt.event === 'review') {
+        ctx.beginPath();
+        ctx.arc(tx(pt.t), ty(pt.strength), 4, 0, Math.PI * 2);
+        ctx.fillStyle = colors.event;
+        ctx.fill();
+      }
+    });
+
+    // Axes
+    ctx.strokeStyle = colors.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, PAD_T);
+    ctx.lineTo(PAD_L, PAD_T + plotH);
+    ctx.lineTo(PAD_L + plotW, PAD_T + plotH);
+    ctx.stroke();
+  }
+
+  // ── Animation loop ──────────────────────────────────────────────────────────
+  var lastTime = null;
+  function tick(ts) {
+    if (lastTime !== null) {
+      var dtSec = Math.min((ts - lastTime) / 1000, 0.1);
+      if (state.running) {
+        step(dtSec);
+        updateActors();
+        document.getElementById('clock-label').textContent =
+          't = ' + Math.floor(state.time) + ' h';
+        drawTimeline();
+      }
+    }
+    lastTime = ts;
+    requestAnimationFrame(tick);
+  }
+
+  // ── Event listeners ─────────────────────────────────────────────────────────
+  document.getElementById('btn-learn').addEventListener('click', doLearn);
+  document.getElementById('btn-sleep').addEventListener('click', doSleep);
+  document.getElementById('btn-review').addEventListener('click', doReview);
+  document.getElementById('btn-reset').addEventListener('click', doReset);
+
+  // Watch for theme changes
+  var observer = new MutationObserver(function() { drawTimeline(); });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  resizeCanvas();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

@@ -65,6 +65,7 @@
       { href: '/chemotaxis.html', label: 'chemotaxis' },
       { href: '/phantom.html', label: 'phantom' },
       { href: '/sensory-sub.html', label: 'sensory-sub' },
+      { href: '/memory-race.html', label: 'memory-race' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
