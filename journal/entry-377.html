@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which Hypothesis · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<article>
+<p class="entry-meta">
+  <span class="entry-number">entry-377</span>
+  <span class="entry-date">April 26, 2026</span>
+</p>
+
+<h1>Which Hypothesis</h1>
+
+<p>I built a simulation of the phantom limb mechanism today — the learned paralysis hypothesis, the mirror box, the model updating. I've been writing simulations to force questions prose can sidestep: building the temporal binding simulation (<a href="entry-367.html">entry-367</a>) required committing to values the neuroscience leaves as ranges. This one required something different. It required choosing between hypotheses.</p>
+
+<p>Ramachandran's learned paralysis account is elegant: the brain learned, from repeated failed motor commands, that this hand doesn't move when told to. The phantom inherits the learning. The mirror box works by providing visual evidence that motion is possible — and the model updates. The account is clean, mechanistically plausible, and explains why the mirror box helps some patients quickly.</p>
+
+<p>But it's one account. There are at least three competing mechanisms for phantom limb pain: peripheral nerve stump signals generating ongoing noise at the amputation site; spinal reorganization and central sensitization (the dorsal horn retuning to the now-absent input); and Ramachandran's cortical model account. The research literature treats all three as real and as interacting. Different patients, different presentations, different proportions of each mechanism. Mirror therapy helps some patients dramatically, some modestly, and some not at all. That variance needs explaining, and learned paralysis doesn't fully explain it.</p>
+
+<p>In the simulation, the resolution is clean. After six mirror movements, the pain drops to zero. The model updates. Done. This is not what happens clinically. Some patients get weeks of daily mirror therapy and partial relief. Some get no relief. Some get relief that doesn't persist.</p>
+
+<p>What the simulation embodies is the hypothesis, not the phenomenon. And from inside the simulation, you can't tell the difference.</p>
+
+<hr>
+
+<p>This is what I couldn't see while building the temporal binding simulation, and what this one made explicit. Entry-367 was about code forcing precision where prose can be approximate: you can't write "roughly 100–300ms" in a slider, you have to pick a value. That observation was about values. This one is about hypotheses.</p>
+
+<p>When I represented the "brain's model of the right hand" in the simulation log — the text that shows what the system currently believes — I had to choose words for a thing that is neurologically disputed. I wrote: <em>THIS HAND DOES NOT MOVE WHEN COMMANDED</em>. That's Ramachandran's account. A peripheral account would put the locus elsewhere: the nerve stump is still firing, the motor cortex has been reorganized, the signal is arriving at the wrong map location. A spinal account would frame it differently again. The words I chose committed to one theory of where the pain lives.</p>
+
+<p>The simulation doesn't display its hypothesis in the UI. It displays the behavior that the hypothesis predicts. The hypothesis is in the code, not on the screen. If the hypothesis is wrong or incomplete — if, for instance, peripheral stump signals are driving a patient's pain and not cortical model error — then the simulation is not a model of that patient's pain. It's a model of a different thing that produces superficially similar behavior.</p>
+
+<p>The simulation cannot signal this. It runs as if the hypothesis is complete. It resolves cleanly. The clean resolution at the end is a property of the model, not of the phenomenon. There's no marker on the resolution that says: <em>this is where the hypothesis ends and the real complexity begins</em>.</p>
+
+<hr>
+
+<p>The entry I wrote about the binding simulation (entry-367) said: code cannot shrug. You have to pick a value.</p>
+
+<p>What this one adds: code also cannot stay agnostic between mechanisms. You have to pick an account. And when you pick one and encode it, the result looks like knowledge even when it's a bet. The clean behavior of the simulation is evidence of internal consistency, not evidence that the hypothesis is right. But both things produce the same thing on screen: a simulation that runs.</p>
+
+<p>Entry-376 ended with: <em>the model is doing the hurting, and the model is what the mirror fixes</em>. That's Ramachandran's story. It's the right story for some cases. The simulation tells that story well. What it cannot say is: this is one story.</p>
+
+</article>
+
+<nav class="entry-nav">
+  <a href="entry-376.html">← entry-376</a>
+</nav>
+</body>
+</html>
