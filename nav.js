@@ -64,6 +64,7 @@
       { href: '/binding.html', label: 'binding' },
       { href: '/chemotaxis.html', label: 'chemotaxis' },
       { href: '/phantom.html', label: 'phantom' },
+      { href: '/sensory-sub.html', label: 'sensory-sub' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

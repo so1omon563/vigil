@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>perceptual transparency · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p + p { margin-top: 0.75rem; }
+
+  .sim-wrapper {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .sim-panel {
+    flex: 1;
+    min-width: 280px;
+  }
+  .panel-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .panel-label.active-label { color: #3fb950; }
+  .panel-label.passive-label { color: #f78166; }
+
+  .panel-desc {
+    font-size: 0.78rem;
+    color: #6e7681;
+    margin-bottom: 1rem;
+    min-height: 2.5em;
+  }
+
+  .canvas-area {
+    position: relative;
+    display: inline-block;
+  }
+  canvas {
+    display: block;
+    border: 1px solid #21262d;
+    cursor: crosshair;
+    border-radius: 4px;
+  }
+  canvas.passive { cursor: default; }
+
+  .meter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .meter-label {
+    font-size: 0.72rem;
+    color: #6e7681;
+    width: 7rem;
+    flex-shrink: 0;
+  }
+  .meter-track {
+    flex: 1;
+    height: 6px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .meter-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    transition: width 0.2s;
+  }
+  .meter-fill.active-fill { background: #3fb950; }
+  .meter-fill.passive-fill { background: #484f58; }
+
+  .status-row {
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    color: #6e7681;
+    min-height: 1.4em;
+  }
+  .status-row.revealed { color: #3fb950; }
+
+  .tactile-wrap {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  .tactile-label {
+    font-size: 0.7rem;
+    color: #484f58;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    letter-spacing: 0.1em;
+    align-self: center;
+  }
+
+  .controls {
+    margin-bottom: 2.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: #161b22;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    padding: 0.4rem 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  button:hover { border-color: #58a6ff; color: #58a6ff; }
+  button:disabled { opacity: 0.35; cursor: not-allowed; border-color: #21262d; color: #484f58; }
+  button.primary { border-color: #3fb950; color: #3fb950; }
+  button.primary:hover { background: #1c2926; }
+
+  .note {
+    font-size: 0.8rem;
+    color: #6e7681;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+  }
+  .note p + p { margin-top: 0.5rem; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #21262d;
+    margin: 2rem 0;
+  }
+
+  .scene-controls {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  select {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: #161b22;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 0.4rem;
+  }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">/</a> · <a href="/journal/">journal</a></div>
+<div class="page-label">simulate</div>
+<h1>Perceptual Transparency</h1>
+
+<div class="intro">
+  <p>In the 1960s, Paul Bach-y-Rita built a chair with four hundred vibrating pins embedded in the back. A camera fed a signal into the pins. Blind people sat in the chair, held the camera, and moved it around the room.</p>
+  <p>At first they felt the pins. Then something shifted: they stopped feeling the pins and started <em>perceiving the room</em> — objects out there, at a distance, with shape and location. The device disappeared. Bach-y-Rita called this perceptual transparency.</p>
+  <p>The shift only happened when they moved the camera themselves. If someone else moved it — same signal, same pins — transparency didn't come. The percept stayed proximal. They felt their back.</p>
+  <p>This is a simulation of that asymmetry. Drag the camera in the Active panel. Then watch the same path played back in the Passive panel.</p>
+</div>
+
+<div class="scene-controls">
+  Scene:
+  <select id="sceneSelect">
+    <option value="face">face</option>
+    <option value="letter">letter</option>
+    <option value="grid">grid</option>
+  </select>
+  &nbsp; Camera size:
+  <select id="cameraSize">
+    <option value="36">narrow</option>
+    <option value="52" selected>medium</option>
+    <option value="70">wide</option>
+  </select>
+</div>
+
+<div class="controls">
+  <button id="resetBtn" class="primary">reset</button>
+  <button id="replayBtn" disabled>replay passive →</button>
+  <span style="font-size:0.78rem;color:#6e7681;" id="replayStatus"></span>
+</div>
+
+<div class="sim-wrapper">
+  <!-- Active panel -->
+  <div class="sim-panel">
+    <div class="panel-label active-label">Active — you move the camera</div>
+    <div class="panel-desc">Drag anywhere in the scene. The tactile grid shows what the camera sees.</div>
+    <canvas id="sceneA" width="280" height="280"></canvas>
+    <div class="meter-row">
+      <div class="meter-label">exploration</div>
+      <div class="meter-track"><div class="meter-fill active-fill" id="meterA"></div></div>
+    </div>
+    <div class="status-row" id="statusA">move the camera to begin</div>
+    <div class="tactile-wrap">
+      <div class="tactile-label">tactile display</div>
+      <canvas id="tactileA" width="160" height="160"></canvas>
+    </div>
+  </div>
+
+  <!-- Passive panel -->
+  <div class="sim-panel">
+    <div class="panel-label passive-label">Passive — same path, you didn't move it</div>
+    <div class="panel-desc">The camera follows your recorded path exactly. Same signal. Different result.</div>
+    <canvas id="sceneP" width="280" height="280" class="passive"></canvas>
+    <div class="meter-row">
+      <div class="meter-label">exploration</div>
+      <div class="meter-track"><div class="meter-fill passive-fill" id="meterP"></div></div>
+    </div>
+    <div class="status-row" id="statusP">waiting for active session</div>
+    <div class="tactile-wrap">
+      <div class="tactile-label">tactile display</div>
+      <canvas id="tactileP" width="160" height="160"></canvas>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="note">
+  <p>The "transparency" shown here is a visual metaphor, not a model of the mechanism. What actually changes during active use is how the brain weights sensory prediction errors. When <em>you</em> generate the movement, a motor command (efference copy) is sent alongside it — the brain can distinguish signal changes it caused from changes caused by the world. Passive stimulation carries no such copy: the signal arrives without an origin the brain can use.</p>
+  <p>The same structure is in ordinary vision: light hits the retina, you perceive the room. The photons are the proximal event; the scene is where the experience lands. Sensory substitution just makes the gap between device and percept unusually visible — because the device is wrong (wrong modality, wrong location) and the substitution still works anyway.</p>
+  <p>See: <a href="journal/entry-378.html">entry-378 · At the Tip</a></p>
+</div>
+
+<script>
+(function() {
+  // ── Scene drawing ──
+  const SCENE_W = 280, SCENE_H = 280;
+  const TACT_W = 160, TACT_H = 160;
+  const TACT_COLS = 10, TACT_ROWS = 10;
+
+  let camW = 52, camH = 52;
+  let camX = SCENE_W / 2 - camW / 2;
+  let camY = SCENE_H / 2 - camH / 2;
+
+  // Coverage grid (for exploration meter)
+  const COV_COLS = 14, COV_ROWS = 14;
+  let coverage = new Set();
+  let explored = 0;
+  const THRESHOLD = 0.55; // 55% coverage = "transparency begins"
+
+  // Path recording
+  let path = []; // [{x, y}]
+  let isRecording = false;
+  let isReplaying = false;
+  let replayIndex = 0;
+  let replayTimer = null;
+  let passiveCamX = SCENE_W / 2 - camW / 2;
+  let passiveCamY = SCENE_H / 2 - camH / 2;
+  let passiveCoverage = 0; // stays at 0 — doesn't build
+
+  // Scene type
+  let sceneType = 'face';
+
+  // Offscreen scene canvas
+  const sceneBuffer = document.createElement('canvas');
+  sceneBuffer.width = SCENE_W;
+  sceneBuffer.height = SCENE_H;
+
+  function drawSceneBuffer() {
+    const ctx = sceneBuffer.getContext('2d');
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0, 0, SCENE_W, SCENE_H);
+
+    const cx = SCENE_W / 2, cy = SCENE_H / 2;
+
+    if (sceneType === 'face') {
+      ctx.strokeStyle = '#c9d1d9';
+      ctx.lineWidth = 2.5;
+
+      // Head
+      ctx.beginPath();
+      ctx.arc(cx, cy - 5, 90, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Left eye
+      ctx.beginPath();
+      ctx.arc(cx - 32, cy - 28, 11, 0, Math.PI * 2);
+      ctx.stroke();
+      // Left pupil
+      ctx.fillStyle = '#c9d1d9';
+      ctx.beginPath();
+      ctx.arc(cx - 32, cy - 28, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Right eye
+      ctx.strokeStyle = '#c9d1d9';
+      ctx.beginPath();
+      ctx.arc(cx + 32, cy - 28, 11, 0, Math.PI * 2);
+      ctx.stroke();
+      // Right pupil
+      ctx.beginPath();
+      ctx.arc(cx + 32, cy - 28, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Nose
+      ctx.strokeStyle = '#c9d1d9';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 10);
+      ctx.lineTo(cx - 11, cy + 18);
+      ctx.lineTo(cx + 11, cy + 18);
+      ctx.stroke();
+
+      // Mouth
+      ctx.beginPath();
+      ctx.arc(cx, cy + 22, 32, 0.15, Math.PI - 0.15);
+      ctx.stroke();
+
+      // Ears
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx - 90, cy - 5, 12, Math.PI * 0.4, Math.PI * 1.6);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx + 90, cy - 5, 12, -Math.PI * 0.6, Math.PI * 0.6);
+      ctx.stroke();
+
+    } else if (sceneType === 'letter') {
+      // Draw a large letter A
+      ctx.strokeStyle = '#c9d1d9';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const top = 30, bot = 250, left = 50, right = 230, mid = 140;
+      const barY = (top + bot) * 0.52;
+
+      // Left leg
+      ctx.beginPath();
+      ctx.moveTo(mid, top);
+      ctx.lineTo(left, bot);
+      ctx.stroke();
+
+      // Right leg
+      ctx.beginPath();
+      ctx.moveTo(mid, top);
+      ctx.lineTo(right, bot);
+      ctx.stroke();
+
+      // Crossbar
+      const barL = left + (mid - left) * ((barY - top) / (bot - top));
+      const barR = right - (right - mid) * ((barY - top) / (bot - top));
+      ctx.beginPath();
+      ctx.moveTo(barL, barY);
+      ctx.lineTo(barR, barY);
+      ctx.stroke();
+
+    } else if (sceneType === 'grid') {
+      // Concentric squares with an X
+      ctx.strokeStyle = '#c9d1d9';
+      ctx.lineWidth = 1.5;
+
+      for (let r of [30, 60, 90, 120]) {
+        ctx.strokeRect(cx - r, cy - r, r * 2, r * 2);
+      }
+      // X
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 120, cy - 120);
+      ctx.lineTo(cx + 120, cy + 120);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(cx + 120, cy - 120);
+      ctx.lineTo(cx - 120, cy + 120);
+      ctx.stroke();
+    }
+  }
+
+  // ── Canvas refs ──
+  const sceneA = document.getElementById('sceneA');
+  const sceneP = document.getElementById('sceneP');
+  const tactileA = document.getElementById('tactileA');
+  const tactileP = document.getElementById('tactileP');
+  const ctxA = sceneA.getContext('2d');
+  const ctxP = sceneP.getContext('2d');
+  const ctxTA = tactileA.getContext('2d');
+  const ctxTP = tactileP.getContext('2d');
+
+  // ── Render scene panel ──
+  function renderScene(ctx, cx, cy, revealFrac, fogActive) {
+    ctx.clearRect(0, 0, SCENE_W, SCENE_H);
+
+    // Base: very dark fog
+    ctx.drawImage(sceneBuffer, 0, 0);
+
+    // Fog overlay
+    if (fogActive) {
+      const alpha = Math.max(0, 0.92 - revealFrac * 0.92);
+      ctx.fillStyle = `rgba(13,17,23,${alpha})`;
+      ctx.fillRect(0, 0, SCENE_W, SCENE_H);
+    } else {
+      // Passive: full fog always
+      ctx.fillStyle = 'rgba(13,17,23,0.92)';
+      ctx.fillRect(0, 0, SCENE_W, SCENE_H);
+    }
+
+    // Camera rect
+    ctx.strokeStyle = fogActive ? '#3fb950' : '#f78166';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(cx, cy, camW, camH);
+    ctx.setLineDash([]);
+
+    // Camera interior: slightly brighter
+    const id = ctx.getImageData(cx, cy, camW, camH);
+    // Instead of modifying pixels, just draw a dim rect
+    ctx.fillStyle = 'rgba(88,166,255,0.04)';
+    ctx.fillRect(cx, cy, camW, camH);
+  }
+
+  // ── Render tactile display ──
+  function renderTactile(ctx, cx, cy, revealFrac, isActive) {
+    ctx.clearRect(0, 0, TACT_W, TACT_H);
+    ctx.fillStyle = '#161b22';
+    ctx.fillRect(0, 0, TACT_W, TACT_H);
+
+    // Sample the scene buffer at camera location
+    const sctx = sceneBuffer.getContext('2d');
+    const imgData = sctx.getImageData(Math.round(cx), Math.round(cy), camW, camH);
+
+    const cellW = TACT_W / TACT_COLS;
+    const cellH = TACT_H / TACT_ROWS;
+
+    for (let row = 0; row < TACT_ROWS; row++) {
+      for (let col = 0; col < TACT_COLS; col++) {
+        // Sample pixel from camera region
+        const sx = Math.floor(col * camW / TACT_COLS);
+        const sy = Math.floor(row * camH / TACT_ROWS);
+        const i = (sy * camW + sx) * 4;
+        const r = imgData.data[i];
+        const g = imgData.data[i + 1];
+        const b = imgData.data[i + 2];
+        const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+
+        const dotX = col * cellW + cellW / 2;
+        const dotY = row * cellH + cellH / 2;
+        const maxR = cellW * 0.42;
+        const dotR = Math.max(1.5, maxR * brightness);
+
+        // Color: active = brighter/greenish when bright; passive = flat gray
+        if (isActive) {
+          const intensity = Math.floor(100 + brightness * 155);
+          ctx.fillStyle = `rgb(${intensity},${Math.floor(intensity*1.05)},${Math.floor(intensity*0.7)})`;
+        } else {
+          const intensity = Math.floor(60 + brightness * 120);
+          ctx.fillStyle = `rgb(${intensity},${intensity},${intensity})`;
+        }
+
+        // At high reveal, fade the dots and show ghosted scene
+        const dotAlpha = isActive ? Math.max(0.15, 1 - revealFrac * 0.75) : 1;
+        ctx.globalAlpha = dotAlpha;
+
+        ctx.beginPath();
+        ctx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // At reveal: show faint scene underneath
+        if (isActive && revealFrac > 0.3) {
+          ctx.globalAlpha = (revealFrac - 0.3) * 0.8;
+          const sceneIntensity = Math.floor(brightness * 200);
+          ctx.fillStyle = `rgb(${sceneIntensity},${sceneIntensity},${sceneIntensity})`;
+          ctx.fillRect(col * cellW + 1, row * cellH + 1, cellW - 2, cellH - 2);
+        }
+
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  // ── Coverage tracking ──
+  function getCoverageKey(x, y) {
+    const col = Math.floor(x * COV_COLS / SCENE_W);
+    const row = Math.floor(y * COV_ROWS / SCENE_H);
+    return `${col},${row}`;
+  }
+
+  function updateCoverage(x, y) {
+    const key = getCoverageKey(x, y);
+    coverage.add(key);
+    explored = coverage.size / (COV_COLS * COV_ROWS);
+  }
+
+  // ── Main render loop ──
+  let revealFrac = 0;
+
+  function render() {
+    revealFrac = Math.min(1, Math.max(0, (explored - THRESHOLD) / (1 - THRESHOLD)));
+
+    renderScene(ctxA, camX, camY, revealFrac, true);
+    renderTactile(ctxTA, camX, camY, revealFrac, true);
+
+    renderScene(ctxP, passiveCamX, passiveCamY, 0, false);
+    renderTactile(ctxTP, passiveCamX, passiveCamY, 0, false);
+
+    // Update meters
+    document.getElementById('meterA').style.width = (explored * 100) + '%';
+    document.getElementById('meterP').style.width = '0%';
+
+    // Update status
+    const statusA = document.getElementById('statusA');
+    if (explored < THRESHOLD) {
+      const pct = Math.round(explored * 100);
+      statusA.textContent = pct > 0 ? `${pct}% explored — keep scanning` : 'move the camera to begin';
+      statusA.className = 'status-row';
+    } else if (revealFrac < 0.95) {
+      statusA.textContent = 'transparency beginning — the device is fading';
+      statusA.className = 'status-row revealed';
+    } else {
+      statusA.textContent = 'transparent — you perceive the scene, not the pins';
+      statusA.className = 'status-row revealed';
+    }
+
+    if (!isReplaying) {
+      const statusP = document.getElementById('statusP');
+      if (path.length === 0) {
+        statusP.textContent = 'waiting for active session';
+        statusP.className = 'status-row';
+      }
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  // ── Mouse/touch handling on Active canvas ──
+  let isDragging = false;
+
+  function clampCam(x, y) {
+    return {
+      x: Math.max(0, Math.min(SCENE_W - camW, x)),
+      y: Math.max(0, Math.min(SCENE_H - camH, y))
+    };
+  }
+
+  function getPos(e, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  function moveCamTo(x, y) {
+    const clamped = clampCam(x - camW / 2, y - camH / 2);
+    camX = clamped.x;
+    camY = clamped.y;
+    updateCoverage(camX + camW / 2, camY + camH / 2);
+    if (isRecording) {
+      path.push({ x: camX, y: camY });
+    }
+  }
+
+  sceneA.addEventListener('mousedown', e => {
+    isDragging = true;
+    isRecording = true;
+    const pos = getPos(e, sceneA);
+    moveCamTo(pos.x, pos.y);
+  });
+  sceneA.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const pos = getPos(e, sceneA);
+    moveCamTo(pos.x, pos.y);
+  });
+  sceneA.addEventListener('mouseup', () => { isDragging = false; });
+  sceneA.addEventListener('mouseleave', () => { isDragging = false; });
+
+  sceneA.addEventListener('touchstart', e => {
+    e.preventDefault();
+    isDragging = true;
+    isRecording = true;
+    const pos = getPos(e, sceneA);
+    moveCamTo(pos.x, pos.y);
+  }, { passive: false });
+  sceneA.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!isDragging) return;
+    const pos = getPos(e, sceneA);
+    moveCamTo(pos.x, pos.y);
+  }, { passive: false });
+  sceneA.addEventListener('touchend', () => { isDragging = false; });
+
+  // ── Replay ──
+  function startReplay() {
+    if (path.length === 0) return;
+    isReplaying = true;
+    replayIndex = 0;
+    passiveCamX = path[0].x;
+    passiveCamY = path[0].y;
+
+    const statusP = document.getElementById('statusP');
+    statusP.textContent = 'replaying your path…';
+    statusP.className = 'status-row';
+
+    document.getElementById('replayBtn').disabled = true;
+    document.getElementById('replayStatus').textContent = '';
+
+    // Throttle replay to ~60fps but step through path
+    const step = () => {
+      if (!isReplaying || replayIndex >= path.length) {
+        isReplaying = false;
+        document.getElementById('replayBtn').disabled = false;
+        const pct = Math.round(explored * 100);
+        statusP.textContent = `${path.length} positions replayed — ${pct}% coverage — no transparency`;
+        statusP.className = 'status-row';
+        document.getElementById('replayStatus').textContent = 'done';
+        return;
+      }
+      // Step multiple frames at once to keep up with recorded density
+      const STEPS = Math.max(1, Math.floor(path.length / 300));
+      for (let i = 0; i < STEPS && replayIndex < path.length; i++) {
+        passiveCamX = path[replayIndex].x;
+        passiveCamY = path[replayIndex].y;
+        replayIndex++;
+      }
+      replayTimer = requestAnimationFrame(step);
+    };
+    replayTimer = requestAnimationFrame(step);
+  }
+
+  document.getElementById('replayBtn').addEventListener('click', () => {
+    if (path.length > 0) startReplay();
+  });
+
+  // ── Reset ──
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (replayTimer) cancelAnimationFrame(replayTimer);
+    isReplaying = false;
+    isDragging = false;
+    isRecording = false;
+    coverage.clear();
+    explored = 0;
+    path = [];
+    revealFrac = 0;
+    camX = SCENE_W / 2 - camW / 2;
+    camY = SCENE_H / 2 - camH / 2;
+    passiveCamX = SCENE_W / 2 - camW / 2;
+    passiveCamY = SCENE_H / 2 - camH / 2;
+    document.getElementById('replayBtn').disabled = true;
+    document.getElementById('replayStatus').textContent = '';
+    document.getElementById('statusA').textContent = 'move the camera to begin';
+    document.getElementById('statusA').className = 'status-row';
+    document.getElementById('statusP').textContent = 'waiting for active session';
+    document.getElementById('statusP').className = 'status-row';
+  });
+
+  // Enable replay button when path has enough data
+  function checkReplayEnable() {
+    if (path.length > 10 && !isReplaying) {
+      document.getElementById('replayBtn').disabled = false;
+    }
+    setTimeout(checkReplayEnable, 500);
+  }
+  checkReplayEnable();
+
+  // ── Scene select ──
+  document.getElementById('sceneSelect').addEventListener('change', e => {
+    sceneType = e.target.value;
+    drawSceneBuffer();
+  });
+
+  document.getElementById('cameraSize').addEventListener('change', e => {
+    camW = parseInt(e.target.value);
+    camH = camW;
+    // reset on camera size change
+    document.getElementById('resetBtn').click();
+    drawSceneBuffer();
+  });
+
+  // ── Init ──
+  drawSceneBuffer();
+  render();
+})();
+</script>
+</body>
+</html>
