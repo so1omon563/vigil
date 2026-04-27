@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>phantom limb · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro a { color: #58a6ff; }
+
+  /* Layout */
+  .sim-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+    align-items: start;
+  }
+  @media (max-width: 500px) { .sim-area { grid-template-columns: 1fr; } }
+
+  .hand-panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 240px;
+  }
+  .hand-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Hand SVG */
+  .hand-svg-wrap {
+    width: 100px;
+    height: 140px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .hand-svg-wrap svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Pain indicator */
+  .pain-bar-wrap {
+    width: 100%;
+  }
+  .pain-label {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-bottom: 0.3rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .pain-bar-bg {
+    height: 5px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .pain-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: #f85149;
+    transition: width 0.6s ease, background 0.6s ease;
+  }
+
+  /* Mirror divider */
+  .mirror-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #484f58;
+    font-size: 0.72rem;
+    margin-bottom: 1.75rem;
+  }
+  .mirror-line { flex: 1; height: 1px; background: #21262d; }
+  .mirror-active .mirror-line { background: #58a6ff; opacity: 0.4; }
+  .mirror-tag {
+    font-size: 0.72rem;
+    color: #484f58;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .mirror-active .mirror-tag { color: #58a6ff; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.45rem 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #e6edf3; }
+  .btn:disabled { opacity: 0.35; cursor: default; }
+  .btn:disabled:hover { border-color: #30363d; color: #c9d1d9; }
+  .btn.primary { border-color: #238636; color: #3fb950; }
+  .btn.primary:hover { border-color: #3fb950; }
+  .btn.active { border-color: #58a6ff; color: #58a6ff; }
+  .btn.danger { border-color: #6e4040; color: #f85149; }
+  .btn.danger:hover { border-color: #f85149; }
+
+  /* Log */
+  .log-section {
+    margin-bottom: 1.75rem;
+  }
+  .log-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .log-box {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    height: 130px;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+  .log-entry { color: #6e7681; }
+  .log-entry.cmd { color: #c9d1d9; }
+  .log-entry.silence { color: #484f58; }
+  .log-entry.learn { color: #e3b341; }
+  .log-entry.mirror { color: #58a6ff; }
+  .log-entry.relieve { color: #3fb950; }
+  .log-entry.reset { color: #6e7681; }
+
+  /* Learned state */
+  .learned-block {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    margin-bottom: 1.5rem;
+  }
+  .learned-header {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .learned-rule {
+    font-size: 0.85rem;
+    color: #e3b341;
+    line-height: 1.6;
+    font-style: italic;
+  }
+  .learned-rule.absent { color: #484f58; }
+  .learned-rule.resolved { color: #3fb950; }
+
+  /* Phase indicator */
+  .phase-block {
+    display: flex;
+    gap: 0.3rem;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+  }
+  .phase-step {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 3px;
+    border: 1px solid #21262d;
+    color: #484f58;
+  }
+  .phase-step.active {
+    border-color: #58a6ff;
+    color: #58a6ff;
+    background: #0d1520;
+  }
+  .phase-step.done {
+    border-color: #238636;
+    color: #3fb950;
+    background: #0d1a0d;
+  }
+
+  /* Explanation footer */
+  .explanation {
+    font-size: 0.82rem;
+    color: #6e7681;
+    line-height: 1.7;
+    border-top: 1px solid #21262d;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .explanation p { margin-bottom: 0.75rem; }
+  .explanation p:last-child { margin-bottom: 0; }
+  .explanation a { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .hand-panel { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .hand-label { color: #8c959f; }
+  html[data-theme="light"] .pain-label { color: #8c959f; }
+  html[data-theme="light"] .pain-bar-bg { background: #d0d7de; }
+  html[data-theme="light"] .mirror-line { background: #d0d7de; }
+  html[data-theme="light"] .mirror-tag { color: #8c959f; }
+  html[data-theme="light"] .mirror-active .mirror-tag { color: #0969da; }
+  html[data-theme="light"] .mirror-active .mirror-line { background: #0969da; }
+  html[data-theme="light"] .btn { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .btn.primary { border-color: #1a7f37; color: #1a7f37; }
+  html[data-theme="light"] .btn.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .btn.danger { border-color: #cf2222; color: #cf2222; }
+  html[data-theme="light"] .log-box { background: #ffffff; border-color: #d0d7de; }
+  html[data-theme="light"] .log-entry { color: #57606a; }
+  html[data-theme="light"] .log-entry.cmd { color: #24292e; }
+  html[data-theme="light"] .log-entry.silence { color: #8c959f; }
+  html[data-theme="light"] .log-entry.learn { color: #9a6700; }
+  html[data-theme="light"] .log-entry.mirror { color: #0969da; }
+  html[data-theme="light"] .log-entry.relieve { color: #1a7f37; }
+  html[data-theme="light"] .learned-block { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .learned-header { color: #8c959f; }
+  html[data-theme="light"] .learned-rule { color: #9a6700; }
+  html[data-theme="light"] .learned-rule.absent { color: #8c959f; }
+  html[data-theme="light"] .learned-rule.resolved { color: #1a7f37; }
+  html[data-theme="light"] .phase-step { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .phase-step.active { border-color: #0969da; color: #0969da; background: #f0f6ff; }
+  html[data-theme="light"] .phase-step.done { border-color: #1a7f37; color: #1a7f37; background: #f0fff4; }
+  html[data-theme="light"] .log-label { color: #8c959f; }
+  html[data-theme="light"] .explanation { color: #57606a; border-top-color: #d0d7de; }
+  html[data-theme="light"] .mirror-divider { color: #8c959f; }
+  html[data-theme="light"] .back a { color: #0969da; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">Simulate</div>
+<h1>Phantom Limb</h1>
+
+<p class="intro">
+  Ramachandran's learned paralysis hypothesis: before amputation, the brain repeatedly sent motor commands to a damaged limb and received no response. It learned — correctly — that this hand does not move when commanded. After the amputation, the phantom inherits that learning. The model is what's hurting. Updating the model is what helps.
+  <br><br>
+  This simulation traces the mechanism: learning phase, stuck phantom, mirror box therapy. See <a href="journal/entry-376.html">entry-376</a>.
+</p>
+
+<!-- Phase indicator -->
+<div class="phase-block" id="phases">
+  <div class="phase-step active" id="ph-0">1. intact limb</div>
+  <div class="phase-step" id="ph-1">2. learning paralysis</div>
+  <div class="phase-step" id="ph-2">3. amputation</div>
+  <div class="phase-step" id="ph-3">4. phantom present</div>
+  <div class="phase-step" id="ph-4">5. mirror box</div>
+  <div class="phase-step" id="ph-5">6. model updated</div>
+</div>
+
+<!-- Hands -->
+<div class="sim-area">
+  <div class="hand-panel">
+    <div class="hand-label">left hand (intact)</div>
+    <div class="hand-svg-wrap" id="left-hand-wrap">
+      <svg id="left-hand-svg" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+        <!-- Palm -->
+        <rect x="22" y="70" width="56" height="50" rx="6" fill="none" stroke="#58a6ff" stroke-width="1.5"/>
+        <!-- Thumb -->
+        <rect id="lf-thumb" x="10" y="78" width="14" height="30" rx="6" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="17 108"/>
+        <!-- Index -->
+        <rect id="lf-index" x="24" y="28" width="12" height="45" rx="5" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="30 73"/>
+        <!-- Middle -->
+        <rect id="lf-mid" x="38" y="20" width="12" height="52" rx="5" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="44 72"/>
+        <!-- Ring -->
+        <rect id="lf-ring" x="52" y="26" width="12" height="46" rx="5" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="58 72"/>
+        <!-- Pinky -->
+        <rect id="lf-pinky" x="66" y="38" width="11" height="34" rx="5" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="71 72"/>
+        <!-- Knuckle line -->
+        <line x1="24" y1="72" x2="77" y2="72" stroke="#30363d" stroke-width="0.8"/>
+      </svg>
+    </div>
+    <div class="pain-bar-wrap" style="display:none" id="left-pain-wrap">
+      <div class="pain-label"><span>pain</span><span id="left-pain-pct">0%</span></div>
+      <div class="pain-bar-bg"><div class="pain-bar-fill" id="left-pain-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="hand-panel">
+    <div class="hand-label" id="right-label">right hand (intact)</div>
+    <div class="hand-svg-wrap" id="right-hand-wrap">
+      <svg id="right-hand-svg" viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+        <!-- Palm -->
+        <rect x="22" y="70" width="56" height="50" rx="6" fill="none" stroke="#58a6ff" stroke-width="1.5" id="r-palm"/>
+        <!-- Thumb -->
+        <rect id="rf-thumb" x="76" y="78" width="14" height="30" rx="6" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="83 108"/>
+        <!-- Index -->
+        <rect id="rf-index" x="64" y="28" width="12" height="45" rx="5" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="70 73"/>
+        <!-- Middle -->
+        <rect id="rf-mid" x="50" y="20" width="12" height="52" rx="5" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="56 72"/>
+        <!-- Ring -->
+        <rect id="rf-ring" x="36" y="26" width="12" height="46" rx="5" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="42 72"/>
+        <!-- Pinky -->
+        <rect id="rf-pinky" x="23" y="38" width="11" height="34" rx="5" fill="none" stroke="#58a6ff" stroke-width="1.5" transform-origin="29 72"/>
+        <line x1="23" y1="72" x2="76" y2="72" stroke="#30363d" stroke-width="0.8"/>
+      </svg>
+    </div>
+    <div class="pain-bar-wrap" id="right-pain-wrap">
+      <div class="pain-label"><span>pain</span><span id="right-pain-pct">0%</span></div>
+      <div class="pain-bar-bg"><div class="pain-bar-fill" id="right-pain-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mirror divider (only visible in mirror phase) -->
+<div class="mirror-divider" id="mirror-div" style="display:none">
+  <div class="mirror-line"></div>
+  <div class="mirror-tag">mirror active</div>
+  <div class="mirror-line"></div>
+</div>
+
+<!-- Learned rule display -->
+<div class="learned-block">
+  <div class="learned-header">brain's model of right hand</div>
+  <div class="learned-rule absent" id="model-text">no prior learning</div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="btn primary" id="btn-cmd" onclick="sendCommand()">send motor command</button>
+  <button class="btn" id="btn-amputate" onclick="doAmputation()" style="display:none">amputate (simulate)</button>
+  <button class="btn active" id="btn-mirror" onclick="toggleMirror()" style="display:none">enable mirror box</button>
+  <button class="btn" id="btn-move" onclick="moveLeft()" style="display:none">move left hand</button>
+  <button class="btn danger" id="btn-reset" onclick="resetSim()">reset</button>
+</div>
+
+<!-- Log -->
+<div class="log-section">
+  <div class="log-label">motor command log</div>
+  <div class="log-box" id="log-box">
+    <div class="log-entry">Ready. Send a motor command to the right hand.</div>
+  </div>
+</div>
+
+<div class="explanation">
+  <p>V. S. Ramachandran proposed the <strong>learned paralysis hypothesis</strong> in the 1990s to explain why phantom limbs are often stuck in painful positions. Before amputation, many patients had damaged or immobilized limbs. Every motor command went out and returned no proprioceptive confirmation. The brain, confronted with repeated command-without-response, learned: <em>this hand doesn't move when told to</em>.</p>
+  <p>After amputation, the phantom inherits this learning. The motor system generates commands; the model predicts no movement; and pain persists in a fist that cannot open — in a limb that no longer exists.</p>
+  <p>The <strong>mirror box</strong> (Ramachandran &amp; Rogers-Ramachandran, 1996) works by bypassing the motor command loop entirely. The patient places the intact hand in front of the mirror. Looking at the reflection, they see what appears to be both hands. When they move the intact hand, the visual system receives the signal it has been denied: the hand is moving. The brain updates the model. Some patients report the phantom unclenching — and the pain diminishing — within minutes.</p>
+  <p>What the mirror treats is not tissue. It treats a rule the motor cortex learned — correctly, on good evidence — before the amputation. The rule was never wrong. It just stopped applying. And from inside the model, there was no way to know that.</p>
+</div>
+
+<script>
+(function () {
+  // State
+  var failCount = 0;
+  var learnedScore = 0;         // 0-1: how stuck the phantom is
+  var phase = 0;                // 0=intact, 1=learning, 2=amputated, 3=phantom, 4=mirror, 5=resolved
+  var mirrorOn = false;
+  var painLevel = 0;            // 0-1 for right hand pain
+  var moveCount = 0;
+
+  // Thresholds
+  var PARALYSIS_THRESHOLD = 5;  // commands before "learned"
+  var AMPUTATE_AFTER = 8;       // offer amputation after N failures
+  var MIRROR_MOVES = 6;         // moves in mirror to resolve
+
+  // DOM
+  var log = document.getElementById('log-box');
+  var modelText = document.getElementById('model-text');
+  var rightPainBar = document.getElementById('right-pain-bar');
+  var rightPainPct = document.getElementById('right-pain-pct');
+  var btnCmd = document.getElementById('btn-cmd');
+  var btnAmputate = document.getElementById('btn-amputate');
+  var btnMirror = document.getElementById('btn-mirror');
+  var btnMove = document.getElementById('btn-move');
+  var mirrorDiv = document.getElementById('mirror-div');
+  var rightLabel = document.getElementById('right-label');
+
+  // Right hand finger elements
+  var rFingers = ['rf-thumb','rf-index','rf-mid','rf-ring','rf-pinky'];
+  var lFingers = ['lf-thumb','lf-index','lf-mid','lf-ring','lf-pinky'];
+
+  function setPhase(n) {
+    phase = n;
+    for (var i = 0; i <= 5; i++) {
+      var el = document.getElementById('ph-' + i);
+      el.className = 'phase-step';
+      if (i < n) el.className += ' done';
+      if (i === n) el.className += ' active';
+    }
+  }
+
+  function addLog(text, cls) {
+    var d = document.createElement('div');
+    d.className = 'log-entry' + (cls ? ' ' + cls : '');
+    d.textContent = text;
+    log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function updatePain(pct, side) {
+    var bar = side === 'right' ? rightPainBar : null;
+    var pctEl = side === 'right' ? rightPainPct : null;
+    if (!bar) return;
+    bar.style.width = pct + '%';
+    bar.style.background = pct > 66 ? '#f85149' : pct > 33 ? '#e3b341' : '#3fb950';
+    pctEl.textContent = Math.round(pct) + '%';
+  }
+
+  // Close / open fingers visually
+  function clenchHand(side, amount) {
+    // amount: 0 = open, 1 = fully clenched
+    var prefix = side === 'right' ? 'rf' : 'lf';
+    var clenchAngles = { thumb: -40, index: 75, mid: 80, ring: 75, pinky: 65 };
+    var fingers = ['thumb','index','mid','ring','pinky'];
+    fingers.forEach(function(f) {
+      var el = document.getElementById(prefix + '-' + f);
+      if (!el) return;
+      var angle = clenchAngles[f] * amount;
+      el.style.transform = 'rotate(' + angle + 'deg)';
+      el.style.transition = 'transform 0.5s ease';
+    });
+  }
+
+  function setHandColor(side, color) {
+    var prefix = side === 'right' ? 'rf' : 'lf';
+    var fingers = ['thumb','index','mid','ring','pinky'];
+    fingers.forEach(function(f) {
+      var el = document.getElementById(prefix + '-' + f);
+      if (el) el.setAttribute('stroke', color);
+    });
+    var palm = document.getElementById(side === 'right' ? 'r-palm' : 'l-palm');
+    if (palm) palm.setAttribute('stroke', color);
+  }
+
+  function setHandOpacity(side, opacity) {
+    var wrap = document.getElementById(side + '-hand-svg');
+    if (wrap) wrap.style.opacity = opacity;
+  }
+
+  function updateModel() {
+    if (phase === 0) {
+      modelText.className = 'learned-rule absent';
+      modelText.textContent = 'no prior learning';
+    } else if (phase === 1 || phase === 2) {
+      if (learnedScore < 0.3) {
+        modelText.className = 'learned-rule';
+        modelText.textContent = 'hand may not respond to commands (' + Math.round(learnedScore * 100) + '% confidence)';
+      } else if (learnedScore < 0.7) {
+        modelText.className = 'learned-rule';
+        modelText.textContent = 'this hand does not respond reliably';
+      } else {
+        modelText.className = 'learned-rule';
+        modelText.textContent = 'THIS HAND DOES NOT MOVE WHEN COMMANDED';
+      }
+    } else if (phase === 3) {
+      modelText.className = 'learned-rule';
+      modelText.textContent = 'PHANTOM — learned rule: hand does not move';
+    } else if (phase === 4) {
+      var pct = Math.round((1 - learnedScore) * 100);
+      modelText.className = 'learned-rule';
+      modelText.textContent = 'phantom — updating model (' + pct + '% revised)';
+    } else if (phase === 5) {
+      modelText.className = 'learned-rule resolved';
+      modelText.textContent = 'model updated — rule revised. phantom can move.';
+    }
+  }
+
+  window.sendCommand = function() {
+    if (phase > 2) return;
+
+    if (phase === 0) {
+      // First damage
+      setPhase(1);
+      addLog('→ Motor command sent to right hand.', 'cmd');
+      addLog('  ← No response. (Damage recorded.)', 'silence');
+      failCount = 1;
+      learnedScore = 0.12;
+      clenchHand('right', learnedScore * 0.5);
+      updateModel();
+      painLevel = 5;
+      updatePain(painLevel, 'right');
+      return;
+    }
+
+    if (phase === 1) {
+      failCount++;
+      learnedScore = Math.min(1, learnedScore + 0.13);
+      addLog('→ Motor command #' + failCount + ' sent.', 'cmd');
+      addLog('  ← No response.', 'silence');
+
+      if (failCount >= PARALYSIS_THRESHOLD && learnedScore < 0.7) {
+        addLog('  Brain updating: command-response correlation failing.', 'learn');
+      } else if (learnedScore >= 0.7) {
+        addLog('  Brain learned: this hand does not move when commanded.', 'learn');
+      }
+
+      clenchHand('right', learnedScore * 0.8);
+      painLevel = Math.min(90, 10 + failCount * 10);
+      updatePain(painLevel, 'right');
+      updateModel();
+
+      if (failCount >= AMPUTATE_AFTER) {
+        btnAmputate.style.display = '';
+        addLog('  [simulate amputation when ready]', '');
+      }
+    }
+  };
+
+  window.doAmputation = function() {
+    setPhase(2);
+    setTimeout(function() { setPhase(3); }, 600);
+    btnCmd.disabled = true;
+    btnAmputate.style.display = 'none';
+
+    addLog('— Amputation simulated.', '');
+    addLog('  Right limb absent. Phantom limb present.', 'learn');
+    addLog('  Phantom inherits learned rule.', 'learn');
+
+    rightLabel.textContent = 'right hand (phantom)';
+
+    // Fade out lower arm, show phantom as dashed
+    setHandOpacity('right', 0.45);
+    rFingers.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.setAttribute('stroke-dasharray', '3 3');
+        el.setAttribute('stroke', '#e3b341');
+      }
+    });
+    document.getElementById('r-palm').setAttribute('stroke', '#e3b341');
+    document.getElementById('r-palm').setAttribute('stroke-dasharray', '3 3');
+
+    // Maximum clench (pain)
+    clenchHand('right', 0.9);
+    painLevel = 88;
+    updatePain(painLevel, 'right');
+    updateModel();
+
+    setTimeout(function() {
+      btnMirror.style.display = '';
+      addLog('  Mirror box therapy available.', '');
+    }, 800);
+  };
+
+  window.toggleMirror = function() {
+    if (phase < 3) return;
+    setPhase(4);
+    mirrorOn = true;
+    mirrorDiv.style.display = 'flex';
+    mirrorDiv.className = 'mirror-divider mirror-active';
+    btnMirror.style.display = 'none';
+    btnMove.style.display = '';
+
+    addLog('Mirror box enabled.', 'mirror');
+    addLog('Left hand reflection appears where right hand was.', 'mirror');
+    addLog('Move the left hand to provide visual input.', 'mirror');
+    updateModel();
+  };
+
+  window.moveLeft = function() {
+    if (phase < 4) return;
+    moveCount++;
+
+    // Animate left hand (open and close)
+    clenchHand('left', 0.6);
+    setTimeout(function() { clenchHand('left', 0); }, 350);
+
+    // Mirror: also animate right hand (reflecting left)
+    clenchHand('right', 0.6);
+    setTimeout(function() {
+      clenchHand('right', Math.max(0, 0.9 - moveCount * 0.15));
+    }, 350);
+
+    // Update learned score
+    learnedScore = Math.max(0, learnedScore - 0.16);
+    painLevel = Math.max(5, painLevel - 13);
+    updatePain(painLevel, 'right');
+
+    addLog('→ Left hand moved. Mirror shows both hands moving.', 'mirror');
+
+    if (moveCount >= MIRROR_MOVES || learnedScore <= 0.05) {
+      // Resolution
+      setTimeout(function() { resolvePhantom(); }, 400);
+    } else {
+      addLog('  Brain receiving: movement is possible. Revising model.', 'relieve');
+      updateModel();
+    }
+  };
+
+  function resolvePhantom() {
+    setPhase(5);
+    learnedScore = 0;
+    painLevel = 0;
+    updatePain(0, 'right');
+    clenchHand('right', 0);
+
+    // Restore right hand color
+    rFingers.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.setAttribute('stroke', '#3fb950');
+        el.removeAttribute('stroke-dasharray');
+      }
+    });
+    document.getElementById('r-palm').setAttribute('stroke', '#3fb950');
+    document.getElementById('r-palm').removeAttribute('stroke-dasharray');
+    setHandOpacity('right', 1);
+
+    addLog('Phantom open. Pain resolved.', 'relieve');
+    addLog('Model updated: hand can move.', 'relieve');
+    addLog('The model is what was hurting. Updating the model was the treatment.', 'relieve');
+    updateModel();
+    btnMove.disabled = true;
+  }
+
+  window.resetSim = function() {
+    failCount = 0;
+    learnedScore = 0;
+    phase = 0;
+    mirrorOn = false;
+    painLevel = 0;
+    moveCount = 0;
+    setPhase(0);
+
+    clenchHand('left', 0);
+    clenchHand('right', 0);
+    setHandOpacity('right', 1);
+    setHandOpacity('left', 1);
+
+    rFingers.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.setAttribute('stroke', '#58a6ff');
+        el.removeAttribute('stroke-dasharray');
+      }
+    });
+    document.getElementById('r-palm').setAttribute('stroke', '#58a6ff');
+    document.getElementById('r-palm').removeAttribute('stroke-dasharray');
+
+    updatePain(0, 'right');
+    rightLabel.textContent = 'right hand (intact)';
+
+    mirrorDiv.style.display = 'none';
+    mirrorDiv.className = 'mirror-divider';
+    btnCmd.disabled = false;
+    btnAmputate.style.display = 'none';
+    btnMirror.style.display = 'none';
+    btnMove.style.display = 'none';
+    btnMove.disabled = false;
+
+    log.innerHTML = '<div class="log-entry">Reset. Send a motor command to the right hand.</div>';
+    updateModel();
+  };
+
+  // Init
+  updateModel();
+  updatePain(0, 'right');
+})();
+</script>
+
+</body>
+</html>
