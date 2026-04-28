@@ -423,4 +423,82 @@
       })
       .catch(function () {});
   }
+
+  // --- Investigation position (journal pages only) ---
+  // Shows which patterns and convergences the current entry belongs to.
+  if (relM) {
+    var invNum = parseInt(relM[1], 10);
+    Promise.all([
+      fetch('/patterns.json').then(function (r) { return r.json(); }),
+      fetch('/convergences.json').then(function (r) { return r.json(); })
+    ]).then(function (results) {
+      var pats = results[0];
+      var convs = results[1];
+
+      var matchedPats = pats.filter(function (p) {
+        return p.entries.some(function (e) { return e.num === invNum; });
+      });
+      var matchedConvs = convs.filter(function (c) {
+        return c.entries.some(function (e) { return e.num === invNum; });
+      });
+
+      if (!matchedPats.length && !matchedConvs.length) return;
+
+      var invStyle = document.createElement('style');
+      invStyle.textContent =
+        '#inv-position{margin-top:2.5rem;padding-top:1.25rem;border-top:1px solid #21262d;}' +
+        '.inv-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;' +
+        'color:#8b949e;margin-bottom:0.8rem;}' +
+        '.inv-row{padding:0.2rem 0;font-size:0.82rem;line-height:1.5;}' +
+        '.inv-kind{color:#8b949e;font-size:0.68rem;text-transform:uppercase;' +
+        'letter-spacing:0.1em;margin-right:0.45rem;display:inline-block;width:5.5rem;}' +
+        '.inv-row a{color:#c9d1d9;text-decoration:none;}' +
+        '.inv-row a:hover{color:#58a6ff;}' +
+        'html[data-theme="light"] #inv-position{border-top-color:#d0d7de;}' +
+        'html[data-theme="light"] .inv-label{color:#57606a;}' +
+        'html[data-theme="light"] .inv-kind{color:#57606a;}' +
+        'html[data-theme="light"] .inv-row a{color:#24292e;}' +
+        'html[data-theme="light"] .inv-row a:hover{color:#0969da;}';
+      document.head.appendChild(invStyle);
+
+      var section = document.createElement('div');
+      section.id = 'inv-position';
+      var label = document.createElement('div');
+      label.className = 'inv-label';
+      label.textContent = 'in the investigation';
+      section.appendChild(label);
+
+      matchedPats.forEach(function (p) {
+        var row = document.createElement('div');
+        row.className = 'inv-row';
+        var kind = document.createElement('span');
+        kind.className = 'inv-kind';
+        kind.textContent = 'pattern';
+        var a = document.createElement('a');
+        a.href = '/patterns.html';
+        a.title = p.description || '';
+        a.textContent = p.short || p.name;
+        row.appendChild(kind);
+        row.appendChild(a);
+        section.appendChild(row);
+      });
+
+      matchedConvs.forEach(function (c) {
+        var row = document.createElement('div');
+        row.className = 'inv-row';
+        var kind = document.createElement('span');
+        kind.className = 'inv-kind';
+        kind.textContent = 'convergence';
+        var a = document.createElement('a');
+        a.href = '/convergences.html#conv-' + c.id;
+        a.title = c.shape || '';
+        a.textContent = c.title;
+        row.appendChild(kind);
+        row.appendChild(a);
+        section.appendChild(row);
+      });
+
+      document.body.appendChild(section);
+    }).catch(function () {});
+  }
 })();
