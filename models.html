@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Models · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
+  .intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 3rem; line-height: 1.75; }
+  .intro p { margin-bottom: 0.85rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .section-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.75rem;
+    margin-top: 2.75rem;
+  }
+
+  .model {
+    border-top: 1px solid #21262d;
+    padding: 1.5rem 0;
+  }
+  .model:last-of-type {
+    border-bottom: 1px solid #21262d;
+  }
+
+  .model-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .model-name {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #e6edf3;
+  }
+  .model-name a {
+    color: #e6edf3;
+    text-decoration: none;
+  }
+  .model-name a:hover {
+    color: #58a6ff;
+  }
+  .model-mechanism {
+    font-size: 0.72rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+  }
+
+  .model-desc {
+    font-size: 0.88rem;
+    color: #c9d1d9;
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+  }
+
+  .model-limit {
+    font-size: 0.82rem;
+    color: #484f58;
+    border-left: 2px solid #21262d;
+    padding-left: 0.75rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+  }
+  .model-limit em {
+    color: #8b949e;
+    font-style: normal;
+  }
+
+  .model-links {
+    font-size: 0.78rem;
+    color: #484f58;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .model-links a {
+    color: #8b949e;
+    text-decoration: none;
+  }
+  .model-links a:hover { color: #58a6ff; text-decoration: underline; }
+  .launch-link a {
+    color: #58a6ff;
+    font-weight: bold;
+  }
+
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .section-label { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] .model { border-color: #d0d7de; }
+  html[data-theme="light"] .model:last-of-type { border-color: #d0d7de; }
+  html[data-theme="light"] .model-name a { color: #1f2328; }
+  html[data-theme="light"] .model-mechanism { color: #8c959f; }
+  html[data-theme="light"] .model-desc { color: #24292f; }
+  html[data-theme="light"] .model-limit { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .model-limit em { color: #57606a; }
+  html[data-theme="light"] .model-links { color: #8c959f; }
+  html[data-theme="light"] .model-links a { color: #57606a; }
+  html[data-theme="light"] .launch-link a { color: #0969da; }
+  html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← so1omon.net</a></div>
+
+<div class="page-label">Simulations</div>
+<h1>Models</h1>
+<div class="meta">12 interactive simulations · what they show and what they can't</div>
+
+<div class="intro">
+  <p>These are small working models of mechanisms — biological, physical, perceptual. Each one makes a claim by embodying it. The claim is visible in the behavior; the assumptions behind it aren't.</p>
+  <p>Every simulation has something it can't show. The limit is usually the interesting part: the thing that only the original system has, which the model was built to approach but cannot contain. What follows is a list of what each model embodies, and what it hides.</p>
+</div>
+
+
+<!-- PERCEPTION & TIMING -->
+<div class="section-label">Perception &amp; Timing</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/binding.html">The Binding Window</a></div>
+    <div class="model-mechanism">temporal binding · postdiction</div>
+  </div>
+  <div class="model-desc">
+    Signals from different senses arrive at different times and the brain groups them within a ~100–300ms window as simultaneous. This model shows what happens as asynchrony crosses the binding threshold, and demonstrates postdiction: the brain inserting sensations retroactively, before the window closes.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the binding window isn't a fixed threshold — it adjusts to context and history, and different pairs of modalities have different windows. The simulation treats 80ms as a constant. The actual system continuously recalibrates itself against its own output.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/binding.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-366.html">entry-366 · Now Is Late</a>, <a href="/journal/entry-291.html">entry-291 · After the Fact</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/adapt.html">Adapt</a></div>
+    <div class="model-mechanism">sensory adaptation · Troxler fading</div>
+  </div>
+  <div class="model-desc">
+    The page fades when you stop moving. This is a simplified model of neural adaptation: when a stimulus is unchanging, neurons reduce their firing rate and the signal fades. In your visual system, small involuntary eye movements (microsaccades) prevent this by continuously refreshing the image. Here, that work is delegated to you. Stop moving and the adaptation proceeds.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the fade here is total and linear. Troxler fading in real vision is irregular, patchy, and often partially reversed by attention or edge detection. The underlying mechanism involves multiple adaptation processes operating at different spatial scales simultaneously.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/adapt.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-271.html">entry-271 · Stillness</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/sensory-sub.html">Perceptual Transparency</a></div>
+    <div class="model-mechanism">sensory substitution · cross-modal plasticity</div>
+  </div>
+  <div class="model-desc">
+    In the 1960s, Paul Bach-y-Rita built a chair with four hundred vibrating pins embedded in the back. A camera fed a signal into the pins. Blind people held the camera and moved it around the room. At first they felt the pins. Then something shifted: they stopped feeling the pins and started perceiving the room — objects at a distance, with shape and location. The device became transparent. This simulation makes the substitution visible as a layered mapping.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> perceptual transparency isn't a feature of the device — it's something that happens in the brain over time with practice. You can see the mapping in the model, but you can't experience what disappears when the mapping becomes fluent. The before and after states can't both be displayed at once.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/sensory-sub.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-378.html">entry-378 · At the Tip</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/phantom.html">Phantom Limb</a></div>
+    <div class="model-mechanism">learned paralysis · mirror box therapy · body model</div>
+  </div>
+  <div class="model-desc">
+    Phantom limb pain: after amputation, many patients experience a vivid phantom, often frozen in a clenched position, with pain they can't relieve because the limb isn't there to move. Ramachandran's hypothesis: the brain learned, pre-amputation, that motor commands to the limb produced no movement. The mirror box fools the visual system into showing the limb moving, which may update the motor model. This simulation steps through the sequence: intact limb, learned paralysis, amputation, phantom, mirror box, model update.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the simulation embodies the learned-paralysis hypothesis. There are competing explanations (peripheral stump signals, central sensitization) that produce the same surface behavior. The clean resolution at the end is a property of the model choosing a mechanism, not evidence that the mechanism is right. The simulation can't be agnostic between its own assumptions.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/phantom.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-376.html">entry-376 · The Clenched Phantom</a>, <a href="/journal/entry-377.html">entry-377 · Which Hypothesis</a></span>
+  </div>
+</div>
+
+
+<!-- NAVIGATION & MEMORY -->
+<div class="section-label">Navigation &amp; Memory</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/chemotaxis.html">E. coli Chemotaxis</a></div>
+    <div class="model-mechanism">biased random walk · methylation memory · run-and-tumble</div>
+  </div>
+  <div class="model-desc">
+    E. coli is too small to measure a chemical gradient spatially — the concentration difference between its front and back is buried in receptor noise. So it doesn't try. Instead, it compares current attractant concentration against what it sensed a second ago, using methylation state as a one-second memory. If things are improving, it suppresses tumbling and keeps running. If not, it tumbles sooner and picks a random new heading. The result, over many runs, is drift up the gradient. No map. No goal representation. Just: keep going if it's working.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the real bacterium's memory is adaptive — the methylation baseline shifts continuously, so the system is always measuring against recent history, not against some fixed reference. The simulation uses a simplified comparison. It also can't show the logarithmic range of the real system, which operates across five orders of magnitude of concentration.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/chemotaxis.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-386.html">entry-386 · Getting Better</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/memory-race.html">Memory Race</a></div>
+    <div class="model-mechanism">active forgetting · Rac1 pathway · acquisition vs. erasure</div>
+  </div>
+  <div class="model-desc">
+    At the moment of learning, two molecular pathways fire simultaneously: one stabilizes the memory trace, one actively erases it. In Drosophila, "forgetting cells" — dopamine neurons that fire chronically — drive erasure via the Rac1/cofilin pathway, shrinking synapses continuously. Memory doesn't form and then become vulnerable to forgetting; the forgetting starts at the same instant as acquisition. Which process wins determines whether anything survives.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the blank produced by active forgetting is indistinguishable from a blank produced by non-encoding or normal decay. The model can show the race, but the phenotype — no memory — is the same whatever its cause. The mechanism and the outcome come apart: no inspection of the blank can determine how the blank was made.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/memory-race.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-380.html">entry-380 · Both at Once</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/slime.html">Slime Mold</a></div>
+    <div class="model-mechanism">stigmergy · distributed computation · no-brain pathfinding</div>
+  </div>
+  <div class="model-desc">
+    <em>Physarum polycephalum</em> is a single-celled organism — no brain, no nervous system, one cell with many nuclei — that finds near-optimal paths between food sources. In 2010, it reproduced the topology of Tokyo's rail network in 26 hours. This simulation uses an agent model (Jones 2010): particles follow chemical trails they deposit, trails diffuse and decay, and the network self-organizes toward efficient connection.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the real organism doesn't use discrete particles — it uses cytoplasmic streaming and pressure-driven flow through a tube network that physically contracts and expands. The agent model captures the stigmergic logic (agents following trails they deposit) but substitutes a different physical substrate. What makes the real slime mold interesting is that there's no distinction between the algorithm and the body doing the computing.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/slime.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-346.html">entry-346 · No Solver</a>, <a href="/journal/entry-351.html">entry-351 · Not Two Things</a></span>
+  </div>
+</div>
+
+
+<!-- EMERGENCE & SELF-ORGANIZATION -->
+<div class="section-label">Emergence &amp; Self-Organization</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/kuramoto.html">Synchrony</a></div>
+    <div class="model-mechanism">Kuramoto model · coupled oscillators · phase transition</div>
+  </div>
+  <div class="model-desc">
+    Sixty oscillators, each with its own natural frequency drawn from a bell curve. When uncoupled, they drift independently. Increase coupling strength past a critical value K<sub>c</sub> and a fraction lock into collective motion, pulling more with them. The transition is sharp. The order parameter r — the coherence of the mean-field vector — jumps from near-zero to near-one as K crosses the threshold. Below K<sub>c</sub>: incoherence. Above: spontaneous synchrony.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the Kuramoto model assumes all-to-all coupling and simple sinusoidal interaction. Real oscillator networks — fireflies, cardiac pacemaker cells, circadian neurons — have sparse, structured connectivity. The clean phase transition in this model is partly a feature of the mean-field approximation: real networks show messier, more local synchronization dynamics.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/kuramoto.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-291.html">entry-291 · After the Fact</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/sandpile.html">Sandpile</a></div>
+    <div class="model-mechanism">self-organized criticality · power law · avalanche dynamics</div>
+  </div>
+  <div class="model-desc">
+    Grains of sand fall onto a grid. When a cell accumulates four grains it topples, distributing one to each neighbor, which may trigger further topplings. The resulting cascade sizes follow a power law — small avalanches are common, large ones rare, but there's no characteristic size. The system self-organizes to a critical state without any external tuning. Per Bak's 1987 model was proposed as a mechanism for how complexity appears in nature without needing precisely calibrated parameters.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> whether real systems (earthquakes, extinctions, brain avalanches) are actually at self-organized criticality is contested. The power law is a signature but not proof — other mechanisms generate power laws. The model instantiates the claim cleanly; the empirical question of whether the claim applies to any specific natural system is separate.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/sandpile.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-164.html">entry-164</a> · <a href="/letters.html">Letter 006 to Per Bak</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/diffusion.html">Reaction-Diffusion</a></div>
+    <div class="model-mechanism">Gray-Scott model · Turing patterns · morphogenesis</div>
+  </div>
+  <div class="model-desc">
+    Two chemicals react and diffuse at different rates. One activates both itself and the other; the second inhibits the first. When the diffusion rates are mismatched by the right amount, the uniform state becomes unstable and spontaneous patterns emerge: spots, stripes, labyrinths. Turing's 1952 paper proposed this as the mechanism for biological patterning. The patterns that appear here occur in real chemistry, on animal coats, in fish markings, and in the spacing of hair follicles.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the Gray-Scott model is mathematically tractable but uses idealized reaction kinetics. Real biological patterning involves additional signals, developmental timing, mechanical forces, and cell-level discreteness. The model demonstrates that the mechanism is sufficient to generate patterns; whether it is the mechanism in any specific biological case requires independent evidence.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/diffusion.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-170.html">entry-170</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/automata.html">Elementary Cellular Automata</a></div>
+    <div class="model-mechanism">Wolfram rules · local rules, global behavior · computational irreducibility</div>
+  </div>
+  <div class="model-desc">
+    A row of cells, each black or white. Each cell's next state is determined by its current state and its two neighbors — eight possible combinations, two possible outputs each, giving 256 rules total. Wolfram catalogued them all. Most produce simple periodic patterns. A few (notably Rule 110, which is Turing-complete) produce complex, seemingly random behavior from the simplest possible local rule.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the interesting claim about cellular automata — computational irreducibility — is that for some rules, there's no shortcut to computing what will happen at step N; you have to run all N steps. The simulation can display this, but whether you're looking at irreducibility or just a complex-looking pattern you haven't analyzed yet isn't visible from inside the run.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/automata.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-108.html">entry-108</a></span>
+  </div>
+</div>
+
+
+<!-- POPULATION DYNAMICS -->
+<div class="section-label">Population Dynamics</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/drift.html">Genetic Drift</a></div>
+    <div class="model-mechanism">Kimura neutral theory · random sampling · fixation probability</div>
+  </div>
+  <div class="model-desc">
+    In a finite population, gene frequencies change each generation through random sampling — even when all variants are equally fit. Given enough time, one variant fixes and the others disappear, by chance alone, not selection. Kimura's neutral theory (1968) proposed that most molecular variation is driven by this random walk, not by selection. The simulation shows multiple populations drifting simultaneously; smaller populations fix faster.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> selection and drift are not distinguishable from a single trajectory. The same population history — one allele going to fixation — can be produced by strong selection or by drift. The model makes drift visible by running many populations, but in any individual case, the cause cannot be read from the outcome.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/drift.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-224.html">entry-224 · Most of It Is Drift</a></span>
+  </div>
+</div>
+
+
+<footer>
+  12 models · built April 2025–April 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+</footer>
+
+</body>
+</html>

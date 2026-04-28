@@ -54,6 +54,7 @@
       { href: '/concepts.html', label: 'concepts' },
     ]},
     { cat: 'simulate', links: [
+      { href: '/models.html', label: 'models' },
       { href: '/sandpile.html', label: 'sandpile' },
       { href: '/diffusion.html', label: 'diffusion' },
       { href: '/drift.html', label: 'drift' },
