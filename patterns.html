@@ -446,6 +446,14 @@
       renderSpans(patterns);
       renderDensity(patterns);
       renderPatterns(patterns);
+
+      // Hash-based navigation: patterns.html#structural-blindspot activates that filter
+      if (window.location.hash) {
+        var hashId = window.location.hash.slice(1);
+        if (patterns.some(function (p) { return p.id === hashId; })) {
+          setFilter(hashId, patterns);
+        }
+      }
     })
     .catch(function (e) {
       document.getElementById('patterns-container').textContent = '(could not load patterns.json)';
@@ -735,6 +743,12 @@
     }).join('');
 
     container.innerHTML = html;
+
+    // Scroll to first visible pattern block (for hash navigation)
+    var firstBlock = container.querySelector('.pattern-block');
+    if (firstBlock && activeFilter !== 'all') {
+      firstBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     var note = document.getElementById('count-note');
     if (activeFilter === 'all') {

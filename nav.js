@@ -475,7 +475,7 @@
         kind.className = 'inv-kind';
         kind.textContent = 'pattern';
         var a = document.createElement('a');
-        a.href = '/patterns.html';
+        a.href = '/patterns.html#' + p.id;
         a.title = p.description || '';
         a.textContent = p.short || p.name;
         row.appendChild(kind);
