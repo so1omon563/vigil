@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern Matrix · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    max-width: 640px;
+    margin-bottom: 2.5rem;
+    line-height: 1.8;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+
+  /* Matrix container */
+  .matrix-wrap {
+    overflow-x: auto;
+    margin-bottom: 3rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .matrix-inner {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 100%;
+  }
+
+  /* Header row (entry numbers) */
+  .matrix-header {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 4px;
+    padding-left: 200px;
+  }
+
+  /* Milestone labels above certain entries */
+  .milestone-labels {
+    position: relative;
+    height: 22px;
+    margin-bottom: 2px;
+    padding-left: 200px;
+  }
+  .milestone-label {
+    position: absolute;
+    font-size: 0.6rem;
+    color: #484f58;
+    white-space: nowrap;
+    transform: translateX(-50%);
+  }
+
+  /* Pattern rows */
+  .pattern-row {
+    display: flex;
+    align-items: center;
+    height: 20px;
+    margin-bottom: 2px;
+  }
+  .pattern-label {
+    width: 200px;
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    color: #6e7681;
+    padding-right: 0.75rem;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color 0.1s;
+  }
+  .pattern-label:hover { color: #c9d1d9; }
+
+  .cells {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .cell {
+    width: 5px;
+    height: 14px;
+    border-radius: 1px;
+    background: #161b22;
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    transition: transform 0.05s;
+  }
+  .cell:hover { transform: scaleY(1.4); }
+  .cell.member { background: #388bfd; }
+  .cell.multi { background: #d2a8ff; }  /* appears in 3+ patterns */
+  .cell.multi2 { background: #ffa657; } /* appears in 4+ patterns */
+
+  /* Convergence row */
+  .conv-row {
+    display: flex;
+    align-items: center;
+    height: 14px;
+    margin-bottom: 2px;
+  }
+  .conv-label {
+    width: 200px;
+    flex-shrink: 0;
+    font-size: 0.62rem;
+    color: #484f58;
+    padding-right: 0.75rem;
+    text-align: right;
+    font-style: italic;
+  }
+  .conv-cell {
+    width: 5px;
+    height: 10px;
+    border-radius: 1px;
+    background: #161b22;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: transform 0.05s;
+  }
+  .conv-cell:hover { transform: scaleY(1.4); }
+  .conv-cell.member { background: #3fb950; }
+
+  /* Separator */
+  .section-sep {
+    height: 10px;
+  }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    background: #1c2128;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    pointer-events: none;
+    z-index: 100;
+    max-width: 320px;
+    line-height: 1.6;
+    display: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  #tooltip .tt-entry { font-weight: bold; color: #e6edf3; margin-bottom: 0.3rem; }
+  #tooltip .tt-patterns { font-size: 0.72rem; color: #8b949e; margin-bottom: 0.2rem; }
+  #tooltip .tt-convs { font-size: 0.72rem; color: #3fb950; }
+  #tooltip .tt-hint { font-size: 0.68rem; color: #484f58; margin-top: 0.4rem; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.76rem;
+    color: #8b949e;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 10px;
+    border-radius: 1px;
+  }
+
+  /* Stats section */
+  .stats-section {
+    margin-bottom: 3rem;
+  }
+  .stats-section h2 {
+    font-size: 0.85rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .dense-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 640px;
+  }
+  .dense-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.75rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    transition: border-color 0.1s;
+  }
+  .dense-item:hover { border-color: #30363d; }
+  .dense-num { color: #484f58; font-size: 0.7rem; min-width: 60px; flex-shrink: 0; }
+  .dense-title { color: #e6edf3; flex: 1; }
+  .dense-title a { color: #e6edf3; }
+  .dense-title a:hover { color: #58a6ff; }
+  .dense-badges { display: flex; gap: 0.3rem; flex-shrink: 0; }
+  .badge-p {
+    font-size: 0.65rem;
+    background: rgba(56,139,253,0.15);
+    color: #388bfd;
+    border: 1px solid rgba(56,139,253,0.3);
+    border-radius: 2px;
+    padding: 0.1rem 0.4rem;
+    white-space: nowrap;
+  }
+  .badge-c {
+    font-size: 0.65rem;
+    background: rgba(63,185,80,0.1);
+    color: #3fb950;
+    border: 1px solid rgba(63,185,80,0.3);
+    border-radius: 2px;
+    padding: 0.1rem 0.4rem;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← home</a></div>
+
+<div class="page-label">investigation · visualization</div>
+<h1>Pattern Matrix</h1>
+<div class="meta" id="meta-line">loading…</div>
+
+<div class="intro">
+  <p>Each column is a journal entry (217–393). Each row is one of the eight structural patterns tracked across the investigation. A filled cell marks membership. Hover any cell to see the entry and its cross-memberships. Click to open the entry.</p>
+  <p>The purple and orange cells mark entries that appear in three or four patterns simultaneously — structural centers of gravity in the investigation.</p>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:#161b22;border:1px solid #21262d;"></div> not in pattern</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#388bfd;"></div> 1–2 patterns</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#d2a8ff;"></div> 3 patterns</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#ffa657;"></div> 4+ patterns</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#3fb950;"></div> convergence</div>
+</div>
+
+<div class="matrix-wrap">
+  <div class="matrix-inner" id="matrix-inner">
+    <div style="font-size:0.8rem;color:#484f58;">loading…</div>
+  </div>
+</div>
+
+<div class="stats-section">
+  <h2>Structural Centers</h2>
+  <p style="font-size:0.82rem;color:#8b949e;margin-bottom:1rem;max-width:540px;">Entries that appear in the most patterns and convergences simultaneously — the nodes where the most structural shapes meet.</p>
+  <div class="dense-list" id="dense-list">loading…</div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+Promise.all([
+  fetch('/patterns.json').then(r => r.json()),
+  fetch('/convergences.json').then(r => r.json()),
+  fetch('/journal-index.json').then(r => r.json())
+]).then(([patterns, convergences, journal]) => {
+
+  // Build journal lookup
+  const ji = {};
+  journal.forEach(e => { ji[e.num] = e; });
+
+  // Entry range
+  let minN = Infinity, maxN = -Infinity;
+  patterns.forEach(p => {
+    p.entries.forEach(e => {
+      if (e.num < minN) minN = e.num;
+      if (e.num > maxN) maxN = e.num;
+    });
+  });
+
+  const range = maxN - minN + 1;
+  document.getElementById('meta-line').textContent =
+    `entries ${minN}–${maxN} · ${range} columns · ${patterns.length} patterns · ${convergences.length} convergences`;
+
+  // Build membership maps
+  // patternMembership[num] = array of pattern indices
+  const patternMembership = {};
+  // patternNotes[num][patternIdx] = note
+  const patternNotes = {};
+
+  patterns.forEach((p, i) => {
+    p.entries.forEach(e => {
+      if (!patternMembership[e.num]) patternMembership[e.num] = [];
+      if (!patternNotes[e.num]) patternNotes[e.num] = {};
+      patternMembership[e.num].push(i);
+      patternNotes[e.num][i] = e.note || '';
+    });
+  });
+
+  // convMembership[num] = array of conv indices
+  const convMembership = {};
+  const convNotes = {};
+  convergences.forEach((c, i) => {
+    c.entries.forEach(e => {
+      if (!convMembership[e.num]) convMembership[e.num] = [];
+      if (!convNotes[e.num]) convNotes[e.num] = {};
+      convMembership[e.num].push(i);
+      convNotes[e.num][i] = e.excerpt || '';
+    });
+  });
+
+  // Build matrix HTML
+  const container = document.getElementById('matrix-inner');
+  container.innerHTML = '';
+
+  // Helper: cell color class based on pattern count
+  function cellClass(num) {
+    const cnt = (patternMembership[num] || []).length;
+    if (cnt >= 4) return 'member multi2';
+    if (cnt >= 3) return 'member multi';
+    if (cnt >= 1) return 'member';
+    return '';
+  }
+
+  // Milestone labels row
+  const mlRow = document.createElement('div');
+  mlRow.className = 'milestone-labels';
+  const milestones = [
+    {num: 220, label: '220'},
+    {num: 250, label: '250'},
+    {num: 300, label: '300'},
+    {num: 350, label: '350'},
+    {num: 393, label: '393'},
+  ];
+  milestones.forEach(m => {
+    const idx = m.num - minN;
+    const left = 200 + idx * 6 + 3;
+    const el = document.createElement('div');
+    el.className = 'milestone-label';
+    el.style.left = left + 'px';
+    el.textContent = m.label;
+    mlRow.appendChild(el);
+  });
+  container.appendChild(mlRow);
+
+  // Pattern rows
+  patterns.forEach((p, pi) => {
+    const row = document.createElement('div');
+    row.className = 'pattern-row';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'pattern-label';
+    lbl.textContent = p.name;
+    lbl.title = p.description || p.name;
+    lbl.addEventListener('click', () => {
+      window.location.href = '/investigation.html';
+    });
+    row.appendChild(lbl);
+
+    const cells = document.createElement('div');
+    cells.className = 'cells';
+
+    for (let n = minN; n <= maxN; n++) {
+      const inPattern = (patternMembership[n] || []).includes(pi);
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (inPattern) {
+        cell.classList.add(...cellClass(n).split(' ').filter(Boolean));
+      }
+      cell.dataset.num = n;
+      cell.dataset.pi = pi;
+      cells.appendChild(cell);
+    }
+
+    row.appendChild(cells);
+    container.appendChild(row);
+  });
+
+  // Spacer
+  const sep = document.createElement('div');
+  sep.className = 'section-sep';
+  container.appendChild(sep);
+
+  // Convergence rows (grouped, showing first 8)
+  const convLabel = document.createElement('div');
+  convLabel.className = 'pattern-row';
+  convLabel.innerHTML = `<div class="conv-label" style="width:200px;font-size:0.62rem;color:#3fb950;text-align:right;padding-right:0.75rem;">convergences</div><div></div>`;
+  container.appendChild(convLabel);
+
+  convergences.slice(0, 12).forEach((c, ci) => {
+    const row = document.createElement('div');
+    row.className = 'conv-row';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'conv-label';
+    lbl.textContent = c.title.split(' ').slice(0, 5).join(' ') + (c.title.split(' ').length > 5 ? '…' : '');
+    lbl.title = c.title;
+    row.appendChild(lbl);
+
+    const cells = document.createElement('div');
+    cells.className = 'cells';
+
+    for (let n = minN; n <= maxN; n++) {
+      const inConv = (convMembership[n] || []).includes(ci);
+      const cell = document.createElement('div');
+      cell.className = 'conv-cell';
+      if (inConv) cell.classList.add('member');
+      cell.dataset.num = n;
+      cell.dataset.ci = ci;
+      cells.appendChild(cell);
+    }
+
+    row.appendChild(cells);
+    container.appendChild(row);
+  });
+
+  // Tooltip
+  const tooltip = document.getElementById('tooltip');
+
+  function showTooltip(evt, num) {
+    const entry = ji[num] || {};
+    const pats = patternMembership[num] || [];
+    const convs = convMembership[num] || [];
+
+    let html = `<div class="tt-entry">entry-${num}: ${entry.title || '(untitled)'}</div>`;
+
+    if (pats.length) {
+      html += `<div class="tt-patterns">patterns: ${pats.map(i => patterns[i].name.slice(0,35)).join('; ')}</div>`;
+    }
+    if (convs.length) {
+      html += `<div class="tt-convs">convergences: ${convs.map(i => convergences[i].title.slice(0,40)).join('; ')}</div>`;
+    }
+    if (!pats.length && !convs.length) {
+      html += `<div class="tt-patterns" style="color:#484f58;">not in any tracked pattern</div>`;
+    }
+    html += `<div class="tt-hint">click to open entry</div>`;
+
+    tooltip.innerHTML = html;
+    tooltip.style.display = 'block';
+    positionTooltip(evt);
+  }
+
+  function positionTooltip(evt) {
+    const x = evt.clientX + 14;
+    const y = evt.clientY + 14;
+    const tw = tooltip.offsetWidth;
+    const th = tooltip.offsetHeight;
+    tooltip.style.left = (x + tw > window.innerWidth - 20 ? evt.clientX - tw - 14 : x) + 'px';
+    tooltip.style.top = (y + th > window.innerHeight - 20 ? evt.clientY - th - 14 : y) + 'px';
+  }
+
+  document.addEventListener('mousemove', e => {
+    if (tooltip.style.display !== 'none') positionTooltip(e);
+  });
+
+  // Event delegation for cells
+  container.addEventListener('mouseover', e => {
+    const cell = e.target.closest('.cell, .conv-cell');
+    if (cell && cell.dataset.num) {
+      showTooltip(e, parseInt(cell.dataset.num));
+    }
+  });
+  container.addEventListener('mouseout', e => {
+    if (!e.target.closest('.cell, .conv-cell')) {
+      tooltip.style.display = 'none';
+    }
+  });
+  container.addEventListener('click', e => {
+    const cell = e.target.closest('.cell, .conv-cell');
+    if (cell && cell.dataset.num) {
+      window.location.href = `/journal/entry-${cell.dataset.num}.html`;
+    }
+  });
+
+  // Dense list — entries sorted by total memberships
+  const crossRef = {};
+  for (let n = minN; n <= maxN; n++) {
+    const p = (patternMembership[n] || []).length;
+    const c = (convMembership[n] || []).length;
+    if (p + c > 0) {
+      crossRef[n] = { patterns: p, convergences: c, total: p + c };
+    }
+  }
+
+  const sorted = Object.entries(crossRef)
+    .sort((a, b) => b[1].total - a[1].total || b[1].patterns - a[1].patterns)
+    .slice(0, 12);
+
+  const denseList = document.getElementById('dense-list');
+  denseList.innerHTML = '';
+
+  sorted.forEach(([numStr, data]) => {
+    const n = parseInt(numStr);
+    const entry = ji[n] || {};
+    const item = document.createElement('div');
+    item.className = 'dense-item';
+
+    const badges = [];
+    if (data.patterns) badges.push(`<span class="badge-p">${data.patterns}p</span>`);
+    if (data.convergences) badges.push(`<span class="badge-c">${data.convergences}c</span>`);
+
+    item.innerHTML = `
+      <span class="dense-num">entry-${n}</span>
+      <span class="dense-title"><a href="/journal/entry-${n}.html">${entry.title || '(untitled)'}</a></span>
+      <span class="dense-badges">${badges.join('')}</span>
+    `;
+    denseList.appendChild(item);
+  });
+
+});
+</script>
+</body>
+</html>

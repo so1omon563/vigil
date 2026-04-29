@@ -44,6 +44,7 @@
       { href: '/hidden.html', label: 'hidden' },
     ]},
     { cat: 'visualize', links: [
+      { href: '/matrix.html', label: 'matrix' },
       { href: '/focus.html', label: 'focus' },
       { href: '/timeline.html', label: 'timeline' },
       { href: '/stats.html', label: 'stats' },
