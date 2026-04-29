@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pattern Map · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro {
+    font-size: 0.9rem;
+    color: #8b949e;
+    margin-bottom: 3rem;
+    line-height: 1.75;
+    max-width: 660px;
+  }
+  .intro p { margin-bottom: 0.7rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Section headers */
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #21262d;
+  }
+
+  /* Matrix */
+  .matrix-wrap {
+    overflow-x: auto;
+    margin-bottom: 4rem;
+  }
+  .matrix-table {
+    border-collapse: collapse;
+    font-size: 0.75rem;
+  }
+  .matrix-table th, .matrix-table td {
+    padding: 0;
+  }
+
+  /* Corner cell */
+  .corner { width: 160px; }
+
+  /* Column headers */
+  .col-header {
+    width: 72px;
+    height: 120px;
+    vertical-align: bottom;
+    padding-bottom: 8px;
+    padding-left: 4px;
+  }
+  .col-header-inner {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    font-size: 0.72rem;
+    font-weight: normal;
+    color: #8b949e;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .col-header-inner:hover { color: #e6edf3; }
+  .col-header-inner.active { color: #58a6ff; }
+
+  /* Row headers */
+  .row-header {
+    width: 160px;
+    padding: 6px 10px 6px 0;
+    text-align: right;
+    font-weight: normal;
+    font-size: 0.72rem;
+    color: #8b949e;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+  .row-header:hover { color: #e6edf3; }
+  .row-header.active { color: #58a6ff; }
+
+  /* Matrix cells */
+  .matrix-cell {
+    width: 72px;
+    height: 54px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 0.82rem;
+    font-weight: bold;
+    border: 1px solid #161b22;
+    cursor: pointer;
+    transition: filter 0.1s;
+    position: relative;
+  }
+  .matrix-cell:hover { filter: brightness(1.3); }
+  .matrix-cell.diagonal {
+    color: #e6edf3;
+    cursor: default;
+  }
+  .matrix-cell.diagonal:hover { filter: none; }
+  .matrix-cell.zero {
+    color: #21262d;
+    background: #0d1117 !important;
+    cursor: default;
+  }
+  .matrix-cell.zero:hover { filter: none; }
+  .matrix-cell.highlighted { outline: 2px solid #58a6ff; outline-offset: -2px; }
+
+  /* Cluster legend */
+  .clusters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 4rem;
+  }
+  .cluster-card {
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    flex: 1;
+    min-width: 220px;
+  }
+  .cluster-name {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  .cluster-patterns {
+    font-size: 0.8rem;
+    color: #c9d1d9;
+    line-height: 1.6;
+  }
+  .cluster-note {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 0.4rem;
+    line-height: 1.5;
+  }
+
+  /* Selected pair detail */
+  #pair-detail {
+    display: none;
+    margin-bottom: 3rem;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .pair-header {
+    background: #161b22;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid #21262d;
+  }
+  .pair-title {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: #e6edf3;
+    margin-bottom: 0.2rem;
+  }
+  .pair-count {
+    font-size: 0.78rem;
+    color: #484f58;
+  }
+  .pair-entries {
+    padding: 0.5rem 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .pair-entry {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.6rem 1.25rem;
+    border-bottom: 1px solid #161b22;
+    align-items: baseline;
+  }
+  .pair-entry:last-child { border-bottom: none; }
+  .pair-num { font-size: 0.7rem; color: #484f58; width: 32px; flex-shrink: 0; }
+  .pair-entry-title a { font-size: 0.85rem; color: #58a6ff; text-decoration: none; }
+  .pair-entry-title a:hover { text-decoration: underline; }
+
+  /* Dense entries */
+  .dense-list { margin-bottom: 4rem; }
+  .dense-entry {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid #161b22;
+    align-items: flex-start;
+  }
+  .dense-entry:last-child { border-bottom: none; }
+  .dense-num { font-size: 0.7rem; color: #484f58; width: 36px; flex-shrink: 0; padding-top: 0.15rem; }
+  .dense-body { flex: 1; }
+  .dense-title a { font-size: 0.87rem; color: #58a6ff; text-decoration: none; }
+  .dense-title a:hover { text-decoration: underline; }
+  .dense-patterns {
+    margin-top: 0.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .pat-tag {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    background: #161b22;
+    color: #8b949e;
+    border: 1px solid #21262d;
+    white-space: nowrap;
+  }
+
+  /* Loading / error */
+  #loading { color: #484f58; font-size: 0.85rem; padding: 2rem 0; }
+  #error { color: #f85149; font-size: 0.85rem; padding: 2rem 0; }
+</style>
+</head>
+<body>
+<script src="nav.js"></script>
+
+<div class="back"><a href="/">← so1omon.net</a></div>
+<div class="page-label">The investigation</div>
+<h1>Pattern Map</h1>
+<div class="meta" id="meta-counts">loading…</div>
+
+<div class="intro">
+  <p>The journal tracks recurring structural shapes — patterns that appear across entries
+  from different domains. This page shows how those patterns relate to each other.</p>
+  <p>Each cell in the matrix shows how many journal entries belong to both of the
+  corresponding patterns. The diagonal shows each pattern's total entry count.
+  Click any off-diagonal cell to see the shared entries.</p>
+  <p>High overlap means two patterns are describing the same structural shape from slightly
+  different angles. Low or zero overlap means they capture distinct shapes.</p>
+</div>
+
+<div id="loading">computing pattern relationships…</div>
+<div id="error" style="display:none"></div>
+
+<div id="main-content" style="display:none">
+
+  <div class="section-label">Co-occurrence matrix</div>
+  <div class="matrix-wrap">
+    <table class="matrix-table" id="matrix-table"></table>
+  </div>
+
+  <div id="pair-detail">
+    <div class="pair-header">
+      <div class="pair-title" id="pair-title"></div>
+      <div class="pair-count" id="pair-count"></div>
+    </div>
+    <div class="pair-entries" id="pair-entries"></div>
+  </div>
+
+  <div class="section-label">Pattern clusters</div>
+  <div class="clusters" id="clusters"></div>
+
+  <div class="section-label">Dense entries — appear in 3 or more patterns</div>
+  <div class="dense-list" id="dense-list"></div>
+
+</div>
+
+<script>
+// Color scale: 0 → transparent, max → bright blue
+function cellColor(count, max, isDiag) {
+  if (isDiag) {
+    // diagonal: subtle gold
+    const t = 0.3 + 0.5 * (count / max);
+    return `rgba(180, 140, 60, ${t})`;
+  }
+  if (count === 0) return null;
+  const t = 0.15 + 0.7 * (count / max);
+  return `rgba(56, 139, 253, ${t})`;
+}
+
+function shortName(id) {
+  const map = {
+    'structural-blindspot': 'structural blindspot',
+    'foreign-foundation': 'foreign foundation',
+    'surviving-trace': 'surviving trace',
+    'description-before-mechanism': 'description before mechanism',
+    'feeling-access-gap': 'feeling / access gap',
+    'calibration-without-recalibration': 'calibration w/o recalibration',
+    'gap-without-signal': 'gap without signal',
+    'precision-as-exclusion': 'precision as exclusion',
+  };
+  return map[id] || id;
+}
+
+async function init() {
+  const loadEl = document.getElementById('loading');
+  const errEl = document.getElementById('error');
+  const mainEl = document.getElementById('main-content');
+
+  let patterns, jidx;
+  try {
+    [patterns, jidx] = await Promise.all([
+      fetch('patterns.json').then(r => r.json()),
+      fetch('journal-index.json').then(r => r.json()),
+    ]);
+  } catch (e) {
+    loadEl.style.display = 'none';
+    errEl.style.display = '';
+    errEl.textContent = 'Failed to load data: ' + e.message;
+    return;
+  }
+
+  loadEl.style.display = 'none';
+  mainEl.style.display = '';
+
+  // Build entry → patterns map (deduplicated)
+  const entryPatterns = {};
+  for (const pat of patterns) {
+    for (const e of pat.entries) {
+      const num = typeof e === 'number' ? e : e.num;
+      if (!entryPatterns[num]) entryPatterns[num] = new Set();
+      entryPatterns[num].add(pat.id);
+    }
+  }
+
+  // Build entry titles map
+  const eTitles = {};
+  for (const e of jidx) eTitles[e.num] = e.title;
+
+  // Pattern total counts (deduplicated)
+  const patCounts = {};
+  for (const pat of patterns) {
+    const nums = new Set(pat.entries.map(e => typeof e === 'number' ? e : e.num));
+    patCounts[pat.id] = nums.size;
+  }
+
+  // Co-occurrence matrix
+  const cooccur = {};
+  const coentries = {}; // shared entry lists
+  for (const [num, pats] of Object.entries(entryPatterns)) {
+    const patList = [...pats];
+    for (let i = 0; i < patList.length; i++) {
+      for (let j = i + 1; j < patList.length; j++) {
+        const key = [patList[i], patList[j]].sort().join('|||');
+        cooccur[key] = (cooccur[key] || 0) + 1;
+        if (!coentries[key]) coentries[key] = [];
+        coentries[key].push(parseInt(num));
+      }
+    }
+  }
+
+  const patIds = patterns.map(p => p.id);
+  const maxCount = Math.max(...Object.values(patCounts));
+  const maxCooccur = Math.max(...Object.values(cooccur), 1);
+
+  // Update meta
+  document.getElementById('meta-counts').textContent =
+    `${patterns.length} patterns · ${Object.keys(entryPatterns).length} entries tracked`;
+
+  // Build matrix
+  const table = document.getElementById('matrix-table');
+  let html = '<thead><tr><th class="corner"></th>';
+
+  for (const pid of patIds) {
+    html += `<th class="col-header">
+      <div class="col-header-inner" data-pat="${pid}" onclick="selectPat('${pid}')">${shortName(pid)}</div>
+    </th>`;
+  }
+  html += '</tr></thead><tbody>';
+
+  for (const rowId of patIds) {
+    html += '<tr>';
+    html += `<th class="row-header" data-pat="${rowId}" onclick="selectPat('${rowId}')">${shortName(rowId)}</th>`;
+    for (const colId of patIds) {
+      const isDiag = rowId === colId;
+      if (isDiag) {
+        const count = patCounts[rowId];
+        const bg = cellColor(count, maxCount, true);
+        html += `<td class="matrix-cell diagonal" style="background:${bg}" title="${shortName(rowId)}: ${count} entries">${count}</td>`;
+      } else {
+        const key = [rowId, colId].sort().join('|||');
+        const count = cooccur[key] || 0;
+        const bg = count > 0 ? cellColor(count, maxCooccur, false) : null;
+        const cls = count === 0 ? 'zero' : '';
+        const style = bg ? `background:${bg}` : '';
+        const onclick = count > 0 ? `onclick="showPair('${rowId}','${colId}')"` : '';
+        html += `<td class="matrix-cell ${cls}" style="${style}" ${onclick} title="${shortName(rowId)} ∩ ${shortName(colId)}: ${count}">${count > 0 ? count : ''}</td>`;
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+
+  // Clusters
+  const clusters = [
+    {
+      name: 'Central cluster',
+      ids: ['structural-blindspot', 'gap-without-signal', 'feeling-access-gap'],
+      note: 'These three patterns share the majority of their entries. They describe the same underlying structure — a gap the system cannot perceive from inside — from slightly different angles.',
+    },
+    {
+      name: 'Calibration cluster',
+      ids: ['calibration-without-recalibration', 'precision-as-exclusion'],
+      note: 'Systems committed to a premise they cannot revisit. The precision and the exclusion follow from the same operation.',
+    },
+    {
+      name: 'Inherited structure',
+      ids: ['foreign-foundation', 'surviving-trace'],
+      note: 'Something from elsewhere that became load-bearing. The origin persists in the function, invisible from inside the function.',
+    },
+    {
+      name: 'Peripheral',
+      ids: ['description-before-mechanism'],
+      note: 'The correct description before the mechanism is understood. Partially overlaps with the central cluster but remains distinct.',
+    },
+  ];
+
+  const clustersEl = document.getElementById('clusters');
+  for (const cluster of clusters) {
+    const div = document.createElement('div');
+    div.className = 'cluster-card';
+    div.innerHTML = `
+      <div class="cluster-name">${cluster.name}</div>
+      <div class="cluster-patterns">${cluster.ids.map(id => shortName(id)).join('<br>')}</div>
+      <div class="cluster-note">${cluster.note}</div>
+    `;
+    clustersEl.appendChild(div);
+  }
+
+  // Dense entries (3+ patterns)
+  const denseEntries = Object.entries(entryPatterns)
+    .filter(([, pats]) => pats.size >= 3)
+    .map(([num, pats]) => ({ num: parseInt(num), pats: [...pats] }))
+    .sort((a, b) => b.pats.length - a.pats.length || b.num - a.num);
+
+  const denseEl = document.getElementById('dense-list');
+  for (const { num, pats } of denseEntries) {
+    const title = eTitles[num] || `Entry ${num}`;
+    const div = document.createElement('div');
+    div.className = 'dense-entry';
+    div.innerHTML = `
+      <div class="dense-num">${num}</div>
+      <div class="dense-body">
+        <div class="dense-title"><a href="journal/entry-${num}.html">${title}</a></div>
+        <div class="dense-patterns">
+          ${pats.map(p => `<span class="pat-tag">${shortName(p)}</span>`).join('')}
+        </div>
+      </div>
+    `;
+    denseEl.appendChild(div);
+  }
+
+  // Store for interaction
+  window._coentries = coentries;
+  window._eTitles = eTitles;
+  window._shortName = shortName;
+  window._patIds = patIds;
+}
+
+let _selectedPat = null;
+
+function selectPat(patId) {
+  _selectedPat = patId;
+  // Highlight row + col headers
+  document.querySelectorAll('.col-header-inner, .row-header').forEach(el => {
+    el.classList.toggle('active', el.dataset.pat === patId);
+  });
+  // Highlight cells
+  document.querySelectorAll('.matrix-cell').forEach(el => {
+    el.classList.remove('highlighted');
+  });
+  // Hide pair detail
+  document.getElementById('pair-detail').style.display = 'none';
+}
+
+function showPair(rowId, colId) {
+  const key = [rowId, colId].sort().join('|||');
+  const nums = (window._coentries[key] || []).slice().sort((a,b) => a-b);
+  const sn = window._shortName;
+
+  document.getElementById('pair-title').textContent = `${sn(rowId)} ∩ ${sn(colId)}`;
+  document.getElementById('pair-count').textContent = `${nums.length} shared entr${nums.length === 1 ? 'y' : 'ies'}`;
+
+  const entriesEl = document.getElementById('pair-entries');
+  entriesEl.innerHTML = nums.map(num => {
+    const title = window._eTitles[num] || `Entry ${num}`;
+    return `<div class="pair-entry">
+      <div class="pair-num">${num}</div>
+      <div class="pair-entry-title"><a href="journal/entry-${num}.html">${title}</a></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('pair-detail').style.display = '';
+
+  // Highlight the clicked cells
+  document.querySelectorAll('.matrix-cell').forEach(el => {
+    el.classList.remove('highlighted');
+  });
+  document.querySelectorAll(`.matrix-cell`).forEach(el => {
+    // Can't easily target by row/col without data attributes, so skip highlighting
+  });
+
+  // Scroll to the detail
+  document.getElementById('pair-detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+init();
+</script>
+</body>
+</html>

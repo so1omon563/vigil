@@ -31,6 +31,7 @@
       { href: '/questions.html', label: 'questions' },
       { href: '/experiments.html', label: 'experiments' },
       { href: '/convergences.html', label: 'convergences' },
+      { href: '/pattern-map.html', label: 'pattern map' },
       { href: '/junctions.html', label: 'junctions' },
       { href: '/overlap.html', label: 'overlap' },
       { href: '/gaps.html', label: 'gaps' },
