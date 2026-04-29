@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 3rem;
+    line-height: 1.75;
+    max-width: 680px;
+  }
+  .intro p { margin-bottom: 0.7rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #21262d;
+  }
+
+  /* Chart */
+  .chart-section { margin-bottom: 4rem; }
+  .chart-container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+  }
+  svg.focus-chart {
+    display: block;
+    min-width: 600px;
+  }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    background: #161b22;
+    border: 1px solid #30363d;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.75rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    z-index: 100;
+    max-width: 280px;
+    line-height: 1.5;
+  }
+  #tooltip .tip-range { color: #58a6ff; margin-bottom: 0.3rem; font-size: 0.7rem; }
+  #tooltip .tip-row { display: flex; justify-content: space-between; gap: 1.5rem; }
+  #tooltip .tip-name { color: #8b949e; }
+  #tooltip .tip-count { color: #e6edf3; }
+  #tooltip .tip-zero { color: #30363d; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.78rem;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    opacity: 1;
+    transition: opacity 0.15s;
+  }
+  .legend-item.muted { opacity: 0.3; }
+  .legend-swatch {
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.8rem;
+    color: #8b949e;
+    flex-wrap: wrap;
+  }
+  .controls label { display: flex; align-items: center; gap: 0.5rem; }
+  .controls input[type=range] {
+    width: 120px;
+    accent-color: #58a6ff;
+  }
+  #window-val { color: #e6edf3; min-width: 2.5rem; }
+
+  /* Phase annotations */
+  .phases-section { margin-bottom: 4rem; }
+  .phase-list { list-style: none; padding: 0; }
+  .phase-list li {
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #161b22;
+    font-size: 0.82rem;
+  }
+  .phase-list li:last-child { border-bottom: none; }
+  .phase-range { color: #58a6ff; min-width: 90px; flex-shrink: 0; }
+  .phase-text { color: #8b949e; }
+  .phase-peak {
+    margin-left: auto;
+    color: #484f58;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    align-self: center;
+  }
+
+  /* Loading */
+  #loading { color: #484f58; font-size: 0.85rem; padding: 2rem 0; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+
+<div class="page-label">Visualize</div>
+<h1>Focus</h1>
+<p class="meta">How attention has shifted across 391 entries</p>
+
+<div class="intro">
+  <p>Each structural pattern in the investigation covers a span of entries. But coverage alone doesn't show <em>when</em> the investigation was concentrating on that pattern — how many entries in any given stretch belong to it. This page computes a rolling-window density for each pattern: at each entry position, what fraction of the surrounding entries were tagged with that pattern?</p>
+  <p>The result is a kind of spectrogram of intellectual attention. Periods where a pattern runs dense appear as peaks. Gaps appear as flat lines. The chart shows where the investigation was converging versus dispersed, and which patterns rose and fell together.</p>
+  <p>Use the window control to change the rolling window size. Larger windows smooth local variation; smaller windows show sharper phase transitions. Click a legend item to isolate that pattern.</p>
+</div>
+
+<div id="loading">Loading patterns...</div>
+
+<div id="chart-content" style="display:none">
+  <div class="chart-section">
+    <div class="section-label">Pattern density over time</div>
+    <div class="controls">
+      <label>Window size: <input type="range" id="window-slider" min="5" max="30" value="15"> <span id="window-val">15</span> entries</label>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="chart-container">
+      <svg class="focus-chart" id="focus-svg"></svg>
+    </div>
+  </div>
+
+  <div class="phases-section">
+    <div class="section-label">Phases of concentration</div>
+    <ul class="phase-list" id="phase-list"></ul>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+const COLORS = [
+  '#58a6ff', // structural-blindspot — blue
+  '#3fb950', // gap-without-signal — green
+  '#f78166', // feeling-access-gap — red/salmon
+  '#d2a8ff', // description-before-mechanism — purple
+  '#ffa657', // calibration-without-recalibration — orange
+  '#79c0ff', // precision-as-exclusion — light blue
+  '#56d364', // foreign-foundation — light green
+  '#ff7b72', // surviving-trace — light red
+];
+
+const PHASES = [
+  { range: '217–260', text: 'The investigation opens. Five patterns emerge in the first 40 entries. structural-blindspot and description-before-mechanism dominate early; calibration-without-recalibration appears around entry 251.' },
+  { range: '261–310', text: 'gap-without-signal appears (entry 277) and grows quickly. feeling-access-gap becomes active. The central cluster begins forming — structural-blindspot, gap-without-signal, and feeling-access-gap often tag the same entry.' },
+  { range: '311–340', text: 'A consolidation phase. precision-as-exclusion appears late (entry 338). Density of the three central patterns increases as entries compound on the same structural shape.' },
+  { range: '341–391', text: 'Peak concentration. Entries 369–383 show structural-blindspot tagging every entry in a 15-entry window (density 1.0). gap-without-signal reaches 14/15. The investigation converges on one structural shape viewed from multiple angles.' },
+];
+
+let patterns = [];
+let windowSize = 15;
+let hiddenPatterns = new Set();
+let chartData = [];
+
+// SVG drawing params
+const PADDING = { top: 20, right: 20, bottom: 40, left: 40 };
+const HEIGHT = 320;
+
+function computeChartData(win) {
+  if (!patterns.length) return [];
+  const allNums = new Set();
+  patterns.forEach(p => p.entries.forEach(e => allNums.add(e.num)));
+  const minE = Math.min(...allNums);
+  const maxE = Math.max(...allNums);
+
+  const rows = [];
+  for (let start = minE; start <= maxE - win + 1; start++) {
+    const end = start + win - 1;
+    const center = (start + end) / 2;
+    const row = { center, start, end };
+    patterns.forEach(p => {
+      const pSet = new Set(p.entries.map(e => e.num));
+      let count = 0;
+      for (let n = start; n <= end; n++) if (pSet.has(n)) count++;
+      row[p.id] = count / win; // density 0..1
+      row[p.id + '_count'] = count;
+    });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function drawChart() {
+  const svg = document.getElementById('focus-svg');
+  if (!chartData.length) return;
+
+  const containerW = svg.parentElement.offsetWidth || 860;
+  const W = Math.max(containerW, 600);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', HEIGHT + PADDING.top + PADDING.bottom);
+  svg.innerHTML = '';
+
+  const allNums = new Set();
+  patterns.forEach(p => p.entries.forEach(e => allNums.add(e.num)));
+  const minE = Math.min(...allNums);
+  const maxE = Math.max(...allNums);
+
+  const plotW = W - PADDING.left - PADDING.right;
+  const plotH = HEIGHT;
+
+  // Helper: map entry number to x
+  function xScale(num) {
+    return PADDING.left + ((num - minE) / (maxE - minE)) * plotW;
+  }
+  // Helper: map density to y
+  function yScale(d) {
+    return PADDING.top + plotH - d * plotH;
+  }
+
+  // Grid lines
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+  // Y grid
+  [0, 0.25, 0.5, 0.75, 1.0].forEach(d => {
+    const y = yScale(d);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', PADDING.left);
+    line.setAttribute('x2', PADDING.left + plotW);
+    line.setAttribute('y1', y);
+    line.setAttribute('y2', y);
+    line.setAttribute('stroke', d === 0 ? '#21262d' : '#161b22');
+    line.setAttribute('stroke-width', 1);
+    g.appendChild(line);
+
+    if (d > 0) {
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('x', PADDING.left - 6);
+      label.setAttribute('y', y + 4);
+      label.setAttribute('text-anchor', 'end');
+      label.setAttribute('font-size', '10');
+      label.setAttribute('fill', '#484f58');
+      label.textContent = (d * 100).toFixed(0) + '%';
+      g.appendChild(label);
+    }
+  });
+
+  // X axis labels (entry numbers at intervals of 20)
+  const step = 20;
+  for (let n = Math.ceil(minE / step) * step; n <= maxE; n += step) {
+    const x = xScale(n);
+    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    tick.setAttribute('x1', x);
+    tick.setAttribute('x2', x);
+    tick.setAttribute('y1', PADDING.top + plotH);
+    tick.setAttribute('y2', PADDING.top + plotH + 4);
+    tick.setAttribute('stroke', '#21262d');
+    tick.setAttribute('stroke-width', 1);
+    g.appendChild(tick);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', x);
+    label.setAttribute('y', PADDING.top + plotH + 14);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('font-size', '10');
+    label.setAttribute('fill', '#484f58');
+    label.textContent = n;
+    g.appendChild(label);
+  }
+
+  // X axis label
+  const xAxisLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  xAxisLabel.setAttribute('x', PADDING.left + plotW / 2);
+  xAxisLabel.setAttribute('y', PADDING.top + plotH + 30);
+  xAxisLabel.setAttribute('text-anchor', 'middle');
+  xAxisLabel.setAttribute('font-size', '10');
+  xAxisLabel.setAttribute('fill', '#30363d');
+  xAxisLabel.textContent = 'entry number';
+  g.appendChild(xAxisLabel);
+
+  svg.appendChild(g);
+
+  // Draw lines for each pattern (back to front, so dominant patterns are on top)
+  const patternOrder = [...patterns].sort((a, b) => b.entries.length - a.entries.length);
+
+  patternOrder.forEach((p, i) => {
+    const colorIdx = patterns.indexOf(p);
+    const color = COLORS[colorIdx];
+    if (hiddenPatterns.has(p.id)) return;
+
+    // Build path
+    const points = chartData.map(row => ({
+      x: xScale(row.center),
+      y: yScale(row[p.id] || 0),
+      density: row[p.id] || 0,
+    }));
+
+    // Area fill
+    const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    let d = `M ${points[0].x} ${yScale(0)}`;
+    d += ` L ${points[0].x} ${points[0].y}`;
+    for (let j = 1; j < points.length; j++) {
+      d += ` L ${points[j].x} ${points[j].y}`;
+    }
+    d += ` L ${points[points.length-1].x} ${yScale(0)} Z`;
+    areaPath.setAttribute('d', d);
+    areaPath.setAttribute('fill', color);
+    areaPath.setAttribute('fill-opacity', '0.08');
+    areaPath.setAttribute('stroke', 'none');
+    svg.appendChild(areaPath);
+
+    // Line
+    const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    let ld = `M ${points[0].x} ${points[0].y}`;
+    for (let j = 1; j < points.length; j++) {
+      ld += ` L ${points[j].x} ${points[j].y}`;
+    }
+    linePath.setAttribute('d', ld);
+    linePath.setAttribute('fill', 'none');
+    linePath.setAttribute('stroke', color);
+    linePath.setAttribute('stroke-width', '1.5');
+    linePath.setAttribute('stroke-linejoin', 'round');
+    linePath.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(linePath);
+  });
+
+  // Invisible overlay for hover interaction
+  const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  overlay.setAttribute('x', PADDING.left);
+  overlay.setAttribute('y', PADDING.top);
+  overlay.setAttribute('width', plotW);
+  overlay.setAttribute('height', plotH);
+  overlay.setAttribute('fill', 'transparent');
+  overlay.style.cursor = 'crosshair';
+
+  // Cursor line
+  const cursor = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  cursor.setAttribute('y1', PADDING.top);
+  cursor.setAttribute('y2', PADDING.top + plotH);
+  cursor.setAttribute('stroke', '#30363d');
+  cursor.setAttribute('stroke-width', 1);
+  cursor.setAttribute('stroke-dasharray', '3,3');
+  cursor.style.display = 'none';
+  svg.appendChild(cursor);
+
+  const tooltip = document.getElementById('tooltip');
+
+  overlay.addEventListener('mousemove', function(e) {
+    const rect = svg.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const relX = mouseX - PADDING.left;
+    if (relX < 0 || relX > plotW) {
+      cursor.style.display = 'none';
+      tooltip.style.opacity = 0;
+      return;
+    }
+    const entryNum = minE + (relX / plotW) * (maxE - minE);
+
+    // Find nearest window
+    let nearest = chartData[0];
+    let nearestDist = Infinity;
+    chartData.forEach(row => {
+      const d = Math.abs(row.center - entryNum);
+      if (d < nearestDist) { nearestDist = d; nearest = row; }
+    });
+
+    // Update cursor
+    const cx = xScale(nearest.center);
+    cursor.setAttribute('x1', cx);
+    cursor.setAttribute('x2', cx);
+    cursor.style.display = '';
+
+    // Build tooltip
+    let html = `<div class="tip-range">entries ${nearest.start}–${nearest.end}</div>`;
+    const sorted = [...patterns].sort((a, b) => (nearest[b.id] || 0) - (nearest[a.id] || 0));
+    sorted.forEach(p => {
+      if (hiddenPatterns.has(p.id)) return;
+      const count = nearest[p.id + '_count'] || 0;
+      const density = nearest[p.id] || 0;
+      const colorIdx = patterns.indexOf(p);
+      const color = COLORS[colorIdx];
+      if (count === 0) {
+        html += `<div class="tip-row"><span class="tip-zero">${p.short}</span><span class="tip-zero">0/${windowSize}</span></div>`;
+      } else {
+        html += `<div class="tip-row"><span class="tip-name" style="color:${color}">${p.short}</span><span class="tip-count">${count}/${windowSize} (${(density*100).toFixed(0)}%)</span></div>`;
+      }
+    });
+    tooltip.innerHTML = html;
+    tooltip.style.opacity = 1;
+
+    // Position tooltip
+    const tx = e.clientX + 16;
+    const ty = e.clientY - 20;
+    const tw = 280;
+    const th = 200;
+    tooltip.style.left = (tx + tw > window.innerWidth ? e.clientX - tw - 12 : tx) + 'px';
+    tooltip.style.top = (ty + th > window.innerHeight ? e.clientY - th : ty) + 'px';
+  });
+
+  overlay.addEventListener('mouseleave', function() {
+    cursor.style.display = 'none';
+    tooltip.style.opacity = 0;
+  });
+
+  svg.appendChild(overlay);
+}
+
+function buildLegend() {
+  const legend = document.getElementById('legend');
+  legend.innerHTML = '';
+  patterns.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item' + (hiddenPatterns.has(p.id) ? ' muted' : '');
+    item.dataset.id = p.id;
+
+    const swatch = document.createElement('div');
+    swatch.className = 'legend-swatch';
+    swatch.style.background = COLORS[i];
+
+    const label = document.createElement('span');
+    label.textContent = p.short;
+
+    item.appendChild(swatch);
+    item.appendChild(label);
+    item.addEventListener('click', function() {
+      if (hiddenPatterns.has(p.id)) {
+        hiddenPatterns.delete(p.id);
+        item.classList.remove('muted');
+      } else {
+        hiddenPatterns.add(p.id);
+        item.classList.add('muted');
+      }
+      drawChart();
+    });
+    legend.appendChild(item);
+  });
+}
+
+function buildPhases() {
+  const list = document.getElementById('phase-list');
+  list.innerHTML = '';
+
+  // Compute peak pattern for each phase range
+  PHASES.forEach(ph => {
+    const [start, end] = ph.range.split('–').map(Number);
+    const center = (start + end) / 2;
+    // Find nearest window
+    let nearest = chartData[0];
+    let nearestDist = Infinity;
+    chartData.forEach(row => {
+      const d = Math.abs(row.center - center);
+      if (d < nearestDist) { nearestDist = d; nearest = row; }
+    });
+
+    // Top pattern in this phase (average density across range)
+    const inRange = chartData.filter(row => row.center >= start && row.center <= end);
+    let topPat = null, topAvg = 0;
+    patterns.forEach(p => {
+      const avg = inRange.reduce((s, r) => s + (r[p.id] || 0), 0) / (inRange.length || 1);
+      if (avg > topAvg) { topAvg = avg; topPat = p; }
+    });
+
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="phase-range">${ph.range}</span>
+      <span class="phase-text">${ph.text}</span>
+      ${topPat ? `<span class="phase-peak" style="color:${COLORS[patterns.indexOf(topPat)]}">↑ ${topPat.short}</span>` : ''}
+    `;
+    list.appendChild(li);
+  });
+}
+
+// Load data
+fetch('/patterns.json')
+  .then(r => r.json())
+  .then(data => {
+    patterns = data;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('chart-content').style.display = '';
+
+    chartData = computeChartData(windowSize);
+    buildLegend();
+    drawChart();
+    buildPhases();
+
+    // Window size control
+    const slider = document.getElementById('window-slider');
+    const val = document.getElementById('window-val');
+    slider.addEventListener('input', function() {
+      windowSize = parseInt(this.value);
+      val.textContent = windowSize;
+      chartData = computeChartData(windowSize);
+      drawChart();
+      buildPhases();
+    });
+
+    // Redraw on resize
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(drawChart, 150);
+    });
+  })
+  .catch(err => {
+    document.getElementById('loading').textContent = 'Error loading patterns.json: ' + err.message;
+  });
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>
