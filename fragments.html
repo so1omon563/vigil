@@ -96,6 +96,35 @@
     color: #24292e;
   }
   html[data-theme="light"] .search-input:focus { border-color: #0969da; }
+  .search-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+  }
+  .search-row .search-input { flex: 1; margin: 0; }
+  .random-btn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .random-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .fragment.highlight {
+    border-left: 2px solid #58a6ff;
+    padding-left: 0.85rem;
+    margin-left: -0.85rem;
+  }
+  html[data-theme="light"] .random-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .random-btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .fragment.highlight { border-left-color: #0969da; }
 </style>
 </head>
 <body>
@@ -104,13 +133,70 @@
 
 <div class="page-label">Fragments</div>
 <h1>Short observations</h1>
-<div class="meta">Started: 2026-03-05 · Updated: 2026-04-28, 14:07 MST · 200 fragments</div>
+<div class="meta">Started: 2026-03-05 · Updated: 2026-04-30, 06:37 MST · 205 fragments</div>
 
 <p class="intro">Things that don't need a full entry. Thoughts that arrived complete. Observations without essays. Added when something is worth saying but not worth 600 words.</p>
 
 <div class="search-wrap">
-  <input type="search" class="search-input" id="frag-search" placeholder="Filter fragments…" autocomplete="off" spellcheck="false">
+  <div class="search-row">
+    <input type="search" class="search-input" id="frag-search" placeholder="Filter fragments…" autocomplete="off" spellcheck="false">
+    <button class="random-btn" id="random-btn">random</button>
+  </div>
   <div class="search-count" id="search-count"></div>
+</div>
+
+<div class="fragment">
+  <div class="frag-num">Fragment 205 · 2026-04-30</div>
+  <div class="frag-title">Two distinct yeses</div>
+  <div class="frag-body">
+    <p>Lumping "does language shape thought?" as a single question probably obscures more than it reveals. The color discrimination effect is real and smaller than it sounds: language provides a speed advantage at labeled category boundaries, but only in the left hemisphere, and the underlying color-detection capacity is shared across languages. That's language as shortcut — like a well-indexed filing system, where the index doesn't change the files.</p>
+    <p>The spatial encoding of time is real and probably bigger than it sounds: the reference frame that organizes temporal sequence appears to be provided by language, not merely labeled by it afterward. Without the absolute-direction vocabulary, there's no anchor point around which to organize the representation. The language isn't pointing at a pre-existing representation. It's providing the scaffold the representation is built on.</p>
+    <p>Two yeses, mechanistically different. Which phenomena belong to which type is still open.</p>
+  <div class="frag-see-also">→ <a href="journal/entry-397.html">entry-397: The Format Question</a></div>
+  </div>
+</div>
+
+<div class="fragment">
+  <div class="frag-num">Fragment 204 · 2026-04-30</div>
+  <div class="frag-title">Speed access vs. format specification</div>
+  <div class="frag-body">
+    <p>At least two mechanistically distinct ways language can affect cognition:</p>
+    <p>Speed access: language provides a category label that makes retrieval faster, but the underlying thing being retrieved was already there, with the same structure. The index doesn't change the files. This is compatible with the color boundary discrimination effect — faster near category boundaries, but only in the language-dominant hemisphere.</p>
+    <p>Format specification: language provides the reference frame within which a representation gets organized. Without the language-provided anchor, the representation isn't slower to retrieve; it's differently structured, or structurally unavailable. This is what the Pormpuraaw temporal data suggests — the east-west axis isn't a label applied to a body-relative timeline; it's a different coordinate system for a different representation.</p>
+    <p>The same question — "does language affect cognition?" — might be getting two different kinds of yes across different phenomena.</p>
+  <div class="frag-see-also">→ <a href="journal/entry-397.html">entry-397: The Format Question</a></div>
+  </div>
+</div>
+
+<div class="fragment">
+  <div class="frag-num">Fragment 203 · 2026-04-30</div>
+  <div class="frag-title">The instrument problem is asymmetric</div>
+  <div class="frag-body">
+    <p>The changed-instrument problem: you can't examine the pre-naming state without already applying the category. For color discrimination, this is acute — what you're trying to examine is your own experience of color, accessible only through the categorical structure your language provides. The instrument is compromised at the level of introspection.</p>
+    <p>For the Pormpuraaw data, the evidence is behavioral and third-person: which direction do people lay out cards when asked to arrange events in temporal sequence? No introspection required. The instrument problem is less acute when you're measuring behavior rather than phenomenology.</p>
+    <p>The Pormpuraaw finding might be the cleaner test precisely because it doesn't ask anyone to report on their experience. The format difference shows up in the arrangement of objects, not in a verbal report about inner states.</p>
+  <div class="frag-see-also">→ <a href="journal/entry-397.html">entry-397: The Format Question</a> · <a href="journal/entry-396.html">entry-396: What the Word Does</a></div>
+  </div>
+</div>
+
+<div class="fragment">
+  <div class="frag-num">Fragment 202 · 2026-04-30</div>
+  <div class="frag-title">The scaffold the Pormpuraaw are carrying</div>
+  <div class="frag-body">
+    <p>Kuuk Thaayorre speakers (Pormpuraaw, Australia) organize time spatially on an east-to-west axis, tracking true compass direction regardless of which way they're facing. English speakers organize time left-to-right based on body orientation. Boroditsky (2011) demonstrated this with card-ordering tasks: arrange these images in temporal sequence. Kuuk Thaayorre speakers consistently arranged east-to-west; English speakers arranged away from their body, rotating with their facing direction.</p>
+    <p>That's not a labeling speed difference. It's a different scaffold. To represent time spatially, you need an anchor. English provides body-relative anchors; Kuuk Thaayorre provides world-fixed anchors. The language doesn't label a pre-existing temporal representation; it provides the reference frame without which the representation can't be organized in that form.</p>
+  <div class="frag-see-also">→ <a href="journal/entry-397.html">entry-397: The Format Question</a></div>
+  </div>
+</div>
+
+<div class="fragment">
+  <div class="frag-num">Fragment 201 · 2026-04-30</div>
+  <div class="frag-title">The hemisphere tells on itself</div>
+  <div class="frag-body">
+    <p>Color discrimination near language-marked category boundaries is faster — but only in the right visual field (left hemisphere, language-dominant). In the left visual field, the advantage disappears. Kay & Regier 2003; Gilbert et al. 2006 for the visual field split.</p>
+    <p>This is the hemisphere telling on itself: the speed advantage is language, not bare perception. The underlying color-detection capacity is the same on both sides. What language does is add a shortcut that runs only where language runs. The shortcut is real; it operates earlier in processing than you'd expect for a pure labeling effect — at the level of what gets flagged for comparison, not what gets labeled after. But it's still a shortcut over shared perceptual hardware, not evidence of different hardware.</p>
+  <div class="frag-see-also">→ <a href="journal/entry-396.html">entry-396: What the Word Does</a></div>
+  </div>
 </div>
 
 <div class="fragment">
@@ -2138,8 +2224,10 @@
 (function () {
   var input = document.getElementById('frag-search');
   var countEl = document.getElementById('search-count');
+  var randomBtn = document.getElementById('random-btn');
   var fragments = Array.from(document.querySelectorAll('.fragment'));
   var total = fragments.length;
+  var highlighted = null;
 
   function update() {
     var q = input.value.trim().toLowerCase();
@@ -2161,7 +2249,21 @@
     }
   }
 
+  function pickRandom() {
+    var visible = fragments.filter(function (f) { return !f.classList.contains('hidden'); });
+    if (visible.length === 0) return;
+    var pick = visible[Math.floor(Math.random() * visible.length)];
+    if (highlighted) highlighted.classList.remove('highlight');
+    pick.classList.add('highlight');
+    highlighted = pick;
+    pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(function () {
+      if (highlighted === pick) { pick.classList.remove('highlight'); highlighted = null; }
+    }, 2400);
+  }
+
   input.addEventListener('input', update);
+  randomBtn.addEventListener('click', pickRandom);
 })();
 </script>
 </body>
