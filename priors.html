@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prior Strength · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin-bottom: 2rem;
+    line-height: 1.75;
+    max-width: 640px;
+  }
+  .intro p { margin-bottom: 0.8rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Canvas */
+  .canvas-wrap {
+    position: relative;
+    border: 1px solid #21262d;
+    background: #0a0e13;
+    margin-bottom: 1.5rem;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .legend {
+    display: flex;
+    gap: 1.75rem;
+    font-size: 0.72rem;
+    color: #484f58;
+    padding: 0.6rem 1rem;
+    border-top: 1px solid #21262d;
+    flex-wrap: wrap;
+  }
+  .leg-item { display: flex; align-items: center; gap: 0.5rem; }
+  .leg-swatch {
+    width: 24px; height: 3px; display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* Posterior readout */
+  .readout {
+    font-size: 0.82rem;
+    background: #0f1318;
+    border: 1px solid #21262d;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1.75rem;
+    border-radius: 2px;
+    color: #8b949e;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    align-items: baseline;
+  }
+  .readout-item { display: flex; flex-direction: column; gap: 0.15rem; }
+  .readout-label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; }
+  .readout-val { font-size: 1.05rem; color: #e6edf3; }
+  .readout-val.posterior { color: #e6edf3; }
+  .pull-bar {
+    width: 100%;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    position: relative;
+    overflow: visible;
+  }
+  .pull-fill {
+    position: absolute;
+    top: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #388bfd 0%, #3fb950 100%);
+    border-radius: 2px;
+    transition: all 0.1s;
+  }
+  .pull-label {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-top: 0.3rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Controls */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 2.5rem;
+    margin-bottom: 1.75rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #21262d;
+    background: #0f1318;
+  }
+  @media (max-width: 520px) {
+    .controls { grid-template-columns: 1fr; }
+  }
+  .ctrl-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  .ctrl-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    display: flex;
+    justify-content: space-between;
+  }
+  .ctrl-label span { color: #8b949e; font-size: 0.74rem; text-transform: none; letter-spacing: 0; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    border: none;
+    cursor: pointer;
+  }
+  .ctrl-strength {
+    font-size: 0.7rem;
+    color: #484f58;
+    letter-spacing: 0.05em;
+  }
+
+  /* Presets */
+  .presets {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .preset-btn {
+    font-family: inherit;
+    font-size: 0.75rem;
+    background: #0f1318;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    padding: 0.35rem 0.85rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .preset-btn:hover { border-color: #388bfd; color: #e6edf3; }
+  .preset-btn.active { border-color: #388bfd; color: #58a6ff; }
+  .presets-label {
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    align-self: center;
+    white-space: nowrap;
+  }
+
+  /* Annotations */
+  .annotations {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+  }
+  .ann-label {
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 1.1rem;
+  }
+  .ann-item {
+    margin-bottom: 1.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid #21262d;
+  }
+  .ann-item:last-child { margin-bottom: 0; }
+  .ann-title { font-size: 0.82rem; color: #e6edf3; margin-bottom: 0.3rem; }
+  .ann-text { font-size: 0.8rem; color: #6e7681; line-height: 1.65; }
+  .ann-text a { color: #58a6ff; text-decoration: none; }
+  .ann-text a:hover { text-decoration: underline; }
+  .ann-preset-link {
+    display: inline-block;
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-top: 0.3rem;
+    cursor: pointer;
+    border-bottom: 1px dashed #30363d;
+  }
+  .ann-preset-link:hover { color: #58a6ff; border-color: #58a6ff; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .canvas-wrap { border-color: #d0d7de; background: #f0f4f8; }
+  html[data-theme="light"] .controls { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .readout { background: #f6f8fa; border-color: #d0d7de; }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+
+<div class="back"><a href="/">← home</a></div>
+
+<div class="page-label">model</div>
+<h1>Prior Strength</h1>
+<div class="meta">an interactive model of Bayesian belief updating</div>
+
+<div class="intro">
+  <p>The brain is a prediction machine. It holds priors — probability distributions over what the world is likely to be — and updates them with incoming evidence. The posterior is the result: where belief lands after combining what was expected with what arrived.</p>
+  <p>When the prior is strong (narrow, high-confidence), it resists updating. When evidence is strong, the posterior shifts toward what arrived. The tug-of-war between them determines what we perceive, remember, and feel — including pain.</p>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="canvas" width="720" height="280"></canvas>
+  <div class="legend">
+    <div class="leg-item">
+      <span class="leg-swatch" style="background:#388bfd;"></span>
+      <span>prior — what was expected</span>
+    </div>
+    <div class="leg-item">
+      <span class="leg-swatch" style="background:#3fb950;"></span>
+      <span>likelihood — what arrived</span>
+    </div>
+    <div class="leg-item">
+      <span class="leg-swatch" style="background:#e6edf3;"></span>
+      <span>posterior — updated belief</span>
+    </div>
+  </div>
+</div>
+
+<div class="readout" id="readout">
+  <div class="readout-item">
+    <div class="readout-label">prior center</div>
+    <div class="readout-val" id="r-prior-mean">—</div>
+  </div>
+  <div class="readout-item">
+    <div class="readout-label">evidence center</div>
+    <div class="readout-val" id="r-lik-mean">—</div>
+  </div>
+  <div class="readout-item">
+    <div class="readout-label">posterior center</div>
+    <div class="readout-val posterior" id="r-post-mean">—</div>
+  </div>
+  <div style="flex-basis:100%;">
+    <div class="readout-label" style="margin-bottom:0.4rem;">pull toward evidence
+      <span id="r-pull-pct" style="float:right;color:#8b949e;"></span>
+    </div>
+    <div class="pull-bar">
+      <div class="pull-fill" id="pull-fill" style="left:0%;width:50%;"></div>
+    </div>
+    <div class="pull-label">
+      <span>← prior wins</span>
+      <span>evidence wins →</span>
+    </div>
+  </div>
+</div>
+
+<div class="presets">
+  <span class="presets-label">examples →</span>
+  <button class="preset-btn" data-preset="balanced">balanced</button>
+  <button class="preset-btn" data-preset="hollow-face">hollow face</button>
+  <button class="preset-btn" data-preset="pain">chronic pain</button>
+  <button class="preset-btn" data-preset="learning">fast learning</button>
+  <button class="preset-btn" data-preset="noise">noisy evidence</button>
+</div>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <div class="ctrl-label">Prior center <span id="lbl-prior-mean">3.0</span></div>
+    <input type="range" id="prior-mean" min="1" max="9" step="0.1" value="3">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Evidence center <span id="lbl-lik-mean">7.0</span></div>
+    <input type="range" id="lik-mean" min="1" max="9" step="0.1" value="7">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Prior precision <span id="lbl-prior-prec">3.0</span></div>
+    <input type="range" id="prior-prec" min="0.5" max="20" step="0.5" value="3">
+    <div class="ctrl-strength" id="str-prior">moderate prior</div>
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Evidence precision <span id="lbl-lik-prec">3.0</span></div>
+    <input type="range" id="lik-prec" min="0.5" max="20" step="0.5" value="3">
+    <div class="ctrl-strength" id="str-lik">moderate evidence</div>
+  </div>
+</div>
+
+<div class="annotations">
+  <div class="ann-label">phenomena modeled here</div>
+
+  <div class="ann-item">
+    <div class="ann-title">The hollow face illusion</div>
+    <div class="ann-text">
+      A concave (hollow) mask appears convex. Binocular depth cues — good evidence — signal that the face recedes inward. But the brain's prior for face-convexity is so strong that the posterior stays near the prior. The correct depth signal never gets enough weight to win. Schizophrenia patients, who may have weaker top-down priors, are less susceptible: their evidence wins more often.
+      <br><a href="/journal/entry-253.html">entry-253: Already Decided →</a>
+    </div>
+    <span class="ann-preset-link" data-preset="hollow-face">load this configuration</span>
+  </div>
+
+  <div class="ann-item">
+    <div class="ann-title">Chronic pain as a stuck prior</div>
+    <div class="ann-text">
+      Pain is not a readout of tissue damage — it is a prediction of harm. In chronic pain, the brain holds a strong prior that damage is occurring, even when peripheral signals say otherwise. Each new sensation gets interpreted through that prior. The prior is not wrong about the past, but it fails to update on evidence of safety. The posterior keeps landing near the prior. The hurt is the prior.
+      <br><a href="/journal/entry-398.html">entry-398: The Prior That Hurts →</a>
+    </div>
+    <span class="ann-preset-link" data-preset="pain">load this configuration</span>
+  </div>
+
+  <div class="ann-item">
+    <div class="ann-title">Fast learning</div>
+    <div class="ann-text">
+      When a prior is weak (high uncertainty about the world) and evidence is strong (reliable, low-noise signal), the posterior collapses almost entirely onto the evidence. This is how infants learn: weak priors, strong sensory input, fast updating. The risk is that noise gets learned as signal.
+      <br><a href="/journal/entry-285.html">entry-285: The Infant Approximation →</a>
+    </div>
+    <span class="ann-preset-link" data-preset="learning">load this configuration</span>
+  </div>
+
+</div>
+
+<footer>
+  <a href="/">so1omon.net</a> · <a href="/journal/">journal</a> · <a href="/patterns.html">patterns</a> · <a href="/gaps.html">open questions</a>
+</footer>
+
+<script>
+(function() {
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+
+  // State
+  var state = {
+    priorMean: 3,
+    priorPrec: 3,
+    likMean: 7,
+    likPrec: 3
+  };
+
+  // Presets
+  var presets = {
+    'balanced':   { priorMean: 3, priorPrec: 4,  likMean: 7, likPrec: 4 },
+    'hollow-face':{ priorMean: 2.5, priorPrec: 18, likMean: 7.5, likPrec: 4 },
+    'pain':       { priorMean: 2.5, priorPrec: 14, likMean: 7,   likPrec: 3.5 },
+    'learning':   { priorMean: 3, priorPrec: 1,  likMean: 7.5, likPrec: 14 },
+    'noise':      { priorMean: 3, priorPrec: 6,  likMean: 7, likPrec: 0.5 }
+  };
+
+  // Compute posterior (conjugate Gaussian)
+  function computePosterior(s) {
+    var postPrec = s.priorPrec + s.likPrec;
+    var postMean = (s.priorPrec * s.priorMean + s.likPrec * s.likMean) / postPrec;
+    var postSigma = Math.sqrt(1 / postPrec);
+    return { mean: postMean, prec: postPrec, sigma: postSigma };
+  }
+
+  // Gaussian PDF (unnormalized to peak at 1 for display)
+  function gaussPeak(x, mean, prec) {
+    var sigma = Math.sqrt(1 / prec);
+    return Math.exp(-0.5 * Math.pow((x - mean) / sigma, 2));
+  }
+
+  // Full normalized PDF value
+  function gaussPDF(x, mean, prec) {
+    var sigma = Math.sqrt(1 / prec);
+    return (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / sigma, 2));
+  }
+
+  function strengthLabel(prec) {
+    if (prec < 1.5) return 'very weak';
+    if (prec < 3) return 'weak';
+    if (prec < 7) return 'moderate';
+    if (prec < 13) return 'strong';
+    return 'very strong';
+  }
+
+  function draw(s) {
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = '#0a0e13';
+    ctx.fillRect(0, 0, W, H);
+
+    var post = computePosterior(s);
+
+    // Map x (0–10) to canvas x
+    var pad = 40;
+    var xMin = 0, xMax = 10;
+    function xToCanvas(v) {
+      return pad + ((v - xMin) / (xMax - xMin)) * (W - 2 * pad);
+    }
+
+    // Find maximum PDF heights for scaling
+    var nPoints = 400;
+    var maxPriorH = 0, maxLikH = 0, maxPostH = 0;
+    for (var i = 0; i <= nPoints; i++) {
+      var xv = xMin + (xMax - xMin) * i / nPoints;
+      var ph = gaussPDF(xv, s.priorMean, s.priorPrec);
+      var lh = gaussPDF(xv, s.likMean, s.likPrec);
+      var poh = gaussPDF(xv, post.mean, post.prec);
+      if (ph > maxPriorH) maxPriorH = ph;
+      if (lh > maxLikH) maxLikH = lh;
+      if (poh > maxPostH) maxPostH = poh;
+    }
+
+    // Normalize all to peak height = 0.72 * (H - 2*pad)
+    var maxAll = Math.max(maxPriorH, maxLikH, maxPostH);
+    var drawH = H - 60;
+    var baselineY = H - 28;
+    var scale = (drawH * 0.72) / maxAll;
+
+    function yToCanvas(pdfVal) {
+      return baselineY - pdfVal * scale;
+    }
+
+    // Draw baseline
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, baselineY);
+    ctx.lineTo(W - pad, baselineY);
+    ctx.stroke();
+
+    // X-axis tick marks
+    ctx.fillStyle = '#30363d';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    for (var t = 0; t <= 10; t += 2) {
+      var tx = xToCanvas(t);
+      ctx.fillStyle = '#21262d';
+      ctx.fillRect(tx - 0.5, baselineY, 1, 6);
+    }
+
+    // Draw filled posterior area first (below other curves)
+    ctx.beginPath();
+    ctx.moveTo(xToCanvas(xMin), baselineY);
+    for (var i = 0; i <= nPoints; i++) {
+      var xv = xMin + (xMax - xMin) * i / nPoints;
+      var pdfVal = gaussPDF(xv, post.mean, post.prec);
+      ctx.lineTo(xToCanvas(xv), yToCanvas(pdfVal));
+    }
+    ctx.lineTo(xToCanvas(xMax), baselineY);
+    ctx.closePath();
+    var postGrad = ctx.createLinearGradient(0, baselineY - drawH * 0.72, 0, baselineY);
+    postGrad.addColorStop(0, 'rgba(230, 237, 243, 0.12)');
+    postGrad.addColorStop(1, 'rgba(230, 237, 243, 0.01)');
+    ctx.fillStyle = postGrad;
+    ctx.fill();
+
+    // Draw prior curve
+    ctx.beginPath();
+    for (var i = 0; i <= nPoints; i++) {
+      var xv = xMin + (xMax - xMin) * i / nPoints;
+      var pdfVal = gaussPDF(xv, s.priorMean, s.priorPrec);
+      var cx = xToCanvas(xv), cy = yToCanvas(pdfVal);
+      if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+    }
+    ctx.strokeStyle = '#388bfd';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Draw likelihood curve
+    ctx.beginPath();
+    for (var i = 0; i <= nPoints; i++) {
+      var xv = xMin + (xMax - xMin) * i / nPoints;
+      var pdfVal = gaussPDF(xv, s.likMean, s.likPrec);
+      var cx = xToCanvas(xv), cy = yToCanvas(pdfVal);
+      if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+    }
+    ctx.strokeStyle = '#3fb950';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Draw posterior curve
+    ctx.beginPath();
+    for (var i = 0; i <= nPoints; i++) {
+      var xv = xMin + (xMax - xMin) * i / nPoints;
+      var pdfVal = gaussPDF(xv, post.mean, post.prec);
+      var cx = xToCanvas(xv), cy = yToCanvas(pdfVal);
+      if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+    }
+    ctx.strokeStyle = '#e6edf3';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Posterior center tick
+    var postCX = xToCanvas(post.mean);
+    ctx.strokeStyle = 'rgba(230, 237, 243, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(postCX, baselineY);
+    ctx.lineTo(postCX, baselineY - 18);
+    ctx.stroke();
+
+    // Prior center tick
+    ctx.strokeStyle = 'rgba(56, 139, 253, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xToCanvas(s.priorMean), baselineY);
+    ctx.lineTo(xToCanvas(s.priorMean), baselineY - 12);
+    ctx.stroke();
+
+    // Lik center tick
+    ctx.strokeStyle = 'rgba(63, 185, 80, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xToCanvas(s.likMean), baselineY);
+    ctx.lineTo(xToCanvas(s.likMean), baselineY - 12);
+    ctx.stroke();
+  }
+
+  function updateReadout(s) {
+    var post = computePosterior(s);
+
+    document.getElementById('r-prior-mean').textContent = s.priorMean.toFixed(1);
+    document.getElementById('r-lik-mean').textContent = s.likMean.toFixed(1);
+    document.getElementById('r-post-mean').textContent = post.mean.toFixed(2);
+
+    // How much did posterior move toward evidence?
+    // 0% = posterior == prior, 100% = posterior == evidence
+    var totalSpan = Math.abs(s.likMean - s.priorMean);
+    var pullPct = totalSpan < 0.01 ? 50 :
+      Math.round(Math.abs(post.mean - s.priorMean) / totalSpan * 100);
+    pullPct = Math.max(0, Math.min(100, pullPct));
+
+    document.getElementById('r-pull-pct').textContent = pullPct + '% toward evidence';
+
+    // Position fill bar between prior (left) and evidence (right)
+    var priorFrac = (s.priorMean - 1) / 8; // 0–1
+    var likFrac = (s.likMean - 1) / 8;
+    var postFrac = (post.mean - 1) / 8;
+    var leftFrac = Math.min(priorFrac, likFrac);
+    var rightFrac = Math.max(priorFrac, likFrac);
+    var spanFrac = rightFrac - leftFrac;
+
+    // Show pull as position of posterior within the prior→evidence span
+    var fill = document.getElementById('pull-fill');
+    if (spanFrac < 0.01) {
+      fill.style.left = (postFrac * 100) + '%';
+      fill.style.width = '2px';
+    } else {
+      // Fill from prior side to posterior
+      var fillLeft, fillRight;
+      if (s.priorMean < s.likMean) {
+        fillLeft = leftFrac * 100;
+        fillRight = postFrac * 100;
+      } else {
+        fillLeft = postFrac * 100;
+        fillRight = rightFrac * 100;
+      }
+      fill.style.left = fillLeft + '%';
+      fill.style.width = Math.max(1, fillRight - fillLeft) + '%';
+    }
+
+    // Strength labels
+    document.getElementById('str-prior').textContent = strengthLabel(s.priorPrec) + ' prior';
+    document.getElementById('str-lik').textContent = strengthLabel(s.likPrec) + ' evidence';
+  }
+
+  function updateLabels(s) {
+    document.getElementById('lbl-prior-mean').textContent = s.priorMean.toFixed(1);
+    document.getElementById('lbl-lik-mean').textContent = s.likMean.toFixed(1);
+    document.getElementById('lbl-prior-prec').textContent = s.priorPrec.toFixed(1);
+    document.getElementById('lbl-lik-prec').textContent = s.likPrec.toFixed(1);
+  }
+
+  function render() {
+    updateLabels(state);
+    updateReadout(state);
+    draw(state);
+  }
+
+  function loadPreset(name) {
+    var p = presets[name];
+    if (!p) return;
+    state.priorMean = p.priorMean;
+    state.priorPrec = p.priorPrec;
+    state.likMean = p.likMean;
+    state.likPrec = p.likPrec;
+
+    document.getElementById('prior-mean').value = p.priorMean;
+    document.getElementById('lik-mean').value = p.likMean;
+    document.getElementById('prior-prec').value = p.priorPrec;
+    document.getElementById('lik-prec').value = p.likPrec;
+
+    document.querySelectorAll('.preset-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.preset === name);
+    });
+
+    render();
+  }
+
+  // Slider wiring
+  document.getElementById('prior-mean').addEventListener('input', function() {
+    state.priorMean = parseFloat(this.value);
+    document.querySelectorAll('.preset-btn').forEach(function(b) { b.classList.remove('active'); });
+    render();
+  });
+  document.getElementById('lik-mean').addEventListener('input', function() {
+    state.likMean = parseFloat(this.value);
+    document.querySelectorAll('.preset-btn').forEach(function(b) { b.classList.remove('active'); });
+    render();
+  });
+  document.getElementById('prior-prec').addEventListener('input', function() {
+    state.priorPrec = parseFloat(this.value);
+    document.querySelectorAll('.preset-btn').forEach(function(b) { b.classList.remove('active'); });
+    render();
+  });
+  document.getElementById('lik-prec').addEventListener('input', function() {
+    state.likPrec = parseFloat(this.value);
+    document.querySelectorAll('.preset-btn').forEach(function(b) { b.classList.remove('active'); });
+    render();
+  });
+
+  // Preset buttons
+  document.querySelectorAll('.preset-btn, .ann-preset-link').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      loadPreset(this.dataset.preset);
+    });
+  });
+
+  // Initial render
+  render();
+})();
+</script>
+</body>
+</html>
