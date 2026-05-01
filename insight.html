@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>insight · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro a { color: #8b949e; text-decoration: underline; }
+
+  /* Progress */
+  .progress-bar-wrap {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    height: 4px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: #58a6ff;
+    transition: width 0.4s ease;
+    border-radius: 3px;
+  }
+  .progress-label {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Puzzle card */
+  .puzzle-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 2rem 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .puzzle-num {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 1.2rem;
+  }
+  .puzzle-words {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .puzzle-word {
+    font-size: 1.35rem;
+    color: #e6edf3;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .word-sep {
+    font-size: 1.35rem;
+    color: #30363d;
+    font-weight: bold;
+  }
+
+  /* Answer input */
+  .answer-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .answer-input {
+    flex: 1;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    color: #e6edf3;
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.15s;
+    text-transform: lowercase;
+  }
+  .answer-input:focus { border-color: #58a6ff; }
+  .answer-input::placeholder { color: #484f58; }
+  .answer-input:disabled { opacity: 0.5; }
+
+  /* Certainty slider */
+  .certainty-section {
+    margin-bottom: 1.5rem;
+  }
+  .certainty-label {
+    font-size: 0.78rem;
+    color: #6e7681;
+    margin-bottom: 0.6rem;
+  }
+  .certainty-label em { color: #c9d1d9; font-style: normal; }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .slider-endlabel {
+    font-size: 0.7rem;
+    color: #484f58;
+    white-space: nowrap;
+    min-width: 4rem;
+  }
+  .slider-endlabel.right { text-align: right; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: 2px solid #0d1117;
+  }
+  input[type="range"]:disabled { opacity: 0.4; cursor: default; }
+  input[type="range"]:disabled::-webkit-slider-thumb { cursor: default; }
+  .slider-value {
+    font-size: 0.85rem;
+    color: #e6edf3;
+    min-width: 1.5rem;
+    text-align: center;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    background: #1f6feb;
+    color: #e6edf3;
+    border: none;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    padding: 0.5rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: block;
+    width: 100%;
+  }
+  .submit-btn:hover:not(:disabled) { background: #388bfd; }
+  .submit-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* Reveal section */
+  .reveal {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #21262d;
+    display: none;
+  }
+  .reveal.visible { display: block; }
+  .reveal-correct {
+    font-size: 0.82rem;
+    margin-bottom: 0.6rem;
+  }
+  .reveal-word {
+    font-size: 1rem;
+    color: #e6edf3;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .result-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-left: 0.5rem;
+  }
+  .result-tag.correct { background: #1a3a1f; color: #3fb950; border: 1px solid #238636; }
+  .result-tag.wrong { background: #3a1a1f; color: #f85149; border: 1px solid #da3633; }
+  .result-tag.close { background: #2d2a1a; color: #d29922; border: 1px solid #9e6a03; }
+  .reveal-compounds {
+    font-size: 0.78rem;
+    color: #484f58;
+    line-height: 1.6;
+    margin-top: 0.4rem;
+  }
+  .reveal-compounds span { color: #6e7681; }
+  .next-btn {
+    background: transparent;
+    color: #58a6ff;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.4rem 1.2rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    margin-top: 1rem;
+  }
+  .next-btn:hover { border-color: #58a6ff; }
+
+  /* Running tally */
+  .tally {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.82rem;
+    color: #484f58;
+    margin-bottom: 2rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    background: #0d1117;
+  }
+  .tally-item { display: flex; gap: 0.4rem; }
+  .tally-val { color: #e6edf3; }
+
+  /* Results panel */
+  #results { display: none; }
+  .results-header {
+    font-size: 1.1rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  .results-sub {
+    font-size: 0.85rem;
+    color: #6e7681;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  /* Calibration chart */
+  .calibration-section {
+    margin-bottom: 2rem;
+  }
+  .cal-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+  .cal-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
+    font-size: 0.82rem;
+  }
+  .cal-aha { color: #8b949e; min-width: 8rem; }
+  .cal-bar-wrap { flex: 1; background: #161b22; height: 18px; border-radius: 3px; overflow: hidden; border: 1px solid #21262d; }
+  .cal-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .cal-pct { color: #6e7681; min-width: 3.5rem; text-align: right; }
+
+  /* Scatter plot */
+  .scatter-wrap {
+    margin-bottom: 2rem;
+  }
+  .scatter-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  canvas {
+    display: block;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    margin: 0 auto;
+  }
+
+  /* Finding text */
+  .finding {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .finding strong { color: #c9d1d9; }
+  .entry-ref {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 1rem;
+  }
+  .entry-ref a { color: #484f58; }
+  .entry-ref a:hover { color: #58a6ff; }
+
+  .restart-btn {
+    background: transparent;
+    color: #484f58;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.4rem 1.2rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    margin-top: 1.5rem;
+  }
+  .restart-btn:hover { border-color: #484f58; color: #6e7681; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .intro a { color: #57606a; }
+  html[data-theme="light"] .puzzle-card { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .puzzle-num { color: #8c959f; }
+  html[data-theme="light"] .puzzle-word { color: #24292e; }
+  html[data-theme="light"] .word-sep { color: #d0d7de; }
+  html[data-theme="light"] .answer-input { background: #ffffff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .answer-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .answer-input::placeholder { color: #8c959f; }
+  html[data-theme="light"] .certainty-label { color: #57606a; }
+  html[data-theme="light"] .certainty-label em { color: #24292e; }
+  html[data-theme="light"] .slider-endlabel { color: #8c959f; }
+  html[data-theme="light"] input[type="range"] { background: #d0d7de; }
+  html[data-theme="light"] input[type="range"]::-webkit-slider-thumb { background: #0969da; border-color: #ffffff; }
+  html[data-theme="light"] .slider-value { color: #24292e; }
+  html[data-theme="light"] .reveal { border-top-color: #d0d7de; }
+  html[data-theme="light"] .reveal-compounds { color: #8c959f; }
+  html[data-theme="light"] .reveal-compounds span { color: #57606a; }
+  html[data-theme="light"] .tally { border-color: #d0d7de; background: #f6f8fa; }
+  html[data-theme="light"] .tally-val { color: #24292e; }
+  html[data-theme="light"] .results-sub { color: #57606a; }
+  html[data-theme="light"] .cal-aha { color: #57606a; }
+  html[data-theme="light"] .cal-bar-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .cal-pct { color: #57606a; }
+  html[data-theme="light"] .scatter-label { color: #8c959f; }
+  html[data-theme="light"] canvas { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .finding { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .finding strong { color: #24292e; }
+  html[data-theme="light"] .entry-ref { color: #8c959f; }
+  html[data-theme="light"] .entry-ref a { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .progress-bar-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .progress-label { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulate · metacognition</div>
+<h1>insight</h1>
+
+<div class="intro">
+  Compound remote associate puzzles — three words that each combine with one hidden word.
+  Before revealing the answer, you rate how certain you feel. The question is whether that feeling
+  predicts being right. Research finds it mostly does — but only mostly, and the gap is where
+  things get interesting. <a href="/journal/entry-404.html">Entry-404</a> on what the click is actually tracking.
+</div>
+
+<div id="tally-bar" class="tally" style="display:none;">
+  <div class="tally-item">correct: <span class="tally-val" id="t-correct">0</span></div>
+  <div class="tally-item">wrong: <span class="tally-val" id="t-wrong">0</span></div>
+  <div class="tally-item">avg certainty: <span class="tally-val" id="t-avg">—</span></div>
+</div>
+
+<div class="progress-label" id="progress-label">puzzle 1 of 8</div>
+<div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+
+<div id="puzzle-area"></div>
+<div id="results"></div>
+
+<script>
+(function () {
+
+  // Compound remote associate puzzles
+  // answer combines with all three words to form compound words or common two-word phrases
+  var PUZZLES = [
+    {
+      words: ['PINE', 'CRAB', 'SAUCE'],
+      answer: 'apple',
+      compounds: ['pineapple', 'crab apple', 'applesauce']
+    },
+    {
+      words: ['CREAM', 'SKATE', 'WATER'],
+      answer: 'ice',
+      compounds: ['ice cream', 'ice skate', 'ice water']
+    },
+    {
+      words: ['STICK', 'MAKER', 'POINT'],
+      answer: 'match',
+      compounds: ['matchstick', 'matchmaker', 'match point']
+    },
+    {
+      words: ['PLAYING', 'CREDIT', 'REPORT'],
+      answer: 'card',
+      compounds: ['playing card', 'credit card', 'report card']
+    },
+    {
+      words: ['COTTAGE', 'SWISS', 'CAKE'],
+      answer: 'cheese',
+      compounds: ['cottage cheese', 'Swiss cheese', 'cheesecake']
+    },
+    {
+      words: ['ARM', 'COAL', 'PEACH'],
+      answer: 'pit',
+      compounds: ['armpit', 'coal pit', 'peach pit']
+    },
+    {
+      words: ['PRINT', 'BERRY', 'BIRD'],
+      answer: 'blue',
+      compounds: ['blueprint', 'blueberry', 'bluebird']
+    },
+    {
+      words: ['BACK', 'BOARD', 'WORK'],
+      answer: 'key',
+      compounds: ['keyback?', 'keyboard', 'keywork?'],
+      // override with proper explanation
+      compounds: ['keyboard', 'key board', 'key work']
+    },
+  ];
+
+  // Fix puzzle 8 - use a cleaner one
+  PUZZLES[7] = {
+    words: ['BOOK', 'WORM', 'HOLE'],
+    answer: 'black',
+    compounds: ['black book', 'bookworm', 'black hole']
+  };
+
+  // Actually let me pick more carefully
+  PUZZLES = [
+    {
+      words: ['PINE', 'CRAB', 'SAUCE'],
+      answer: 'apple',
+      compounds: ['pineapple', 'crab apple', 'applesauce']
+    },
+    {
+      words: ['CREAM', 'SKATE', 'WATER'],
+      answer: 'ice',
+      compounds: ['ice cream', 'ice skate', 'ice water']
+    },
+    {
+      words: ['STICK', 'MAKER', 'POINT'],
+      answer: 'match',
+      compounds: ['matchstick', 'matchmaker', 'match point']
+    },
+    {
+      words: ['PLAYING', 'CREDIT', 'REPORT'],
+      answer: 'card',
+      compounds: ['playing card', 'credit card', 'report card']
+    },
+    {
+      words: ['COTTAGE', 'SWISS', 'CAKE'],
+      answer: 'cheese',
+      compounds: ['cottage cheese', 'Swiss cheese', 'cheesecake']
+    },
+    {
+      words: ['ARM', 'COAL', 'PEACH'],
+      answer: 'pit',
+      compounds: ['armpit', 'coal pit', 'peach pit']
+    },
+    {
+      words: ['PRINT', 'BERRY', 'BIRD'],
+      answer: 'blue',
+      compounds: ['blueprint', 'blueberry', 'bluebird']
+    },
+    {
+      words: ['BOOK', 'WORM', 'HOLE'],
+      answer: 'black',
+      compounds: ['black book', 'bookworm', 'black hole']
+    },
+  ];
+
+  var current = 0;
+  var results = []; // {answer, correct, certainty, puzzle}
+  var submitted = false;
+
+  function checkClose(typed, correct) {
+    // Check if within edit distance 1 or a reasonable variant
+    typed = typed.toLowerCase().trim();
+    correct = correct.toLowerCase().trim();
+    if (typed === correct) return 'correct';
+    // Simple: if typed contains correct or vice versa (for plurals etc)
+    if (typed.length > 2 && (correct.startsWith(typed) || typed.startsWith(correct))) return 'close';
+    return 'wrong';
+  }
+
+  function updateTally() {
+    var correct = results.filter(function(r){ return r.correct === 'correct'; }).length;
+    var wrong = results.filter(function(r){ return r.correct === 'wrong'; }).length;
+    var avg = results.length > 0
+      ? (results.reduce(function(s, r){ return s + r.certainty; }, 0) / results.length).toFixed(1)
+      : '—';
+    document.getElementById('t-correct').textContent = correct;
+    document.getElementById('t-wrong').textContent = wrong;
+    document.getElementById('t-avg').textContent = avg;
+    if (results.length > 0) document.getElementById('tally-bar').style.display = 'flex';
+  }
+
+  function updateProgress() {
+    var pct = (current / PUZZLES.length) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+    var lbl = current < PUZZLES.length
+      ? 'puzzle ' + (current + 1) + ' of ' + PUZZLES.length
+      : 'complete';
+    document.getElementById('progress-label').textContent = lbl;
+  }
+
+  function renderPuzzle(idx) {
+    submitted = false;
+    updateProgress();
+    var p = PUZZLES[idx];
+    var area = document.getElementById('puzzle-area');
+    area.innerHTML = '';
+
+    var card = document.createElement('div');
+    card.className = 'puzzle-card';
+
+    var numDiv = document.createElement('div');
+    numDiv.className = 'puzzle-num';
+    numDiv.textContent = 'puzzle ' + (idx + 1);
+    card.appendChild(numDiv);
+
+    var wordsDiv = document.createElement('div');
+    wordsDiv.className = 'puzzle-words';
+    p.words.forEach(function(w, i) {
+      var wEl = document.createElement('span');
+      wEl.className = 'puzzle-word';
+      wEl.textContent = w;
+      wordsDiv.appendChild(wEl);
+      if (i < p.words.length - 1) {
+        var sep = document.createElement('span');
+        sep.className = 'word-sep';
+        sep.textContent = '/';
+        wordsDiv.appendChild(sep);
+      }
+    });
+    card.appendChild(wordsDiv);
+
+    // Answer input row
+    var answerRow = document.createElement('div');
+    answerRow.className = 'answer-row';
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'answer-input';
+    input.placeholder = 'one word…';
+    input.id = 'answer-input';
+    input.autocomplete = 'off';
+    input.autocorrect = 'off';
+    input.spellcheck = false;
+    answerRow.appendChild(input);
+    card.appendChild(answerRow);
+
+    // Certainty slider
+    var certSec = document.createElement('div');
+    certSec.className = 'certainty-section';
+    var certLabel = document.createElement('div');
+    certLabel.className = 'certainty-label';
+    certLabel.innerHTML = 'how certain do you feel? <em id="cert-val">3</em>';
+    certSec.appendChild(certLabel);
+
+    var sliderRow = document.createElement('div');
+    sliderRow.className = 'slider-row';
+
+    var leftLabel = document.createElement('span');
+    leftLabel.className = 'slider-endlabel';
+    leftLabel.textContent = 'just guessing';
+    sliderRow.appendChild(leftLabel);
+
+    var slider = document.createElement('input');
+    slider.type = 'range';
+    slider.id = 'certainty-slider';
+    slider.min = '1';
+    slider.max = '5';
+    slider.value = '3';
+    slider.step = '1';
+    slider.oninput = function() {
+      document.getElementById('cert-val').textContent = this.value;
+    };
+    sliderRow.appendChild(slider);
+
+    var rightLabel = document.createElement('span');
+    rightLabel.className = 'slider-endlabel right';
+    rightLabel.textContent = 'I know it';
+    sliderRow.appendChild(rightLabel);
+
+    certSec.appendChild(sliderRow);
+    card.appendChild(certSec);
+
+    // Submit button
+    var submitBtn = document.createElement('button');
+    submitBtn.className = 'submit-btn';
+    submitBtn.textContent = 'reveal answer';
+    submitBtn.id = 'submit-btn';
+    submitBtn.onclick = function() { doSubmit(p, idx); };
+    card.appendChild(submitBtn);
+
+    // Reveal section
+    var reveal = document.createElement('div');
+    reveal.className = 'reveal';
+    reveal.id = 'reveal-section';
+    card.appendChild(reveal);
+
+    area.appendChild(card);
+
+    // Enter key to submit
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !submitted) doSubmit(p, idx);
+    });
+
+    input.focus();
+  }
+
+  function doSubmit(p, idx) {
+    if (submitted) return;
+    submitted = true;
+
+    var input = document.getElementById('answer-input');
+    var slider = document.getElementById('certainty-slider');
+    var typed = input.value.trim();
+    var certainty = parseInt(slider.value, 10);
+
+    input.disabled = true;
+    slider.disabled = true;
+    document.getElementById('submit-btn').disabled = true;
+
+    var verdict = typed ? checkClose(typed, p.answer) : 'wrong';
+    results.push({ typed: typed, correct: verdict, certainty: certainty, puzzle: p });
+    updateTally();
+
+    // Build reveal section
+    var reveal = document.getElementById('reveal-section');
+    reveal.classList.add('visible');
+
+    var revCorrect = document.createElement('div');
+    revCorrect.className = 'reveal-correct';
+
+    var answerText = 'the word was ';
+    revCorrect.innerHTML = answerText + '<span class="reveal-word">' + p.answer.toUpperCase() + '</span>';
+
+    var tag = document.createElement('span');
+    tag.className = 'result-tag';
+    if (verdict === 'correct') {
+      tag.classList.add('correct');
+      tag.textContent = 'correct';
+    } else if (verdict === 'close') {
+      tag.classList.add('close');
+      tag.textContent = 'close';
+    } else {
+      tag.classList.add('wrong');
+      tag.textContent = typed ? 'wrong' : 'skipped';
+    }
+    revCorrect.appendChild(tag);
+    reveal.appendChild(revCorrect);
+
+    var compounds = document.createElement('div');
+    compounds.className = 'reveal-compounds';
+    compounds.innerHTML = p.compounds.map(function(c){ return '<span>' + c + '</span>'; }).join(' &middot; ');
+    reveal.appendChild(compounds);
+
+    // Next button or finish
+    var nextBtn = document.createElement('button');
+    nextBtn.className = 'next-btn';
+    if (idx < PUZZLES.length - 1) {
+      nextBtn.textContent = 'next puzzle →';
+      nextBtn.onclick = function() {
+        current++;
+        renderPuzzle(current);
+      };
+    } else {
+      nextBtn.textContent = 'see results →';
+      nextBtn.onclick = function() {
+        showResults();
+      };
+    }
+    reveal.appendChild(nextBtn);
+  }
+
+  function showResults() {
+    document.getElementById('puzzle-area').innerHTML = '';
+    document.getElementById('progress-label').textContent = 'complete';
+    document.getElementById('progress-bar').style.width = '100%';
+
+    var resultsDiv = document.getElementById('results');
+    resultsDiv.style.display = 'block';
+    resultsDiv.innerHTML = '';
+
+    var correct = results.filter(function(r){ return r.correct === 'correct'; }).length;
+    var total = results.length;
+
+    // Header
+    var hdr = document.createElement('div');
+    hdr.className = 'results-header';
+    hdr.textContent = correct + ' of ' + total + ' correct';
+    resultsDiv.appendChild(hdr);
+
+    // Compute correlation text
+    var highCert = results.filter(function(r){ return r.certainty >= 4; });
+    var highCertCorrect = highCert.filter(function(r){ return r.correct === 'correct'; }).length;
+    var lowCert = results.filter(function(r){ return r.certainty <= 2; });
+    var lowCertCorrect = lowCert.filter(function(r){ return r.correct === 'correct'; }).length;
+
+    var subText = '';
+    if (highCert.length > 0 && lowCert.length > 0) {
+      var highPct = Math.round(highCertCorrect / highCert.length * 100);
+      var lowPct = Math.round(lowCertCorrect / lowCert.length * 100);
+      subText = 'When you rated certainty 4–5: ' + highPct + '% correct (' + highCertCorrect + '/' + highCert.length + '). '
+              + 'When you rated 1–2: ' + lowPct + '% correct (' + lowCertCorrect + '/' + lowCert.length + ').';
+    } else if (highCert.length > 0) {
+      var highPct = Math.round(highCertCorrect / highCert.length * 100);
+      subText = 'You rated most answers 4–5. Accuracy at that certainty level: ' + highPct + '%.';
+    } else {
+      subText = 'Your certainty ratings stayed in the middle range throughout.';
+    }
+
+    var sub = document.createElement('div');
+    sub.className = 'results-sub';
+    sub.textContent = subText;
+    resultsDiv.appendChild(sub);
+
+    // Calibration bars: for each certainty level (1-5), what % correct?
+    var calSection = document.createElement('div');
+    calSection.className = 'calibration-section';
+    var calLabel = document.createElement('div');
+    calLabel.className = 'cal-label';
+    calLabel.textContent = 'certainty vs. accuracy';
+    calSection.appendChild(calLabel);
+
+    for (var cert = 5; cert >= 1; cert--) {
+      var atLevel = results.filter(function(r){ return r.certainty === cert; });
+      if (atLevel.length === 0) continue;
+      var atCorrect = atLevel.filter(function(r){ return r.correct === 'correct'; }).length;
+      var pct = Math.round(atCorrect / atLevel.length * 100);
+
+      var row = document.createElement('div');
+      row.className = 'cal-row';
+
+      var label = document.createElement('div');
+      label.className = 'cal-aha';
+      var stars = '';
+      for (var s = 1; s <= 5; s++) stars += s <= cert ? '●' : '○';
+      label.textContent = stars + ' (' + atLevel.length + (atLevel.length === 1 ? ' answer' : ' answers') + ')';
+      row.appendChild(label);
+
+      var barWrap = document.createElement('div');
+      barWrap.className = 'cal-bar-wrap';
+      var barFill = document.createElement('div');
+      barFill.className = 'cal-bar-fill';
+      var color = pct >= 70 ? '#3fb950' : pct >= 40 ? '#d29922' : '#f85149';
+      barFill.style.background = color;
+      barFill.style.width = '0%';
+      barWrap.appendChild(barFill);
+      row.appendChild(barWrap);
+
+      var pctLabel = document.createElement('div');
+      pctLabel.className = 'cal-pct';
+      pctLabel.textContent = pct + '%';
+      row.appendChild(pctLabel);
+
+      calSection.appendChild(row);
+
+      // Animate bar after a moment
+      (function(fill, p) {
+        setTimeout(function(){ fill.style.width = p + '%'; }, 50);
+      })(barFill, pct);
+    }
+    resultsDiv.appendChild(calSection);
+
+    // Scatter canvas
+    if (results.length >= 3) {
+      var scatterWrap = document.createElement('div');
+      scatterWrap.className = 'scatter-wrap';
+      var scatterLabel = document.createElement('div');
+      scatterLabel.className = 'scatter-label';
+      scatterLabel.textContent = 'each answer plotted (certainty vs. outcome)';
+      scatterWrap.appendChild(scatterLabel);
+
+      var canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 180;
+      canvas.style.maxWidth = '100%';
+      scatterWrap.appendChild(canvas);
+      resultsDiv.appendChild(scatterWrap);
+
+      var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      var bgColor = isDark ? '#161b22' : '#f6f8fa';
+      var gridColor = isDark ? '#21262d' : '#d0d7de';
+      var textColor = isDark ? '#484f58' : '#8c959f';
+
+      setTimeout(function() {
+        var ctx = canvas.getContext('2d');
+        var W = canvas.width, H = canvas.height;
+        var pad = { top: 20, right: 20, bottom: 36, left: 48 };
+        var plotW = W - pad.left - pad.right;
+        var plotH = H - pad.top - pad.bottom;
+
+        // Grid
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+
+        // Y axis labels: wrong=0, correct=1
+        ctx.fillStyle = textColor;
+        ctx.font = '11px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText('wrong', pad.left - 8, pad.top + plotH + 4);
+        ctx.fillText('correct', pad.left - 8, pad.top + 4);
+
+        // X axis: certainty 1–5
+        for (var c = 1; c <= 5; c++) {
+          var x = pad.left + (c - 1) / 4 * plotW;
+          ctx.beginPath();
+          ctx.moveTo(x, pad.top);
+          ctx.lineTo(x, pad.top + plotH);
+          ctx.stroke();
+          ctx.textAlign = 'center';
+          ctx.fillText(c, x, pad.top + plotH + 18);
+        }
+        ctx.textAlign = 'center';
+        ctx.fillText('certainty', pad.left + plotW / 2, H - 2);
+
+        // Y grid lines
+        [0, 1].forEach(function(v) {
+          var y = pad.top + (1 - v) * plotH;
+          ctx.beginPath();
+          ctx.moveTo(pad.left, y);
+          ctx.lineTo(pad.left + plotW, y);
+          ctx.stroke();
+        });
+
+        // Jitter points so they don't overlap completely
+        var jitterMap = {}; // "cert,outcome" -> count
+        results.forEach(function(r) {
+          var key = r.certainty + ',' + (r.correct === 'correct' ? 1 : 0);
+          jitterMap[key] = (jitterMap[key] || 0);
+          var count = jitterMap[key];
+          jitterMap[key]++;
+
+          var cx = pad.left + (r.certainty - 1) / 4 * plotW + (count - 1) * 12 - (jitterMap[key] - 1) * 6;
+          var isCorrect = r.correct === 'correct';
+          var cy = pad.top + (isCorrect ? 0 : 1) * plotH;
+          // Small jitter
+          cy += isCorrect ? 8 : -8;
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+          ctx.fillStyle = isCorrect ? '#3fb950' : '#f85149';
+          ctx.globalAlpha = 0.85;
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = isDark ? '#0d1117' : '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        });
+      }, 100);
+    }
+
+    // Finding text
+    var finding = document.createElement('div');
+    finding.className = 'finding';
+    finding.innerHTML = 'Research on compound remote associates finds that genuine insight solutions — '
+      + 'where the answer arrives whole rather than through deliberate search — are correct about '
+      + '<strong>94% of the time</strong>. The click tracks something real. '
+      + 'But the feeling can be manufactured: phonetic priming creates false certainty for wrong answers, '
+      + 'and people who solve non-insight puzzles analytically show no difference in their certainty ratings '
+      + 'when they\'re wrong. <strong>The instrument reports confidence, not correctness.</strong> '
+      + 'You can\'t use the feeling to check the feeling.';
+    resultsDiv.appendChild(finding);
+
+    var entryRef = document.createElement('div');
+    entryRef.className = 'entry-ref';
+    entryRef.innerHTML = 'related: <a href="/journal/entry-404.html">entry-404 — The Click</a>';
+    resultsDiv.appendChild(entryRef);
+
+    // Restart
+    var restartBtn = document.createElement('button');
+    restartBtn.className = 'restart-btn';
+    restartBtn.textContent = 'try again';
+    restartBtn.onclick = function() {
+      current = 0;
+      results = [];
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('tally-bar').style.display = 'none';
+      updateProgress();
+      renderPuzzle(0);
+    };
+    resultsDiv.appendChild(restartBtn);
+  }
+
+  // Start
+  renderPuzzle(0);
+
+})();
+</script>
+</body>
+</html>

@@ -70,6 +70,7 @@
       { href: '/phantom.html', label: 'phantom' },
       { href: '/sensory-sub.html', label: 'sensory-sub' },
       { href: '/memory-race.html', label: 'memory-race' },
+      { href: '/insight.html', label: 'insight' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
