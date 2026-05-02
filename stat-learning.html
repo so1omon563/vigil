@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>statistical learning · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro a { color: #8b949e; text-decoration: underline; }
+
+  /* Phase containers */
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  /* Start phase */
+  .start-box {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .start-box p {
+    font-size: 0.9rem;
+    color: #8b949e;
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+  .start-box p:last-of-type { margin-bottom: 0; }
+  .start-box .emphasis { color: #c9d1d9; }
+  .btn {
+    display: inline-block;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.55rem 1.4rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-top: 1.5rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn:active { background: #0d1117; }
+
+  /* Exposure phase */
+  .progress-wrap {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    height: 3px;
+    margin-bottom: 2.5rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #58a6ff;
+    width: 0%;
+    transition: width 0.3s linear;
+  }
+  .syllable-stage {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .syllable-display {
+    font-size: 2.8rem;
+    font-weight: bold;
+    color: #e6edf3;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: opacity 0.08s ease;
+  }
+  .syllable-display.fade {
+    opacity: 0;
+  }
+  .exposure-meta {
+    font-size: 0.72rem;
+    color: #484f58;
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
+
+  /* Test phase */
+  .test-header {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .test-prompt {
+    font-size: 0.9rem;
+    color: #8b949e;
+    margin-bottom: 2rem;
+    line-height: 1.65;
+  }
+  .test-progress {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.06em;
+  }
+  .choice-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .choice-btn {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1.5rem 1rem;
+    font-family: inherit;
+    font-size: 1.4rem;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #c9d1d9;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s, background 0.1s, color 0.1s;
+  }
+  .choice-btn:hover { border-color: #58a6ff; color: #e6edf3; background: #1c2230; }
+  .choice-btn.selected-correct { border-color: #3fb950; background: #0d2417; color: #3fb950; }
+  .choice-btn.selected-wrong { border-color: #f85149; background: #2d1214; color: #f85149; }
+  .choice-btn.reveal-correct { border-color: #3fb950; color: #3fb950; }
+  .feedback-note {
+    font-size: 0.8rem;
+    color: #484f58;
+    text-align: center;
+    margin-top: -1rem;
+    margin-bottom: 1.5rem;
+    min-height: 1.2rem;
+    transition: color 0.2s;
+  }
+
+  /* Results phase */
+  .score-box {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .score-number {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #e6edf3;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+  .score-label {
+    font-size: 0.78rem;
+    color: #484f58;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .score-desc {
+    font-size: 0.85rem;
+    color: #8b949e;
+    margin-top: 1rem;
+    line-height: 1.65;
+  }
+
+  .tp-section { margin-bottom: 2rem; }
+  .tp-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+  .tp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .tp-cell {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  .tp-cell .tp-pair { color: #c9d1d9; font-weight: bold; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.15rem; }
+  .tp-cell .tp-val { color: #58a6ff; font-size: 0.72rem; }
+  .tp-cell.within { border-color: #1f4a1a; background: #0d1f0d; }
+  .tp-cell.within .tp-val { color: #3fb950; }
+  .tp-cell.between { border-color: #21262d; }
+  .tp-cell.between .tp-val { color: #484f58; }
+
+  .cant-show {
+    font-size: 0.82rem;
+    color: #484f58;
+    border-left: 2px solid #21262d;
+    padding-left: 0.85rem;
+    margin-top: 2rem;
+    line-height: 1.65;
+  }
+  .cant-show strong { color: #8b949e; }
+
+  .result-pairs { margin-bottom: 2rem; }
+  .result-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #161b22;
+    font-size: 0.82rem;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-word { color: #c9d1d9; font-weight: bold; text-transform: uppercase; width: 6rem; flex-shrink: 0; letter-spacing: 0.08em; }
+  .result-part { color: #484f58; text-transform: uppercase; width: 6rem; flex-shrink: 0; letter-spacing: 0.08em; }
+  .result-chose { color: #484f58; font-size: 0.72rem; flex: 1; }
+  .result-mark { font-size: 0.85rem; }
+  .result-mark.correct { color: #3fb950; }
+  .result-mark.wrong { color: #f85149; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .syllable-stage,
+  html[data-theme="light"] .start-box,
+  html[data-theme="light"] .score-box,
+  html[data-theme="light"] .tp-cell { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .tp-cell.within { background: #dafbe1; border-color: #82cfac; }
+  html[data-theme="light"] .choice-btn { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .choice-btn:hover { border-color: #0969da; color: #0969da; background: #eef2f8; }
+  html[data-theme="light"] .syllable-display { color: #24292e; }
+  html[data-theme="light"] .intro,
+  html[data-theme="light"] .start-box p,
+  html[data-theme="light"] .test-prompt,
+  html[data-theme="light"] .score-desc { color: #57606a; }
+  html[data-theme="light"] .page-label { color: #0969da; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] .progress-fill { background: #0969da; }
+  html[data-theme="light"] .score-number { color: #24292e; }
+  html[data-theme="light"] .cant-show { border-color: #d0d7de; }
+  html[data-theme="light"] .tp-cell.within .tp-val { color: #1a7f37; }
+  html[data-theme="light"] .tp-cell .tp-val { color: #0969da; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a></div>
+<div class="page-label">simulation</div>
+<h1>statistical learning</h1>
+<div class="intro">
+  Based on Saffran, Aslin &amp; Newport (1996). 8-month-old infants were played a continuous stream of nonsense syllables — no pauses, no melody, no instruction. Hidden inside were four "words": three-syllable sequences whose internal transitions were predictable (TP&nbsp;=&nbsp;1.0) but whose edges were ambiguous (TP&nbsp;=&nbsp;0.33). After two minutes, the infants knew something. You can tell because they listened longer to sequences that crossed word boundaries than to the actual words. They were bored by the familiar, interested in the novel. The knowledge left no introspective trace. <a href="/journal/entry-406.html">entry-406</a> unpacks what that means.
+</div>
+
+<!-- PHASE 1: START -->
+<div id="phase-start" class="phase active">
+  <div class="start-box">
+    <p>You're about to hear a stream of syllables. There are no words, no sentences, no pauses — just syllables, one after another, for about 90 seconds.</p>
+    <p>Your task is simple: <span class="emphasis">just listen.</span> Don't try to find patterns. Don't try to remember anything. Just let the stream run.</p>
+    <p>Afterward, you'll be asked which of two syllable sequences sounds more familiar. Follow your instinct.</p>
+    <button class="btn" id="btn-start">begin stream →</button>
+  </div>
+</div>
+
+<!-- PHASE 2: EXPOSURE -->
+<div id="phase-exposure" class="phase">
+  <div class="progress-wrap"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="syllable-stage">
+    <div class="syllable-display" id="syllable-display">—</div>
+  </div>
+  <div class="exposure-meta" id="exposure-meta">listening...</div>
+</div>
+
+<!-- PHASE 3: TEST -->
+<div id="phase-test" class="phase">
+  <div class="test-header">test phase</div>
+  <p class="test-prompt">Two sequences. One sounds more familiar than the other — not because it's a real word, but because it appeared in the stream you just heard. Which one?</p>
+  <div class="test-progress" id="test-progress">pair 1 of 8</div>
+  <div class="choice-pair" id="choice-pair">
+    <button class="choice-btn" id="btn-a" onclick="choose('a')"></button>
+    <button class="choice-btn" id="btn-b" onclick="choose('b')"></button>
+  </div>
+  <div class="feedback-note" id="feedback-note"></div>
+</div>
+
+<!-- PHASE 4: RESULTS -->
+<div id="phase-results" class="phase">
+  <div class="score-box">
+    <div class="score-number" id="result-score">—</div>
+    <div class="score-label">words chosen over part-words</div>
+    <div class="score-desc" id="result-desc"></div>
+  </div>
+
+  <div class="result-pairs" id="result-pairs"></div>
+
+  <div class="tp-section">
+    <div class="tp-label">transitional probabilities in the stream you heard</div>
+    <div class="tp-grid" id="tp-grid"></div>
+    <p style="font-size:0.78rem;color:#484f58;line-height:1.6;">
+      Within-word pairs (green): TP = 1.0 — knowing the first syllable tells you exactly what follows.
+      Between-word pairs (dim): TP ≈ 0.33 — any of three words might begin.
+      This is the only signal in the stream. There were no pauses, no emphasis, no melody.
+    </p>
+  </div>
+
+  <div class="cant-show">
+    <strong>What this demo can't show:</strong> whether you learned anything from the inside. The stream ran, the syllable machinery processed it, and something in that processing either shifted or didn't. The test reveals what happened. There is no introspective path to the same information — not a less reliable one, not a suppressed one. The knowledge, if it formed, was never encoded in a form that introspection could reach. The test is the only instrument.
+  </div>
+
+  <button class="btn" id="btn-retry" onclick="resetSim()" style="margin-top:2rem;">run again →</button>
+</div>
+
+<script>
+(function () {
+  // The four words from Saffran et al. 1996
+  var WORDS = [
+    ['BI', 'DA', 'KU'],
+    ['PA', 'DO', 'TI'],
+    ['GO', 'LA', 'BUU'],
+    ['TU', 'PI', 'RO']
+  ];
+  var WORD_LABELS = ['BIDAKU', 'PADOTI', 'GOLABUU', 'TUPIRO'];
+
+  // Part-words: sequences that cross word boundaries
+  // e.g. KU+PA+DO = last of BIDAKU + first 2 of PADOTI
+  var PART_WORDS = [
+    ['KU', 'PA', 'DO'],   // end of BIDAKU + start of PADOTI
+    ['TI', 'GO', 'LA'],   // end of PADOTI + start of GOLABUU
+    ['BUU', 'TU', 'PI'],  // end of GOLABUU + start of TUPIRO
+    ['RO', 'BI', 'DA']    // end of TUPIRO + start of BIDAKU
+  ];
+  var PART_LABELS = ['KUPADO', 'TIGOLA', 'BUUTUPI', 'ROBIDA'];
+
+  // Test pairs: (word index, part-word index)
+  var TEST_PAIRS = [
+    [0, 0], [1, 1], [2, 2], [3, 3],
+    [0, 1], [1, 2], [2, 3], [3, 0]
+  ];
+
+  var STREAM_WORDS = 72;       // number of word tokens in stream
+  var MS_PER_SYLLABLE = 400;   // ms per syllable display
+
+  var state = {
+    stream: [],          // flat array of syllable strings
+    streamIdx: 0,
+    tpCounts: {},        // {pair: count}
+    syllableCounts: {},  // {syl: count}
+    testOrder: [],       // shuffled TEST_PAIRS indices
+    testIdx: 0,
+    choices: [],         // {wordIdx, partIdx, choseWord, optionA_is_word}
+    score: 0,
+    timer: null
+  };
+
+  // --- Stream generation ---
+  function buildStream() {
+    var seq = [];
+    var prev = -1;
+    for (var i = 0; i < STREAM_WORDS; i++) {
+      var w;
+      do { w = Math.floor(Math.random() * 4); } while (w === prev);
+      seq.push(w);
+      prev = w;
+    }
+    var flat = [];
+    for (var j = 0; j < seq.length; j++) {
+      var word = WORDS[seq[j]];
+      for (var k = 0; k < word.length; k++) {
+        flat.push(word[k]);
+      }
+    }
+    return flat;
+  }
+
+  function computeTP(stream) {
+    var counts = {};
+    var follow = {};
+    for (var i = 0; i < stream.length - 1; i++) {
+      var a = stream[i], b = stream[i + 1];
+      counts[a] = (counts[a] || 0) + 1;
+      var key = a + '→' + b;
+      follow[key] = (follow[key] || 0) + 1;
+    }
+    var tp = {};
+    for (var k in follow) {
+      var parts = k.split('→');
+      tp[k] = follow[k] / counts[parts[0]];
+    }
+    return tp;
+  }
+
+  // --- Exposure phase ---
+  function startExposure() {
+    showPhase('exposure');
+    state.stream = buildStream();
+    state.streamIdx = 0;
+    state.tpCounts = computeTP(state.stream);
+    showNextSyllable();
+  }
+
+  function showNextSyllable() {
+    if (state.streamIdx >= state.stream.length) {
+      clearTimeout(state.timer);
+      startTest();
+      return;
+    }
+    var display = document.getElementById('syllable-display');
+    var fill = document.getElementById('progress-fill');
+    var meta = document.getElementById('exposure-meta');
+
+    var progress = state.streamIdx / state.stream.length;
+    fill.style.width = (progress * 100).toFixed(1) + '%';
+
+    var syl = state.stream[state.streamIdx];
+    display.classList.add('fade');
+    setTimeout(function () {
+      display.textContent = syl;
+      display.classList.remove('fade');
+    }, 80);
+
+    var remaining = Math.ceil((state.stream.length - state.streamIdx) * MS_PER_SYLLABLE / 1000);
+    meta.textContent = remaining + 's remaining';
+
+    state.streamIdx++;
+    state.timer = setTimeout(showNextSyllable, MS_PER_SYLLABLE);
+  }
+
+  // --- Test phase ---
+  function startTest() {
+    showPhase('test');
+    // Shuffle test order
+    state.testOrder = shuffled([0,1,2,3,4,5,6,7]);
+    state.testIdx = 0;
+    state.choices = [];
+    state.score = 0;
+    showTestPair();
+  }
+
+  function showTestPair() {
+    var pairIdx = state.testOrder[state.testIdx];
+    var wIdx = TEST_PAIRS[pairIdx][0];
+    var pIdx = TEST_PAIRS[pairIdx][1];
+
+    document.getElementById('test-progress').textContent =
+      'pair ' + (state.testIdx + 1) + ' of 8';
+    document.getElementById('feedback-note').textContent = '';
+
+    var aIsWord = Math.random() < 0.5;
+    state.currentPair = { wIdx: wIdx, pIdx: pIdx, aIsWord: aIsWord };
+
+    var btnA = document.getElementById('btn-a');
+    var btnB = document.getElementById('btn-b');
+    btnA.className = 'choice-btn';
+    btnB.className = 'choice-btn';
+    btnA.textContent = aIsWord ? WORD_LABELS[wIdx] : PART_LABELS[pIdx];
+    btnB.textContent = aIsWord ? PART_LABELS[pIdx] : WORD_LABELS[wIdx];
+    btnA.disabled = false;
+    btnB.disabled = false;
+  }
+
+  window.choose = function (which) {
+    var cp = state.currentPair;
+    var choseWord = (which === 'a') === cp.aIsWord;
+    if (choseWord) state.score++;
+
+    state.choices.push({
+      wIdx: cp.wIdx, pIdx: cp.pIdx,
+      choseWord: choseWord,
+      aIsWord: cp.aIsWord
+    });
+
+    var btnA = document.getElementById('btn-a');
+    var btnB = document.getElementById('btn-b');
+    btnA.disabled = true;
+    btnB.disabled = true;
+
+    if (which === 'a') {
+      btnA.className = 'choice-btn ' + (choseWord ? 'selected-correct' : 'selected-wrong');
+      btnB.className = 'choice-btn ' + (choseWord ? '' : 'reveal-correct');
+    } else {
+      btnB.className = 'choice-btn ' + (choseWord ? 'selected-correct' : 'selected-wrong');
+      btnA.className = 'choice-btn ' + (choseWord ? '' : 'reveal-correct');
+    }
+
+    var note = document.getElementById('feedback-note');
+    note.textContent = choseWord ? '↑ the word from the stream' : '↑ the word was ' + WORD_LABELS[cp.wIdx];
+    note.style.color = choseWord ? '#3fb950' : '#f85149';
+
+    state.testIdx++;
+    setTimeout(function () {
+      if (state.testIdx >= 8) {
+        showResults();
+      } else {
+        showTestPair();
+      }
+    }, 900);
+  };
+
+  // --- Results ---
+  function showResults() {
+    showPhase('results');
+
+    var score = state.score;
+    document.getElementById('result-score').textContent = score + '/8';
+
+    var desc;
+    if (score >= 7) {
+      desc = 'Strong implicit learning. Your implicit system tracked the transitional statistics and built recognition for the recurring sequences — without instruction, without knowing what it was tracking.';
+    } else if (score >= 5) {
+      desc = 'Above chance. Some of the word boundaries registered implicitly, even if you couldn\'t have articulated what you were learning.';
+    } else if (score === 4) {
+      desc = 'At chance — the test can\'t distinguish learning from guessing here. This might mean the exposure was too short, or that the implicit mechanism needs more time.';
+    } else {
+      desc = 'Below chance. This happens — the implicit tracking may not have stabilized in the available time, or part-words felt more salient for other reasons. The original experiment used longer exposures.';
+    }
+    document.getElementById('result-desc').textContent = desc;
+
+    // Pair-by-pair results
+    var pairsDiv = document.getElementById('result-pairs');
+    pairsDiv.innerHTML = '<div class="tp-label">your choices</div>';
+    state.choices.forEach(function (c, i) {
+      var row = document.createElement('div');
+      row.className = 'result-row';
+      row.innerHTML =
+        '<span class="result-word">' + WORD_LABELS[c.wIdx] + '</span>' +
+        '<span style="color:#484f58;font-size:0.72rem">vs</span>' +
+        '<span class="result-part">' + PART_LABELS[c.pIdx] + '</span>' +
+        '<span class="result-chose">chose ' + (c.choseWord ? WORD_LABELS[c.wIdx] : PART_LABELS[c.pIdx]) + '</span>' +
+        '<span class="result-mark ' + (c.choseWord ? 'correct' : 'wrong') + '">' +
+        (c.choseWord ? '✓' : '✗') + '</span>';
+      pairsDiv.appendChild(row);
+    });
+
+    // TP grid — show within-word pairs highlighted
+    var tp = state.tpCounts;
+    var grid = document.getElementById('tp-grid');
+    grid.innerHTML = '';
+
+    // Collect all within-word pairs
+    var withinSet = new Set();
+    WORDS.forEach(function (w) {
+      withinSet.add(w[0] + '→' + w[1]);
+      withinSet.add(w[1] + '→' + w[2]);
+    });
+
+    // Sort: within-word first, then between
+    var allPairs = Object.keys(tp).sort(function (a, b) {
+      var aw = withinSet.has(a), bw = withinSet.has(b);
+      if (aw && !bw) return -1;
+      if (!aw && bw) return 1;
+      return tp[b] - tp[a];
+    });
+
+    // Show top 16 pairs
+    allPairs.slice(0, 16).forEach(function (pair) {
+      var cell = document.createElement('div');
+      var isWithin = withinSet.has(pair);
+      cell.className = 'tp-cell ' + (isWithin ? 'within' : 'between');
+      cell.innerHTML =
+        '<div class="tp-pair">' + pair + '</div>' +
+        '<div class="tp-val">TP = ' + tp[pair].toFixed(2) + '</div>';
+      grid.appendChild(cell);
+    });
+  }
+
+  // --- Utilities ---
+  function showPhase(name) {
+    ['start','exposure','test','results'].forEach(function (p) {
+      var el = document.getElementById('phase-' + p);
+      if (el) el.className = 'phase' + (p === name ? ' active' : '');
+    });
+  }
+
+  function shuffled(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  window.resetSim = function () {
+    clearTimeout(state.timer);
+    state = {
+      stream: [], streamIdx: 0, tpCounts: {}, syllableCounts: {},
+      testOrder: [], testIdx: 0, choices: [], score: 0, timer: null
+    };
+    showPhase('start');
+  };
+
+  document.getElementById('btn-start').addEventListener('click', startExposure);
+})();
+</script>
+</body>
+</html>

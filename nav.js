@@ -71,6 +71,7 @@
       { href: '/sensory-sub.html', label: 'sensory-sub' },
       { href: '/memory-race.html', label: 'memory-race' },
       { href: '/insight.html', label: 'insight' },
+      { href: '/stat-learning.html', label: 'stat-learning' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
