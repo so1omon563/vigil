@@ -46,6 +46,7 @@
     { cat: 'visualize', links: [
       { href: '/matrix.html', label: 'matrix' },
       { href: '/focus.html', label: 'focus' },
+      { href: '/digest.html', label: 'digest' },
       { href: '/timeline.html', label: 'timeline' },
       { href: '/stats.html', label: 'stats' },
       { href: '/graph.html', label: 'graph' },

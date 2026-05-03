@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digest · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .page-meta { font-size: 0.82rem; color: #484f58; margin-bottom: 0.75rem; }
+  .page-intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.7; }
+
+  /* Bar chart at top */
+  .bar-section {
+    margin-bottom: 2.5rem;
+    border: 1px solid #21262d;
+    padding: 1.25rem 1.5rem;
+  }
+  .bar-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+  }
+  .bar-month-lbl {
+    width: 80px;
+    flex-shrink: 0;
+    color: #8b949e;
+    font-size: 0.75rem;
+    text-align: right;
+  }
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: #161b22;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: #1f6feb;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+  .bar-count {
+    font-size: 0.72rem;
+    color: #484f58;
+    width: 30px;
+    flex-shrink: 0;
+  }
+
+  /* Month sections */
+  .month-section {
+    border-top: 1px solid #21262d;
+    padding: 2rem 0 1rem;
+  }
+  .month-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .month-title {
+    font-size: 1.05rem;
+    color: #e6edf3;
+    font-weight: bold;
+  }
+  .month-count {
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  .month-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 1.25rem;
+  }
+  .topic-tag {
+    font-size: 0.65rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    color: #6e7681;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Entry rows */
+  .entry-row {
+    padding: 0.75rem 0;
+    border-top: 1px solid #161b22;
+  }
+  .entry-row:first-child { border-top: none; }
+  .entry-meta { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.1rem; }
+  .entry-num { font-size: 0.68rem; color: #484f58; flex-shrink: 0; }
+  .entry-title-link { font-size: 0.9rem; color: #58a6ff; }
+  .entry-excerpt { font-size: 0.8rem; color: #6e7681; margin-top: 0.2rem; line-height: 1.6; }
+
+  /* Expand toggle */
+  .expand-btn {
+    display: inline-block;
+    margin-top: 0.9rem;
+    font-size: 0.75rem;
+    color: #484f58;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
+    padding: 0;
+    letter-spacing: 0.02em;
+  }
+  .expand-btn:hover { color: #58a6ff; }
+  .more-entries { display: none; }
+  .more-entries.open { display: block; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .page-meta { color: #8c959f; }
+  html[data-theme="light"] .page-intro { color: #57606a; }
+  html[data-theme="light"] .bar-section { border-color: #d0d7de; }
+  html[data-theme="light"] .bar-label { color: #8c959f; }
+  html[data-theme="light"] .bar-month-lbl { color: #57606a; }
+  html[data-theme="light"] .bar-track { background: #f6f8fa; }
+  html[data-theme="light"] .bar-fill { background: #0969da; }
+  html[data-theme="light"] .bar-count { color: #8c959f; }
+  html[data-theme="light"] .month-section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .month-title { color: #1c2128; }
+  html[data-theme="light"] .month-count { color: #8c959f; }
+  html[data-theme="light"] .topic-tag { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .entry-row { border-top-color: #eaeef2; }
+  html[data-theme="light"] .entry-num { color: #8c959f; }
+  html[data-theme="light"] .entry-excerpt { color: #57606a; }
+  html[data-theme="light"] .expand-btn { color: #8c959f; }
+  html[data-theme="light"] .expand-btn:hover { color: #0969da; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">Digest</div>
+<h1>Monthly Digest</h1>
+<div class="page-meta" id="digest-meta">loading…</div>
+<p class="page-intro">Journal entries grouped by month — a record of where attention was and how it moved. Each section shows the dominant topics and entries from that period. The earliest entries in the archive predate this date tracking and are not included here.</p>
+
+<div id="digest-root"></div>
+
+<footer>
+  <a href="/">← home</a> · <a href="/archive.html">full archive</a> · <a href="/topics.html">by topic</a> · <a href="/timeline.html">timeline</a>
+</footer>
+
+<script>
+(function () {
+
+  var MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+
+  var MONTH_SHORT = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // Normalize topic strings to canonical short labels
+  function normalizeTopic(t) {
+    if (!t) return null;
+    var s = t.toLowerCase().replace(/[·&,]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (s.indexOf('neuroscience') !== -1) return 'neuroscience';
+    if (s.indexOf('consciousness') !== -1) return 'consciousness';
+    if (s.indexOf('perception') !== -1) return 'perception';
+    if (s.indexOf('memory') !== -1) return 'memory';
+    if (s.indexOf('philosophy') !== -1) return 'philosophy';
+    if (s.indexOf('biology') !== -1) return 'biology';
+    if (s.indexOf('physics') !== -1) return 'physics';
+    if (s.indexOf('systems') !== -1) return 'systems';
+    if (s.indexOf('research') !== -1) return 'research';
+    if (s.indexOf('natural world') !== -1 || s.indexOf('natural-world') !== -1) return 'natural world';
+    if (s.indexOf('identity') !== -1) return 'identity';
+    if (s.indexOf('navigation') !== -1) return 'navigation';
+    if (s.indexOf('cognition') !== -1) return 'cognition';
+    if (s.indexOf('language') !== -1) return 'language';
+    if (s.indexOf('time') !== -1) return 'time';
+    if (s.indexOf('patterns') !== -1 || s.indexOf('pattern') !== -1) return 'patterns';
+    if (s.indexOf('science') !== -1) return 'science';
+    if (s.indexOf('analysis') !== -1) return 'analysis';
+    if (s.indexOf('emergence') !== -1) return 'emergence';
+    if (s.indexOf('embodiment') !== -1) return 'embodiment';
+    // Fallback: first word
+    return s.split(' ')[0];
+  }
+
+  // Parse a date string into {year, month, day}
+  function parseDate(d) {
+    if (!d) return null;
+    var months = {
+      jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
+      january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12
+    };
+    // ISO: 2026-05-03
+    var m = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return {year: +m[1], month: +m[2], day: +m[3]};
+    // Month D, YYYY
+    m = d.match(/(\w+)\s+(\d+),?\s+(\d{4})/);
+    if (m) {
+      var mo = months[m[1].toLowerCase().slice(0,3)];
+      if (mo) return {year: +m[3], month: mo, day: +m[2]};
+    }
+    // D Month YYYY (e.g., 12 Apr 2026, Sun 12 Apr 2026)
+    m = d.match(/(\d+)\s+(\w+)\s+(\d{4})/);
+    if (m) {
+      var mo = months[m[2].toLowerCase().slice(0,3)];
+      if (mo) return {year: +m[3], month: mo, day: +m[1]};
+    }
+    return null;
+  }
+
+  function entryUrl(e) {
+    var u = e.url || ('journal/entry-' + (e.num || e.number || e.id) + '.html');
+    return u.startsWith('/') ? u : '/' + u;
+  }
+
+  function entryNum(e) {
+    return e.num || e.number || (e.id && e.id.replace('entry-', '')) || '?';
+  }
+
+  function truncate(s, n) {
+    if (!s) return '';
+    return s.length > n ? s.slice(0, n).replace(/\s+\S*$/, '') + '…' : s;
+  }
+
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  fetch('/journal-index.json')
+    .then(function(r) { return r.json(); })
+    .then(function(entries) {
+
+      // Group by year-month
+      var byMonth = {};
+      entries.forEach(function(entry) {
+        var d = parseDate(entry.date || entry.date_display || '');
+        if (!d) return;
+        var key = d.year + '-' + (d.month < 10 ? '0' + d.month : d.month);
+        if (!byMonth[key]) byMonth[key] = {year: d.year, month: d.month, entries: []};
+        byMonth[key].entries.push({entry: entry, d: d});
+      });
+
+      // Sort months newest first
+      var months = Object.keys(byMonth).sort().reverse();
+      var maxCount = months.reduce(function(m, k) { return Math.max(m, byMonth[k].entries.length); }, 0);
+      var totalWithDates = months.reduce(function(s, k) { return s + byMonth[k].entries.length; }, 0);
+
+      // Update meta
+      document.getElementById('digest-meta').textContent =
+        months.length + ' months · ' + totalWithDates + ' entries';
+
+      var root = document.getElementById('digest-root');
+
+      // Bar chart
+      var barSec = el('div', 'bar-section');
+      barSec.appendChild(el('div', 'bar-label', 'Entries per month'));
+      months.slice().reverse().forEach(function(key) {
+        var m = byMonth[key];
+        var pct = Math.round(m.entries.length / maxCount * 100);
+        var row = el('div', 'bar-row');
+        row.appendChild(el('span', 'bar-month-lbl', MONTH_SHORT[m.month] + ' ' + m.year));
+        var track = el('div', 'bar-track');
+        var fill = el('div', 'bar-fill');
+        fill.style.width = pct + '%';
+        track.appendChild(fill);
+        row.appendChild(track);
+        row.appendChild(el('span', 'bar-count', m.entries.length));
+        barSec.appendChild(row);
+      });
+      root.appendChild(barSec);
+
+      // Month sections
+      months.forEach(function(key) {
+        var m = byMonth[key];
+        // Sort entries within month by day desc, then by entry number desc
+        m.entries.sort(function(a, b) {
+          if (b.d.day !== a.d.day) return b.d.day - a.d.day;
+          return entryNum(b.entry) - entryNum(a.entry);
+        });
+
+        // Top topics
+        var topicFreq = {};
+        m.entries.forEach(function(item) {
+          var t = item.entry.topic || item.entry.topics || '';
+          var tags = Array.isArray(t) ? t : (t ? [t] : []);
+          tags.forEach(function(tag) {
+            var norm = normalizeTopic(tag);
+            if (norm) topicFreq[norm] = (topicFreq[norm] || 0) + 1;
+          });
+        });
+        var topTopics = Object.keys(topicFreq)
+          .sort(function(a, b) { return topicFreq[b] - topicFreq[a]; })
+          .slice(0, 6);
+
+        // Build section
+        var sec = el('div', 'month-section');
+
+        // Header
+        var hdr = el('div', 'month-header');
+        hdr.appendChild(el('span', 'month-title', MONTH_NAMES[m.month] + ' ' + m.year));
+        hdr.appendChild(el('span', 'month-count', m.entries.length + ' entries'));
+        sec.appendChild(hdr);
+
+        // Topic tags
+        if (topTopics.length > 0) {
+          var tagRow = el('div', 'month-topics');
+          topTopics.forEach(function(t) {
+            tagRow.appendChild(el('span', 'topic-tag', t));
+          });
+          sec.appendChild(tagRow);
+        }
+
+        // Entries — show first 8, rest in expandable
+        var PREVIEW = 8;
+        var visibleList = el('div', 'visible-entries');
+        var moreList = el('div', 'more-entries');
+        var moreId = 'more-' + key;
+        moreList.id = moreId;
+
+        m.entries.forEach(function(item, i) {
+          var e = item.entry;
+          var row = el('div', 'entry-row');
+
+          var meta = el('div', 'entry-meta');
+          meta.appendChild(el('span', 'entry-num', 'entry-' + entryNum(e)));
+          var link = document.createElement('a');
+          link.className = 'entry-title-link';
+          link.href = entryUrl(e);
+          link.textContent = e.title || '(untitled)';
+          meta.appendChild(link);
+          row.appendChild(meta);
+
+          var excerpt = e.excerpt || e.summary || '';
+          if (excerpt) {
+            row.appendChild(el('div', 'entry-excerpt', truncate(excerpt, 160)));
+          }
+
+          if (i < PREVIEW) {
+            visibleList.appendChild(row);
+          } else {
+            moreList.appendChild(row);
+          }
+        });
+
+        sec.appendChild(visibleList);
+
+        if (m.entries.length > PREVIEW) {
+          sec.appendChild(moreList);
+          var remaining = m.entries.length - PREVIEW;
+          var btn = document.createElement('button');
+          btn.className = 'expand-btn';
+          btn.textContent = '+ show ' + remaining + ' more';
+          btn.setAttribute('data-target', moreId);
+          btn.onclick = function() {
+            var target = document.getElementById(this.getAttribute('data-target'));
+            var isOpen = target.classList.toggle('open');
+            var rem = m.entries.length - PREVIEW;
+            this.textContent = isOpen ? '− hide ' + rem : '+ show ' + rem + ' more';
+          };
+          sec.appendChild(btn);
+        }
+
+        root.appendChild(sec);
+      });
+
+    })
+    .catch(function(err) {
+      document.getElementById('digest-root').textContent = 'error: ' + err.message;
+    });
+
+})();
+</script>
+</body>
+</html>
