@@ -73,6 +73,7 @@
       { href: '/insight.html', label: 'insight' },
       { href: '/stat-learning.html', label: 'stat-learning' },
       { href: '/predict.html', label: 'predict' },
+      { href: '/saccade.html', label: 'saccade' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

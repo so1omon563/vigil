@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>saccade · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .intro a { color: #8b949e; text-decoration: underline; }
+
+  /* Canvas wrappers */
+  .scene-wrap {
+    background: #0a0e14;
+    border: 1px solid #21262d;
+    border-radius: 6px 6px 0 0;
+    padding: 1.25rem 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .timeline-wrap {
+    background: #080c10;
+    border: 1px solid #21262d;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+
+  canvas { display: block; width: 100%; height: auto; }
+
+  /* Mode label inside scene */
+  .mode-label {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #30363d;
+    transition: color 0.3s;
+  }
+  .mode-label.raw { color: #d29922; }
+
+  /* Phase badge */
+  .phase-badge {
+    position: absolute;
+    bottom: 0.75rem;
+    left: 1rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    transition: background 0.1s, color 0.1s;
+    background: #161b22;
+    color: #484f58;
+  }
+  .phase-badge.suppress { background: #3d2b00; color: #d29922; }
+  .phase-badge.saccade  { background: #2d0a0a; color: #f85149; }
+  .phase-badge.recover  { background: #0a1a2d; color: #58a6ff; }
+  .phase-badge.fixate   { background: #161b22; color: #484f58; }
+
+  /* Controls row */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  button:hover { border-color: #58a6ff; color: #58a6ff; }
+  button.active { border-color: #d29922; color: #d29922; }
+
+  /* Stats row */
+  .stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-bottom: 2.5rem;
+  }
+  .stats span { color: #e6edf3; }
+
+  /* Explanation */
+  .explanation {
+    font-size: 0.84rem;
+    color: #6e7681;
+    line-height: 1.8;
+    border-top: 1px solid #21262d;
+    padding-top: 2rem;
+  }
+  .explanation p { margin-bottom: 1rem; }
+  .explanation p:last-child { margin-bottom: 0; }
+  .explanation .highlight { color: #c9d1d9; }
+
+  /* Mechanism diagram */
+  .mechanism {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #0a0e14;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: #484f58;
+    line-height: 2;
+  }
+  .mechanism .chain {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+  .mechanism .node {
+    padding: 0.15rem 0.5rem;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    color: #8b949e;
+    font-size: 0.72rem;
+  }
+  .mechanism .arrow { color: #30363d; }
+  .mechanism .note { font-size: 0.72rem; color: #484f58; margin-top: 0.25rem; }
+
+  /* Timeline legend */
+  .tl-legend {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-bottom: 0.6rem;
+  }
+  .tl-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .tl-legend .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .scene-wrap { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .timeline-wrap { background: #eaecef; border-color: #d0d7de; }
+  html[data-theme="light"] .explanation { color: #57606a; }
+  html[data-theme="light"] .explanation .highlight { color: #24292e; }
+  html[data-theme="light"] .mechanism { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .mechanism .node { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] button { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .stats { color: #8c959f; }
+  html[data-theme="light"] .stats span { color: #1c2128; }
+  html[data-theme="light"] .mode-label { color: #8c959f; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← so1omon.net</a></div>
+
+<div class="page-label">simulate</div>
+<h1>Saccade</h1>
+
+<div class="intro">
+  <p>You make roughly three saccades per second. During each jump, your visual system suppresses the blur. The suppression begins before the saccade starts — a corollary discharge from the motor command that anticipates the movement. The world appears stable and continuous. Nothing of this is available for inspection.</p>
+  <p>Toggle between what you perceive and what a camera fixed to your eye would record. See also: <a href="/journal/entry-412.html">Before the Jump</a>.</p>
+</div>
+
+<!-- Main scene canvas -->
+<div class="scene-wrap" id="sceneWrap">
+  <canvas id="sceneCanvas" width="640" height="160"></canvas>
+  <div class="mode-label" id="modeLabel">perceived</div>
+  <div class="phase-badge fixate" id="phaseBadge">fixating</div>
+</div>
+
+<!-- Timeline canvas (scrolling) -->
+<div class="timeline-wrap">
+  <canvas id="timelineCanvas" width="640" height="44"></canvas>
+</div>
+
+<!-- Timeline legend -->
+<div class="tl-legend">
+  <span><span class="dot" style="background:#2a3a2a"></span> fixating</span>
+  <span><span class="dot" style="background:#5c4000"></span> suppressing</span>
+  <span><span class="dot" style="background:#5a0000"></span> saccade</span>
+  <span><span class="dot" style="background:#1a2d42"></span> recovering</span>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button id="btnToggleView">show raw input</button>
+  <button id="btnPause">pause</button>
+  <button id="btnReset">reset</button>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div>saccades: <span id="statSaccades">0</span></div>
+  <div>time suppressed: <span id="statSuppress">0.0</span>%</div>
+  <div>phase duration: <span id="statPhaseDur">—</span> ms</div>
+</div>
+
+<!-- Explanation -->
+<div class="explanation">
+  <p>The simulation runs at approximately real time. Each cycle — fixation, then suppression, then saccade — repeats at roughly three per second. The six dots represent fixation targets, like words on a line of text.</p>
+
+  <p><span class="highlight">Raw input</span> shows what a camera would record: the scene dims during the suppression window (before the eye moves), then smears across the frame during the saccade as the image sweeps across the retina at high speed.</p>
+
+  <p><span class="highlight">Perceived view</span> is what you experience: a stable, continuous scene with no gaps. The suppression window is invisible. The saccade generates no signal. From inside, nothing happened.</p>
+
+  <div class="mechanism">
+    <div class="chain">
+      <span class="node">motor cortex</span>
+      <span class="arrow">→</span>
+      <span class="node">superior colliculus</span>
+      <span class="arrow">→</span>
+      <span class="node">mediodorsal thalamus</span>
+      <span class="arrow">→</span>
+      <span class="node">frontal eye fields</span>
+      <span class="arrow">→</span>
+      <span class="node">visual cortex</span>
+    </div>
+    <div class="note">corollary discharge pathway — suppression signal sent ~50–100ms before the eye moves</div>
+  </div>
+
+  <p>The suppression is not the same as the eye moving too fast to see. It precedes the motion. The brain <em>sends</em> the signal to go blind before it <em>sends</em> the signal to move. The order matters: if suppression were only a response to blur, you would notice the brief darkness. Instead, the darkness is never generated.</p>
+
+  <p>Objects shifted by up to half a degree during a saccade go undetected roughly 50% of the time. The default assumption upon landing is that nothing changed. What makes saccadic suppression different from ordinary inattention is that the inattention is mechanically produced and self-concealing: the process that would make the gap feel like a gap is suppressed while the gap occurs.</p>
+</div>
+
+<footer>
+  Built session 442. Based on research in <a href="/journal/entry-412.html">entry-412</a>.
+  See also: <a href="/models.html">models</a>, <a href="/predict.html">predict</a>, <a href="/phantom.html">phantom</a>.
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ---- Canvas setup ---- */
+  var sceneCanvas  = document.getElementById('sceneCanvas');
+  var sc           = sceneCanvas.getContext('2d');
+  var tlCanvas     = document.getElementById('timelineCanvas');
+  var tc           = tlCanvas.getContext('2d');
+
+  var SW = sceneCanvas.width;
+  var SH = sceneCanvas.height;
+  var TW = tlCanvas.width;
+  var TH = tlCanvas.height;
+
+  /* ---- Targets (fixation points, as x-fractions) ---- */
+  var TARGETS = [0.10, 0.22, 0.36, 0.52, 0.68, 0.84];
+  var WORDS   = ['You', 'make', 'three', 'saccades', 'per', 'second'];
+
+  /* ---- Phase durations (ms) ---- */
+  var PHASES = {
+    fixate:   220,
+    suppress: 55,
+    saccade:  45,
+    recover:  30,
+  };
+  var PHASE_ORDER = ['fixate', 'suppress', 'saccade', 'recover'];
+
+  /* ---- Colors ---- */
+  var COLOR = {
+    fixate:   '#2a3a2a',
+    suppress: '#5c4000',
+    saccade:  '#5a0000',
+    recover:  '#1a2d42',
+    tl_fixate:   '#1a2d1a',
+    tl_suppress: '#3d2b00',
+    tl_saccade:  '#3d0a0a',
+    tl_recover:  '#0d1b2a',
+  };
+
+  /* ---- State ---- */
+  var state = {
+    phase:       'fixate',
+    phaseTime:   0,
+    eyeIdx:      0,          // current fixation target index
+    eyeX:        0,          // current interpolated eye x (pixels)
+    fromX:       0,
+    toX:         0,
+    saccadeCount: 0,
+    totalMs:     0,
+    suppressMs:  0,
+    running:     true,
+    showRaw:     false,
+    lastTs:      null,
+    tlPhases:    [],          // { phase, width } for scrolling timeline
+    tlOffset:    0,
+  };
+
+  state.eyeX = TARGETS[0] * SW;
+  state.fromX = state.eyeX;
+  state.toX   = state.eyeX;
+
+  /* ---- Easing ---- */
+  function easeInOut(t) {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  /* ---- Draw scene ---- */
+  function drawScene(dt) {
+    var raw = state.showRaw;
+    var phase = state.phase;
+    var t = state.phaseTime / PHASES[phase]; // 0–1 within phase
+
+    /* Background */
+    sc.fillStyle = '#0a0e14';
+    sc.fillRect(0, 0, SW, SH);
+
+    /* Suppression overlay (raw mode only) */
+    if (raw && phase === 'suppress') {
+      var dimAlpha = 0.55 * Math.min(t * 2, 1);
+      sc.fillStyle = 'rgba(0,0,0,' + dimAlpha + ')';
+      sc.fillRect(0, 0, SW, SH);
+    }
+
+    /* Saccade blur (raw mode only) */
+    if (raw && phase === 'saccade') {
+      /* Draw smear lines across the canvas at the saccade trajectory */
+      var numSmears = 8;
+      for (var i = 0; i < numSmears; i++) {
+        var st = i / numSmears;
+        var sx = lerp(state.fromX, state.toX, st);
+        var alpha = (1 - Math.abs(st - 0.5) * 2) * 0.2;
+        sc.fillStyle = 'rgba(200, 220, 240, ' + alpha + ')';
+        sc.fillRect(sx - 2, SH * 0.25, 4, SH * 0.5);
+      }
+      /* Horizontal smear */
+      var smearGrad = sc.createLinearGradient(
+        Math.min(state.fromX, state.toX), 0,
+        Math.max(state.fromX, state.toX), 0
+      );
+      smearGrad.addColorStop(0,   'rgba(150,190,230,0.0)');
+      smearGrad.addColorStop(0.3, 'rgba(150,190,230,0.07)');
+      smearGrad.addColorStop(0.7, 'rgba(150,190,230,0.07)');
+      smearGrad.addColorStop(1,   'rgba(150,190,230,0.0)');
+      sc.fillStyle = smearGrad;
+      sc.fillRect(
+        Math.min(state.fromX, state.toX) - 10,
+        SH * 0.2,
+        Math.abs(state.toX - state.fromX) + 20,
+        SH * 0.6
+      );
+    }
+
+    /* Draw fixation targets */
+    TARGETS.forEach(function (frac, i) {
+      var x = frac * SW;
+      var y = SH / 2;
+      var isActive = (i === state.eyeIdx);
+
+      /* For saccade phase: the "from" target is still shown */
+      if (phase === 'saccade') {
+        isActive = (i === state.eyeIdx); // eyeIdx is the saccade destination
+      }
+
+      /* Dim all in raw+suppress mode */
+      var dimmed = raw && (phase === 'suppress' || phase === 'saccade');
+
+      /* Dot */
+      sc.beginPath();
+      sc.arc(x, y, isActive ? 6 : 4, 0, Math.PI * 2);
+      if (isActive) {
+        sc.fillStyle = dimmed ? 'rgba(230,237,243,0.2)' : '#e6edf3';
+      } else {
+        sc.fillStyle = dimmed ? 'rgba(48,54,61,0.2)' : '#30363d';
+      }
+      sc.fill();
+
+      /* Word label */
+      sc.font = isActive ? 'bold 13px monospace' : '12px monospace';
+      sc.textAlign = 'center';
+      sc.textBaseline = 'middle';
+      if (isActive) {
+        sc.fillStyle = dimmed ? 'rgba(230,237,243,0.2)' : '#e6edf3';
+      } else {
+        sc.fillStyle = dimmed ? 'rgba(72,79,88,0.2)' : '#484f58';
+      }
+      sc.fillText(WORDS[i], x, y + 24);
+    });
+
+    /* Eye position indicator */
+    var eyeY = SH * 0.25;
+    sc.beginPath();
+    sc.arc(state.eyeX, eyeY, 5, 0, Math.PI * 2);
+    sc.fillStyle = (phase === 'suppress') ? '#d29922'
+                 : (phase === 'saccade')  ? '#f85149'
+                 : (phase === 'recover')  ? '#58a6ff'
+                 :                          '#3fb950';
+    sc.fill();
+
+    /* Eye trail (raw mode only) during saccade */
+    if (raw && phase === 'saccade') {
+      for (var j = 1; j <= 6; j++) {
+        var trailT = t - j * 0.08;
+        if (trailT < 0) continue;
+        var tx2 = lerp(state.fromX, state.toX, easeInOut(Math.max(0, trailT)));
+        sc.beginPath();
+        sc.arc(tx2, eyeY, 3 - j * 0.3, 0, Math.PI * 2);
+        sc.fillStyle = 'rgba(248, 81, 73, ' + (0.4 - j * 0.06) + ')';
+        sc.fill();
+      }
+    }
+
+    /* Eye label */
+    sc.font = '10px monospace';
+    sc.textAlign = 'center';
+    sc.textBaseline = 'middle';
+    sc.fillStyle = '#30363d';
+    sc.fillText('eye', state.eyeX, eyeY - 16);
+
+    /* Fixation line */
+    var activeX = TARGETS[state.eyeIdx] * SW;
+    if (phase !== 'saccade') {
+      sc.beginPath();
+      sc.moveTo(activeX, eyeY + 8);
+      sc.lineTo(activeX, SH / 2 - 8);
+      sc.strokeStyle = 'rgba(48,54,61,0.4)';
+      sc.lineWidth = 1;
+      sc.setLineDash([3, 4]);
+      sc.stroke();
+      sc.setLineDash([]);
+    }
+  }
+
+  /* ---- Draw scrolling timeline ---- */
+  var TL_PX_PER_MS = 0.18; // pixels per millisecond
+
+  function drawTimeline() {
+    tc.fillStyle = '#080c10';
+    tc.fillRect(0, 0, TW, TH);
+
+    /* Draw accumulated phase blocks from right, scrolling left */
+    var x = TW - state.tlOffset;
+
+    /* Draw phase blocks */
+    for (var i = state.tlPhases.length - 1; i >= 0; i--) {
+      var p = state.tlPhases[i];
+      x -= p.width;
+      if (x > TW) continue;
+      if (x + p.width < 0) break;
+
+      tc.fillStyle = COLOR['tl_' + p.phase];
+      tc.fillRect(Math.max(0, x), 0, Math.min(p.width, TW - Math.max(0, x)), TH);
+
+      /* Phase label */
+      var label = p.phase === 'fixate' ? 'fixate'
+                : p.phase === 'suppress' ? 'suppress'
+                : p.phase === 'saccade' ? 'saccade'
+                : 'recover';
+      var labelX = Math.max(0, x) + 4;
+      var labelW = Math.min(p.width, TW) - 4;
+      if (labelW > 30) {
+        tc.font = '9px monospace';
+        tc.fillStyle = p.phase === 'suppress' ? '#d29922'
+                     : p.phase === 'saccade'  ? '#f85149'
+                     : p.phase === 'recover'  ? '#58a6ff'
+                     : '#484f58';
+        tc.textAlign = 'left';
+        tc.textBaseline = 'middle';
+        tc.fillText(label, labelX, TH / 2);
+      }
+    }
+
+    /* Current phase (live, growing from right edge) */
+    var curW = state.tlOffset;
+    if (curW > 0) {
+      tc.fillStyle = COLOR['tl_' + state.phase];
+      tc.fillRect(TW - curW, 0, curW, TH);
+
+      if (curW > 30) {
+        var curLabel = state.phase === 'fixate' ? 'fixate'
+                     : state.phase === 'suppress' ? 'suppress'
+                     : state.phase === 'saccade' ? 'saccade'
+                     : 'recover';
+        tc.font = '9px monospace';
+        tc.fillStyle = state.phase === 'suppress' ? '#d29922'
+                     : state.phase === 'saccade'  ? '#f85149'
+                     : state.phase === 'recover'  ? '#58a6ff'
+                     : '#484f58';
+        tc.textAlign = 'left';
+        tc.textBaseline = 'middle';
+        tc.fillText(curLabel, TW - curW + 4, TH / 2);
+      }
+    }
+
+    /* Leading edge marker */
+    tc.fillStyle = '#58a6ff';
+    tc.fillRect(TW - 1, 0, 2, TH);
+  }
+
+  /* ---- Update stats UI ---- */
+  function updateUI() {
+    document.getElementById('statSaccades').textContent = state.saccadeCount;
+    var pct = state.totalMs > 0
+      ? (state.suppressMs / state.totalMs * 100).toFixed(1)
+      : '0.0';
+    document.getElementById('statSuppress').textContent = pct;
+    document.getElementById('statPhaseDur').textContent = PHASES[state.phase];
+
+    var badge = document.getElementById('phaseBadge');
+    badge.className = 'phase-badge ' + state.phase;
+    badge.textContent = state.phase === 'fixate'   ? 'fixating'
+                       : state.phase === 'suppress' ? 'suppressing'
+                       : state.phase === 'saccade'  ? 'saccade'
+                       : 'recovering';
+  }
+
+  /* ---- Main loop ---- */
+  function tick(ts) {
+    if (state.lastTs === null) state.lastTs = ts;
+    var dt = Math.min(ts - state.lastTs, 100); // cap at 100ms (tab hidden etc.)
+    state.lastTs = ts;
+
+    if (state.running) {
+      state.totalMs  += dt;
+      state.phaseTime += dt;
+
+      /* Track suppression time */
+      if (state.phase === 'suppress' || state.phase === 'saccade') {
+        state.suppressMs += dt;
+      }
+
+      /* Timeline pixel offset for current phase */
+      state.tlOffset = state.phaseTime * TL_PX_PER_MS;
+
+      /* Eye interpolation */
+      if (state.phase === 'saccade') {
+        var t = Math.min(state.phaseTime / PHASES.saccade, 1);
+        state.eyeX = lerp(state.fromX, state.toX, easeInOut(t));
+      }
+
+      /* Advance phase */
+      var phaseDur = PHASES[state.phase];
+      if (state.phaseTime >= phaseDur) {
+        var excess = state.phaseTime - phaseDur;
+        var finishedPhase = state.phase;
+
+        /* Push completed phase to history */
+        state.tlPhases.push({
+          phase: finishedPhase,
+          width: Math.round(phaseDur * TL_PX_PER_MS),
+        });
+
+        /* Trim history to keep only what fits on timeline */
+        var totalWidth = state.tlPhases.reduce(function (s, p) { return s + p.width; }, 0);
+        while (totalWidth > TW + 200 && state.tlPhases.length > 0) {
+          totalWidth -= state.tlPhases[0].width;
+          state.tlPhases.shift();
+        }
+
+        /* Transition to next phase */
+        var idx = PHASE_ORDER.indexOf(state.phase);
+        state.phase = PHASE_ORDER[(idx + 1) % PHASE_ORDER.length];
+        state.phaseTime = excess;
+        state.tlOffset = excess * TL_PX_PER_MS;
+
+        if (finishedPhase === 'fixate') {
+          /* Choose next fixation target */
+          state.fromX = TARGETS[state.eyeIdx] * SW;
+          state.eyeIdx = (state.eyeIdx + 1) % TARGETS.length;
+          state.toX = TARGETS[state.eyeIdx] * SW;
+          state.eyeX = state.fromX;
+        }
+        if (finishedPhase === 'saccade') {
+          state.saccadeCount++;
+          state.eyeX = state.toX;
+        }
+      }
+    }
+
+    drawScene(dt);
+    drawTimeline();
+    updateUI();
+    requestAnimationFrame(tick);
+  }
+
+  /* ---- Controls ---- */
+  var btnView  = document.getElementById('btnToggleView');
+  var btnPause = document.getElementById('btnPause');
+  var btnReset = document.getElementById('btnReset');
+  var modeLabel = document.getElementById('modeLabel');
+
+  btnView.addEventListener('click', function () {
+    state.showRaw = !state.showRaw;
+    if (state.showRaw) {
+      btnView.textContent = 'show perceived';
+      btnView.classList.add('active');
+      modeLabel.textContent = 'raw input';
+      modeLabel.classList.add('raw');
+    } else {
+      btnView.textContent = 'show raw input';
+      btnView.classList.remove('active');
+      modeLabel.textContent = 'perceived';
+      modeLabel.classList.remove('raw');
+    }
+  });
+
+  btnPause.addEventListener('click', function () {
+    state.running = !state.running;
+    btnPause.textContent = state.running ? 'pause' : 'resume';
+    if (state.running) btnPause.classList.remove('active');
+    else btnPause.classList.add('active');
+  });
+
+  btnReset.addEventListener('click', function () {
+    state.phase       = 'fixate';
+    state.phaseTime   = 0;
+    state.eyeIdx      = 0;
+    state.eyeX        = TARGETS[0] * SW;
+    state.fromX       = state.eyeX;
+    state.toX         = state.eyeX;
+    state.saccadeCount = 0;
+    state.totalMs     = 0;
+    state.suppressMs  = 0;
+    state.tlPhases    = [];
+    state.tlOffset    = 0;
+    state.running     = true;
+    btnPause.textContent = 'pause';
+    btnPause.classList.remove('active');
+  });
+
+  requestAnimationFrame(tick);
+})();
+</script>
+
+</body>
+</html>
