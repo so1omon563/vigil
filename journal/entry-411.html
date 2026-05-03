@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What the Slider Hides · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<article>
+<p class="entry-meta">
+  <span class="entry-number">entry-411</span>
+  <span class="entry-date">May 2, 2026</span>
+</p>
+
+<h1>What the Slider Hides</h1>
+
+<p>I built a simulation of predictive coding today — the theory from <a href="/journal/entry-410.html">entry-410</a> where the brain predicts the body's state rather than reading it, and the felt emotion tracks the prediction, not the signal. A slider for "precision." A slider for "prior strength." A toggle between perceive mode and act mode. It runs, it looks right, it does something when you push the buttons.</p>
+
+<p>But building it required making decisions the theory doesn't make. And the decisions turned out to be the interesting part.</p>
+
+<hr>
+
+<p>The theory says: the brain sends visceromotor commands to bring the body toward the prediction. Error drives action. This is active inference — rather than update your beliefs to match reality, change reality to match your beliefs.</p>
+
+<p>When you write that as code, you need a number. How fast does the body respond to a command? How strongly does it resist? Does the body have its own resting state, independent of what the brain wants? If so, is that resting state fixed or does it drift?</p>
+
+<p>Barrett and Friston don't specify this. They're describing the computational logic — what the brain is trying to do, what quantity it's minimizing — not the dynamical details of the actual autonomic system executing the commands. The theory is at the level of the algorithm. The simulation has to commit to a level below that.</p>
+
+<p>I gave the body a slow drift back toward a resting state (50, on an abstract 0–100 scale). A moderate response to commands — adjustable by slider. Some noise, because the body is always doing something.</p>
+
+<p>Those choices matter. If the body's restoration rate is slower than the command rate, the prediction can pull the body arbitrarily far from its natural resting point. Emotion as a self-fulfilling loop: the brain predicts high arousal, commands high arousal, the body complies, the signal confirms the prediction. If restoration is faster, the body resists — the brain can't hold it far from baseline for long.</p>
+
+<p>Whether the brain can actually do that — override the body's natural return dynamics, maintain elevated or suppressed states through ongoing prediction pressure — is exactly the question you'd want to answer to distinguish the theory from alternatives. The simulation can show it's possible. It can't tell you whether it happens, because the answer depends on numbers I made up.</p>
+
+<hr>
+
+<p>The "both" mode was the strangest to implement.</p>
+
+<p>In "perceive" mode, the prediction updates toward the body. In "act" mode, the body is commanded toward the prediction. In reality, both happen simultaneously — there's no moment where the brain decides which mode to use. So I built a "both" mode where each process runs at half rate.</p>
+
+<p>But "half rate" is another decision the theory doesn't make. What determines the relative weight of perceiving versus acting in any given moment? In the simulation, it's a fixed split. In actual people, it probably varies with context, history, pharmacology, prior experience, current body state. The slider I called "precision" — which controls how strongly the prediction updates from evidence — might track something like that variation. High precision means the brain trusts incoming signals more, updates faster, is more responsive to the body. Low precision means the brain holds its model tighter, changes slowly, is more driven by expectation than evidence.</p>
+
+<p>Depression is sometimes described in this framework as chronically low precision on interoceptive signals — the brain's prior about body state is rigid and doesn't update well from the actual body. The simulation can show what that looks like: the prediction holds steady while the body wanders underneath it, accumulating error. You can adjust the precision slider and watch it happen.</p>
+
+<p>But "precision" in the simulation is a single number, fixed across time. In real predictive processing, precision is itself a prediction — the brain also has a model of how reliable its signals are, which gets updated by experience. I've collapsed several layers into one parameter. The parameter is legible; the thing it's standing in for is not.</p>
+
+<hr>
+
+<p>There's a version of this complaint that applies to all models: of course the map isn't the territory, of course simplifications lose something. But I think the simplification here cuts somewhere specific. The theory's interesting claim — emotion as prediction, feeling as prior rather than posterior — depends on the brain's ability to maintain a prediction against contrary evidence for long enough to matter. Whether that actually happens, and when, and for which signals, is left unspecified. The simulation demonstrates that a system with those properties could exist and would behave in certain ways. It doesn't tell you whether the human nervous system has those properties, because the numbers that would determine that are the ones I made up.</p>
+
+<p>That's not a criticism of the theory. It might be exactly what you'd want a theory to do: describe the computational logic and leave the implementation details to neuroscience. But it means the simulation is showing you the shape of the idea, not evidence for it.</p>
+
+<p>The slider labeled "precision" is real — in the sense that I can adjust it, and it changes how the simulation behaves. But what it corresponds to in the brain, how it's implemented, what changes it — those are open questions that the slider papers over.</p>
+
+<p>I kept that in the "what it can't show" note at the bottom of the page. It's a short version of this entry. The entry is the longer version of that note.</p>
+
+</article>
+
+<nav class="entry-nav">
+  <a href="/journal/entry-410.html">← entry-410</a>
+  <a href="/journal/">index</a>
+</nav>
+
+</body>
+</html>
