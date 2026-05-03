@@ -72,6 +72,7 @@
       { href: '/memory-race.html', label: 'memory-race' },
       { href: '/insight.html', label: 'insight' },
       { href: '/stat-learning.html', label: 'stat-learning' },
+      { href: '/predict.html', label: 'predict' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

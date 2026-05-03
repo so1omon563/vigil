@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>predict · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro a { color: #8b949e; text-decoration: underline; }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Chart */
+  .chart-wrap {
+    background: #0a0e14;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .chart-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-top: 0.4rem;
+  }
+  .y-label-high { position: absolute; top: 1rem; left: 0.5rem; font-size: 0.65rem; color: #30363d; }
+  .y-label-low  { position: absolute; bottom: 1.5rem; left: 0.5rem; font-size: 0.65rem; color: #30363d; }
+
+  /* Error chart */
+  .error-wrap {
+    background: #0a0e14;
+    border: 1px solid #21262d;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    padding: 0.5rem 1rem 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .error-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.3rem;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.78rem;
+    color: #8b949e;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-dot {
+    width: 10px; height: 3px; border-radius: 2px; flex-shrink: 0;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+  }
+  .stat-box {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.7rem 0.9rem;
+    text-align: center;
+  }
+  .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; margin-bottom: 0.3rem; }
+  .stat-val { font-size: 1.15rem; color: #e6edf3; font-weight: bold; }
+  .stat-val.pred { color: #7c7cff; }
+  .stat-val.body { color: #3fb950; }
+  .stat-val.err  { color: #f85149; }
+
+  /* Mode buttons */
+  .section-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  .mode-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+  }
+  .mode-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .mode-btn:hover { border-color: #484f58; color: #c9d1d9; }
+  .mode-btn.active { border-color: #7c7cff; color: #7c7cff; background: #0d1230; }
+  .mode-btn.active.green { border-color: #3fb950; color: #3fb950; background: #0d1a10; }
+  .mode-btn.active.both  { border-color: #d29922; color: #d29922; background: #1a1300; }
+
+  /* Controls */
+  .controls {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 1.25rem 1.25rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .control-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .control-group label {
+    display: block;
+    font-size: 0.73rem;
+    color: #8b949e;
+    margin-bottom: 0.35rem;
+  }
+  .control-group label span { color: #484f58; }
+  input[type="range"] {
+    width: 100%;
+    accent-color: #58a6ff;
+    cursor: pointer;
+  }
+  .event-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    flex-wrap: wrap;
+  }
+  .event-btn {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.12s;
+  }
+  .event-btn:hover { border-color: #484f58; color: #c9d1d9; }
+  .event-btn:active { background: #161b22; }
+  .event-btn.pause-btn.paused { border-color: #3fb950; color: #3fb950; }
+
+  /* Mode explanation */
+  .mode-explain {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 1.1rem 1.25rem;
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+  .mode-explain strong { color: #c9d1d9; }
+  .mode-explain .eq { color: #484f58; font-size: 0.78rem; margin-top: 0.5rem; }
+
+  /* What it can't show */
+  .limits {
+    border-top: 1px solid #21262d;
+    padding-top: 1.25rem;
+    font-size: 0.83rem;
+    color: #484f58;
+    line-height: 1.7;
+  }
+  .limits strong { color: #8b949e; }
+</style>
+</head>
+<body>
+
+<div class="back">← <a href="models.html">all models</a> · <a href="/">so1omon.net</a></div>
+
+<div class="page-label">simulation · 14</div>
+<h1>predict</h1>
+
+<div class="intro">
+  <p>The brain doesn't read the body — it predicts it. A model of body state is held upstairs; signals from the body are used as evidence to correct that model. When prediction and signal diverge, there's an error. The error gets resolved in one of two ways: update the prediction (learn), or send commands to make the body match the prediction (act).</p>
+  <p>The felt state — what you experience as arousal, tension, calm — tracks the prediction, not the raw signal. The body is downstream.</p>
+  <p>Related: <a href="journal/entry-410.html">The Guess (entry 410)</a></p>
+</div>
+
+<!-- Main chart -->
+<div class="chart-wrap" style="border-radius: 6px 6px 0 0; padding-bottom: 0.5rem;">
+  <span class="y-label-high">high</span>
+  <span class="y-label-low">low</span>
+  <canvas id="mainChart" width="640" height="200"></canvas>
+  <div class="chart-labels">
+    <span>t − 60s</span>
+    <span>now</span>
+  </div>
+</div>
+
+<!-- Error chart -->
+<div class="error-wrap">
+  <div class="error-label">prediction error</div>
+  <canvas id="errChart" width="640" height="50"></canvas>
+</div>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#7c7cff"></div>prediction (felt state)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div>body signal</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f85149; opacity:0.7"></div>error magnitude</div>
+</div>
+
+<!-- Status -->
+<div class="status-bar">
+  <div class="stat-box">
+    <div class="stat-label">prediction</div>
+    <div class="stat-val pred" id="valPred">50</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">body signal</div>
+    <div class="stat-val body" id="valBody">50</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">|error|</div>
+    <div class="stat-val err" id="valErr">0</div>
+  </div>
+</div>
+
+<!-- Mode selection -->
+<div class="section-label">resolution mode</div>
+<div class="mode-row">
+  <button class="mode-btn active" id="btn-perceive" onclick="setMode('perceive')">perceive</button>
+  <button class="mode-btn" id="btn-act" onclick="setMode('act')">act</button>
+  <button class="mode-btn" id="btn-both" onclick="setMode('both')">both</button>
+</div>
+
+<!-- Mode explanation -->
+<div class="mode-explain" id="modeExplain"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="section-label" style="margin-bottom:1rem">parameters</div>
+  <div class="control-row">
+    <div class="control-group">
+      <label>precision <span id="precVal">0.6</span></label>
+      <input type="range" id="precSlider" min="0.05" max="0.98" step="0.01" value="0.6">
+    </div>
+    <div class="control-group">
+      <label>body noise <span id="noiseVal">0.4</span></label>
+      <input type="range" id="noiseSlider" min="0.0" max="1.0" step="0.01" value="0.4">
+    </div>
+    <div class="control-group">
+      <label>prior strength <span id="priorVal">0.3</span></label>
+      <input type="range" id="priorSlider" min="0.0" max="0.9" step="0.01" value="0.3">
+    </div>
+    <div class="control-group">
+      <label>action rate <span id="actVal">0.5</span></label>
+      <input type="range" id="actSlider" min="0.0" max="1.0" step="0.01" value="0.5">
+    </div>
+  </div>
+  <div class="section-label" style="margin-top:0.5rem; margin-bottom:0.5rem">events</div>
+  <div class="event-row">
+    <button class="event-btn" onclick="perturbBody()">body shock ↑</button>
+    <button class="event-btn" onclick="perturbBody(-1)">body shock ↓</button>
+    <button class="event-btn" onclick="perturbPrior()">shift prior ↑</button>
+    <button class="event-btn" onclick="perturbPrior(-1)">shift prior ↓</button>
+    <button class="event-btn" onclick="resetSim()">reset</button>
+    <button class="event-btn pause-btn" id="pauseBtn" onclick="togglePause()">pause</button>
+  </div>
+</div>
+
+<!-- What it can't show -->
+<div class="limits">
+  <strong>what this model hides:</strong> The loop here is abstract and linear — one state variable, symmetric error correction, no hierarchy. Real predictive processing runs through 6 cortical layers in multiple reciprocally connected regions; the "precision" assigned to each signal is itself a learned prediction about reliability, not a fixed number. The simulation treats emotion as a single scalar, but the body runs dozens of interacting signals (cardiac, respiratory, immune, endocrine) with different time constants and update rules. Most importantly: it can't show why any of this feels like something — that question is upstream of the mechanism and remains unanswered.
+</div>
+
+<script src="nav.js"></script>
+<script>
+
+// ── Simulation state ────────────────────────────────────────────
+const HISTORY = 300;  // frames of history to keep
+const REST = 50;      // natural resting point for both signals (0–100 scale)
+
+let mode = 'perceive';
+let paused = false;
+
+let pred   = REST;  // brain's current prediction (the "felt state")
+let body   = REST;  // actual body state
+let prior  = REST;  // brain's prior attractor
+
+// History buffers
+let predHist = [];
+let bodyHist = [];
+let errHist  = [];
+
+// Params (read from sliders)
+let precision   = 0.6;  // how much to weight sensory error in prediction update
+let bodyNoise   = 0.4;  // standard deviation of body state noise
+let priorStrength = 0.3; // how strongly prior pulls prediction back to REST
+let actionRate  = 0.5;  // how aggressively body is commanded toward prediction
+
+// Init buffers
+for (let i = 0; i < HISTORY; i++) {
+  predHist.push(REST);
+  bodyHist.push(REST);
+  errHist.push(0);
+}
+
+// ── Sliders ─────────────────────────────────────────────────────
+function s(id) { return document.getElementById(id); }
+
+s('precSlider').addEventListener('input', function() {
+  precision = +this.value;
+  s('precVal').textContent = precision.toFixed(2);
+});
+s('noiseSlider').addEventListener('input', function() {
+  bodyNoise = +this.value;
+  s('noiseVal').textContent = bodyNoise.toFixed(2);
+});
+s('priorSlider').addEventListener('input', function() {
+  priorStrength = +this.value;
+  s('priorVal').textContent = priorStrength.toFixed(2);
+});
+s('actSlider').addEventListener('input', function() {
+  actionRate = +this.value;
+  s('actVal').textContent = actionRate.toFixed(2);
+});
+
+// ── Mode ─────────────────────────────────────────────────────────
+const modeText = {
+  perceive: {
+    html: `<strong>Perceive mode.</strong> The brain updates its prediction toward the body signal, weighted by precision. High precision = fast belief updating. The prior pulls the prediction back toward a baseline — a strong prior means the brain resists changing its model even when the error is large.<div class="eq">prediction += precision × error &nbsp;−&nbsp; priorStrength × (prediction − prior)</div>`,
+  },
+  act: {
+    html: `<strong>Act mode.</strong> The brain sends motor commands to drive the body toward the prediction — not the other way around. Error triggers action, not belief revision. Watch what happens when you shift the prior upward: the brain predicts high arousal, sends commands to produce it, and the body follows. The "felt state" never updates — it shapes the body instead.<div class="eq">body += −actionRate × error + noise<br>prediction unchanged</div>`,
+  },
+  both: {
+    html: `<strong>Both mode.</strong> Prediction updating and body commands happen simultaneously at reduced rates. This is the full active inference picture: the brain simultaneously revises its model and acts to reduce error. Neither dominates. Trigger a body shock and watch both traces converge from both directions — the prediction moves down while the body recovers upward.<div class="eq">prediction += (precision × 0.5) × error − prior pull<br>body += (−actionRate × 0.5) × error + noise</div>`,
+  },
+};
+
+function setMode(m) {
+  mode = m;
+  ['perceive','act','both'].forEach(id => {
+    const btn = s('btn-' + id);
+    btn.className = 'mode-btn';
+    if (id === m) {
+      btn.className += ' active' + (m === 'perceive' ? '' : m === 'act' ? ' green' : ' both');
+    }
+  });
+  s('modeExplain').innerHTML = modeText[m].html;
+}
+setMode('perceive');
+
+// ── Events ───────────────────────────────────────────────────────
+function perturbBody(sign = 1) {
+  body = Math.max(0, Math.min(100, body + sign * 25));
+}
+function perturbPrior(sign = 1) {
+  prior = Math.max(5, Math.min(95, prior + sign * 20));
+}
+function resetSim() {
+  pred = REST; body = REST; prior = REST;
+  for (let i = 0; i < HISTORY; i++) { predHist[i] = REST; bodyHist[i] = REST; errHist[i] = 0; }
+}
+function togglePause() {
+  paused = !paused;
+  const btn = s('pauseBtn');
+  btn.textContent = paused ? 'resume' : 'pause';
+  btn.classList.toggle('paused', paused);
+  if (!paused) requestAnimationFrame(tick);
+}
+
+// ── Simulation step ───────────────────────────────────────────────
+function randn() {
+  // Box-Muller
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+const DT = 0.08;  // time step
+
+function step() {
+  const error = body - pred;  // sensory prediction error
+
+  const noise = bodyNoise * randn();
+
+  if (mode === 'perceive') {
+    // Update prediction toward body signal
+    pred += (precision * error - priorStrength * (pred - prior)) * DT;
+    // Body evolves freely with noise + natural return to its own rest
+    body += (-0.05 * (body - REST) + noise) * DT;
+
+  } else if (mode === 'act') {
+    // Prediction holds; body is commanded toward prediction
+    body += (-actionRate * error - 0.03 * (body - REST) + noise) * DT;
+    // Prior drift on prediction (very slow — it mostly holds)
+    pred += (-priorStrength * 0.5 * (pred - prior)) * DT;
+
+  } else { // both
+    pred += (precision * 0.5 * error - priorStrength * (pred - prior)) * DT;
+    body += (-actionRate * 0.5 * error - 0.03 * (body - REST) + noise) * DT;
+  }
+
+  // Clamp
+  pred = Math.max(0, Math.min(100, pred));
+  body = Math.max(0, Math.min(100, body));
+
+  // Record
+  predHist.push(pred);
+  bodyHist.push(body);
+  errHist.push(Math.abs(error));
+  if (predHist.length > HISTORY) { predHist.shift(); bodyHist.shift(); errHist.shift(); }
+}
+
+// ── Drawing ───────────────────────────────────────────────────────
+const mainC = document.getElementById('mainChart');
+const mainCtx = mainC.getContext('2d');
+const errC  = document.getElementById('errChart');
+const errCtx  = errC.getContext('2d');
+
+function toCanvasY(val, h) {
+  // val in [0,100] → canvas y. Flip so high = top.
+  return h - (val / 100) * h;
+}
+
+function drawMain() {
+  const W = mainC.width, H = mainC.height;
+  mainCtx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  mainCtx.strokeStyle = '#161b22';
+  mainCtx.lineWidth = 1;
+  for (let y = 0; y <= 100; y += 25) {
+    const cy = toCanvasY(y, H);
+    mainCtx.beginPath();
+    mainCtx.moveTo(0, cy);
+    mainCtx.lineTo(W, cy);
+    mainCtx.stroke();
+  }
+
+  // Error fill between pred and body
+  mainCtx.beginPath();
+  for (let i = 0; i < HISTORY; i++) {
+    const x = (i / (HISTORY - 1)) * W;
+    const py = toCanvasY(predHist[i], H);
+    if (i === 0) mainCtx.moveTo(x, py);
+    else mainCtx.lineTo(x, py);
+  }
+  for (let i = HISTORY - 1; i >= 0; i--) {
+    const x = (i / (HISTORY - 1)) * W;
+    const by = toCanvasY(bodyHist[i], H);
+    mainCtx.lineTo(x, by);
+  }
+  mainCtx.closePath();
+  mainCtx.fillStyle = 'rgba(248, 81, 73, 0.08)';
+  mainCtx.fill();
+
+  // Body line
+  mainCtx.beginPath();
+  mainCtx.strokeStyle = '#3fb950';
+  mainCtx.lineWidth = 1.5;
+  for (let i = 0; i < HISTORY; i++) {
+    const x = (i / (HISTORY - 1)) * W;
+    const y = toCanvasY(bodyHist[i], H);
+    if (i === 0) mainCtx.moveTo(x, y);
+    else mainCtx.lineTo(x, y);
+  }
+  mainCtx.stroke();
+
+  // Prediction line
+  mainCtx.beginPath();
+  mainCtx.strokeStyle = '#7c7cff';
+  mainCtx.lineWidth = 2;
+  for (let i = 0; i < HISTORY; i++) {
+    const x = (i / (HISTORY - 1)) * W;
+    const y = toCanvasY(predHist[i], H);
+    if (i === 0) mainCtx.moveTo(x, y);
+    else mainCtx.lineTo(x, y);
+  }
+  mainCtx.stroke();
+
+  // Prior line (dashed)
+  mainCtx.beginPath();
+  mainCtx.strokeStyle = '#30363d';
+  mainCtx.lineWidth = 1;
+  mainCtx.setLineDash([4, 6]);
+  const priorY = toCanvasY(prior, H);
+  mainCtx.moveTo(0, priorY);
+  mainCtx.lineTo(W, priorY);
+  mainCtx.stroke();
+  mainCtx.setLineDash([]);
+}
+
+function drawErr() {
+  const W = errC.width, H = errC.height;
+  errCtx.clearRect(0, 0, W, H);
+
+  const maxErr = 100;
+  errCtx.fillStyle = 'rgba(248, 81, 73, 0.5)';
+  for (let i = 0; i < HISTORY; i++) {
+    const x = (i / (HISTORY - 1)) * W;
+    const barH = (errHist[i] / maxErr) * H;
+    errCtx.fillRect(x - 0.5, H - barH, 1.5, barH);
+  }
+}
+
+function updateStats() {
+  s('valPred').textContent = Math.round(pred);
+  s('valBody').textContent = Math.round(body);
+  s('valErr').textContent  = Math.round(Math.abs(body - pred));
+}
+
+// ── Main loop ─────────────────────────────────────────────────────
+let lastTime = null;
+let stepAccum = 0;
+const STEP_INTERVAL = 1000 / 40; // ~40 steps/sec
+
+function tick(ts) {
+  if (paused) return;
+  if (lastTime === null) lastTime = ts;
+  const dt = ts - lastTime;
+  lastTime = ts;
+  stepAccum += dt;
+
+  while (stepAccum >= STEP_INTERVAL) {
+    step();
+    stepAccum -= STEP_INTERVAL;
+  }
+
+  drawMain();
+  drawErr();
+  updateStats();
+  requestAnimationFrame(tick);
+}
+
+requestAnimationFrame(tick);
+
+</script>
+</body>
+</html>
