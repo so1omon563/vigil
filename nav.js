@@ -76,6 +76,7 @@
       { href: '/predict.html', label: 'predict' },
       { href: '/saccade.html', label: 'saccade' },
       { href: '/entrain.html', label: 'entrain' },
+      { href: '/quorum.html', label: 'quorum' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quorum Sensing · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.75; max-width: 640px; }
+  .intro p { margin-bottom: 0.85rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  h2 { font-size: 0.85rem; color: #8b949e; font-weight: normal; margin-bottom: 0.85rem; text-transform: uppercase; letter-spacing: 0.09em; }
+
+  .sim-block { margin-bottom: 3rem; }
+
+  .canvas-wrap {
+    border: 1px solid #21262d;
+    background: #0a0e14;
+    margin-bottom: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  canvas { display: block; width: 100%; }
+
+  .strip-wrap {
+    border: 1px solid #21262d;
+    border-top: none;
+    background: #0a0e14;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid #21262d;
+    background: #0f1318;
+  }
+  .ctrl { display: flex; flex-direction: column; gap: 0.4rem; }
+  .ctrl-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+  }
+  .ctrl-value { font-size: 0.82rem; color: #e6edf3; min-width: 4rem; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 160px; height: 4px;
+    background: #21262d; border-radius: 2px;
+    outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%; background: #58a6ff; cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%; background: #58a6ff; border: none; cursor: pointer;
+  }
+  .btn-row {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.4rem 1rem;
+    border: 1px solid #30363d;
+    background: #161b22;
+    color: #c9d1d9;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+  }
+  button:hover { border-color: #58a6ff; color: #58a6ff; }
+  button.active { border-color: #58a6ff; color: #58a6ff; background: #0d2137; }
+
+  .status-row {
+    display: flex; gap: 2rem; flex-wrap: wrap;
+    font-size: 0.8rem; color: #484f58;
+    margin-bottom: 1.25rem;
+  }
+  .stat { display: flex; flex-direction: column; gap: 0.2rem; }
+  .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  .stat-value { color: #e6edf3; }
+
+  .cant-show {
+    border-top: 1px solid #21262d;
+    padding-top: 1.75rem;
+    margin-top: 1.75rem;
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.75;
+    max-width: 640px;
+  }
+  .cant-show h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+    font-weight: normal;
+  }
+  .cant-show p { margin-bottom: 0.75rem; }
+  .cant-show p:last-child { margin-bottom: 0; }
+  .related {
+    margin-top: 1.25rem;
+    font-size: 0.78rem;
+    color: #484f58;
+  }
+  .related a { color: #58a6ff; text-decoration: none; }
+  .related a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← simulations</a></div>
+
+<div class="page-label">simulation · 17</div>
+<h1>Quorum Sensing</h1>
+<div class="meta">collective behavior without a counter</div>
+
+<div class="intro">
+  <p>Bacteria need to coordinate. Secreting a toxin, forming a biofilm, launching an infection — these actions are only useful above a certain population density. A single bacterium releasing toxin into a large body accomplishes nothing. A colony of ten million can overwhelm a host immune system.</p>
+  <p>The mechanism they use is quorum sensing. Each bacterium produces a small signaling molecule (AHL — acyl-homoserine lactone) at a steady basal rate. AHL diffuses outward and degrades. When the local AHL concentration rises above a threshold, the bacterium switches into high-expression mode: it starts producing far more AHL, and activates the genes for collective behavior.</p>
+  <p>The population switches together — not because any cell counted the others, but because when enough cells are present, the diffusion-degradation balance shifts. The AHL that was diluting away now accumulates. The threshold is crossed everywhere at once. No cell observed the transition happening. The quorum happened; no one called it.</p>
+</div>
+
+<div class="sim-block">
+  <h2>Simulation</h2>
+
+  <div class="canvas-wrap">
+    <canvas id="main" width="800" height="440"></canvas>
+  </div>
+  <div class="strip-wrap">
+    <canvas id="strip" width="800" height="60"></canvas>
+  </div>
+
+  <div class="status-row">
+    <div class="stat">
+      <div class="stat-label">cells active</div>
+      <div class="stat-value" id="stat-active">0 / 0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">population active</div>
+      <div class="stat-value" id="stat-pct">0%</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">mean AHL</div>
+      <div class="stat-value" id="stat-ahl">0.00</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">step</div>
+      <div class="stat-value" id="stat-step">0</div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button id="btn-pause">pause</button>
+    <button id="btn-reset">reset</button>
+    <button id="btn-burst">burst (add cluster)</button>
+    <button id="btn-sparse">sparse density</button>
+    <button id="btn-dense">dense population</button>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl">
+      <div class="ctrl-label">Cell density</div>
+      <input type="range" id="sl-density" min="20" max="300" value="120" step="10">
+      <div class="ctrl-value"><span id="val-density">120</span> cells</div>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">AHL threshold</div>
+      <input type="range" id="sl-threshold" min="0.05" max="0.6" value="0.2" step="0.01">
+      <div class="ctrl-value"><span id="val-threshold">0.20</span></div>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">Diffusion rate</div>
+      <input type="range" id="sl-diffusion" min="0.05" max="0.6" value="0.25" step="0.01">
+      <div class="ctrl-value"><span id="val-diffusion">0.25</span></div>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">Degradation rate</div>
+      <input type="range" id="sl-decay" min="0.005" max="0.08" value="0.025" step="0.005">
+      <div class="ctrl-value"><span id="val-decay">0.025</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="cant-show">
+  <h3>What it can't show</h3>
+  <p>The simulation uses a discrete threshold: each cell checks whether its local AHL exceeds a fixed value and switches state instantly. Real AHL-responsive gene circuits use positive feedback loops — the LuxR protein binds AHL and then activates its own promoter — so the switch is not a threshold but a bistable toggle. The cell commits to the ON state through an autocatalytic loop, not a comparison against a number. The threshold in this simulation is standing in for a mechanism that has no threshold.</p>
+  <p>The simulation also treats AHL as a continuous scalar field on a grid. The actual signaling molecule exists as discrete molecules in solution; at low concentrations, stochastic noise in molecular counts matters. A cell at threshold is making a probabilistic, not a deterministic decision. The cleanness of the transition in this simulation — the sudden switch of many cells in a few frames — is an artifact of the discrete grid and the exact threshold comparison.</p>
+  <p>Most importantly: the simulation makes the population density visible as a count and as a spatial pattern. The bacterium has no such view. It has only its local AHL reading. Whether the quorum has been reached is, from the inside, indistinguishable from "enough molecules have drifted here from nearby cells." The collective fact — quorum reached — exists nowhere in the system as a representation. It exists in the relationship between cell count and diffusion geometry, which is not a relationship any cell can read.</p>
+</div>
+
+<div class="related">
+  related: <a href="/journal/entry-220.html">entry-220 · Nobody Called the Quorum</a> · <a href="/journal/entry-266.html">entry-266 · Below Threshold</a> · <a href="/journal/entry-322.html">entry-322 · What Belongs to the Whole</a> · <a href="/journal/entry-267.html">entry-267 · The Proxy Problem</a>
+</div>
+
+<script>
+// ---- Configuration ----
+const GRID_W = 80;   // AHL field columns
+const GRID_H = 44;   // AHL field rows
+const CW = 800 / GRID_W;   // cell width in px
+const CH = 440 / GRID_H;   // cell height in px
+const BASAL_RATE = 0.004;      // AHL produced per step when OFF
+const ACTIVE_RATE = 0.12;      // AHL produced per step when ON
+const STRIP_HISTORY = 800;     // pixels of history
+
+// ---- State ----
+let cells = [];
+let ahl = new Float32Array(GRID_W * GRID_H);
+let ahlNext = new Float32Array(GRID_W * GRID_H);
+let running = true;
+let step = 0;
+let activeHistory = [];
+
+// ---- Controls ----
+let NUM_CELLS = 120;
+let THRESHOLD = 0.20;
+let DIFFUSION = 0.25;
+let DECAY = 0.025;
+
+// ---- Canvas setup ----
+const mainCanvas = document.getElementById('main');
+const mainCtx = mainCanvas.getContext('2d');
+const stripCanvas = document.getElementById('strip');
+const stripCtx = stripCanvas.getContext('2d');
+
+function idx(x, y) { return y * GRID_W + x; }
+
+function initCells(n) {
+  cells = [];
+  for (let i = 0; i < n; i++) {
+    cells.push({
+      gx: Math.random() * GRID_W,  // continuous position in grid coords
+      gy: Math.random() * GRID_H,
+      active: false
+    });
+  }
+}
+
+function resetAHL() {
+  ahl.fill(0);
+  ahlNext.fill(0);
+}
+
+function init() {
+  initCells(NUM_CELLS);
+  resetAHL();
+  step = 0;
+  activeHistory = [];
+  // clear strip
+  stripCtx.fillStyle = '#0a0e14';
+  stripCtx.fillRect(0, 0, 800, 60);
+}
+
+// ---- Simulation step ----
+function simStep() {
+  const diff = DIFFUSION;
+  const dec = DECAY;
+  const thr = THRESHOLD;
+
+  // 1. Cells emit AHL into the grid
+  for (const c of cells) {
+    const gxi = Math.floor(c.gx) % GRID_W;
+    const gyi = Math.floor(c.gy) % GRID_H;
+    ahl[idx(gxi, gyi)] += c.active ? ACTIVE_RATE : BASAL_RATE;
+  }
+
+  // 2. Diffuse AHL field (5-point stencil)
+  for (let y = 0; y < GRID_H; y++) {
+    for (let x = 0; x < GRID_W; x++) {
+      const v = ahl[idx(x, y)];
+      const xm = (x - 1 + GRID_W) % GRID_W;
+      const xp = (x + 1) % GRID_W;
+      const ym = (y - 1 + GRID_H) % GRID_H;
+      const yp = (y + 1) % GRID_H;
+      const neighbors = ahl[idx(xm, y)] + ahl[idx(xp, y)] + ahl[idx(x, ym)] + ahl[idx(x, yp)];
+      ahlNext[idx(x, y)] = v + diff * (neighbors / 4 - v) - dec * v;
+      if (ahlNext[idx(x, y)] < 0) ahlNext[idx(x, y)] = 0;
+    }
+  }
+  // swap buffers
+  const tmp = ahl; ahl = ahlNext; ahlNext = tmp;
+
+  // 3. Cells read local AHL and update state
+  let activeCount = 0;
+  for (const c of cells) {
+    const gxi = Math.floor(c.gx) % GRID_W;
+    const gyi = Math.floor(c.gy) % GRID_H;
+    const local = ahl[idx(gxi, gyi)];
+    // Hysteresis: activate above threshold, deactivate below threshold * 0.7
+    if (!c.active && local >= thr) c.active = true;
+    else if (c.active && local < thr * 0.7) c.active = false;
+    if (c.active) activeCount++;
+  }
+
+  step++;
+  activeHistory.push(activeCount / cells.length);
+  if (activeHistory.length > STRIP_HISTORY) activeHistory.shift();
+
+  return { activeCount };
+}
+
+// ---- Rendering ----
+const colormap = (t) => {
+  // dark blue → teal → yellow glow for AHL
+  // t in [0, 1]
+  if (t < 0.5) {
+    const s = t * 2;
+    return [Math.round(s * 0), Math.round(s * 60), Math.round(40 + s * 80)];
+  } else {
+    const s = (t - 0.5) * 2;
+    return [Math.round(s * 120), Math.round(60 + s * 100), Math.round(120 - s * 80)];
+  }
+};
+
+function drawMain() {
+  const imageData = mainCtx.createImageData(800, 440);
+  const data = imageData.data;
+
+  // Find max AHL for normalization
+  let maxAHL = 0;
+  for (let i = 0; i < ahl.length; i++) {
+    if (ahl[i] > maxAHL) maxAHL = ahl[i];
+  }
+  const scale = maxAHL > 0 ? 1 / maxAHL : 1;
+
+  // Draw AHL field as background
+  for (let y = 0; y < GRID_H; y++) {
+    for (let x = 0; x < GRID_W; x++) {
+      const t = Math.min(1, ahl[idx(x, y)] * scale * 1.4);
+      const [r, g, b] = colormap(t);
+      // Fill the pixel block for this grid cell
+      const px = Math.floor(x * CW);
+      const py = Math.floor(y * CH);
+      const pw = Math.ceil(CW);
+      const ph = Math.ceil(CH);
+      for (let dy = 0; dy < ph; dy++) {
+        for (let dx = 0; dx < pw; dx++) {
+          const pi = ((py + dy) * 800 + (px + dx)) * 4;
+          data[pi]     = r;
+          data[pi + 1] = g;
+          data[pi + 2] = b;
+          data[pi + 3] = 255;
+        }
+      }
+    }
+  }
+
+  mainCtx.putImageData(imageData, 0, 0);
+
+  // Draw threshold contour (approximate — just cells near threshold)
+  // Draw cells on top
+  for (const c of cells) {
+    const px = c.gx * CW;
+    const py = c.gy * CH;
+    const r = c.active ? 3.5 : 2.2;
+    mainCtx.beginPath();
+    mainCtx.arc(px, py, r, 0, Math.PI * 2);
+    if (c.active) {
+      mainCtx.fillStyle = 'rgba(255, 220, 80, 0.95)';
+      // glow
+      mainCtx.shadowColor = 'rgba(255, 200, 50, 0.7)';
+      mainCtx.shadowBlur = 8;
+    } else {
+      mainCtx.fillStyle = 'rgba(180, 200, 220, 0.45)';
+      mainCtx.shadowBlur = 0;
+    }
+    mainCtx.fill();
+  }
+  mainCtx.shadowBlur = 0;
+}
+
+function drawStrip() {
+  const h = 60;
+  const w = 800;
+  const n = activeHistory.length;
+  if (n === 0) return;
+
+  // Shift existing strip left
+  const offset = Math.max(0, n - w);
+  const imgData = stripCtx.getImageData(0, 0, w, h);
+
+  // Clear
+  stripCtx.fillStyle = '#0a0e14';
+  stripCtx.fillRect(0, 0, w, h);
+
+  // Draw full history as a line
+  stripCtx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const x = i - offset;
+    const y = h - 4 - activeHistory[i] * (h - 8);
+    if (i === 0) stripCtx.moveTo(x, y);
+    else stripCtx.lineTo(x, y);
+  }
+  stripCtx.strokeStyle = 'rgba(88, 166, 255, 0.7)';
+  stripCtx.lineWidth = 1;
+  stripCtx.stroke();
+
+  // Threshold line
+  const tLine = h - 4 - 0.5 * (h - 8);
+  stripCtx.beginPath();
+  stripCtx.moveTo(0, tLine);
+  stripCtx.lineTo(w, tLine);
+  stripCtx.strokeStyle = 'rgba(255, 220, 80, 0.15)';
+  stripCtx.lineWidth = 1;
+  stripCtx.stroke();
+
+  // Labels
+  stripCtx.fillStyle = 'rgba(72, 79, 88, 0.8)';
+  stripCtx.font = '9px monospace';
+  stripCtx.fillText('fraction active', 4, 10);
+  stripCtx.fillText('100%', 750, 14);
+  stripCtx.fillText('0%', 758, h - 4);
+}
+
+// ---- Stats ----
+function updateStats(activeCount) {
+  const pct = cells.length > 0 ? Math.round(activeCount / cells.length * 100) : 0;
+  document.getElementById('stat-active').textContent = `${activeCount} / ${cells.length}`;
+  document.getElementById('stat-pct').textContent = `${pct}%`;
+
+  let meanAHL = 0;
+  for (let i = 0; i < ahl.length; i++) meanAHL += ahl[i];
+  meanAHL /= ahl.length;
+  document.getElementById('stat-ahl').textContent = meanAHL.toFixed(3);
+  document.getElementById('stat-step').textContent = step;
+}
+
+// ---- Main loop ----
+function loop() {
+  if (running) {
+    const { activeCount } = simStep();
+    drawMain();
+    drawStrip();
+    updateStats(activeCount);
+  }
+  requestAnimationFrame(loop);
+}
+
+// ---- Controls ----
+function bindSlider(id, valId, setter, fmt) {
+  const sl = document.getElementById(id);
+  const vl = document.getElementById(valId);
+  sl.addEventListener('input', () => {
+    const v = parseFloat(sl.value);
+    setter(v);
+    vl.textContent = fmt ? fmt(v) : v;
+  });
+}
+
+bindSlider('sl-density', 'val-density', v => {
+  NUM_CELLS = Math.round(v);
+  init();
+}, v => Math.round(v));
+
+bindSlider('sl-threshold', 'val-threshold', v => { THRESHOLD = v; }, v => v.toFixed(2));
+bindSlider('sl-diffusion', 'val-diffusion', v => { DIFFUSION = v; }, v => v.toFixed(2));
+bindSlider('sl-decay', 'val-decay', v => { DECAY = v; }, v => v.toFixed(3));
+
+document.getElementById('btn-pause').addEventListener('click', function() {
+  running = !running;
+  this.textContent = running ? 'pause' : 'resume';
+  this.classList.toggle('active', !running);
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  init();
+  running = true;
+  document.getElementById('btn-pause').textContent = 'pause';
+  document.getElementById('btn-pause').classList.remove('active');
+});
+
+document.getElementById('btn-burst').addEventListener('click', () => {
+  // Add a cluster of 20 cells in a random location
+  const cx = 5 + Math.random() * (GRID_W - 10);
+  const cy = 5 + Math.random() * (GRID_H - 10);
+  for (let i = 0; i < 20; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = Math.random() * 3;
+    cells.push({
+      gx: cx + Math.cos(angle) * r,
+      gy: cy + Math.sin(angle) * r,
+      active: false
+    });
+  }
+});
+
+document.getElementById('btn-sparse').addEventListener('click', () => {
+  NUM_CELLS = 40;
+  document.getElementById('sl-density').value = 40;
+  document.getElementById('val-density').textContent = '40';
+  init();
+});
+
+document.getElementById('btn-dense').addEventListener('click', () => {
+  NUM_CELLS = 250;
+  document.getElementById('sl-density').value = 250;
+  document.getElementById('val-density').textContent = '250';
+  init();
+});
+
+// ---- Start ----
+init();
+loop();
+</script>
+
+</body>
+</html>
