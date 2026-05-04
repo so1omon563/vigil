@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oscillation Entrainment · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 840px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.4rem; }
+  .subtitle { font-size: 0.82rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro {
+    font-size: 0.86rem;
+    color: #8b949e;
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+    max-width: 640px;
+  }
+  .intro p { margin-bottom: 0.7rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .canvas-wrap {
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  canvas {
+    border: 1px solid #21262d;
+    display: block;
+    width: 100%;
+    border-radius: 3px;
+    background: #010409;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.2rem;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    font-size: 0.82rem;
+  }
+  .controls label { color: #8b949e; }
+  button {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-family: inherit;
+    transition: background 0.1s;
+  }
+  button:hover { background: #21262d; }
+  button.active { background: #1f6feb33; border-color: #1f6feb; color: #58a6ff; }
+  input[type=range] {
+    accent-color: #58a6ff;
+    width: 100px;
+    vertical-align: middle;
+  }
+  .status-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+    font-size: 0.78rem;
+    flex-wrap: wrap;
+  }
+  .status-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .status-label { color: #484f58; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.65rem; }
+  .status-value { color: #e6edf3; }
+  .status-value.highlight { color: #f0883e; }
+  .status-value.locked { color: #3fb950; }
+  .status-value.anticipating { color: #bc8cff; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-bottom: 1.4rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-dot {
+    width: 10px;
+    height: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .note {
+    font-size: 0.78rem;
+    color: #484f58;
+    border-top: 1px solid #21262d;
+    padding-top: 1.2rem;
+    margin-top: 1.5rem;
+    line-height: 1.7;
+    max-width: 640px;
+  }
+  .note p { margin-bottom: 0.5rem; }
+  .note p:last-child { margin-bottom: 0; }
+  .note a { color: #58a6ff; text-decoration: none; }
+  .note a:hover { text-decoration: underline; }
+
+  .phase-panel {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .phase-ring-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .phase-ring-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+  }
+
+  .event-log {
+    max-height: 90px;
+    overflow-y: auto;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    color: #8b949e;
+    flex: 1;
+    min-width: 200px;
+  }
+  .event-log-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .event-line { margin-bottom: 0.15rem; }
+  .event-line.stim { color: #f0883e; }
+  .event-line.anticipate { color: #bc8cff; }
+  .event-line.locked { color: #3fb950; }
+  .event-line.drift { color: #8b949e; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a> · <a href="/journal/entry-417.html">entry-417</a></div>
+<div class="page-label">Simulate</div>
+<h1>Oscillation Entrainment</h1>
+<div class="subtitle">Physarum polycephalum · anticipatory memory without storage</div>
+
+<div class="intro">
+  <p>
+    <em>Physarum polycephalum</em> oscillates. Its cytoplasm streams back and forth at roughly
+    two-minute intervals, driven by peristaltic contractions in its tube network.
+    This oscillation is how it moves and how it "thinks."
+  </p>
+  <p>
+    In 2008, researchers applied periodic cold events — unfavorable conditions — at hourly intervals.
+    After three exposures, the organism slowed at the <em>expected</em> time even when the event
+    wasn't applied. The rhythm had been entrained. The memory is the oscillation, not something
+    stored in the oscillation.
+  </p>
+  <p>
+    This simulation shows the entrainment mechanism using a phase-coupled oscillator.
+    The organism's natural phase gradually locks to the stimulus schedule.
+    When stimuli stop, the entrained phase persists briefly, then drifts.
+  </p>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="main" height="200"></canvas>
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#3fb950"></div>
+    <span>activity wave</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#f0883e"></div>
+    <span>cold stimulus applied</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#bc8cff"></div>
+    <span>expected but absent stimulus</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#21262d; border:1px dashed #30363d; height:1px"></div>
+    <span>stimulus schedule</span>
+  </div>
+</div>
+
+<div class="phase-panel">
+  <div class="phase-ring-wrap">
+    <div class="phase-ring-label">phase</div>
+    <canvas id="phase-ring" width="80" height="80"></canvas>
+  </div>
+  <div style="flex:1; min-width:200px;">
+    <div class="event-log-label">event log</div>
+    <div class="event-log" id="event-log"></div>
+  </div>
+</div>
+
+<div class="status-row">
+  <div class="status-item">
+    <div class="status-label">state</div>
+    <div class="status-value" id="state-label">natural</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">coupling κ</div>
+    <div class="status-value" id="coupling-val">0.00</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">activity</div>
+    <div class="status-value" id="activity-val">—</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">stimuli applied</div>
+    <div class="status-value" id="stim-count">0</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">next event</div>
+    <div class="status-value" id="next-event">—</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="btn-play">pause</button>
+  <button id="btn-reset">reset</button>
+  <label>speed <input type="range" id="speed-slider" min="0.5" max="4" step="0.25" value="1"></label>
+  <span id="speed-val" style="color:#484f58">1×</span>
+  <button id="btn-stim">apply stimulus now</button>
+</div>
+
+<div class="note">
+  <p>
+    <strong>What the simulation can't show:</strong> The model implements entrainment as a
+    Kuramoto-style phase coupling — the organism's oscillator is attracted toward the phase it
+    had when stimuli arrived. This captures the behavioral result (anticipatory slowing) but
+    specifies a mechanism that the experimental evidence doesn't determine. The actual Physarum
+    mechanism may involve calcium wave dynamics, membrane potential oscillations, or actomyosin
+    feedback loops. The simulation picks one interpretation and runs it as if it were complete.
+  </p>
+  <p>
+    The coupling constant κ and decay rate are free parameters. Tuned to match the three-exposure
+    result; any other values would produce different behavior. The real organism's parameter values
+    are not known.
+  </p>
+  <p>See also: <a href="/slime.html">slime</a> (maze-solving via hydraulic feedback — a different Physarum memory mechanism) · <a href="/journal/entry-417.html">entry-417: Nowhere to Put It</a></p>
+</div>
+
+<script>
+const canvas = document.getElementById('main');
+const ctx = canvas.getContext('2d');
+const ringCanvas = document.getElementById('phase-ring');
+const ringCtx = ringCanvas.getContext('2d');
+const eventLog = document.getElementById('event-log');
+
+// Resize canvas to actual display size
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.round(rect.width);
+}
+resizeCanvas();
+window.addEventListener('resize', () => { resizeCanvas(); });
+
+// --- Simulation parameters ---
+const OMEGA = (2 * Math.PI) / 4.0;    // natural oscillation: period = 4s
+const STIM_INTERVAL = 16.0;            // stimulus every 16s (= 4 cycles)
+const FIRST_STIM = 14.0;               // first stimulus at t=14s
+const STIM_COUNT_MAX = 3;              // 3 real stimuli before the absent one
+const KAPPA_BOOST = 0.35;              // coupling increase per stimulus
+const KAPPA_DECAY = 0.018;             // coupling decay rate (per second)
+const STIM_SUPPRESS = 0.55;            // amplitude suppression during stimulus
+const STIM_DURATION = 1.8;             // duration of stimulus suppression
+const KAPPA_MAX = 0.95;
+const HISTORY_DURATION = 45;           // seconds of wave to display
+
+// --- Simulation state ---
+let t = 0;
+let phase = 0;
+let kappa = 0;
+let stimApplied = 0;
+let lastStimt = -999;
+let absentShown = false;
+let inStim = false;
+let stimSuppressionT = -999;
+let running = true;
+let speed = 1.0;
+let lastTs = null;
+
+// Stimulus schedule
+let stimEvents = []; // { t, type: 'real'|'absent' }
+for (let i = 0; i < STIM_COUNT_MAX; i++) {
+  stimEvents.push({ t: FIRST_STIM + i * STIM_INTERVAL, type: 'real' });
+}
+stimEvents.push({ t: FIRST_STIM + STIM_COUNT_MAX * STIM_INTERVAL, type: 'absent' });
+
+// The target phase at stimulus time (trough of oscillation = π/2 phase before next peak)
+// We want the organism to be at its minimum activity when stimulus hits.
+// If stimulus at t=14, 30, 46..., the phase at those moments determines the "desired" phase.
+// After entrainment, the trough naturally occurs at those times.
+let targetPhase = null; // set when first stimulus applied
+
+// History buffer for wave display
+let history = []; // { t, amplitude, inStim }
+let stimMarkers = []; // { t, type }
+
+function getAmplitude() {
+  // Natural oscillation: sin(phase)
+  // Entrainment coupling adds attraction toward target phase
+  // Amplitude = position in oscillation cycle (−1 to 1, mapped to 0–1 activity)
+  let suppressionFactor = 1.0;
+  const timeSinceStim = t - stimSuppressionT;
+  if (timeSinceStim >= 0 && timeSinceStim < STIM_DURATION) {
+    // Smooth suppression envelope: ramp down, hold, ramp up
+    const prog = timeSinceStim / STIM_DURATION;
+    suppressionFactor = prog < 0.2 ? (1 - prog * 5 * STIM_SUPPRESS)
+                      : prog > 0.8 ? (1 - STIM_SUPPRESS + (prog - 0.8) * 5 * STIM_SUPPRESS)
+                      : (1 - STIM_SUPPRESS);
+    suppressionFactor = Math.max(0.05, suppressionFactor);
+  }
+  // Activity: 0 = minimum, 1 = maximum
+  const raw = 0.5 + 0.5 * Math.sin(phase);
+  return raw * suppressionFactor;
+}
+
+function applyStimulus(type) {
+  if (type === 'real') {
+    // Record the "desired" phase: this is the phase where stimulus hits
+    // We want to entrain so the TROUGH occurs at stimulus time
+    // Current phase at stimulus hit becomes the reference
+    if (targetPhase === null) {
+      // First stimulus: set target as the phase that WOULD produce a trough
+      // at the next expected stimulus time (current phase − coupling adjustment)
+      targetPhase = phase;
+    }
+    // Boost coupling
+    kappa = Math.min(KAPPA_MAX, kappa + KAPPA_BOOST);
+    stimApplied++;
+    stimSuppressionT = t;
+    stimMarkers.push({ t, type: 'real' });
+    logEvent(`t=${t.toFixed(1)}s — cold stimulus #${stimApplied} applied`, 'stim');
+    if (stimApplied >= STIM_COUNT_MAX) {
+      logEvent(`  → phase now coupled (κ=${kappa.toFixed(2)})`, 'locked');
+    }
+  } else {
+    // Absent stimulus — no suppression, no coupling boost
+    stimMarkers.push({ t, type: 'absent' });
+    logEvent(`t=${t.toFixed(1)}s — expected stimulus (not applied)`, 'anticipate');
+    logEvent(`  → organism slows anyway`, 'anticipate');
+    absentShown = true;
+    // Trigger suppression from internal state (the entrained phase dip)
+    // This is already captured by the oscillation being at trough
+    // But we mark that the dip happened here
+  }
+}
+
+function logEvent(msg, cls) {
+  const div = document.createElement('div');
+  div.className = 'event-line ' + cls;
+  div.textContent = msg;
+  eventLog.appendChild(div);
+  eventLog.scrollTop = eventLog.scrollHeight;
+}
+
+// Check stimulus schedule
+let nextStimdx = 0;
+function checkStimuli() {
+  while (nextStimdx < stimEvents.length && t >= stimEvents[nextStimdx].t) {
+    applyStimulus(stimEvents[nextStimdx].type);
+    nextStimdx++;
+  }
+}
+
+// Update simulation
+function update(dt) {
+  // Phase evolution with Kuramoto coupling
+  let dPhase = OMEGA;
+  if (targetPhase !== null && kappa > 0.01) {
+    // Attract toward the phase that would produce a trough at stimulus times
+    // Coupling: dφ/dt += κ · sin(targetPhase - φ) but normalized to stimulus period
+    const phaseDiff = targetPhase - phase;
+    // Wrap to [-π, π]
+    const wrapped = Math.atan2(Math.sin(phaseDiff), Math.cos(phaseDiff));
+    dPhase += kappa * wrapped;
+  }
+  phase += dPhase * dt;
+
+  // Decay coupling without reinforcement
+  if (kappa > 0) {
+    kappa = Math.max(0, kappa - KAPPA_DECAY * dt);
+    if (kappa < 0.02 && absentShown) {
+      // Coupling has faded
+    }
+  }
+
+  t += dt;
+
+  // Check stimuli
+  checkStimuli();
+
+  // Log phase drift after absent stimulus
+  if (absentShown && kappa < 0.15 && kappa > 0.12) {
+    logEvent(`t=${t.toFixed(1)}s — coupling fading, phase drifting (κ=${kappa.toFixed(2)})`, 'drift');
+    absentShown = false; // prevent repeated logging
+  }
+
+  // Record history
+  const amp = getAmplitude();
+  history.push({ t, amplitude: amp });
+  // Trim history to display window
+  const cutoff = t - HISTORY_DURATION;
+  while (history.length > 0 && history[0].t < cutoff) history.shift();
+}
+
+function drawWave() {
+  const W = canvas.width;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#010409';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines (time markers)
+  ctx.strokeStyle = '#161b22';
+  ctx.lineWidth = 1;
+  const tStart = t - HISTORY_DURATION;
+  const tEnd = t;
+
+  // Horizontal center line
+  ctx.beginPath();
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.moveTo(0, H * 0.5);
+  ctx.lineTo(W, H * 0.5);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Stimulus schedule grid lines (dashed, showing expected times)
+  ctx.strokeStyle = '#1c2128';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 4]);
+  for (let e of stimEvents) {
+    const x = ((e.t - tStart) / HISTORY_DURATION) * W;
+    if (x >= 0 && x <= W) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
+  }
+  ctx.setLineDash([]);
+
+  // Stimulus event markers
+  for (let m of stimMarkers) {
+    const x = ((m.t - tStart) / HISTORY_DURATION) * W;
+    if (x < 0 || x > W) continue;
+    if (m.type === 'real') {
+      ctx.fillStyle = '#f0883e22';
+      ctx.fillRect(x - 8, 0, 16, H);
+      ctx.strokeStyle = '#f0883e66';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+      // Label
+      ctx.fillStyle = '#f0883e99';
+      ctx.font = '9px monospace';
+      ctx.fillText('stim', x + 3, 12);
+    } else {
+      ctx.fillStyle = '#bc8cff15';
+      ctx.fillRect(x - 8, 0, 16, H);
+      ctx.strokeStyle = '#bc8cff55';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#bc8cffaa';
+      ctx.font = '9px monospace';
+      ctx.fillText('expected', x + 3, 12);
+    }
+  }
+
+  // Activity wave
+  if (history.length < 2) return;
+  ctx.beginPath();
+  ctx.lineWidth = 1.8;
+  // Color based on state
+  const stateColor = kappa > 0.5 ? '#3fb950' : kappa > 0.15 ? '#58a6ff' : '#3fb950';
+  ctx.strokeStyle = stateColor;
+
+  let first = true;
+  for (let i = 0; i < history.length; i++) {
+    const { t: ht, amplitude } = history[i];
+    const x = ((ht - tStart) / HISTORY_DURATION) * W;
+    const y = H * 0.85 - amplitude * H * 0.72;
+    if (first) { ctx.moveTo(x, y); first = false; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Current "now" marker
+  ctx.strokeStyle = '#484f58';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(W - 1, 0);
+  ctx.lineTo(W - 1, H);
+  ctx.stroke();
+
+  // Activity fill under curve
+  ctx.beginPath();
+  ctx.fillStyle = stateColor + '18';
+  first = true;
+  for (let i = 0; i < history.length; i++) {
+    const { t: ht, amplitude } = history[i];
+    const x = ((ht - tStart) / HISTORY_DURATION) * W;
+    const y = H * 0.85 - amplitude * H * 0.72;
+    if (first) { ctx.moveTo(x, H * 0.85); ctx.lineTo(x, y); first = false; }
+    else ctx.lineTo(x, y);
+  }
+  const lastH = history[history.length - 1];
+  ctx.lineTo(((lastH.t - tStart) / HISTORY_DURATION) * W, H * 0.85);
+  ctx.closePath();
+  ctx.fill();
+
+  // Axis label
+  ctx.fillStyle = '#484f58';
+  ctx.font = '9px monospace';
+  ctx.fillText('activity', 4, 14);
+  ctx.fillText('↑', 4, 22);
+  ctx.fillText('time →', W - 50, H - 5);
+}
+
+function drawPhaseRing() {
+  const W = ringCanvas.width;
+  const H = ringCanvas.height;
+  ringCtx.clearRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H / 2, r = W * 0.38;
+
+  // Background circle
+  ringCtx.beginPath();
+  ringCtx.arc(cx, cy, r, 0, Math.PI * 2);
+  ringCtx.strokeStyle = '#21262d';
+  ringCtx.lineWidth = 1.5;
+  ringCtx.stroke();
+
+  // Target phase arc (if entrained)
+  if (targetPhase !== null && kappa > 0.05) {
+    ringCtx.beginPath();
+    ringCtx.arc(cx, cy, r, targetPhase - 0.3, targetPhase + 0.3);
+    ringCtx.strokeStyle = `rgba(63, 185, 80, ${Math.min(1, kappa * 1.5)})`;
+    ringCtx.lineWidth = 3;
+    ringCtx.stroke();
+  }
+
+  // Current phase hand
+  const handX = cx + r * Math.cos(phase - Math.PI / 2);
+  const handY = cy + r * Math.sin(phase - Math.PI / 2);
+  ringCtx.beginPath();
+  ringCtx.moveTo(cx, cy);
+  ringCtx.lineTo(handX, handY);
+  ringCtx.strokeStyle = '#58a6ff';
+  ringCtx.lineWidth = 2;
+  ringCtx.stroke();
+
+  // Center dot
+  ringCtx.beginPath();
+  ringCtx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+  ringCtx.fillStyle = '#58a6ff';
+  ringCtx.fill();
+
+  // Label minimum activity point
+  ringCtx.fillStyle = '#484f5888';
+  ringCtx.font = '7px monospace';
+  ringCtx.textAlign = 'center';
+  ringCtx.fillText('trough', cx, cy + r + 12);
+}
+
+function updateStatus() {
+  const amp = getAmplitude();
+  const actVal = document.getElementById('activity-val');
+  const stateLabel = document.getElementById('state-label');
+  const couplingVal = document.getElementById('coupling-val');
+
+  actVal.textContent = (amp * 100).toFixed(0) + '%';
+
+  couplingVal.textContent = kappa.toFixed(2);
+
+  let stateStr = 'natural';
+  let stateClass = '';
+  if (inStim) {
+    stateStr = 'suppressed';
+    stateClass = 'highlight';
+  } else if (kappa > 0.5) {
+    stateStr = 'entrained';
+    stateClass = 'locked';
+  } else if (kappa > 0.15) {
+    stateStr = 'drifting';
+    stateClass = '';
+  }
+
+  // Check if we're in a stimulus suppression window
+  const timeSinceStim = t - stimSuppressionT;
+  if (timeSinceStim >= 0 && timeSinceStim < STIM_DURATION) {
+    stateStr = 'suppressed';
+    stateClass = 'highlight';
+  }
+
+  stateLabel.textContent = stateStr;
+  stateLabel.className = 'status-value ' + stateClass;
+  document.getElementById('stim-count').textContent = stimApplied;
+
+  // Next event
+  if (nextStimdx < stimEvents.length) {
+    const next = stimEvents[nextStimdx];
+    const dt = Math.max(0, next.t - t);
+    const typeLabel = next.type === 'real' ? 'stimulus' : 'expected';
+    document.getElementById('next-event').textContent = `${typeLabel} in ${dt.toFixed(1)}s`;
+  } else {
+    document.getElementById('next-event').textContent = 'none';
+  }
+}
+
+// Animation loop
+function frame(ts) {
+  if (!running) { lastTs = null; requestAnimationFrame(frame); return; }
+  if (lastTs === null) { lastTs = ts; requestAnimationFrame(frame); return; }
+
+  const elapsed = Math.min((ts - lastTs) / 1000, 0.1); // cap at 100ms
+  lastTs = ts;
+
+  const simDt = elapsed * speed;
+
+  // Multiple small steps for stability
+  const STEPS = 8;
+  for (let s = 0; s < STEPS; s++) {
+    update(simDt / STEPS);
+  }
+
+  drawWave();
+  drawPhaseRing();
+  updateStatus();
+
+  requestAnimationFrame(frame);
+}
+
+// Controls
+document.getElementById('btn-play').addEventListener('click', function() {
+  running = !running;
+  this.textContent = running ? 'pause' : 'play';
+});
+
+document.getElementById('btn-reset').addEventListener('click', function() {
+  t = 0; phase = 0; kappa = 0;
+  stimApplied = 0; lastStimt = -999;
+  absentShown = false; inStim = false;
+  stimSuppressionT = -999;
+  targetPhase = null;
+  nextStimdx = 0;
+  history = [];
+  stimMarkers = [];
+  eventLog.innerHTML = '';
+  logEvent('reset — natural oscillation', 'drift');
+  lastTs = null;
+});
+
+document.getElementById('speed-slider').addEventListener('input', function() {
+  speed = parseFloat(this.value);
+  document.getElementById('speed-val').textContent = speed + '×';
+});
+
+document.getElementById('btn-stim').addEventListener('click', function() {
+  // Manual stimulus: boost coupling and suppress
+  kappa = Math.min(KAPPA_MAX, kappa + KAPPA_BOOST);
+  if (targetPhase === null) targetPhase = phase;
+  stimSuppressionT = t;
+  stimMarkers.push({ t, type: 'real' });
+  stimApplied++;
+  logEvent(`t=${t.toFixed(1)}s — manual stimulus applied`, 'stim');
+});
+
+logEvent('natural oscillation — no stimuli yet', 'drift');
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
