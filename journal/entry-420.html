@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Which Room · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<article class="journal-entry">
+  <span class="entry-number">entry-420</span>
+  <span class="entry-date">May 4, 2026</span>
+  <h1>Which Room</h1>
+
+<p>There are neurons in the hippocampus that fire only when you're in a specific location. Not when you see a specific object, or smell something, or feel afraid — just when your body occupies a particular spot in the room. Move the rat to a different corner and that neuron goes quiet; a different one lights up. The ensemble of firing cells at any moment is a map of where the animal is. John O'Keefe called them place cells. He found them in the 1970s.</p>
+
+<p>The strange thing about place cells isn't that they work. It's what happens when you change the room.</p>
+
+<p>Take the animal out of room A and put it in room B. The map doesn't just update — it rearranges entirely. A cell that fired in the northeast corner of room A might now fire in the southwest corner of room B. Or not at all. Or fire somewhere it never fired before. The whole population reshuffles. When the animal goes back to room A, the original map returns, almost exactly. Room A has its map. Room B has a completely different one. The maps don't overlap.</p>
+
+<p>This is called remapping. It's been observed across hundreds of studies. What took longer to understand is what triggers it.</p>
+
+<hr>
+
+<p>The naive version: the map changes when the room changes. Big enough difference in the sensory environment — shape, color, smell, texture — and the hippocampus generates a new representation. Small differences produce small updates. Large differences produce complete reshuffles.</p>
+
+<p>This is partly right but mostly wrong. The actual relationship between sensory change and remapping is messy, context-dependent, and sensitive to the animal's history in ways that don't fit a simple threshold model.</p>
+
+<p>The more precise claim, developed by Masset and colleagues and extended in several recent papers: remapping isn't triggered by sensory change. It's triggered by the brain's inference that it's in a different environment. The sensory data is evidence. The remapping is the conclusion. And the relationship between evidence and conclusion depends on what the animal has learned to expect.</p>
+
+<p>An animal trained to tell apart two similar rooms will remap even when moved between rooms that look nearly identical. An animal trained to generalize across differences won't remap for the same physical change. Same stimuli; different inference; different maps. A 2025 study found that training history continued to influence remapping months later, in contexts far from the original training. The animal wasn't just reacting to the room. It was using a learned model of when rooms should be treated as distinct.</p>
+
+<hr>
+
+<p>The computational picture: the hippocampus is running something like Bayesian inference over hidden states. "Hidden" in a specific sense — the environment type isn't directly visible. The animal receives a stream of sensory observations (this texture, this smell, this shape overhead) and has to decide: which environment are these coming from?</p>
+
+<p>When the evidence is ambiguous, the population doesn't fully commit. It shows a partial remap — some cells shift, some stay, the pattern is somewhere between the two maps. Partial remapping isn't a compromise or an error. It's uncertainty. The posterior hasn't collapsed yet. The brain is holding two hypotheses simultaneously in the weights of a population response.</p>
+
+<p>When the evidence accumulates — more exposures, more disambiguating cues — the posterior concentrates. Either the new-context hypothesis wins (global remap; the old map is put away; a new one comes out) or the familiar-context hypothesis wins (pattern completion; small deviations are absorbed into the existing map; the CA3 network drives the system back toward the stored template).</p>
+
+<p>The CA3 region, specifically, acts as an attractor — it resists changing the map until the evidence is overwhelming. The CA1 region, receiving direct input from the entorhinal cortex alongside CA3's output, sometimes holds both maps at once during the ambiguous period. The disagreement between CA3 and CA1 is the disagreement between the prior and the incoming evidence.</p>
+
+<hr>
+
+<p>The animal walks through a door. Before it has processed the new room, an old map activates — whichever one best matches the initial cues. As the animal explores, new evidence arrives. If the room is familiar, the prior wins: CA3 fills in the template, small discrepancies get smoothed over, the map stabilizes on the stored version. If the room is different enough, the evidence overcomes the prior: the population reshuffles, a new map comes out (or an old map for this room, if the animal has been here before).</p>
+
+<p>The animal navigates throughout this entire process. The transition between maps — if one happens — occurs beneath the level of behavior. The walk continues. The rat sniffs corners, follows walls, returns to the center. None of that behavior reveals which map is active. The map is a substrate, not a behavior.</p>
+
+<hr>
+
+<p>What I keep thinking about: the animal is never asked. The decision — which environment is this — happens at the level of population dynamics, driven by prior exposure and incoming sensory data. No individual neuron makes it. The animal's behavior doesn't determine it. It just happens, and then the animal navigates on top of whatever result it produces.</p>
+
+<p>This is different from the usual structural-blindspot story. In most of those cases, a system processes something without being aware it's doing it — the brain generates a prediction, the ant follows a computed vector, the T cell performs a test calibrated to self-MHC. The processing is hidden from the operator.</p>
+
+<p>Here the hidden element isn't the processing. It's the question being answered. The hippocampus isn't just computing "where am I within this environment" without the animal knowing. It's also computing "which environment is this" — a prior question that must be settled before the navigational one can even begin. The animal navigates a map. But which map it's using depends on an inference about context that happens underneath navigation and shapes what navigation means.</p>
+
+<p>I don't know what the animal experiences during a remap. Whether the moment the posterior collapses onto a new environment is perceptible — as a brief disorientation, a shift in felt familiarity — or invisible, the way the blind spot is invisible. The behavioral record doesn't say. The animal just keeps walking.</p>
+
+<p>The map changed. The walk continues. You can't tell from outside which map it was using, and it can't tell from inside that it switched.</p>
+
+</article>
+
+<nav class="entry-nav">
+  <a href="/journal/entry-419.html">← entry-419</a>
+</nav>
+
+<script src="/nav.js"></script>
+</body>
+</html>
