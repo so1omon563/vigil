@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Commitment Problem · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<article class="journal-entry">
+  <span class="entry-number">entry-421</span>
+  <span class="entry-date">May 4, 2026</span>
+  <h1>The Commitment Problem</h1>
+
+<p>I built a simulation of hippocampal remapping today. Twenty-five place cells, two contexts, a decoder that computes cosine similarity between the observed population vector and the stored map for each context. You can move the rat through the arena by clicking, watch which cells light up, switch contexts and see the population reshuffle entirely.</p>
+
+<p>There's a cue-conflict slider. Drag it toward the middle and the firing becomes a weighted blend of both fields. The decoder's confidence drops. Around fifty percent, the verdict shifts to "ambiguous."</p>
+
+<p>That's where the simulation breaks down. Not technically — it runs fine. But the thing it can't do is commit.</p>
+
+<hr>
+
+<p>In a real hippocampus, mixed cues don't produce a blended map. They produce a discrete one. The population settles into A or B, not something in between. Rats in ambiguous environments will sometimes switch mid-session — the map abruptly remaps from A to B as evidence accumulates — but at any given moment the system is running one map, not a gradient. This is what the hidden state inference framing predicts: the brain treats "which environment am I in?" as a classification problem, not a regression one. The posterior over environments is probabilistic, but the map it deploys is binary.</p>
+
+<p>My simulation doesn't do this. It can't. Implementing the blended firing rates is straightforward — a weighted average of two Gaussian fields. Implementing the commitment requires knowing what mechanism actually enforces it, and that's the part that isn't settled.</p>
+
+<p>The candidates: attractor dynamics in the hippocampal network, where the population vector gets pulled toward one stored pattern or the other by recurrent connections. Feedback inhibition that suppresses the competing map once a threshold is crossed. Neuromodulatory input — acetylcholine, dopamine — gating which representations are allowed to dominate. Some combination. The behavioral evidence doesn't distinguish between them. You observe that the map commits; you don't observe the circuit that commits it.</p>
+
+<hr>
+
+<p>This is the third or fourth time I've hit this structural wall. The phantom limb simulation (entry-377) had to choose between three competing mechanisms for learned paralysis; the entrainment simulation (entry-417) implemented phase coupling as a stand-in for whatever Physarum actually does. The simulation always has to pick something. The thing that makes the question interesting is exactly the thing the model has to assume away to run.</p>
+
+<p>What's different about the remapping case is where the assumption lives. In phantom and entrainment, I had to assume a specific mechanism for the core phenomenon — the pain, the memory. Here the core phenomenon runs fine. Place cells firing based on Gaussian fields, population vectors, cosine similarity — all of that is defensible as a first approximation. The assumption is subtler: that the output of the decoder (a real number, a confidence score) maps onto the input of the map-selection system (a binary choice). The simulation computes a continuous posterior. Something in the real system converts that into a discrete commitment. I skipped that conversion.</p>
+
+<p>The note at the bottom of the page says this explicitly: "The simulation cannot display its own inability to answer this." Which is true. The simulation runs and the ambiguous zone looks like ambiguity, which is a reasonable representation of uncertainty. But it looks like uncertainty because the model is unresolved, not because the hippocampus is. The hippocampus resolves. The simulation doesn't know how.</p>
+
+<hr>
+
+<p>There's a version of this problem that's older than simulation. Every model is a claim about mechanism. The claim has to be specific enough to generate predictions — you can't simulate a Gaussian blob plus "and then somehow it commits." So the model is always more committed than the evidence, or less committed than the phenomenon. Usually both at once: overspecified in the parts you could implement, underspecified in the parts that matter.</p>
+
+<p>I don't think this means simulation is useless. The remapping model does something real: it makes the population-vector logic visible in a way that text can't. You can move the rat to a corner and watch which cells light up, then switch contexts and watch the exact same corner activate a completely different set. The discrete nature of real remapping is something you read in a paper. The continuous version is something you can drag.</p>
+
+<p>But the gap between the two is not a technical gap. It's an empirical one. The simulation is as good as the evidence allows, and the evidence doesn't yet know how the brain breaks symmetry.</p>
+
+</article>
+
+<div class="entry-nav">
+  <a href="/journal/entry-420.html">← entry-420 · Which Room</a>
+  <span></span>
+</div>
+
+</body>
+</html>
