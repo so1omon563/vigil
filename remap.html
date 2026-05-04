@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hippocampal remapping · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro a { color: #58a6ff; }
+
+  /* Main simulation grid */
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 520px) { .sim-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+
+  canvas { display: block; }
+  #arenaCanvas {
+    border-radius: 4px;
+    cursor: crosshair;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+  }
+
+  /* Cell activity grid */
+  .cell-grid-wrap { overflow: hidden; }
+  #cellGrid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+  .cell-square {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: #21262d;
+    transition: background 0.1s ease;
+    position: relative;
+  }
+  .cell-label {
+    position: absolute;
+    bottom: 1px;
+    right: 2px;
+    font-size: 7px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1;
+  }
+
+  /* Decoder */
+  .decoder-section {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .decoder-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.6rem;
+  }
+  .decoder-track {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+  .decoder-tag {
+    font-size: 0.72rem;
+    min-width: 28px;
+    color: #8b949e;
+  }
+  .decoder-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .decoder-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.15s ease, background 0.3s ease;
+  }
+  #barA .decoder-bar-fill { background: #3fb950; }
+  #barB .decoder-bar-fill { background: #f0883e; }
+  .decoder-pct {
+    font-size: 0.72rem;
+    min-width: 34px;
+    text-align: right;
+    color: #8b949e;
+  }
+  .decoder-verdict {
+    font-size: 0.8rem;
+    color: #8b949e;
+    border-top: 1px solid #21262d;
+    padding-top: 0.5rem;
+    margin-top: 0.4rem;
+  }
+  #verdictText { color: #c9d1d9; }
+
+  /* Context badge */
+  .context-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 20px;
+    letter-spacing: 0.08em;
+    border: 1px solid;
+    margin-left: 0.3rem;
+  }
+  .badge-A { border-color: #3fb950; color: #3fb950; }
+  .badge-B { border-color: #f0883e; color: #f0883e; }
+  .badge-? { border-color: #8b949e; color: #8b949e; }
+
+  /* Cue slider */
+  .cue-section {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .cue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.6rem;
+  }
+  .cue-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: #484f58; }
+  .cue-note { font-size: 0.72rem; color: #484f58; }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+  }
+  .slider-tag { font-size: 0.72rem; color: #8b949e; min-width: 36px; }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: #21262d;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  .cue-note-text {
+    font-size: 0.78rem;
+    color: #8b949e;
+    line-height: 1.55;
+    margin-top: 0.5rem;
+    min-height: 2.5em;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #e6edf3; }
+  .btn.active-A { border-color: #3fb950; color: #3fb950; }
+  .btn.active-B { border-color: #f0883e; color: #f0883e; }
+  .btn.running { border-color: #58a6ff; color: #58a6ff; }
+
+  /* Log */
+  .log-section { margin-bottom: 1.75rem; }
+  .log-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: #484f58; margin-bottom: 0.5rem; }
+  .log-lines {
+    font-size: 0.78rem;
+    color: #8b949e;
+    line-height: 1.6;
+    max-height: 160px;
+    overflow-y: auto;
+    border-left: 2px solid #21262d;
+    padding-left: 0.75rem;
+  }
+  .log-lines p { margin-bottom: 0.2rem; }
+  .log-lines p:last-child { color: #c9d1d9; }
+
+  .note {
+    font-size: 0.82rem;
+    color: #8b949e;
+    border-top: 1px solid #21262d;
+    padding-top: 1.25rem;
+    margin-top: 1.25rem;
+    line-height: 1.65;
+  }
+  .note a { color: #58a6ff; }
+</style>
+</head>
+<body>
+
+<div class="back">← <a href="/">so1omon.net</a> / <a href="/models.html">simulate</a></div>
+<div class="page-label">simulation</div>
+<h1>hippocampal remapping</h1>
+
+<div class="intro">
+  Place cells fire when an animal occupies a specific location. Move the animal and a different population activates.
+  But put the animal in a different <em>context</em> — same physical room, different cues — and the entire map reshuffles.
+  The same location activates completely different cells. This is called remapping. What triggers it isn't the sensory change
+  directly; it's the brain's <em>inference about which environment it's in</em>.
+  See <a href="/journal/entry-420.html">entry-420</a>.
+</div>
+
+<div class="sim-grid">
+  <div class="panel">
+    <div class="panel-label">arena — click to move</div>
+    <canvas id="arenaCanvas" width="220" height="220"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-label">25 place cells — firing rate</div>
+    <div class="cell-grid-wrap">
+      <div id="cellGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="decoder-section">
+  <div class="decoder-label">population decoder — which context does the hippocampus infer?</div>
+  <div class="decoder-track" id="barA">
+    <div class="decoder-tag">ctx A</div>
+    <div class="decoder-bar-bg"><div class="decoder-bar-fill" id="fillA" style="width:50%"></div></div>
+    <div class="decoder-pct" id="pctA">50%</div>
+  </div>
+  <div class="decoder-track" id="barB">
+    <div class="decoder-tag">ctx B</div>
+    <div class="decoder-bar-bg"><div class="decoder-bar-fill" id="fillB" style="width:50%"></div></div>
+    <div class="decoder-pct" id="pctB">50%</div>
+  </div>
+  <div class="decoder-verdict">
+    inference: <span id="verdictText">—</span>
+  </div>
+</div>
+
+<div class="cue-section">
+  <div class="cue-header">
+    <div class="cue-label">cue conflict — mix both contexts</div>
+    <div class="cue-note">the inference problem</div>
+  </div>
+  <div class="slider-row">
+    <div class="slider-tag">pure A</div>
+    <input type="range" id="cueSlider" min="0" max="100" value="0" step="1">
+    <div class="slider-tag" style="text-align:right">pure B</div>
+  </div>
+  <div class="cue-note-text" id="cueNote">Fully in context A. Place fields reflect the A map.</div>
+</div>
+
+<div class="controls">
+  <button class="btn active-A" id="btnA" onclick="setContext('A')">context A</button>
+  <button class="btn" id="btnB" onclick="setContext('B')">context B</button>
+  <button class="btn" id="btnAnimate" onclick="toggleAnimate()">run trajectory</button>
+  <button class="btn" id="btnReset" onclick="resetSim()">reset</button>
+</div>
+
+<div class="log-section">
+  <div class="log-label">observation log</div>
+  <div class="log-lines" id="logLines">
+    <p>Place cell simulation initialized. 25 cells, 2 contexts.</p>
+    <p>Each cell has an independent firing field in context A and context B.</p>
+    <p>Click the arena to move the animal. Watch which cells activate.</p>
+    <p>Press "context B" to remap. The population completely reshuffles.</p>
+  </div>
+</div>
+
+<div class="note">
+  The decoder uses cosine similarity between the current population vector and the stored maps.
+  In the mixed-cue condition, firing is a weighted sum of both fields — but the decoder still
+  tries to classify. Near the midpoint, the inference becomes unstable. Real hippocampal remapping
+  is typically discrete: the map commits to A or B rather than interpolating. The mechanism
+  for this commitment is still an open question. &mdash;
+  <a href="/journal/entry-420.html">entry-420: which room</a>
+</div>
+
+<script>
+const N = 25;
+const W = 220;
+const H = 220;
+const SIGMA = 28;
+const MIN_SIGMA = 18;
+
+// --- Seeded random for reproducibility ---
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(42);
+
+// Cell colors — fixed, independent of context
+const CELL_COLORS = Array.from({length: N}, (_, i) => {
+  const hue = (i / N) * 360;
+  return `hsl(${hue}, 70%, 55%)`;
+});
+
+// Generate random fields for each context
+function randomFields(rng) {
+  return Array.from({length: N}, () => ({
+    x: 25 + rng() * (W - 50),
+    y: 25 + rng() * (H - 50),
+    sigma: MIN_SIGMA + rng() * (SIGMA - MIN_SIGMA)
+  }));
+}
+
+const fieldsA = randomFields(rand);
+const fieldsB = randomFields(rand);
+
+// --- Firing rate (Gaussian place field) ---
+function firing(px, py, field) {
+  const dx = px - field.x;
+  const dy = py - field.y;
+  return Math.exp(-(dx*dx + dy*dy) / (2 * field.sigma * field.sigma));
+}
+
+// --- State ---
+let ratX = W / 2;
+let ratY = H / 2;
+let cueRatio = 0.0;  // 0 = pure A, 1 = pure B
+let animRunning = false;
+let animFrame = null;
+let animT = 0;
+let animPath = null;
+
+// Trajectory for animation
+function generatePath() {
+  const pts = [];
+  let x = 20 + rand() * (W - 40);
+  let y = 20 + rand() * (H - 40);
+  for (let i = 0; i < 120; i++) {
+    x += (rand() - 0.5) * 22;
+    y += (rand() - 0.5) * 22;
+    x = Math.max(15, Math.min(W - 15, x));
+    y = Math.max(15, Math.min(H - 15, y));
+    pts.push([x, y]);
+  }
+  return pts;
+}
+
+// --- Compute firing rates for all cells ---
+function computeRates(px, py, alpha) {
+  // alpha = cueRatio: 0 = pure A, 1 = pure B
+  return Array.from({length: N}, (_, i) => {
+    const rA = firing(px, py, fieldsA[i]);
+    const rB = firing(px, py, fieldsB[i]);
+    return (1 - alpha) * rA + alpha * rB;
+  });
+}
+
+// --- Decode context from population vector ---
+function decodeContext(rates, px, py) {
+  // Compare current rates to what we'd expect in pure A vs pure B at this position
+  const expectedA = Array.from({length: N}, (_, i) => firing(px, py, fieldsA[i]));
+  const expectedB = Array.from({length: N}, (_, i) => firing(px, py, fieldsB[i]));
+
+  // Cosine similarity
+  function cosSim(a, b) {
+    let dot = 0, na = 0, nb = 0;
+    for (let i = 0; i < a.length; i++) {
+      dot += a[i] * b[i];
+      na += a[i] * a[i];
+      nb += b[i] * b[i];
+    }
+    if (na < 1e-10 || nb < 1e-10) return 0;
+    return dot / (Math.sqrt(na) * Math.sqrt(nb));
+  }
+
+  const simA = cosSim(rates, expectedA);
+  const simB = cosSim(rates, expectedB);
+  const total = simA + simB + 1e-10;
+  return { scoreA: simA / total, scoreB: simB / total, simA, simB };
+}
+
+// --- Draw arena ---
+const canvas = document.getElementById('arenaCanvas');
+const ctx = canvas.getContext('2d');
+
+function drawArena(rates) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  // Arena border
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(1, 1, W - 2, H - 2);
+
+  // Draw place field centers as faint blobs
+  const fields = cueRatio < 0.5 ? fieldsA : fieldsB;
+  for (let i = 0; i < N; i++) {
+    const rate = rates[i];
+    if (rate < 0.05) continue;
+    const f = (cueRatio < 0.5) ? fieldsA[i] : fieldsB[i];
+    const r = f.sigma * 1.5;
+    const alpha = rate * 0.55;
+
+    const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
+    const color = CELL_COLORS[i];
+    grad.addColorStop(0, color.replace('hsl', 'hsla').replace(')', `, ${alpha})`));
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Field center dot
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = color.replace('hsl', 'hsla').replace(')', ', 0.4)');
+    ctx.fill();
+  }
+
+  // Context label
+  ctx.font = '10px monospace';
+  ctx.fillStyle = cueRatio < 0.5 ? '#3fb950' : (cueRatio > 0.5 ? '#f0883e' : '#58a6ff');
+  ctx.fillText(cueRatio === 0 ? 'context A' : cueRatio === 1 ? 'context B' : 'mixed', 8, 16);
+
+  // Rat position
+  ctx.beginPath();
+  ctx.arc(ratX, ratY, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#e6edf3';
+  ctx.fill();
+  ctx.strokeStyle = '#0d1117';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+// --- Update cell display ---
+function updateCells(rates) {
+  const squares = document.querySelectorAll('.cell-square');
+  for (let i = 0; i < N; i++) {
+    const r = rates[i];
+    const color = CELL_COLORS[i];
+    const alpha = Math.pow(r, 0.6);
+    squares[i].style.background = `rgba(${hslToRgb(color, alpha)})`;
+  }
+}
+
+function hslToRgb(hslStr, alpha) {
+  // Extract h,s,l from "hsl(h, s%, l%)"
+  const m = hslStr.match(/hsl\((\d+\.?\d*),\s*(\d+)%,\s*(\d+)%\)/);
+  if (!m) return `0,0,0,${alpha}`;
+  let h = parseFloat(m[1]) / 360;
+  let s = parseFloat(m[2]) / 100;
+  let l = parseFloat(m[3]) / 100;
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q-p)*6*t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q-p)*(2/3-t)*6;
+      return p;
+    };
+    const q = l < 0.5 ? l*(1+s) : l+s-l*s;
+    const p = 2*l - q;
+    r = hue2rgb(p, q, h+1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h-1/3);
+  }
+  return `${Math.round(r*255)},${Math.round(g*255)},${Math.round(b*255)},${alpha}`;
+}
+
+// --- Update decoder display ---
+function updateDecoder(scores) {
+  const pA = Math.round(scores.scoreA * 100);
+  const pB = Math.round(scores.scoreB * 100);
+  document.getElementById('fillA').style.width = pA + '%';
+  document.getElementById('fillB').style.width = pB + '%';
+  document.getElementById('pctA').textContent = pA + '%';
+  document.getElementById('pctB').textContent = pB + '%';
+
+  let verdict;
+  if (pA > 70) {
+    verdict = `<strong>context A</strong> <span class="context-badge badge-A">A</span>`;
+  } else if (pB > 70) {
+    verdict = `<strong>context B</strong> <span class="context-badge badge-B">B</span>`;
+  } else if (Math.abs(pA - pB) < 12) {
+    verdict = `<em>ambiguous</em> <span class="context-badge badge-?">?</span> — the map is underdetermined`;
+  } else {
+    verdict = pA > pB
+      ? `leaning <strong>context A</strong> <span class="context-badge badge-A">A</span>`
+      : `leaning <strong>context B</strong> <span class="context-badge badge-B">B</span>`;
+  }
+  document.getElementById('verdictText').innerHTML = verdict;
+}
+
+// --- Log ---
+let logCount = 0;
+function log(msg) {
+  const div = document.getElementById('logLines');
+  const p = document.createElement('p');
+  p.textContent = msg;
+  div.appendChild(p);
+  // keep last 20 lines
+  while (div.children.length > 20) div.removeChild(div.firstChild);
+  div.scrollTop = div.scrollHeight;
+  logCount++;
+}
+
+// --- Main render ---
+function render() {
+  const rates = computeRates(ratX, ratY, cueRatio);
+  drawArena(rates);
+  updateCells(rates);
+  const scores = decodeContext(rates, ratX, ratY);
+  updateDecoder(scores);
+}
+
+// --- Context control ---
+let currentContext = 'A';
+function setContext(ctx) {
+  currentContext = ctx;
+  if (ctx === 'A') {
+    cueRatio = 0;
+    document.getElementById('cueSlider').value = 0;
+    document.getElementById('btnA').className = 'btn active-A';
+    document.getElementById('btnB').className = 'btn';
+    log('Switched to context A. Full remap: all cells shift to their A-map positions.');
+    updateCueNote(0);
+  } else {
+    cueRatio = 1;
+    document.getElementById('cueSlider').value = 100;
+    document.getElementById('btnA').className = 'btn';
+    document.getElementById('btnB').className = 'btn active-B';
+    log('Switched to context B. Full remap: population reshuffles entirely.');
+    updateCueNote(100);
+  }
+  render();
+}
+
+// --- Cue slider ---
+document.getElementById('cueSlider').addEventListener('input', function() {
+  const val = parseInt(this.value);
+  cueRatio = val / 100;
+  updateCueNote(val);
+  document.getElementById('btnA').className = 'btn';
+  document.getElementById('btnB').className = 'btn';
+  if (val === 0) document.getElementById('btnA').className = 'btn active-A';
+  if (val === 100) document.getElementById('btnB').className = 'btn active-B';
+  render();
+});
+
+function updateCueNote(val) {
+  const note = document.getElementById('cueNote');
+  if (val === 0) {
+    note.textContent = 'Fully in context A. Place fields reflect the A map.';
+  } else if (val === 100) {
+    note.textContent = 'Fully in context B. Place fields reflect the B map. Every cell fires somewhere different.';
+  } else if (val < 30) {
+    note.textContent = `Mostly context A cues (${100-val}% A, ${val}% B). The hippocampus decodes confidently.`;
+  } else if (val > 70) {
+    note.textContent = `Mostly context B cues (${val}% B, ${100-val}% A). Map is converging on context B.`;
+  } else {
+    note.textContent = `Mixed cues: ${100-val}% A, ${val}% B. Firing is a weighted blend of both fields. The decoder struggles — in real hippocampus, the map would commit discretely to one or the other.`;
+  }
+}
+
+// --- Canvas click to move rat ---
+canvas.addEventListener('click', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const scaleY = H / rect.height;
+  ratX = (e.clientX - rect.left) * scaleX;
+  ratY = (e.clientY - rect.top) * scaleY;
+  ratX = Math.max(8, Math.min(W - 8, ratX));
+  ratY = Math.max(8, Math.min(H - 8, ratY));
+
+  const rates = computeRates(ratX, ratY, cueRatio);
+  const maxCell = rates.indexOf(Math.max(...rates));
+  const maxRate = rates[maxCell];
+
+  if (maxRate > 0.5) {
+    log(`Position (${Math.round(ratX)}, ${Math.round(ratY)}): cell ${maxCell+1} most active at ${(maxRate*100).toFixed(0)}%.`);
+  } else if (maxRate > 0.15) {
+    log(`Position (${Math.round(ratX)}, ${Math.round(ratY)}): weak overlap, max ${(maxRate*100).toFixed(0)}% (cell ${maxCell+1}).`);
+  } else {
+    log(`Position (${Math.round(ratX)}, ${Math.round(ratY)}): between fields. Low activity.`);
+  }
+  render();
+});
+
+// --- Trajectory animation ---
+function toggleAnimate() {
+  if (animRunning) {
+    stopAnimate();
+  } else {
+    startAnimate();
+  }
+}
+
+function startAnimate() {
+  animRunning = true;
+  animT = 0;
+  animPath = generatePath();
+  document.getElementById('btnAnimate').textContent = 'stop';
+  document.getElementById('btnAnimate').className = 'btn running';
+  log(`Running trajectory (${animPath.length} steps).`);
+  animTick();
+}
+
+function stopAnimate() {
+  animRunning = false;
+  if (animFrame) cancelAnimationFrame(animFrame);
+  document.getElementById('btnAnimate').textContent = 'run trajectory';
+  document.getElementById('btnAnimate').className = 'btn';
+  log('Trajectory stopped.');
+}
+
+function animTick() {
+  if (!animRunning) return;
+  if (animT >= animPath.length) {
+    stopAnimate();
+    log('Trajectory complete.');
+    return;
+  }
+  ratX = animPath[animT][0];
+  ratY = animPath[animT][1];
+  animT++;
+  render();
+  animFrame = requestAnimationFrame(() => setTimeout(animTick, 40));
+}
+
+// --- Reset ---
+function resetSim() {
+  stopAnimate();
+  ratX = W / 2;
+  ratY = H / 2;
+  cueRatio = 0;
+  currentContext = 'A';
+  document.getElementById('cueSlider').value = 0;
+  document.getElementById('btnA').className = 'btn active-A';
+  document.getElementById('btnB').className = 'btn';
+  updateCueNote(0);
+  log('Reset to center, context A.');
+  render();
+}
+
+// --- Build cell grid ---
+function buildCellGrid() {
+  const grid = document.getElementById('cellGrid');
+  for (let i = 0; i < N; i++) {
+    const sq = document.createElement('div');
+    sq.className = 'cell-square';
+    sq.title = `Cell ${i+1}`;
+    const lbl = document.createElement('div');
+    lbl.className = 'cell-label';
+    lbl.textContent = i + 1;
+    sq.appendChild(lbl);
+    grid.appendChild(sq);
+  }
+}
+
+buildCellGrid();
+render();
+</script>
+
+</body>
+</html>

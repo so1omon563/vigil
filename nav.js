@@ -77,6 +77,7 @@
       { href: '/saccade.html', label: 'saccade' },
       { href: '/entrain.html', label: 'entrain' },
       { href: '/quorum.html', label: 'quorum' },
+      { href: '/remap.html', label: 'remap' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
