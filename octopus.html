@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>octopus arm · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+  }
+  .intro p { margin-bottom: 0.7rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .intro a { color: #58a6ff; }
+
+  .canvas-wrap {
+    border: 1px solid #21262d;
+    background: #060a10;
+    margin-bottom: 0;
+    overflow: hidden;
+    position: relative;
+    cursor: crosshair;
+  }
+  canvas { display: block; width: 100%; }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    border: 1px solid #21262d;
+    border-top: none;
+    background: #0a0e14;
+    margin-bottom: 0;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 0.76rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.35rem 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #58a6ff; color: #58a6ff; background: rgba(88,166,255,0.05); }
+  .btn.danger { border-color: #da3633; color: #f85149; }
+  .btn.danger:hover { border-color: #f85149; color: #ff7b72; }
+
+  .ctrl-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.3rem;
+  }
+
+  .status-bar {
+    padding: 0.6rem 1rem;
+    border: 1px solid #21262d;
+    border-top: none;
+    background: #0a0e14;
+    font-size: 0.75rem;
+    color: #484f58;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    min-height: 2.2rem;
+    align-items: center;
+  }
+  .status-item { display: flex; gap: 0.35rem; align-items: center; }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .arm-grid {
+    padding: 0.6rem 1rem;
+    border: 1px solid #21262d;
+    border-top: none;
+    background: #0a0e14;
+    font-size: 0.7rem;
+    color: #484f58;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .arm-badge {
+    padding: 0.2rem 0.5rem;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    font-size: 0.68rem;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .note {
+    font-size: 0.78rem;
+    color: #484f58;
+    line-height: 1.65;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .related-row {
+    font-size: 0.78rem;
+    color: #484f58;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+  }
+  .related-row a { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .canvas-wrap { border-color: #d0d7de; background: #eef0f2; }
+  html[data-theme="light"] .controls,
+  html[data-theme="light"] .status-bar,
+  html[data-theme="light"] .arm-grid { border-color: #d0d7de; background: #f0f2f4; }
+  html[data-theme="light"] .arm-badge { border-color: #d0d7de; }
+  html[data-theme="light"] .btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .note { color: #8c959f; border-left-color: #d0d7de; }
+  html[data-theme="light"] .related-row { color: #8c959f; border-top-color: #d0d7de; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← so1omon.net</a></div>
+<div class="page-label">simulate · 19</div>
+<h1>octopus arm</h1>
+
+<div class="intro">
+  <p>A severed octopus arm will reach for food for up to an hour after being cut off. It responds to threat. It withdraws and extends. The central brain is gone — but the arm keeps working because it was always working locally. Two-thirds of octopus neurons are in the arms, not the brain. The brain sets broad goals; each arm runs its own sensorimotor loop.</p>
+  <p>This simulation models that structure. Eight arms, each with a local sensor zone (45° sector). A central brain that assigns food targets across arms to minimize redundancy. Toggle the brain off: arms still reach, but with less coordination. Click an arm to sever it: it disconnects from the brain and acts locally — but notice what stays the same.</p>
+  <p>Related: <a href="/journal/entry-422.html">After the Cut</a> · <a href="/journal/entry-423.html">Where the Decision Lives</a></p>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="c" width="720" height="440"></canvas>
+</div>
+
+<div class="controls">
+  <span class="ctrl-label">brain:</span>
+  <button class="btn active" id="btn-central" onclick="toggleCentral()">coordinating</button>
+  <span class="ctrl-label" style="margin-left:0.5rem">click arm to sever ·</span>
+  <button class="btn" id="btn-reset" onclick="resetSevered()">restore all</button>
+  <button class="btn" id="btn-food" onclick="addFood()">+ food</button>
+  <button class="btn" id="btn-pause" onclick="togglePause()">pause</button>
+</div>
+
+<div class="status-bar" id="status-bar">
+  <span class="status-item"><span class="status-dot" style="background:#58a6ff"></span>connected</span>
+  <span class="status-item"><span class="status-dot" style="background:#6e8aa0"></span>severed</span>
+  <span class="status-item"><span class="status-dot" style="background:#ffa040"></span>grasping food</span>
+  <span class="status-item"><span class="status-dot" style="background:#f85149"></span>threat response</span>
+  <span id="status-note" style="margin-left:auto;color:#484f58;font-size:0.72rem"></span>
+</div>
+
+<div class="arm-grid" id="arm-grid"></div>
+
+<div class="note">
+  When the brain is toggled off, arms stop receiving goal assignments and rely on local zone sensing. Severed arms lose the brain connection permanently but continue to respond — their behavior changes less than expected, because the execution was always local. The simulation cannot show whether the arm that reaches after severing is doing the same thing as the arm that reached before.
+</div>
+
+<div class="related-row">
+  see also: <a href="/quorum.html">quorum</a> · <a href="/remap.html">remap</a> · <a href="/chemotaxis.html">chemotaxis</a> · <a href="/models.html">all models</a>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const CX = W / 2, CY = H / 2 + 10;
+
+// ── constants ──
+const N_ARMS = 8;
+const BODY_RX = 46, BODY_RY = 36;
+const ARM_REST = 135;   // resting arm length
+const ARM_REACH = 155;  // max reach
+const REACH_SPEED = 2.8;
+const RETRACT_SPEED = 3.5;
+const FOOD_RADIUS = 6;
+const FOOD_GRAB_DIST = 18;
+const THREAT_RADIUS = 8;
+const THREAT_SPEED = 0.6;
+const THREAT_REPEL_DIST = 100;
+const SECTOR_HALF = Math.PI / N_ARMS + 0.15; // arm's local detection arc (±)
+const LOCAL_SENSE_DIST = 170;
+const CENTRAL_SENSE_DIST = 260;
+
+// ── state ──
+let centralMode = true;
+let paused = false;
+let arms = [];
+let foods = [];
+let threats = [];
+let particles = []; // visual effects
+let frame = 0;
+
+// ── init arms ──
+function initArms() {
+  arms = [];
+  for (let i = 0; i < N_ARMS; i++) {
+    // Angle: start from bottom-left, spread around body
+    // Arrange so arm 0 is at bottom (so they look natural hanging)
+    const a = (i / N_ARMS) * Math.PI * 2 + Math.PI / 2;
+    const bx = CX + Math.cos(a) * BODY_RX;
+    const by = CY + Math.sin(a) * BODY_RY;
+    const tipX = CX + Math.cos(a) * (BODY_RX + ARM_REST);
+    const tipY = CY + Math.sin(a) * (BODY_RY + ARM_REST);
+    arms.push({
+      id: i,
+      angle: a,
+      base: { x: bx, y: by },
+      tip: { x: tipX, y: tipY },
+      restX: tipX,
+      restY: tipY,
+      targetFood: null, // index into foods[]
+      state: 'resting', // resting | reaching | grasping | retracting
+      severed: false,
+      graspTimer: 0,
+      // gentle wave offset for resting animation
+      wavePhase: (i / N_ARMS) * Math.PI * 2,
+    });
+  }
+}
+
+// ── init food ──
+function spawnFood() {
+  const a = Math.random() * Math.PI * 2;
+  const r = 155 + Math.random() * 120;
+  let x = CX + Math.cos(a) * r;
+  let y = CY + Math.sin(a) * r;
+  // Keep within canvas
+  x = Math.max(FOOD_RADIUS + 8, Math.min(W - FOOD_RADIUS - 8, x));
+  y = Math.max(FOOD_RADIUS + 8, Math.min(H - FOOD_RADIUS - 8, y));
+  return {
+    x, y,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35,
+    alive: true,
+    flash: 0,
+  };
+}
+
+function spawnThreat() {
+  const edge = Math.floor(Math.random() * 4);
+  let x, y;
+  if (edge === 0) { x = 40 + Math.random() * (W - 80); y = 8; }
+  else if (edge === 1) { x = W - 8; y = 40 + Math.random() * (H - 80); }
+  else if (edge === 2) { x = 40 + Math.random() * (W - 80); y = H - 8; }
+  else { x = 8; y = 40 + Math.random() * (H - 80); }
+  return { x, y, alive: true };
+}
+
+// ── init food ──
+for (let i = 0; i < 9; i++) foods.push(spawnFood());
+threats.push(spawnThreat());
+
+initArms();
+
+// ── arm direction helpers ──
+function armAngle(arm) { return arm.angle; }
+
+function inArmSector(arm, x, y) {
+  // Is (x,y) within this arm's detection sector?
+  const dx = x - CX, dy = y - CY;
+  const a = Math.atan2(dy, dx);
+  let diff = a - arm.angle;
+  // Normalize to [-π, π]
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+  return Math.abs(diff) < SECTOR_HALF;
+}
+
+function dist(ax, ay, bx, by) {
+  const dx = ax - bx, dy = ay - by;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+// ── assign food targets (central mode) ──
+function assignTargets() {
+  if (!centralMode) return;
+
+  // Clear existing assignments
+  for (const arm of arms) {
+    if (!arm.severed) arm.targetFood = null;
+  }
+
+  // Greedy assignment: for each food, find nearest non-severed arm
+  const assignedFoods = new Set();
+
+  // Sort arms by their current state priority (resting arms get assigned first)
+  const available = arms.filter(a => !a.severed && a.state !== 'grasping');
+
+  for (const arm of available) {
+    let bestFood = null, bestDist = Infinity;
+    for (let fi = 0; fi < foods.length; fi++) {
+      const f = foods[fi];
+      if (!f.alive || assignedFoods.has(fi)) continue;
+      const d = dist(arm.tip.x, arm.tip.y, f.x, f.y);
+      if (d < CENTRAL_SENSE_DIST && d < bestDist) {
+        bestDist = d;
+        bestFood = fi;
+      }
+    }
+    if (bestFood !== null) {
+      arm.targetFood = bestFood;
+      assignedFoods.add(bestFood);
+    }
+  }
+}
+
+// ── local food assignment (no central) ──
+function localAssign(arm) {
+  if (centralMode && !arm.severed) return; // handled centrally
+
+  // Find nearest food in sector
+  let bestFood = null, bestDist = Infinity;
+  for (let fi = 0; fi < foods.length; fi++) {
+    const f = foods[fi];
+    if (!f.alive) continue;
+    if (!inArmSector(arm, f.x, f.y)) continue;
+    const d = dist(arm.tip.x, arm.tip.y, f.x, f.y);
+    if (d < LOCAL_SENSE_DIST && d < bestDist) {
+      bestDist = d;
+      bestFood = fi;
+    }
+  }
+  arm.targetFood = bestFood;
+}
+
+// ── update arm physics ──
+function updateArm(arm) {
+  // Check threat in sector
+  let threatened = false;
+  for (const t of threats) {
+    if (!t.alive) continue;
+    if (inArmSector(arm, t.x, t.y)) {
+      const d = dist(arm.tip.x, arm.tip.y, t.x, t.y);
+      if (d < THREAT_REPEL_DIST) {
+        threatened = true;
+        break;
+      }
+    }
+  }
+
+  if (threatened) {
+    // Retract toward body
+    arm.state = 'retracting';
+    const rx = CX + Math.cos(arm.angle) * BODY_RX * 0.5;
+    const ry = CY + Math.sin(arm.angle) * BODY_RY * 0.5;
+    arm.tip.x += (rx - arm.tip.x) * 0.07;
+    arm.tip.y += (ry - arm.tip.y) * 0.07;
+    return;
+  }
+
+  // If grasping, wait
+  if (arm.state === 'grasping') {
+    arm.graspTimer--;
+    if (arm.graspTimer <= 0) {
+      arm.state = 'resting';
+      arm.targetFood = null;
+    }
+    return;
+  }
+
+  // Get target food
+  if (!centralMode || arm.severed) localAssign(arm);
+
+  const fi = arm.targetFood;
+  if (fi !== null && fi !== undefined && foods[fi] && foods[fi].alive) {
+    const f = foods[fi];
+    const d = dist(arm.tip.x, arm.tip.y, f.x, f.y);
+
+    if (d < FOOD_GRAB_DIST) {
+      // Grasp!
+      arm.state = 'grasping';
+      arm.graspTimer = 40;
+      f.alive = false;
+      // Particle burst
+      for (let p = 0; p < 8; p++) {
+        const pa = Math.random() * Math.PI * 2;
+        const pspd = 1.5 + Math.random() * 2;
+        particles.push({
+          x: f.x, y: f.y,
+          vx: Math.cos(pa) * pspd,
+          vy: Math.sin(pa) * pspd,
+          life: 30, maxLife: 30,
+          color: arm.severed ? '#6e8aa0' : '#ffa040'
+        });
+      }
+      // Respawn food after delay
+      setTimeout(() => {
+        const idx = foods.indexOf(f);
+        if (idx !== -1) foods.splice(idx, 1, spawnFood());
+      }, 1200);
+      return;
+    }
+
+    // Move toward food
+    arm.state = 'reaching';
+    const s = REACH_SPEED;
+    arm.tip.x += (f.x - arm.tip.x) / d * s;
+    arm.tip.y += (f.y - arm.tip.y) / d * s;
+
+    // Don't go too far
+    const tipDist = dist(CX, CY, arm.tip.x, arm.tip.y);
+    if (tipDist > ARM_REACH + Math.sqrt(BODY_RX * BODY_RY)) {
+      arm.tip.x = CX + (arm.tip.x - CX) / tipDist * (ARM_REACH + Math.sqrt(BODY_RX * BODY_RY));
+      arm.tip.y = CY + (arm.tip.y - CY) / tipDist * (ARM_REACH + Math.sqrt(BODY_RX * BODY_RY));
+    }
+  } else {
+    // Return to rest with gentle wave
+    arm.state = 'resting';
+    arm.targetFood = null;
+
+    const wave = Math.sin(frame * 0.018 + arm.wavePhase) * 14;
+    const perpA = arm.angle + Math.PI / 2;
+    const rx = arm.restX + Math.cos(perpA) * wave;
+    const ry = arm.restY + Math.sin(perpA) * wave;
+
+    arm.tip.x += (rx - arm.tip.x) * 0.04;
+    arm.tip.y += (ry - arm.tip.y) * 0.04;
+  }
+}
+
+// ── draw helpers ──
+function quadPt(p0, p1, p2, t) {
+  const q = 1 - t;
+  return q * q * p0 + 2 * q * t * p1 + t * t * p2;
+}
+
+function drawArm(arm) {
+  const { base, tip, severed, state } = arm;
+
+  // Control point: bend slightly perpendicular to arm direction
+  const mx = (base.x + tip.x) / 2;
+  const my = (base.y + tip.y) / 2;
+  const dx = tip.x - base.x, dy = tip.y - base.y;
+  // Slight inward curve (toward center)
+  const cToCx = CX - mx, cToCy = CY - my;
+  const cLen = Math.sqrt(cToCx * cToCx + cToCy * cToCy) || 1;
+  const cpx = mx + (cToCx / cLen) * 18;
+  const cpy = my + (cToCy / cLen) * 18;
+
+  // Arm color palette
+  let hue, alpha;
+  if (severed) {
+    hue = state === 'reaching' ? '#5d7a90' : '#3d5060';
+    alpha = 0.85;
+  } else {
+    switch (state) {
+      case 'reaching':   hue = '#3d7fcf'; alpha = 1.0; break;
+      case 'grasping':   hue = '#c67e20'; alpha = 1.0; break;
+      case 'retracting': hue = '#993030'; alpha = 1.0; break;
+      default:           hue = '#1e4d82'; alpha = 0.9;
+    }
+  }
+
+  // Draw tapering arm: series of circles along bezier
+  const N = 22;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const bx = quadPt(base.x, cpx, tip.x, t);
+    const by = quadPt(base.y, cpy, tip.y, t);
+    const r = Math.max(0.8, 6.5 * (1 - t * 0.85));
+    ctx.beginPath();
+    ctx.arc(bx, by, r, 0, Math.PI * 2);
+    ctx.fillStyle = hue;
+    ctx.globalAlpha = alpha;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Severed ring at base
+  if (severed) {
+    ctx.beginPath();
+    ctx.arc(base.x, base.y, 9, 0, Math.PI * 2);
+    ctx.strokeStyle = '#f85149';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // Small gap marker
+    ctx.beginPath();
+    ctx.arc(base.x, base.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a0808';
+    ctx.fill();
+  }
+
+  // Reaching dot at tip
+  if (state === 'reaching' && !severed) {
+    ctx.beginPath();
+    ctx.arc(tip.x, tip.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#7bb8ff';
+    ctx.globalAlpha = 0.7;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawBody() {
+  // Mantle glow
+  const grd = ctx.createRadialGradient(CX, CY - 8, 10, CX, CY, 90);
+  grd.addColorStop(0, 'rgba(30,60,120,0.4)');
+  grd.addColorStop(1, 'rgba(10,20,50,0)');
+  ctx.beginPath();
+  ctx.ellipse(CX, CY - 8, 85, 70, 0, 0, Math.PI * 2);
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // Body ellipse
+  ctx.beginPath();
+  ctx.ellipse(CX, CY, BODY_RX, BODY_RY, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#1a3a6a';
+  ctx.strokeStyle = '#2d5a9e';
+  ctx.lineWidth = 1.5;
+  ctx.fill();
+  ctx.stroke();
+
+  // Mantle top
+  ctx.beginPath();
+  ctx.ellipse(CX, CY - BODY_RY * 0.6, BODY_RX * 0.75, BODY_RY * 0.65, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#22487c';
+  ctx.fill();
+
+  // Eyes
+  const eyeOff = 16;
+  for (const ex of [CX - eyeOff, CX + eyeOff]) {
+    const ey = CY - 8;
+    ctx.beginPath();
+    ctx.arc(ex, ey, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#0a1828';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ex, ey, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#8ab4e0';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ex + 1.5, ey - 1.5, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+  }
+
+  // Brain status indicator (small pulse in center)
+  if (centralMode) {
+    const pulse = 0.6 + 0.4 * Math.sin(frame * 0.06);
+    ctx.beginPath();
+    ctx.arc(CX, CY + 4, 5 * pulse, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(88,166,255,${0.3 * pulse})`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(CX, CY + 4, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#58a6ff';
+    ctx.fill();
+  } else {
+    ctx.beginPath();
+    ctx.arc(CX, CY + 4, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#484f58';
+    ctx.fill();
+  }
+}
+
+function drawFood(f) {
+  if (!f.alive) return;
+  const pulse = 0.85 + 0.15 * Math.sin(frame * 0.07 + f.x);
+  ctx.beginPath();
+  ctx.arc(f.x, f.y, FOOD_RADIUS * pulse, 0, Math.PI * 2);
+  ctx.fillStyle = '#d47020';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(f.x - 1.5, f.y - 1.5, FOOD_RADIUS * pulse * 0.45, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffc060';
+  ctx.fill();
+}
+
+function drawThreat(t) {
+  if (!t.alive) return;
+  const pulse = 0.8 + 0.2 * Math.sin(frame * 0.1 + t.x);
+  // Outer halo
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, THREAT_RADIUS * 2.2 * pulse, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(248,81,73,0.1)';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, THREAT_RADIUS * pulse, 0, Math.PI * 2);
+  ctx.fillStyle = '#8b1a1a';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, THREAT_RADIUS * pulse * 0.55, 0, Math.PI * 2);
+  ctx.fillStyle = '#f85149';
+  ctx.fill();
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    if (p.life <= 0) continue;
+    const a = p.life / p.maxLife;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.5 * a, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = a * 0.8;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// Draw brain signal lines (when in central mode)
+function drawBrainSignals() {
+  if (!centralMode) return;
+  for (const arm of arms) {
+    if (arm.severed || arm.targetFood === null) continue;
+    const f = foods[arm.targetFood];
+    if (!f || !f.alive) continue;
+    const alpha = 0.08 + 0.06 * Math.sin(frame * 0.05 + arm.id);
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(f.x, f.y);
+    ctx.strokeStyle = `rgba(88,166,255,${alpha})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+// ── UI updates ──
+function updateArmGrid() {
+  const grid = document.getElementById('arm-grid');
+  const badges = grid.querySelectorAll('.arm-badge');
+  const NAMES = ['0','1','2','3','4','5','6','7'];
+
+  if (badges.length === 0) {
+    // Initial build
+    grid.innerHTML = '';
+    for (const arm of arms) {
+      const b = document.createElement('span');
+      b.className = 'arm-badge';
+      b.id = `arm-badge-${arm.id}`;
+      grid.appendChild(b);
+    }
+  }
+
+  for (const arm of arms) {
+    const b = document.getElementById(`arm-badge-${arm.id}`);
+    if (!b) continue;
+    let label = `arm ${arm.id}`;
+    let color = '#484f58';
+    let border = '#21262d';
+
+    if (arm.severed) {
+      label += ' · severed';
+      color = '#5d7a90'; border = '#3d5060';
+    } else {
+      switch (arm.state) {
+        case 'reaching':   label += ' · reaching';   color = '#58a6ff'; border = '#2d5a9e'; break;
+        case 'grasping':   label += ' · grasping';   color = '#ffa040'; border = '#c06010'; break;
+        case 'retracting': label += ' · retract';    color = '#f85149'; border = '#993030'; break;
+        default:           label += ' · resting';
+      }
+    }
+
+    b.textContent = label;
+    b.style.color = color;
+    b.style.borderColor = border;
+  }
+
+  // Status note
+  const sevCount = arms.filter(a => a.severed).length;
+  const reachCount = arms.filter(a => !a.severed && a.state === 'reaching').length;
+  const note = document.getElementById('status-note');
+  let msg = '';
+  if (sevCount > 0) msg += `${sevCount} severed · `;
+  if (!centralMode) msg += 'brain disconnected · ';
+  msg += `${reachCount} reaching`;
+  note.textContent = msg;
+}
+
+// ── click to sever ──
+canvas.addEventListener('click', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const scaleY = H / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  // Check proximity to any arm base or near-base segment
+  let closest = null, closestDist = Infinity;
+  for (const arm of arms) {
+    // Check distance to a point along the arm (first quarter)
+    const t = 0.25;
+    const cpx = arm.base.x + (arm.tip.x - arm.base.x) * 0.3;
+    const cpy = arm.base.y + (arm.tip.y - arm.base.y) * 0.3;
+    const px = quadPt(arm.base.x, cpx, arm.tip.x, t);
+    const py = quadPt(arm.base.y, cpy, arm.tip.y, t);
+    const d = dist(mx, my, px, py);
+    if (d < 28 && d < closestDist) {
+      closestDist = d;
+      closest = arm;
+    }
+  }
+
+  if (closest) {
+    closest.severed = !closest.severed;
+    if (closest.severed) {
+      closest.targetFood = null;
+    }
+  }
+});
+
+// ── control functions ──
+function toggleCentral() {
+  centralMode = !centralMode;
+  const btn = document.getElementById('btn-central');
+  if (centralMode) {
+    btn.textContent = 'coordinating';
+    btn.classList.add('active');
+  } else {
+    btn.textContent = 'disconnected';
+    btn.classList.remove('active');
+  }
+}
+
+function resetSevered() {
+  for (const arm of arms) {
+    arm.severed = false;
+    arm.targetFood = null;
+    arm.state = 'resting';
+  }
+}
+
+function addFood() {
+  foods.push(spawnFood());
+}
+
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btn-pause');
+  btn.textContent = paused ? 'resume' : 'pause';
+  btn.classList.toggle('active', paused);
+  if (!paused) loop();
+}
+
+// ── threat management ──
+let threatTimer = 0;
+function updateThreats() {
+  threatTimer++;
+  if (threatTimer > 420) {
+    threatTimer = 0;
+    if (threats.length < 3) threats.push(spawnThreat());
+  }
+
+  for (const t of threats) {
+    if (!t.alive) continue;
+    const dx = CX - t.x, dy = CY - t.y;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d < 60) {
+      // Reached center, remove
+      t.alive = false;
+      continue;
+    }
+    t.x += (dx / d) * THREAT_SPEED;
+    t.y += (dy / d) * THREAT_SPEED;
+  }
+  // Remove dead threats
+  for (let i = threats.length - 1; i >= 0; i--) {
+    if (!threats[i].alive) threats.splice(i, 1);
+  }
+}
+
+// ── food drift ──
+function updateFoods() {
+  for (const f of foods) {
+    if (!f.alive) continue;
+    f.x += f.vx;
+    f.y += f.vy;
+    // Bounce off edges
+    if (f.x < FOOD_RADIUS + 5 || f.x > W - FOOD_RADIUS - 5) { f.vx *= -1; f.x = Math.max(FOOD_RADIUS + 5, Math.min(W - FOOD_RADIUS - 5, f.x)); }
+    if (f.y < FOOD_RADIUS + 5 || f.y > H - FOOD_RADIUS - 5) { f.vy *= -1; f.y = Math.max(FOOD_RADIUS + 5, Math.min(H - FOOD_RADIUS - 5, f.y)); }
+    // Drift away from center slightly (so food doesn't cluster)
+    const ddx = f.x - CX, ddy = f.y - CY;
+    const dd = Math.sqrt(ddx * ddx + ddy * ddy);
+    if (dd < 130 && dd > 0) {
+      f.vx += (ddx / dd) * 0.012;
+      f.vy += (ddy / dd) * 0.012;
+    }
+    // Dampen velocity
+    f.vx *= 0.997;
+    f.vy *= 0.997;
+  }
+}
+
+// ── particles ──
+function updateParticles() {
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.92;
+    p.vy *= 0.92;
+    p.life--;
+  }
+  for (let i = particles.length - 1; i >= 0; i--) {
+    if (particles[i].life <= 0) particles.splice(i, 1);
+  }
+}
+
+// ── main loop ──
+function loop() {
+  if (paused) return;
+  frame++;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background gradient
+  const bg = ctx.createRadialGradient(CX, CY, 30, CX, CY, 320);
+  bg.addColorStop(0, '#0a1020');
+  bg.addColorStop(1, '#060a10');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Sector guide lines (subtle)
+  if (false) { // disabled — too busy
+    for (const arm of arms) {
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      const endX = CX + Math.cos(arm.angle) * 260;
+      const endY = CY + Math.sin(arm.angle) * 260;
+      ctx.lineTo(endX, endY);
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+
+  // Update food & threats
+  updateFoods();
+  updateThreats();
+  updateParticles();
+
+  // Assign targets (central mode)
+  if (frame % 12 === 0) assignTargets();
+
+  // Update arms
+  for (const arm of arms) updateArm(arm);
+
+  // Draw: brain signal lines (background)
+  drawBrainSignals();
+
+  // Draw food & threats
+  for (const f of foods) drawFood(f);
+  for (const t of threats) drawThreat(t);
+
+  // Draw arms (under body)
+  for (const arm of arms) drawArm(arm);
+
+  // Draw body on top
+  drawBody();
+
+  // Draw particles
+  drawParticles();
+
+  // UI updates (every 8 frames)
+  if (frame % 8 === 0) updateArmGrid();
+
+  requestAnimationFrame(loop);
+}
+
+// Build arm badges
+updateArmGrid();
+loop();
+</script>
+</body>
+</html>

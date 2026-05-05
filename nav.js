@@ -78,6 +78,7 @@
       { href: '/entrain.html', label: 'entrain' },
       { href: '/quorum.html', label: 'quorum' },
       { href: '/remap.html', label: 'remap' },
+      { href: '/octopus.html', label: 'octopus' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
