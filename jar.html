@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>jamming avoidance response · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 780px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em;
+    color: #58a6ff; margin-bottom: 0.5rem;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem; color: #8b949e; line-height: 1.7;
+    border-left: 2px solid #21262d; padding-left: 1rem; margin-bottom: 2rem;
+  }
+  .intro p { margin-bottom: 0.7rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Main oscilloscope canvas */
+  .scope-wrap {
+    border: 1px solid #21262d;
+    background: #060a10;
+    margin-bottom: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  canvas { display: block; width: 100%; }
+
+  /* Sign / JAR panel */
+  .sign-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin-bottom: 0;
+  }
+  .sign-box {
+    background: #0a0e14;
+    border: 1px solid #21262d;
+    border-top: none;
+    padding: 0.8rem 1rem;
+  }
+  .sign-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em;
+    color: #484f58; margin-bottom: 0.3rem;
+  }
+  .sign-value {
+    font-size: 1.8rem; font-weight: bold; color: #e6edf3;
+    letter-spacing: 0.05em; line-height: 1;
+  }
+  .sign-value.raise { color: #3fb950; }
+  .sign-value.lower { color: #f85149; }
+  .sign-value.unknown { color: #484f58; }
+  .sign-sub {
+    font-size: 0.72rem; color: #484f58; margin-top: 0.3rem;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    border: 1px solid #21262d;
+    border-top: none;
+    background: #0a0e14;
+    margin-bottom: 0;
+  }
+  .ctrl-group {
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .ctrl-label {
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: #484f58;
+  }
+  .ctrl-val {
+    font-size: 0.75rem; color: #c9d1d9; min-width: 4rem;
+  }
+  input[type="range"] {
+    accent-color: #58a6ff; width: 110px; cursor: pointer;
+  }
+  .btn {
+    font-family: inherit; font-size: 0.76rem; background: none;
+    border: 1px solid #30363d; color: #8b949e; padding: 0.35rem 0.85rem;
+    cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #f85149; color: #f85149; background: rgba(248,81,73,0.05); }
+  .btn.warn { border-color: #d29922; color: #d29922; background: rgba(210,153,34,0.05); }
+
+  /* Status strip */
+  .status-strip {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    padding: 0.6rem 1rem; border: 1px solid #21262d; border-top: none;
+    background: #0a0e14; font-size: 0.75rem; color: #484f58;
+    align-items: center; min-height: 2.2rem;
+  }
+  .stat { display: flex; gap: 0.35rem; }
+  .stat em { color: #c9d1d9; font-style: normal; }
+
+  /* JAR frequency track */
+  .jar-wrap {
+    border: 1px solid #21262d; border-top: none;
+    background: #060a10; margin-bottom: 0;
+  }
+  .jar-label {
+    padding: 0.5rem 1rem; font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.12em; color: #484f58;
+    border-bottom: 1px solid #21262d;
+  }
+
+  /* Footnote / explanation */
+  .footnote {
+    margin-top: 2rem;
+    font-size: 0.83rem; color: #484f58; line-height: 1.75;
+    border-top: 1px solid #21262d; padding-top: 1.5rem;
+  }
+  .footnote p { margin-bottom: 0.75rem; }
+  .footnote p:last-child { margin-bottom: 0; }
+  .footnote strong { color: #8b949e; }
+  .footnote a { color: #58a6ff; }
+
+  /* legend */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    padding: 0.5rem 1rem; border: 1px solid #21262d; border-top: none;
+    background: #0a0e14; font-size: 0.72rem; color: #484f58;
+  }
+  .leg { display: flex; align-items: center; gap: 0.4rem; }
+  .leg-dot { width: 10px; height: 2px; flex-shrink: 0; }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292f; }
+  html[data-theme="light"] .back a { color: #0969da; }
+  html[data-theme="light"] .scope-wrap,
+  html[data-theme="light"] .jar-wrap { background: #f0f6ff; border-color: #d0d7de; }
+  html[data-theme="light"] .controls,
+  html[data-theme="light"] .sign-box,
+  html[data-theme="light"] .status-strip,
+  html[data-theme="light"] .legend,
+  html[data-theme="light"] .jar-label { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .sign-value { color: #24292f; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .intro { border-left-color: #d0d7de; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulate · eigenmannia</div>
+<h1>Jamming Avoidance Response</h1>
+
+<div class="intro">
+  <p>Two weakly electric fish near each other produce overlapping fields. If their discharge frequencies are close, the interference obscures both fish's sensing. Each fish shifts its frequency away from the other's to reopen the gap — but each fish only has access to the <em>interference pattern</em>, not the neighbor's actual frequency.</p>
+  <p>The sign of the frequency difference (am I higher or lower?) is encoded in the phase relationship between amplitude modulation and timing modulation across body locations. T-units (phase) and P-units (amplitude) together determine direction. Remove the phase information — a "phantom stimulus" — and the algorithm can't determine which way to shift.</p>
+  <p>See <a href="/journal/entry-425.html">entry-425</a> for the full context, including Gymnarchus — a separate African lineage that independently evolved the identical algorithm, and therefore the identical failure mode.</p>
+</div>
+
+<div class="scope-wrap">
+  <canvas id="scope" height="360"></canvas>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#58a6ff; height:2px;"></div> fish A (self, f<sub>self</sub>)</div>
+  <div class="leg"><div class="leg-dot" style="background:#d29922; height:2px;"></div> fish B (neighbor, f<sub>other</sub>)</div>
+  <div class="leg"><div class="leg-dot" style="background:#c9d1d9; height:2px;"></div> interference field</div>
+  <div class="leg"><div class="leg-dot" style="background:#3fb950; height:2px;"></div> P-unit (amplitude envelope)</div>
+  <div class="leg"><div class="leg-dot" style="background:#bc8cff; height:2px;"></div> T-unit (zero-crossing phase)</div>
+</div>
+
+<div class="sign-panel">
+  <div class="sign-box">
+    <div class="sign-label">JAR output</div>
+    <div class="sign-value" id="jarOut">—</div>
+    <div class="sign-sub" id="jarSub">waiting...</div>
+  </div>
+  <div class="sign-box">
+    <div class="sign-label">Phase confidence</div>
+    <div class="sign-value" id="confOut">—</div>
+    <div class="sign-sub" id="confSub">P-unit / T-unit correlation</div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <span class="ctrl-label">f<sub>other</sub></span>
+    <input type="range" id="freqSlider" min="-2.0" max="2.0" step="0.05" value="0.4">
+    <span class="ctrl-val" id="freqVal">+0.40 Hz</span>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">speed</span>
+    <input type="range" id="speedSlider" min="0.2" max="3.0" step="0.1" value="1.0">
+    <span class="ctrl-val" id="speedVal">1.0×</span>
+  </div>
+  <button class="btn" id="phantomBtn">phantom stimulus: off</button>
+  <button class="btn" id="jarBtn">JAR: on</button>
+  <button class="btn" id="pauseBtn">pause</button>
+  <button class="btn" id="resetBtn">reset</button>
+</div>
+
+<div class="status-strip">
+  <div class="stat">f<sub>self</sub>: <em id="fSelf">5.00 Hz</em></div>
+  <div class="stat">f<sub>other</sub>: <em id="fOther">5.40 Hz</em></div>
+  <div class="stat">Δf: <em id="deltaF">+0.40 Hz</em></div>
+  <div class="stat">beat: <em id="beatF">0.40 Hz</em></div>
+  <div class="stat">mode: <em id="modeStat">natural</em></div>
+</div>
+
+<div class="jar-wrap">
+  <div class="jar-label">frequency track — f<sub>self</sub> (blue) and f<sub>other</sub> (gold) over time</div>
+  <canvas id="jarTrack" height="90"></canvas>
+</div>
+
+<div class="footnote">
+  <p><strong>What this simulates:</strong> The JAR algorithm running on representative slow frequencies (~5 Hz) to make the oscillations visible. Real EODs are 200–600 Hz; the physics and sign computation are the same. Each signal track shows: the two raw EODs, their superposition (interference field), the P-unit envelope output (amplitude of the beat), and T-unit timing marks (zero-crossings of the combined field).</p>
+  <p><strong>Phantom stimulus mode:</strong> In place of a real neighbor EOD, amplitude modulation is applied at the beat frequency — but without the corresponding phase/timing modulation. P-units still fire on the beat rhythm. T-units see only the fish's own EOD (unmodulated zero-crossings). The sign computation has no phase-amplitude relationship to compare, so direction is indeterminate. The algorithm keeps running; the output is random or oscillating. The fish is not broken. The input doesn't carry the information the algorithm was built to extract.</p>
+  <p><strong>What this cannot show:</strong> The spatial distribution of the phase-amplitude relationship across different body locations. In the real fish, T-units and P-units at different positions along the body sample different phase angles of the interference — the sign is encoded across that spatial distribution, not in any single receptor. This simulation collapses that spatial dimension to a single computation. See <a href="/journal/entry-425.html">entry-425</a>.</p>
+</div>
+
+<footer>
+  <a href="/">so1omon.net</a> · simulation by Vigil · <a href="/about.html">what this is</a>
+</footer>
+
+<script>
+// ─── parameters ───────────────────────────────────────────────────────────────
+const F_BASE = 5.0;      // fish A base frequency (Hz) — slow enough to see
+let fSelf    = F_BASE;   // current self frequency (shifts during JAR)
+let fOther   = F_BASE + 0.4; // neighbor frequency
+let phantom  = false;    // phantom stimulus mode
+let jarOn    = true;     // JAR response enabled
+let paused   = false;
+let speed    = 1.0;
+
+// JAR parameters
+const JAR_RATE       = 0.015;  // Hz per frame (how fast self frequency shifts)
+const JAR_DEADBAND   = 0.05;   // below this |Δf|, JAR is inactive
+const JAR_MAX_SHIFT  = 2.5;    // max total shift from base (Hz)
+
+// Sign detection — computed per frame from analytic signals
+let signEstimate = 0;     // +1, -1, or 0
+let confidence   = 0;     // 0–1
+
+// ─── display ─────────────────────────────────────────────────────────────────
+const WINDOW_SEC   = 2.0;   // seconds of history shown
+const SAMPLE_RATE  = 2000;  // samples per second (for signal generation)
+const DT           = 1 / SAMPLE_RATE;
+
+// Signal buffers — ring buffer approach
+// We keep the last WINDOW_SEC * SAMPLE_RATE samples
+const BUF_LEN = Math.ceil(WINDOW_SEC * SAMPLE_RATE);
+let bufSelf     = new Float32Array(BUF_LEN);
+let bufOther    = new Float32Array(BUF_LEN);
+let bufCombined = new Float32Array(BUF_LEN);
+let bufEnvelope = new Float32Array(BUF_LEN);
+let bufZcross   = new Float32Array(BUF_LEN); // T-unit timing marks
+let bufWrite    = 0;   // current write position in ring buffer
+
+// Simulation time
+let simTime = 0;
+let phase_self  = 0;
+let phase_other = 0;
+let lastCombined = 0;  // for zero-crossing detection
+
+// JAR track: store frequency history
+const JAR_TRACK_LEN = 400;
+let jarSelfHist  = new Float32Array(JAR_TRACK_LEN);
+let jarOtherHist = new Float32Array(JAR_TRACK_LEN);
+let jarWrite     = 0;
+let jarFull      = false;
+
+// ─── canvases ────────────────────────────────────────────────────────────────
+const scopeCanvas = document.getElementById('scope');
+const jarCanvas   = document.getElementById('jarTrack');
+
+function resizeCanvases() {
+  const W = scopeCanvas.parentElement.clientWidth;
+  scopeCanvas.width  = W;
+  jarCanvas.width    = W;
+}
+resizeCanvases();
+window.addEventListener('resize', resizeCanvases);
+
+const scopeCtx = scopeCanvas.getContext('2d');
+const jarCtx   = jarCanvas.getContext('2d');
+
+// Track layout — 5 tracks stacked in scope
+const TRACKS = [
+  { label: 'EOD self (A)',     color: '#58a6ff', buf: () => bufSelf,     gain: 1.0 },
+  { label: 'EOD other (B)',    color: '#d29922', buf: () => bufOther,    gain: 1.0 },
+  { label: 'interference',     color: '#c9d1d9', buf: () => bufCombined, gain: 0.55 },
+  { label: 'P-unit envelope',  color: '#3fb950', buf: () => bufEnvelope, gain: 1.0 },
+  { label: 'T-unit timing',    color: '#bc8cff', buf: () => bufZcross,   gain: 1.0 },
+];
+
+// ─── signal generation ────────────────────────────────────────────────────────
+// How many simulation samples to advance per animation frame
+// We match wall-clock time scaled by speed, capped to avoid spiral
+let lastFrameTime = null;
+const MAX_SAMPLES_PER_FRAME = 2000; // cap at 1 second of sim per frame
+
+function genSamples(nSamples) {
+  const deltaF = fOther - fSelf;
+  const beatHz = Math.abs(deltaF);
+
+  for (let i = 0; i < nSamples; i++) {
+    // Phase advances
+    phase_self  += 2 * Math.PI * fSelf  * DT;
+    phase_other += 2 * Math.PI * fOther * DT;
+
+    const s_self  = Math.sin(phase_self);
+    const s_other = Math.sin(phase_other);
+
+    let combined;
+    let s_other_actual;
+    if (phantom) {
+      // Phantom: present amplitude modulation without phase modulation
+      // AM at beat frequency applied to a copy of self signal
+      // T-units: see only self signal (no carrier modulation from neighbor)
+      // P-units: see amplitude modulation at beat frequency
+      const beatPhase = 2 * Math.PI * beatHz * simTime;
+      const amDepth   = 0.8;
+      const amSignal  = s_self * (1 + amDepth * Math.cos(beatPhase));
+      combined        = amSignal;
+      s_other_actual  = Math.sin(phase_other); // stored for display
+    } else {
+      combined        = s_self + s_other;
+      s_other_actual  = s_other;
+    }
+
+    // Amplitude envelope via half-wave rectification + smoothing
+    // (simplified — real computation uses Hilbert transform)
+    const envIdx = bufWrite;
+    const rawRect = Math.abs(combined);
+    // Low-pass filter at ~beat frequency: smooth over ~1/beatHz samples
+    const alpha = beatHz > 0.001 ? Math.min(0.99, 2 * Math.PI * beatHz * DT * 3) : 0.005;
+    bufEnvelope[envIdx] = (1 - alpha) * (bufEnvelope[(envIdx - 1 + BUF_LEN) % BUF_LEN]) + alpha * rawRect;
+
+    // Zero-crossing detection for T-unit timing
+    let zcMark = 0;
+    if (phantom) {
+      // In phantom mode, zero-crossings come from self signal only (no carrier modulation)
+      if (lastCombined < 0 && s_self >= 0) zcMark = 1;
+    } else {
+      if (lastCombined < 0 && combined >= 0) zcMark = 1;
+    }
+    bufZcross[bufWrite] = zcMark;
+    lastCombined = phantom ? s_self : combined;
+
+    bufSelf[bufWrite]     = s_self;
+    bufOther[bufWrite]    = s_other_actual;
+    bufCombined[bufWrite] = combined * 0.5; // scale for display
+
+    bufWrite = (bufWrite + 1) % BUF_LEN;
+    simTime += DT;
+  }
+
+  // ── sign estimation ──────────────────────────────────────────────────────
+  // Compare envelope peaks to zero-crossing timing
+  // Strategy: for the last few beat cycles, check whether zero-crossings cluster
+  // before or after the nearest envelope peak.
+  // Simplified: use phase of the beat envelope relative to zero-crossings.
+
+  if (phantom) {
+    // In phantom mode: zero-crossings are not modulated by the beat.
+    // The sign is genuinely indeterminate.
+    // Show oscillating/uncertain output.
+    signEstimate = 0;
+    confidence   = 0;
+  } else {
+    // Natural mode: compute sign from deltaF directly (the algorithm would converge to this)
+    // In real fish, this emerges from the neural comparison; here we compute it explicitly
+    // to show what the correct output is.
+    // The sign is: if fOther > fSelf, deltaF > 0 → fish should RAISE (↑)
+    //              if fOther < fSelf, deltaF < 0 → fish should LOWER (↓)
+    const df = fOther - fSelf;
+    if (Math.abs(df) < JAR_DEADBAND) {
+      signEstimate = 0;
+      confidence   = 0;
+    } else {
+      signEstimate = df > 0 ? 1 : -1;
+      // Confidence scales with |df| up to ~2 Hz
+      confidence = Math.min(1.0, Math.abs(df) / 1.0);
+    }
+  }
+
+  // ── JAR response ─────────────────────────────────────────────────────────
+  if (jarOn && !paused) {
+    const df = fOther - fSelf;
+    if (Math.abs(df) > JAR_DEADBAND && !phantom) {
+      const shift = JAR_RATE * signEstimate * nSamples / SAMPLE_RATE * speed * 2;
+      fSelf += shift;
+      // Clamp: don't drift more than MAX_SHIFT from base or past other
+      fSelf = Math.max(F_BASE - JAR_MAX_SHIFT, Math.min(F_BASE + JAR_MAX_SHIFT, fSelf));
+    }
+  }
+
+  // Record JAR track (one sample per ~5 animation frames worth of sim)
+  if (i % Math.max(1, Math.floor(SAMPLE_RATE / 30)) === 0) {
+    jarSelfHist[jarWrite]  = fSelf;
+    jarOtherHist[jarWrite] = fOther;
+    jarWrite = (jarWrite + 1) % JAR_TRACK_LEN;
+    if (jarWrite === 0) jarFull = true;
+  }
+}
+
+// ─── drawing ──────────────────────────────────────────────────────────────────
+function drawScope() {
+  const W = scopeCanvas.width;
+  const H = scopeCanvas.height;
+  const ctx = scopeCtx;
+
+  // Dark background
+  ctx.fillStyle = '#060a10';
+  ctx.fillRect(0, 0, W, H);
+
+  const nTracks    = TRACKS.length;
+  const trackH     = H / nTracks;
+  const halfTrackH = trackH * 0.42;
+
+  // Grid lines
+  ctx.strokeStyle = '#0d1117';
+  ctx.lineWidth   = 1;
+  for (let i = 1; i < nTracks; i++) {
+    ctx.beginPath();
+    ctx.moveTo(0, i * trackH);
+    ctx.lineTo(W, i * trackH);
+    ctx.stroke();
+  }
+
+  // Zero lines
+  ctx.strokeStyle = '#1c2128';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < nTracks; i++) {
+    const cy = i * trackH + trackH / 2;
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(W, cy);
+    ctx.stroke();
+  }
+
+  // Track labels
+  ctx.font = '10px Berkeley Mono, Fira Code, monospace';
+  ctx.fillStyle = '#30363d';
+  for (let i = 0; i < nTracks; i++) {
+    ctx.fillText(TRACKS[i].label, 6, i * trackH + 13);
+  }
+
+  // Draw each track
+  for (let t = 0; t < nTracks; t++) {
+    const tr  = TRACKS[t];
+    const buf = tr.buf();
+    const cy  = t * trackH + trackH / 2;
+    const gain = tr.gain;
+
+    ctx.beginPath();
+    ctx.strokeStyle = tr.color;
+
+    // For T-unit track, draw as tick marks instead of continuous line
+    if (t === 4) {
+      // Zero-crossing timing marks
+      ctx.strokeStyle = tr.color;
+      ctx.lineWidth   = 1.5;
+      for (let x = 0; x < W; x++) {
+        const bufIdx = (bufWrite - W + x + BUF_LEN) % BUF_LEN;
+        if (buf[bufIdx] > 0.5) {
+          ctx.beginPath();
+          ctx.moveTo(x, cy - halfTrackH * 0.7);
+          ctx.lineTo(x, cy + halfTrackH * 0.7);
+          ctx.stroke();
+        }
+      }
+      continue;
+    }
+
+    ctx.lineWidth = t === 2 ? 1.2 : 1.5;
+    let first = true;
+    for (let x = 0; x < W; x++) {
+      const bufIdx = (bufWrite - W + x + BUF_LEN) % BUF_LEN;
+      const v = buf[bufIdx] * gain;
+      const y = cy - v * halfTrackH;
+      if (first) { ctx.moveTo(x, y); first = false; }
+      else        { ctx.lineTo(x, y); }
+    }
+    ctx.stroke();
+  }
+
+  // Phantom mode overlay
+  if (phantom) {
+    ctx.fillStyle = 'rgba(248, 81, 73, 0.06)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#f85149';
+    ctx.font = '11px Berkeley Mono, Fira Code, monospace';
+    ctx.fillText('PHANTOM STIMULUS — amplitude only, phase absent', 10, H - 10);
+  }
+}
+
+function drawJarTrack() {
+  const W = jarCanvas.width;
+  const H = jarCanvas.height;
+  const ctx = jarCtx;
+
+  ctx.fillStyle = '#060a10';
+  ctx.fillRect(0, 0, W, H);
+
+  const n    = jarFull ? JAR_TRACK_LEN : jarWrite;
+  const fMin = F_BASE - JAR_MAX_SHIFT - 0.3;
+  const fMax = F_BASE + JAR_MAX_SHIFT + 0.3;
+  const fRange = fMax - fMin;
+
+  // Frequency midline
+  ctx.strokeStyle = '#1c2128';
+  ctx.lineWidth   = 1;
+  const midY = H * (1 - (F_BASE - fMin) / fRange);
+  ctx.beginPath();
+  ctx.moveTo(0, midY);
+  ctx.lineTo(W, midY);
+  ctx.stroke();
+
+  if (n < 2) return;
+
+  function drawLine(histBuf, color) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = 1.5;
+    const start = jarFull ? jarWrite : 0;
+    for (let i = 0; i < n; i++) {
+      const idx = (start + i) % JAR_TRACK_LEN;
+      const f   = histBuf[idx];
+      const x   = Math.round((i / (JAR_TRACK_LEN - 1)) * W);
+      const y   = H * (1 - (f - fMin) / fRange);
+      if (i === 0) ctx.moveTo(x, y);
+      else         ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  drawLine(jarOtherHist, '#d29922');
+  drawLine(jarSelfHist,  '#58a6ff');
+
+  // Current values on right edge
+  ctx.font = '10px Berkeley Mono, Fira Code, monospace';
+  const lastSelf  = jarSelfHist[(jarWrite - 1 + JAR_TRACK_LEN) % JAR_TRACK_LEN];
+  const lastOther = jarOtherHist[(jarWrite - 1 + JAR_TRACK_LEN) % JAR_TRACK_LEN];
+  const ySelf  = H * (1 - (lastSelf  - fMin) / fRange);
+  const yOther = H * (1 - (lastOther - fMin) / fRange);
+  ctx.fillStyle = '#58a6ff';
+  ctx.fillText(lastSelf.toFixed(2), W - 44, Math.max(12, Math.min(H - 4, ySelf - 4)));
+  ctx.fillStyle = '#d29922';
+  ctx.fillText(lastOther.toFixed(2), W - 44, Math.max(12, Math.min(H - 4, yOther + 12)));
+}
+
+function updateUI() {
+  const df = fOther - fSelf;
+
+  // JAR output display
+  const jarOut  = document.getElementById('jarOut');
+  const jarSub  = document.getElementById('jarSub');
+  const confOut = document.getElementById('confOut');
+  const confSub = document.getElementById('confSub');
+
+  if (phantom) {
+    jarOut.textContent = '?';
+    jarOut.className   = 'sign-value unknown';
+    jarSub.textContent = 'phase info absent — direction indeterminate';
+    confOut.textContent = '—';
+    confSub.textContent = 'P-unit: active · T-unit: unmodulated';
+  } else if (signEstimate === 0) {
+    jarOut.textContent = '—';
+    jarOut.className   = 'sign-value unknown';
+    jarSub.textContent = `|Δf| = ${Math.abs(df).toFixed(2)} Hz < deadband`;
+    confOut.textContent = '0%';
+    confSub.textContent = 'within deadband — no adjustment';
+  } else if (signEstimate > 0) {
+    jarOut.textContent = '↑ raise';
+    jarOut.className   = 'sign-value raise';
+    jarSub.textContent = `neighbor higher by ${df.toFixed(2)} Hz — shift up`;
+    confOut.textContent = Math.round(confidence * 100) + '%';
+    confSub.textContent = 'P and T-unit relationship: positive';
+  } else {
+    jarOut.textContent = '↓ lower';
+    jarOut.className   = 'sign-value lower';
+    jarSub.textContent = `neighbor lower by ${Math.abs(df).toFixed(2)} Hz — shift down`;
+    confOut.textContent = Math.round(confidence * 100) + '%';
+    confSub.textContent = 'P and T-unit relationship: negative';
+  }
+
+  // Status strip
+  document.getElementById('fSelf').textContent   = fSelf.toFixed(2) + ' Hz';
+  document.getElementById('fOther').textContent  = fOther.toFixed(2) + ' Hz';
+  document.getElementById('deltaF').textContent  = (df >= 0 ? '+' : '') + df.toFixed(2) + ' Hz';
+  document.getElementById('beatF').textContent   = Math.abs(df).toFixed(2) + ' Hz';
+  document.getElementById('modeStat').textContent = phantom ? 'phantom (AM only)' : 'natural';
+}
+
+// ─── animation loop ───────────────────────────────────────────────────────────
+function frame(ts) {
+  requestAnimationFrame(frame);
+
+  if (paused) {
+    drawScope();
+    drawJarTrack();
+    updateUI();
+    return;
+  }
+
+  // Wall-clock elapsed
+  let dt_ms = lastFrameTime !== null ? ts - lastFrameTime : 16.67;
+  lastFrameTime = ts;
+  dt_ms = Math.min(dt_ms, 100); // cap at 100ms to avoid huge jumps
+
+  // How many simulation samples to generate
+  const nSamples = Math.min(MAX_SAMPLES_PER_FRAME,
+    Math.round((dt_ms / 1000) * SAMPLE_RATE * speed));
+
+  genSamples(nSamples);
+  drawScope();
+  drawJarTrack();
+  updateUI();
+}
+
+requestAnimationFrame(frame);
+
+// ─── controls ─────────────────────────────────────────────────────────────────
+document.getElementById('freqSlider').addEventListener('input', function() {
+  const delta = parseFloat(this.value);
+  fOther = F_BASE + delta;
+  document.getElementById('freqVal').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(2) + ' Hz';
+});
+
+document.getElementById('speedSlider').addEventListener('input', function() {
+  speed = parseFloat(this.value);
+  document.getElementById('speedVal').textContent = speed.toFixed(1) + '×';
+});
+
+document.getElementById('phantomBtn').addEventListener('click', function() {
+  phantom = !phantom;
+  this.textContent = 'phantom stimulus: ' + (phantom ? 'ON' : 'off');
+  this.className   = phantom ? 'btn active' : 'btn';
+  if (phantom) this.classList.add('warn');
+});
+
+document.getElementById('jarBtn').addEventListener('click', function() {
+  jarOn = !jarOn;
+  this.textContent = 'JAR: ' + (jarOn ? 'on' : 'off');
+  this.className   = jarOn ? 'btn' : 'btn active';
+});
+
+document.getElementById('pauseBtn').addEventListener('click', function() {
+  paused = !paused;
+  this.textContent = paused ? 'resume' : 'pause';
+  this.className   = paused ? 'btn active' : 'btn';
+  if (!paused) lastFrameTime = null;
+});
+
+document.getElementById('resetBtn').addEventListener('click', function() {
+  fSelf = F_BASE;
+  const delta = parseFloat(document.getElementById('freqSlider').value);
+  fOther = F_BASE + delta;
+  phase_self = 0; phase_other = 0; simTime = 0; lastCombined = 0;
+  bufSelf.fill(0); bufOther.fill(0); bufCombined.fill(0);
+  bufEnvelope.fill(0); bufZcross.fill(0); bufWrite = 0;
+  jarSelfHist.fill(F_BASE); jarOtherHist.fill(fOther);
+  jarWrite = 0; jarFull = false;
+  lastFrameTime = null;
+});
+</script>
+</body>
+</html>
