@@ -80,6 +80,7 @@
       { href: '/remap.html', label: 'remap' },
       { href: '/octopus.html', label: 'octopus' },
       { href: '/jar.html', label: 'jar' },
+      { href: '/libet.html', label: 'libet' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
