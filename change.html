@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Change Blindness · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .mode-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    border-radius: 3px;
+  }
+  .mode-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .mode-btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .mode-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.3rem;
+  }
+  .ctrl-sep { width: 1px; height: 24px; background: #21262d; margin: 0 0.3rem; }
+  .ctrl-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .ctrl-btn:hover { border-color: #3fb950; color: #3fb950; }
+  .ctrl-btn.danger:hover { border-color: #f85149; color: #f85149; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.78rem;
+    color: #484f58;
+    flex-wrap: wrap;
+  }
+  .stat-item { display: flex; gap: 0.3rem; align-items: baseline; }
+  .stat-val { color: #e6edf3; font-size: 0.88rem; }
+  .stat-val.found { color: #3fb950; }
+
+  /* Mode description */
+  .mode-desc {
+    font-size: 0.8rem;
+    color: #6e7681;
+    margin-bottom: 1.2rem;
+    padding: 0.6rem 0.8rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    line-height: 1.6;
+  }
+  .mode-desc strong { color: #c9d1d9; }
+
+  /* Canvas container */
+  .canvas-wrap {
+    position: relative;
+    display: inline-block;
+    border: 1px solid #21262d;
+    cursor: crosshair;
+    user-select: none;
+  }
+  #sim-canvas { display: block; }
+
+  /* Distractor overlay */
+  #distractor-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: rgba(230,237,243,0.85);
+    pointer-events: none;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    letter-spacing: 0.08em;
+    display: none;
+  }
+
+  /* Result overlay */
+  #result-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(13,17,23,0.82);
+    flex-direction: column;
+    gap: 0.6rem;
+    pointer-events: none;
+  }
+  .result-text { font-size: 1.1rem; color: #3fb950; }
+  .result-sub { font-size: 0.8rem; color: #6e7681; }
+
+  /* Score history */
+  .history {
+    margin-top: 1.5rem;
+    font-size: 0.78rem;
+    color: #484f58;
+  }
+  .history-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .history-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.2rem;
+    align-items: center;
+  }
+  .history-mode { width: 80px; color: #484f58; }
+  .history-time { width: 55px; color: #e6edf3; }
+  .history-bar { height: 6px; background: #21262d; flex: 1; border-radius: 2px; overflow: hidden; }
+  .history-fill { height: 100%; background: #58a6ff; border-radius: 2px; transition: width 0.3s; }
+  .history-fill.fast { background: #3fb950; }
+  .history-fill.slow { background: #d29922; }
+
+  /* Distractor count */
+  .distractor-check {
+    margin-top: 1rem;
+    font-size: 0.82rem;
+    color: #6e7681;
+    display: none;
+  }
+  .distractor-check input[type=number] {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.2rem 0.4rem;
+    width: 60px;
+    border-radius: 3px;
+    text-align: center;
+  }
+  .distractor-submit {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+  }
+  .distractor-submit:hover { border-color: #58a6ff; color: #58a6ff; }
+  .distractor-result { margin-left: 0.5rem; font-size: 0.78rem; }
+
+  /* Limit section */
+  .limit-section {
+    margin-top: 2.5rem;
+    border-top: 1px solid #21262d;
+    padding-top: 1.5rem;
+  }
+  .limit-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.7rem;
+  }
+  .limit-text { font-size: 0.88rem; color: #8b949e; line-height: 1.75; }
+  .limit-text p { margin-bottom: 0.9rem; }
+  .limit-text p:last-child { margin-bottom: 0; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] .mode-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-btn.active { background: #ddf4ff; border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .ctrl-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-desc { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-desc strong { color: #24292e; }
+  html[data-theme="light"] .canvas-wrap { border-color: #d0d7de; }
+  html[data-theme="light"] .stats-bar { color: #8c959f; }
+  html[data-theme="light"] .stat-val { color: #24292e; }
+  html[data-theme="light"] .history { color: #8c959f; }
+  html[data-theme="light"] .history-title { color: #8c959f; }
+  html[data-theme="light"] .history-mode { color: #8c959f; }
+  html[data-theme="light"] .history-time { color: #24292e; }
+  html[data-theme="light"] .history-bar { background: #d0d7de; }
+  html[data-theme="light"] .limit-section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .limit-label { color: #8c959f; }
+  html[data-theme="light"] .limit-text { color: #57606a; }
+  html[data-theme="light"] #result-overlay { background: rgba(255,255,255,0.88); }
+  html[data-theme="light"] .result-sub { color: #57606a; }
+  html[data-theme="light"] .distractor-check { color: #57606a; }
+  html[data-theme="light"] .distractor-check input[type=number] { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .distractor-submit { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulation 18</div>
+<h1>Change Blindness</h1>
+<div class="meta">Rensink et al. 1997 · O'Regan &amp; Noë 2001 · flicker paradigm</div>
+
+<div class="intro">
+Two images alternate — nearly identical, one square different. With a blank flash between them, the change is almost impossible to find. Without the blank, it pops out instantly.<br>
+Click the square you think changed. The blank screen is not hiding the change — it is removing the only signal that would otherwise make attention unnecessary.
+</div>
+
+<div class="controls">
+  <span class="mode-label">mode</span>
+  <button class="mode-btn active" id="btn-direct" onclick="setMode('direct')">direct cut</button>
+  <button class="mode-btn" id="btn-blank" onclick="setMode('blank')">blank flash</button>
+  <button class="mode-btn" id="btn-task" onclick="setMode('task')">blank + task</button>
+  <div class="ctrl-sep"></div>
+  <button class="ctrl-btn" id="btn-new" onclick="newTrial()">new trial</button>
+</div>
+
+<div class="mode-desc" id="mode-desc"></div>
+
+<div class="stats-bar">
+  <div class="stat-item">trial <span class="stat-val" id="stat-trial">—</span></div>
+  <div class="stat-item">time <span class="stat-val" id="stat-time">—</span></div>
+  <div class="stat-item">found <span class="stat-val" id="stat-found">—</span></div>
+  <div class="stat-item" id="stat-dist-wrap" style="display:none">task count <span class="stat-val" id="stat-dist">—</span></div>
+</div>
+
+<div class="canvas-wrap" id="canvas-wrap">
+  <canvas id="sim-canvas" width="620" height="360"></canvas>
+  <div id="distractor-overlay"></div>
+  <div id="result-overlay">
+    <div class="result-text" id="result-text"></div>
+    <div class="result-sub" id="result-sub"></div>
+  </div>
+</div>
+
+<div class="distractor-check" id="distractor-check">
+  How many times did the center number change? &nbsp;
+  <input type="number" id="dist-input" min="0" max="99" value="">
+  <button class="distractor-submit" onclick="checkDistractor()">check</button>
+  <span class="distractor-result" id="dist-result"></span>
+</div>
+
+<div class="history" id="history-section" style="display:none">
+  <div class="history-title">session history</div>
+  <div id="history-rows"></div>
+</div>
+
+<div class="limit-section">
+  <div class="limit-label">what it can't show</div>
+  <div class="limit-text">
+    <p>The blank screen does not make the change hard to see. It removes the motion transient — a brief luminance signal at the exact location of the change — that would otherwise fire automatically in your peripheral visual system and redirect your attention. Without it, you need attention to do the work the transient was doing. The blank screen exposes the ordinary mechanism by temporarily removing it.</p>
+    <p>The simulation can show that detection slows dramatically in blank-flash mode. It cannot show what's absent: the visual system does not maintain a detailed internal record of the scene. The stable, coherent world you experience is not a buffered copy of the image — it's a model built on demand, refreshed by attention, and filled in by assumption. The blank flash reveals this by creating a gap where the assumption fails. In the direct-cut mode, you never encounter the gap; the motion transient closes it before you know it was there.</p>
+    <p>The distractor task approximates what Rensink called <em>marginal interest</em> — change blindness is strongest for objects outside your current focus. The task moves your focus elsewhere. But the simulation can't replicate the attentional resource constraint that makes this structural rather than a performance trade-off: you cannot choose to attend everywhere at once, even without a task.</p>
+    <p>The underlying debate (O'Regan &amp; Noë 2001): change blindness suggests the visual world isn't internally represented in detail, that vision is <em>for acting</em>, not <em>for storing</em>. Against this: Lamme (2003) argues that vivid phenomenal experience exists without reportability — the representation might be there, just inaccessible to the reporting system. The experiment doesn't decide.</p>
+  </div>
+</div>
+
+<script>
+(function() {
+  var COLS = 8, ROWS = 5;
+  var W = 620, H = 360;
+  var PAD = 20;
+  var cellW = (W - PAD * 2) / COLS;
+  var cellH = (H - PAD * 2) / ROWS;
+  var INNER_PAD = 6;
+
+  var COLORS = [
+    '#2d7a6e', '#4a6fa5', '#7a4a9a', '#5a8a3a',
+    '#8a4a2a', '#5a5a8a', '#8a7a2a', '#3a6a8a',
+    '#6a3a5a', '#3a8a5a', '#8a5a3a', '#4a4a8a',
+    '#7a3a7a', '#3a7a4a', '#6a6a2a', '#2a5a7a'
+  ];
+
+  var canvas = document.getElementById('sim-canvas');
+  var ctx = canvas.getContext('2d');
+  var wrap = document.getElementById('canvas-wrap');
+  var resultOverlay = document.getElementById('result-overlay');
+  var resultText = document.getElementById('result-text');
+  var resultSub = document.getElementById('result-sub');
+  var distractorOverlay = document.getElementById('distractor-overlay');
+
+  var mode = 'direct';
+  var grid = []; // color index per cell
+  var changeCell = -1; // flat index of changed cell
+  var colorA = -1, colorB = -1;
+  var phase = 'A'; // 'A', 'blank', 'B'
+  var animFrame = null;
+  var flickerInterval = null;
+  var trialStart = null;
+  var trialActive = false;
+  var trialFound = false;
+  var trialCount = 0;
+  var elapsedDisplay = null;
+
+  // Distractor
+  var distractorValue = 0;
+  var distractorChangeCount = 0;
+  var distractorInterval = null;
+  var DIST_CHANGE_MIN = 3, DIST_CHANGE_MAX = 9;
+
+  // History
+  var history = [];
+
+  var MODE_DESCS = {
+    'direct': '<strong>Direct cut</strong> — images alternate with no blank between them. The change location fires a motion transient in the peripheral visual system. You don\'t need to search; the signal finds you.',
+    'blank':  '<strong>Blank flash</strong> — a brief gray blank is inserted between each flip. The motion transient is masked. Now you have to search. The change is the same size; the difference is whether a signal directs your attention.',
+    'task':   '<strong>Blank flash + counting task</strong> — while the images alternate, count how many times the center number changes. Your attentional resources are partially allocated elsewhere. After clicking the change, you\'ll be asked for your count.'
+  };
+
+  function setMode(m) {
+    mode = m;
+    ['direct','blank','task'].forEach(function(id) {
+      document.getElementById('btn-' + id).classList.toggle('active', id === m);
+    });
+    document.getElementById('mode-desc').innerHTML = MODE_DESCS[m];
+    document.getElementById('stat-dist-wrap').style.display = (m === 'task') ? '' : 'none';
+    document.getElementById('distractor-check').style.display = 'none';
+    newTrial();
+  }
+
+  function pickColors(exclude) {
+    var a = Math.floor(Math.random() * COLORS.length);
+    var b;
+    do { b = Math.floor(Math.random() * COLORS.length); } while (b === a);
+    return [a, b];
+  }
+
+  function makeGrid() {
+    grid = [];
+    for (var i = 0; i < COLS * ROWS; i++) {
+      grid.push(Math.floor(Math.random() * COLORS.length));
+    }
+    changeCell = Math.floor(Math.random() * COLS * ROWS);
+    var cols = pickColors();
+    colorA = cols[0];
+    colorB = cols[1];
+    grid[changeCell] = colorA;
+  }
+
+  function newTrial() {
+    stopAll();
+    trialActive = false;
+    trialFound = false;
+    trialCount++;
+    document.getElementById('stat-trial').textContent = trialCount;
+    document.getElementById('stat-time').textContent = '—';
+    document.getElementById('stat-found').textContent = '—';
+    document.getElementById('stat-dist').textContent = '—';
+    document.getElementById('distractor-check').style.display = 'none';
+    document.getElementById('dist-result').textContent = '';
+    document.getElementById('dist-input').value = '';
+    resultOverlay.style.display = 'none';
+    distractorOverlay.style.display = 'none';
+    distractorChangeCount = 0;
+
+    makeGrid();
+    phase = 'A';
+    drawGrid(false);
+    trialStart = performance.now();
+    trialActive = true;
+
+    startFlicker();
+    startElapsedDisplay();
+    if (mode === 'task') startDistractor();
+  }
+
+  function stopAll() {
+    if (flickerInterval) { clearInterval(flickerInterval); flickerInterval = null; }
+    if (distractorInterval) { clearInterval(distractorInterval); distractorInterval = null; }
+    if (elapsedDisplay) { clearInterval(elapsedDisplay); elapsedDisplay = null; }
+    if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+  }
+
+  function startElapsedDisplay() {
+    if (elapsedDisplay) clearInterval(elapsedDisplay);
+    elapsedDisplay = setInterval(function() {
+      if (!trialActive || trialFound) return;
+      var elapsed = (performance.now() - trialStart) / 1000;
+      document.getElementById('stat-time').textContent = elapsed.toFixed(1) + 's';
+    }, 100);
+  }
+
+  function startFlicker() {
+    var PERIOD_A = mode === 'direct' ? 240 : 300;
+    var PERIOD_BLANK = mode === 'direct' ? 0 : 80;
+    var PERIOD_B = PERIOD_A;
+    var seq = mode === 'direct'
+      ? [['A', PERIOD_A], ['B', PERIOD_B]]
+      : [['A', PERIOD_A], ['blank', PERIOD_BLANK], ['B', PERIOD_B], ['blank', PERIOD_BLANK]];
+    var idx = 0;
+    var step = function() {
+      if (!trialActive) return;
+      var s = seq[idx % seq.length];
+      phase = s[0];
+      drawGrid(false);
+      idx++;
+      flickerInterval = setTimeout(step, s[1]);
+    };
+    step();
+  }
+
+  function startDistractor() {
+    distractorOverlay.style.display = '';
+    var val = Math.floor(Math.random() * 10);
+    distractorValue = val;
+    distractorChangeCount = 0;
+    distractorOverlay.textContent = val;
+    // Change every 600-1400ms
+    function scheduleChange() {
+      var delay = 600 + Math.random() * 800;
+      distractorInterval = setTimeout(function() {
+        if (!trialActive || trialFound) return;
+        var newVal = Math.floor(Math.random() * 10);
+        // ensure it changes
+        if (newVal === distractorValue) newVal = (newVal + 1) % 10;
+        distractorValue = newVal;
+        distractorChangeCount++;
+        distractorOverlay.textContent = newVal;
+        scheduleChange();
+      }, delay);
+    }
+    scheduleChange();
+  }
+
+  function cellRect(i) {
+    var col = i % COLS;
+    var row = Math.floor(i / COLS);
+    var x = PAD + col * cellW + INNER_PAD;
+    var y = PAD + row * cellH + INNER_PAD;
+    var w = cellW - INNER_PAD * 2;
+    var h = cellH - INNER_PAD * 2;
+    return { x: x, y: y, w: w, h: h };
+  }
+
+  function drawGrid(showChange) {
+    var isDark = !document.documentElement.getAttribute('data-theme') || document.documentElement.getAttribute('data-theme') === 'dark';
+    var bgColor = isDark ? '#0d1117' : '#ffffff';
+    var blankColor = isDark ? '#161b22' : '#f0f2f4';
+    var borderColor = isDark ? '#21262d' : '#d0d7de';
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, W, H);
+
+    if (phase === 'blank') {
+      ctx.fillStyle = blankColor;
+      ctx.fillRect(PAD, PAD, W - PAD * 2, H - PAD * 2);
+      return;
+    }
+
+    for (var i = 0; i < COLS * ROWS; i++) {
+      var r = cellRect(i);
+      var cIdx = (i === changeCell && phase === 'B') ? colorB : grid[i];
+      var color = COLORS[cIdx];
+
+      ctx.fillStyle = color;
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+
+      // Border
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+
+      // Highlight if showChange
+      if (showChange && i === changeCell) {
+        ctx.strokeStyle = '#f85149';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(r.x + 1.5, r.y + 1.5, r.w - 3, r.h - 3);
+      }
+    }
+  }
+
+  canvas.addEventListener('click', function(e) {
+    if (!trialActive || trialFound) return;
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = W / rect.width;
+    var scaleY = H / rect.height;
+    var mx = (e.clientX - rect.left) * scaleX;
+    var my = (e.clientY - rect.top) * scaleY;
+
+    for (var i = 0; i < COLS * ROWS; i++) {
+      var r = cellRect(i);
+      if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+        handleClick(i);
+        return;
+      }
+    }
+  });
+
+  function handleClick(cellIdx) {
+    var elapsed = (performance.now() - trialStart) / 1000;
+    trialFound = true;
+    trialActive = false;
+    stopAll();
+
+    phase = 'A';
+    drawGrid(true);
+
+    var correct = (cellIdx === changeCell);
+    document.getElementById('stat-time').textContent = elapsed.toFixed(1) + 's';
+    document.getElementById('stat-found').textContent = correct ? 'yes' : 'no';
+    document.getElementById('stat-found').className = 'stat-val' + (correct ? ' found' : '');
+
+    if (correct) {
+      resultText.textContent = 'found it — ' + elapsed.toFixed(1) + 's';
+    } else {
+      resultText.textContent = 'wrong square — ' + elapsed.toFixed(1) + 's';
+    }
+    resultSub.textContent = '';
+    resultOverlay.style.display = 'flex';
+
+    setTimeout(function() {
+      resultOverlay.style.display = 'none';
+      drawGrid(true); // keep showing highlight
+    }, 1400);
+
+    // Distractor check
+    if (mode === 'task') {
+      document.getElementById('distractor-check').style.display = '';
+      document.getElementById('stat-dist').textContent = distractorChangeCount;
+    }
+
+    // Add to history
+    history.unshift({ mode: mode, time: elapsed, correct: correct });
+    if (history.length > 8) history.pop();
+    renderHistory();
+  }
+
+  function checkDistractor() {
+    var guess = parseInt(document.getElementById('dist-input').value, 10);
+    var actual = distractorChangeCount;
+    var diff = Math.abs(guess - actual);
+    var resultEl = document.getElementById('dist-result');
+    if (isNaN(guess)) {
+      resultEl.textContent = 'enter a number';
+      resultEl.style.color = '#f85149';
+    } else {
+      resultEl.textContent = 'actual: ' + actual + (diff === 0 ? ' — exact' : diff <= 2 ? ' — close' : ' — off by ' + diff);
+      resultEl.style.color = diff === 0 ? '#3fb950' : diff <= 2 ? '#d29922' : '#f85149';
+    }
+  }
+  window.checkDistractor = checkDistractor;
+
+  function renderHistory() {
+    var section = document.getElementById('history-section');
+    var rows = document.getElementById('history-rows');
+    if (history.length === 0) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    // Find max time for bar scaling
+    var maxTime = Math.max.apply(null, history.map(function(h) { return h.time; }));
+    rows.innerHTML = '';
+    history.forEach(function(h) {
+      var row = document.createElement('div');
+      row.className = 'history-row';
+      var modeEl = document.createElement('div');
+      modeEl.className = 'history-mode';
+      modeEl.textContent = h.mode === 'direct' ? 'direct' : h.mode === 'blank' ? 'blank' : 'blank+task';
+      var timeEl = document.createElement('div');
+      timeEl.className = 'history-time';
+      timeEl.textContent = h.time.toFixed(1) + 's ' + (h.correct ? '✓' : '✗');
+      var barWrap = document.createElement('div');
+      barWrap.className = 'history-bar';
+      var fill = document.createElement('div');
+      fill.className = 'history-fill' + (h.time < 3 ? ' fast' : h.time > 15 ? ' slow' : '');
+      fill.style.width = Math.round((h.time / Math.max(maxTime, 30)) * 100) + '%';
+      barWrap.appendChild(fill);
+      row.appendChild(modeEl);
+      row.appendChild(timeEl);
+      row.appendChild(barWrap);
+      rows.appendChild(row);
+    });
+  }
+
+  // Keyboard: space = new trial
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space' && !e.target.matches('input')) {
+      e.preventDefault();
+      newTrial();
+    }
+  });
+
+  // Init
+  document.getElementById('mode-desc').innerHTML = MODE_DESCS['direct'];
+  newTrial();
+
+  // Expose for buttons
+  window.setMode = setMode;
+  window.newTrial = newTrial;
+})();
+</script>
+</body>
+</html>
