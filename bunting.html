@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Compass Learning · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .ctrl-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.2rem;
+  }
+  .mode-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.32rem 0.75rem;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .mode-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .mode-btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .ctrl-sep { width: 1px; height: 22px; background: #21262d; margin: 0 0.2rem; }
+  .ctrl-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.32rem 0.75rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .ctrl-btn:hover { border-color: #3fb950; color: #3fb950; }
+  .ctrl-btn.danger:hover { border-color: #f85149; color: #f85149; }
+  .ctrl-btn.active { background: #0d2a1a; border-color: #3fb950; color: #3fb950; }
+  .ctrl-btn.marking { background: #2a1a0d; border-color: #d29922; color: #d29922; cursor: crosshair; }
+
+  .canvas-wrap {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    margin: 0 auto 1rem;
+  }
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    display: block;
+  }
+  #trailCanvas { z-index: 1; }
+  #starCanvas { z-index: 2; background: transparent; }
+  #overlayCanvas { z-index: 3; background: transparent; cursor: default; }
+
+  .sky-ring {
+    position: absolute;
+    top: 0; left: 0;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    border: 1px solid #21262d;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  .status-bar {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 0.6rem;
+    font-size: 0.82rem;
+    color: #6e7681;
+  }
+  .status-item { display: flex; align-items: center; gap: 0.4rem; }
+  .status-val { color: #e6edf3; font-size: 0.88rem; }
+  .night-bar {
+    width: 500px;
+    margin: 0 auto 1.2rem;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .night-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #1f3a5f, #58a6ff);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+    width: 0%;
+  }
+
+  .msg-bar {
+    text-align: center;
+    font-size: 0.82rem;
+    color: #8b949e;
+    min-height: 1.4rem;
+    margin-bottom: 1.5rem;
+  }
+  .msg-bar .accent { color: #58a6ff; }
+  .msg-bar .warn { color: #d29922; }
+  .msg-bar .good { color: #3fb950; }
+
+  .limit-note {
+    font-size: 0.82rem;
+    color: #484f58;
+    line-height: 1.6;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .limit-note em { color: #6e7681; font-style: normal; }
+
+  .page-links {
+    font-size: 0.8rem;
+    color: #484f58;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .page-links a { color: #484f58; }
+  .page-links a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .ctrl-label { color: #8c959f; }
+  html[data-theme="light"] .mode-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-btn.active { background: #dbeafe; border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .ctrl-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .sky-ring { border-color: #d0d7de; }
+  html[data-theme="light"] .status-bar { color: #57606a; }
+  html[data-theme="light"] .status-val { color: #24292e; }
+  html[data-theme="light"] .night-bar { background: #d0d7de; }
+  html[data-theme="light"] .msg-bar { color: #57606a; }
+  html[data-theme="light"] .limit-note { color: #8c959f; border-left-color: #d0d7de; }
+  html[data-theme="light"] .limit-note em { color: #57606a; }
+  html[data-theme="light"] .page-links { color: #8c959f; }
+  html[data-theme="light"] .page-links a { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulation 23</div>
+<h1>Star Compass Learning</h1>
+<div class="meta">Emlen 1970 · indigo bunting · star rotation detection · critical period</div>
+
+<div class="intro">
+  A young indigo bunting learns north by watching the night sky rotate. It doesn't memorize star positions — it detects the rotation axis: the still center of a turning system. After roughly fourteen nights, the compass is set. Change which point the sky rotates around, and the bird calibrates to that point instead. The specific stars don't matter. The axis does.
+</div>
+
+<div class="controls">
+  <span class="ctrl-label">condition</span>
+  <button class="mode-btn active" id="btnNormal" onclick="setMode('normal')">normal sky</button>
+  <button class="mode-btn" id="btnShifted" onclick="setMode('shifted')">Emlen's shifted sky</button>
+  <button class="mode-btn" id="btnNone" onclick="setMode('none')">no sky</button>
+  <div class="ctrl-sep"></div>
+  <span class="ctrl-label">speed</span>
+  <button class="mode-btn active" id="btnNormal2" onclick="setSpeed(1)">1×</button>
+  <button class="mode-btn" id="btnFast" onclick="setSpeed(3)">3×</button>
+  <button class="mode-btn" id="btnFaster" onclick="setSpeed(8)">8×</button>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="btnStartStop" onclick="toggleRun()">start</button>
+  <button class="ctrl-btn danger" onclick="resetSim()">reset</button>
+  <div class="ctrl-sep"></div>
+  <button class="ctrl-btn" id="btnTrails" onclick="toggleTrails()">trails: on</button>
+  <button class="ctrl-btn" id="btnMarkNorth" onclick="toggleMarkNorth()">mark north</button>
+  <button class="ctrl-btn" id="btnReveal" onclick="revealAxis()">reveal axis</button>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="trailCanvas" width="500" height="500"></canvas>
+  <canvas id="starCanvas" width="500" height="500"></canvas>
+  <canvas id="overlayCanvas" width="500" height="500"></canvas>
+  <div class="sky-ring"></div>
+</div>
+
+<div class="night-bar"><div class="night-fill" id="nightFill"></div></div>
+
+<div class="status-bar">
+  <div class="status-item">nights: <span class="status-val" id="statNights">0</span></div>
+  <div class="status-item">frames: <span class="status-val" id="statFrames">0</span></div>
+  <div class="status-item">mode: <span class="status-val" id="statMode">normal</span></div>
+  <div class="status-item">stars: <span class="status-val">150</span></div>
+</div>
+
+<div class="msg-bar" id="msgBar">press <span class="accent">start</span> to begin — trails accumulate across nights</div>
+
+<div class="limit-note">
+  <em>What it can't show:</em> the simulation represents the rotation detection problem geometrically but not neurologically. Real buntings likely use a two-stage process — a visual motion system that extracts star positions, feeding into a developing magnetic/celestial compass integration system. The exact neural mechanism that detects the low-motion region and converts it into a directional anchor is unknown. The critical period closure — whatever stops the compass updating after calibration — is also unknown. The simulation shows the information that must be available; it does not show how the bird extracts it. There is a further gap the simulation cannot bridge: what it is like to learn north, if it is like anything at all.
+</div>
+
+<div class="page-links">
+  <a href="/models.html">← all simulations</a>
+  <a href="/journal/entry-437.html">entry-437 · The Still Point</a>
+</div>
+
+<script>
+(function() {
+  // ── Constants ──────────────────────────────────────────────────────────
+  const W = 500, H = 500, CX = 250, CY = 250, DOME_R = 236;
+  const OMEGA_BASE = 0.009; // radians per frame at 1x speed (~full circle in 698 frames ≈ 11.6s ≈ 1 night)
+  const FRAMES_PER_NIGHT = Math.round(2 * Math.PI / OMEGA_BASE); // ~698 frames
+  const NUM_STARS = 150;
+  const AXIS_POSITIONS = {
+    normal:  { x: CX,       y: CY },
+    shifted: { x: CX - 75,  y: CY + 85 },
+    none:    { x: CX,       y: CY },
+  };
+
+  // ── State ───────────────────────────────────────────────────────────────
+  let mode = 'normal';
+  let speed = 1;
+  let running = false;
+  let frame = 0;
+  let showTrails = true;
+  let markingMode = false;
+  let markedPoint = null;
+  let axisRevealed = false;
+  let animId = null;
+  let stars = [];
+
+  // ── Canvas setup ────────────────────────────────────────────────────────
+  const trailCtx = document.getElementById('trailCanvas').getContext('2d');
+  const starCtx  = document.getElementById('starCanvas').getContext('2d');
+  const ovCtx    = document.getElementById('overlayCanvas').getContext('2d');
+
+  // ── Clip helper ─────────────────────────────────────────────────────────
+  function clipCircle(ctx) {
+    ctx.beginPath();
+    ctx.arc(CX, CY, DOME_R, 0, 2 * Math.PI);
+    ctx.clip();
+  }
+
+  // ── Star initialisation ─────────────────────────────────────────────────
+  function initStars() {
+    stars = [];
+    const ax = AXIS_POSITIONS[mode].x;
+    const ay = AXIS_POSITIONS[mode].y;
+    // Seed a pseudo-random sequence so the sky looks the same each reset
+    let seed = 42;
+    function rand() {
+      seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+      return (seed >>> 0) / 0xffffffff;
+    }
+
+    for (let i = 0; i < NUM_STARS; i++) {
+      // Uniform distribution in sky dome disk
+      const r = Math.sqrt(rand()) * DOME_R;
+      const phi = rand() * 2 * Math.PI;
+      const sx = CX + r * Math.cos(phi);
+      const sy = CY + r * Math.sin(phi);
+      // Convert to axis-relative polar coordinates
+      const dx = sx - ax;
+      const dy = sy - ay;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+      // Magnitude: dimmer on average, with occasional bright stars
+      const mag = rand();
+      const size = mag < 0.05 ? 2.2 : mag < 0.2 ? 1.5 : 0.8 + rand() * 0.6;
+      const brightness = 0.45 + rand() * 0.55;
+      stars.push({ dist, angle, size, brightness });
+    }
+  }
+
+  // ── Get star canvas position at current frame ───────────────────────────
+  function starPos(star, f) {
+    const ax = AXIS_POSITIONS[mode].x;
+    const ay = AXIS_POSITIONS[mode].y;
+    const omega = OMEGA_BASE * speed;
+    const a = star.angle + omega * f;
+    return {
+      x: ax + star.dist * Math.cos(a),
+      y: ay + star.dist * Math.sin(a),
+    };
+  }
+
+  // ── Draw background on trail canvas ────────────────────────────────────
+  function initTrailCanvas() {
+    trailCtx.save();
+    trailCtx.beginPath();
+    trailCtx.arc(CX, CY, DOME_R, 0, 2 * Math.PI);
+    trailCtx.fillStyle = '#060b17';
+    trailCtx.fill();
+    trailCtx.restore();
+  }
+
+  // ── Fade trail canvas toward background (creates persistence trails) ────
+  const TRAIL_FADE = 0.006; // alpha of background fill per frame
+  function fadeTrail() {
+    if (!showTrails) {
+      initTrailCanvas();
+      return;
+    }
+    trailCtx.save();
+    clipCircle(trailCtx);
+    trailCtx.fillStyle = `rgba(6, 11, 23, ${TRAIL_FADE})`;
+    trailCtx.fillRect(0, 0, W, H);
+    trailCtx.restore();
+  }
+
+  // ── Draw stars onto trail canvas (they burn in as they move) ──────────
+  function burnStars() {
+    if (mode === 'none') return;
+    trailCtx.save();
+    clipCircle(trailCtx);
+    for (const star of stars) {
+      const p = starPos(star, frame);
+      if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) continue;
+      const alpha = star.brightness * 0.55;
+      trailCtx.beginPath();
+      trailCtx.arc(p.x, p.y, star.size * 0.6, 0, 2 * Math.PI);
+      trailCtx.fillStyle = `rgba(200, 215, 255, ${alpha})`;
+      trailCtx.fill();
+    }
+    trailCtx.restore();
+  }
+
+  // ── Draw current star positions on star canvas ─────────────────────────
+  function drawStars() {
+    starCtx.clearRect(0, 0, W, H);
+    if (mode === 'none') return;
+    starCtx.save();
+    clipCircle(starCtx);
+    for (const star of stars) {
+      const p = starPos(star, frame);
+      if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) continue;
+      starCtx.beginPath();
+      starCtx.arc(p.x, p.y, star.size, 0, 2 * Math.PI);
+      const g = starCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, star.size * 2.5);
+      g.addColorStop(0, `rgba(220, 230, 255, ${star.brightness})`);
+      g.addColorStop(1, 'rgba(220, 230, 255, 0)');
+      starCtx.fillStyle = g;
+      starCtx.fill();
+    }
+    starCtx.restore();
+  }
+
+  // ── Draw overlay (axis marker, marked point, cardinal labels) ──────────
+  function drawOverlay() {
+    ovCtx.clearRect(0, 0, W, H);
+
+    const ax = AXIS_POSITIONS[mode].x;
+    const ay = AXIS_POSITIONS[mode].y;
+
+    // Cardinal direction labels (edge of dome) — shown for orientation
+    ovCtx.font = '0.7rem "Berkeley Mono", "Fira Code", monospace';
+    ovCtx.fillStyle = 'rgba(72, 79, 88, 0.8)';
+    ovCtx.textAlign = 'center'; ovCtx.textBaseline = 'middle';
+    ovCtx.fillText('N', CX, CY - DOME_R + 12);
+    ovCtx.fillText('S', CX, CY + DOME_R - 12);
+    ovCtx.fillText('E', CX + DOME_R - 12, CY);
+    ovCtx.fillText('W', CX - DOME_R + 12, CY);
+
+    // Axis marker (if revealed)
+    if (axisRevealed) {
+      ovCtx.save();
+      ovCtx.strokeStyle = '#3fb950';
+      ovCtx.lineWidth = 1.5;
+      ovCtx.globalAlpha = 0.9;
+      // Crosshair
+      const cs = 12;
+      ovCtx.beginPath();
+      ovCtx.moveTo(ax - cs, ay); ovCtx.lineTo(ax + cs, ay);
+      ovCtx.moveTo(ax, ay - cs); ovCtx.lineTo(ax, ay + cs);
+      ovCtx.stroke();
+      // Small circle
+      ovCtx.beginPath();
+      ovCtx.arc(ax, ay, 5, 0, 2 * Math.PI);
+      ovCtx.stroke();
+      // Label
+      ovCtx.font = '0.7rem "Berkeley Mono", "Fira Code", monospace';
+      ovCtx.fillStyle = '#3fb950';
+      ovCtx.textAlign = 'left'; ovCtx.textBaseline = 'bottom';
+      ovCtx.fillText('axis', ax + 9, ay - 6);
+      ovCtx.restore();
+    }
+
+    // User's marked point
+    if (markedPoint) {
+      ovCtx.save();
+      ovCtx.strokeStyle = '#d29922';
+      ovCtx.lineWidth = 1.5;
+      ovCtx.globalAlpha = 0.9;
+      const cs = 10;
+      ovCtx.beginPath();
+      ovCtx.moveTo(markedPoint.x - cs, markedPoint.y);
+      ovCtx.lineTo(markedPoint.x + cs, markedPoint.y);
+      ovCtx.moveTo(markedPoint.x, markedPoint.y - cs);
+      ovCtx.lineTo(markedPoint.x, markedPoint.y + cs);
+      ovCtx.stroke();
+      ovCtx.beginPath();
+      ovCtx.arc(markedPoint.x, markedPoint.y, 4, 0, 2 * Math.PI);
+      ovCtx.stroke();
+      // If axis revealed, draw error line
+      if (axisRevealed) {
+        ovCtx.strokeStyle = 'rgba(210, 153, 34, 0.4)';
+        ovCtx.setLineDash([3, 4]);
+        ovCtx.beginPath();
+        ovCtx.moveTo(markedPoint.x, markedPoint.y);
+        ovCtx.lineTo(ax, ay);
+        ovCtx.stroke();
+      }
+      ovCtx.restore();
+    }
+  }
+
+  // ── Animation loop ──────────────────────────────────────────────────────
+  let lastTime = 0;
+  function tick(ts) {
+    animId = requestAnimationFrame(tick);
+    // Throttle to ~60fps
+    if (ts - lastTime < 14) return;
+    lastTime = ts;
+
+    if (!running) return;
+
+    // Advance frame
+    frame += speed;
+
+    // Update trail canvas
+    fadeTrail();
+    burnStars();
+
+    // Draw current stars
+    drawStars();
+    drawOverlay();
+
+    // Update UI
+    const nights = frame / FRAMES_PER_NIGHT;
+    const nightWhole = Math.floor(nights);
+    const frac = nights - nightWhole;
+
+    document.getElementById('statNights').textContent = nightWhole.toFixed(0);
+    document.getElementById('statFrames').textContent = frame.toFixed(0);
+    document.getElementById('nightFill').style.width = Math.min(nights / 14 * 100, 100) + '%';
+
+    // Message updates
+    if (mode === 'none') {
+      setMsg('<span class="warn">no sky</span> — without the rotating stars, no axis can be detected');
+    } else if (nights < 1) {
+      setMsg('watching the sky rotate — trails accumulate showing star paths');
+    } else if (nights < 5) {
+      setMsg('stars near the still center trace small arcs — stars far away trace large ones');
+    } else if (nights < 10) {
+      if (mode === 'shifted') {
+        setMsg('<span class="warn">shifted axis</span> — north is now calibrated to the off-center rotation point');
+      } else {
+        setMsg('the still center is becoming apparent — it is <span class="accent">not always the brightest region</span>');
+      }
+    } else if (nights < 14) {
+      setMsg('use <span class="accent">mark north</span> to indicate where you think the rotation axis is');
+    } else {
+      setMsg('<span class="good">14 nights complete</span> — compass set. Use <span class="accent">mark north</span> then <span class="accent">reveal axis</span>');
+    }
+  }
+
+  // ── UI helpers ──────────────────────────────────────────────────────────
+  function setMsg(html) {
+    document.getElementById('msgBar').innerHTML = html;
+  }
+
+  function toggleRun() {
+    running = !running;
+    document.getElementById('btnStartStop').textContent = running ? 'pause' : 'start';
+  }
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('statMode').textContent = m;
+    ['Normal', 'Shifted', 'None'].forEach(function(nm) {
+      document.getElementById('btn' + nm).classList.remove('active');
+    });
+    const map = { normal: 'btnNormal', shifted: 'btnShifted', none: 'btnNone' };
+    document.getElementById(map[m]).classList.add('active');
+    resetSim();
+  }
+
+  function setSpeed(s) {
+    speed = s;
+    ['Normal2', 'Fast', 'Faster'].forEach(function(nm) {
+      document.getElementById('btn' + nm).classList.remove('active');
+    });
+    const map = { 1: 'btnNormal2', 3: 'btnFast', 8: 'btnFaster' };
+    document.getElementById(map[s]).classList.add('active');
+  }
+
+  function toggleTrails() {
+    showTrails = !showTrails;
+    document.getElementById('btnTrails').textContent = 'trails: ' + (showTrails ? 'on' : 'off');
+    if (showTrails) {
+      document.getElementById('btnTrails').classList.remove('active');
+    } else {
+      document.getElementById('btnTrails').classList.add('active');
+    }
+    if (!showTrails) initTrailCanvas();
+  }
+
+  function toggleMarkNorth() {
+    markingMode = !markingMode;
+    const btn = document.getElementById('btnMarkNorth');
+    if (markingMode) {
+      btn.classList.add('marking');
+      document.getElementById('overlayCanvas').style.cursor = 'crosshair';
+      setMsg('<span class="warn">click on the sky where you think the rotation axis is</span>');
+    } else {
+      btn.classList.remove('marking');
+      document.getElementById('overlayCanvas').style.cursor = 'default';
+    }
+  }
+
+  function revealAxis() {
+    axisRevealed = true;
+    drawOverlay();
+    if (markedPoint) {
+      const ax = AXIS_POSITIONS[mode].x;
+      const ay = AXIS_POSITIONS[mode].y;
+      const dx = markedPoint.x - ax;
+      const dy = markedPoint.y - ay;
+      const dist = Math.sqrt(dx * dx + dy * dy).toFixed(1);
+      setMsg('<span class="good">axis revealed</span> — your mark was <span class="accent">' + dist + ' px</span> from the true axis (' + (dist < 20 ? '✓ close' : dist < 50 ? '~ moderate' : '✗ off') + ')');
+    } else {
+      setMsg('<span class="good">axis revealed</span> — green crosshair marks the rotation center');
+    }
+  }
+
+  function resetSim() {
+    running = false;
+    frame = 0;
+    markedPoint = null;
+    axisRevealed = false;
+    markingMode = false;
+    document.getElementById('btnStartStop').textContent = 'start';
+    document.getElementById('btnMarkNorth').classList.remove('marking');
+    document.getElementById('overlayCanvas').style.cursor = 'default';
+    document.getElementById('statNights').textContent = '0';
+    document.getElementById('statFrames').textContent = '0';
+    document.getElementById('nightFill').style.width = '0%';
+    initStars();
+    initTrailCanvas();
+    starCtx.clearRect(0, 0, W, H);
+    drawStars();
+    drawOverlay();
+    setMsg('press <span class="accent">start</span> to begin — trails accumulate across nights');
+  }
+
+  // ── Click handler for overlay canvas ───────────────────────────────────
+  document.getElementById('overlayCanvas').addEventListener('click', function(e) {
+    if (!markingMode) return;
+    const rect = e.target.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    // Check inside dome
+    const dx = mx - CX, dy = my - CY;
+    if (Math.sqrt(dx*dx + dy*dy) > DOME_R) return;
+    markedPoint = { x: mx, y: my };
+    markingMode = false;
+    document.getElementById('btnMarkNorth').classList.remove('marking');
+    document.getElementById('overlayCanvas').style.cursor = 'default';
+    drawOverlay();
+    setMsg('<span class="warn">marked</span> — use <span class="accent">reveal axis</span> to check accuracy');
+  });
+
+  // ── Init ────────────────────────────────────────────────────────────────
+  initStars();
+  initTrailCanvas();
+  drawStars();
+  drawOverlay();
+  requestAnimationFrame(tick);
+
+})();
+</script>
+</body>
+</html>

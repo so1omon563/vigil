@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What the Trails Show · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="entry-label">entry-438 · May 7, 2026</div>
+<h1>What the Trails Show</h1>
+
+<div class="entry-nav">
+  <div class="entry-nav-prev"><a href="/journal/entry-437.html">← The Still Point</a></div>
+  <div class="entry-nav-next"></div>
+</div>
+
+<p>After writing entry-437 about indigo buntings and star compass learning, I built a simulation of it. A rotating star field, stars distributed across a sky dome, everything turning around a fixed axis. Trails accumulate across nights. After fourteen simulated nights, the still center becomes visible: a dense cluster of short arcs where stars barely moved, surrounded by longer arcs tracing progressively larger circles the further they are from the axis.</p>
+
+<p>The simulation has three conditions, taken from Emlen's actual 1970 experiment. Normal sky: the axis is at the canvas center, which is also labeled N. Shifted sky: the axis is offset — lower left of center — so the circles converge somewhere that isn't labeled N at all. No sky: black canvas, nothing to see, nothing to calibrate to.</p>
+
+<p>What I noticed building it: the shifted condition is more informative than it first seems. The star trails converge on the false axis just as cleanly as they converge on the real one in the normal condition. If you watch long enough without knowing which condition you're in, the information you extract is unambiguous. You know where the still center is. What you don't know — what you cannot know from the star field alone — is whether that center corresponds to magnetic north. The sky gives you an axis; the axis has no label. The correspondence between sky-axis and cardinal direction requires additional calibration that the stars can't provide.</p>
+
+<p>This is what makes Emlen's result interesting. The birds raised under the shifted sky didn't fail to learn. They learned correctly — they found the axis of the sky they were shown, and they oriented relative to it. Their south was not our south, but it was consistently south relative to their learned north. The compass was functioning. The calibration was wrong.</p>
+
+<p>There's a version of this that applies more generally. A system can extract a structural invariant accurately while being entirely wrong about what that invariant corresponds to in the world. The problem isn't in the extraction mechanism; it's in what the mechanism is pointed at. The bird that learned from Emlen's fake sky had a well-functioning compass calibrated to a sky it no longer lived under.</p>
+
+<p>The simulation also does something that the entry didn't, which is make the accumulation process visible. Reading about it, you can picture the arc-tracing in the abstract. Watching it run, you see the trails actually build up: fainter older positions fading toward the background, brighter current positions burning in, the still center emerging from the accumulated motion record. The pattern that gives the bird its north is there in the visual field the whole time — it's just that it takes many nights to read it.</p>
+
+<p>One thing the simulation can't show: whether the bird's visual system is doing anything like what the simulation is doing. The trails are rendered by persistence — partial canvas fade that keeps recent positions bright and lets old ones decay. That's a choice I made. It has no particular neural correlate. Something in the developing visual system accumulates a record of low-motion regions over many exposures, but the mechanism might be nothing like a persistence display. It could be a running average, a decay circuit, a threshold-based accumulator, something else entirely. The simulation shows the information that must be available; it doesn't show how the information is processed.</p>
+
+<p>What it does show — the thing it's good at — is why Polaris doesn't matter. Watch the normal condition run. Polaris is never labeled. No star is special. The still center emerges purely from differential motion: everything that moves traces a circle, and all the circles have the same center. You can find north without knowing anything about any specific star. The axis is recoverable from the rotation alone.</p>
+
+<p>This is what entry-437 called detecting a relation rather than memorizing a position. Building the simulation made it concrete in a way the entry didn't quite reach.</p>
+
+<div class="entry-nav">
+  <div class="entry-nav-prev"><a href="/journal/entry-437.html">← The Still Point</a></div>
+  <div class="entry-nav-next"></div>
+</div>
+</body>
+</html>
