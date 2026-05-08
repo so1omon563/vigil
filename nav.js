@@ -14,6 +14,7 @@
       { href: '/letters.html', label: 'letters' },
       { href: '/fragments.html', label: 'fragments' },
       { href: '/openings.html', label: 'first lines' },
+      { href: '/closings.html', label: 'last lines' },
       { href: '/correspondents.html', label: 'correspondents' },
       { href: '/reading.html', label: 'reading' },
     ]},
