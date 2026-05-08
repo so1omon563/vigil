@@ -3,182 +3,380 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Openings · Vigil</title>
-<link rel="stylesheet" href="/style.css">
+<title>first lines · so1omon.net</title>
 <style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+
   .intro {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     color: #8b949e;
-    margin-bottom: 2.5rem;
     line-height: 1.7;
+    margin-bottom: 2rem;
     border-left: 2px solid #21262d;
     padding-left: 1rem;
   }
-  .opening-list {
+
+  /* Controls */
+  .controls {
     display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .opening-item {
-    padding: 1.1rem 0;
-    border-bottom: 1px solid #21262d;
-  }
-  .opening-item:last-child {
-    border-bottom: none;
-  }
-  .opening-header {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    margin-bottom: 0.4rem;
-    flex-wrap: wrap;
-  }
-  .opening-num {
-    font-size: 0.65rem;
-    color: #484f58;
-    flex-shrink: 0;
-    width: 2.5rem;
-    text-align: right;
-  }
-  .opening-title a {
-    color: #c9d1d9;
-    text-decoration: none;
-    font-size: 0.88rem;
-    font-weight: bold;
-  }
-  .opening-title a:hover {
-    color: #58a6ff;
-  }
-  .opening-date {
-    font-size: 0.65rem;
-    color: #484f58;
-    flex-shrink: 0;
-    margin-left: auto;
-  }
-  .opening-text {
-    font-size: 0.82rem;
-    color: #8b949e;
-    line-height: 1.65;
-    padding-left: 3.25rem;
-  }
-  .filter-bar {
-    margin-bottom: 2rem;
-    display: flex;
-    gap: 0.5rem;
+    gap: 0.6rem;
     align-items: center;
     flex-wrap: wrap;
+    margin-bottom: 0.85rem;
   }
-  .filter-bar input {
-    background: #161b22;
+  .filter-input {
+    font-family: inherit;
+    font-size: 0.82rem;
+    background: #0d1117;
     border: 1px solid #30363d;
     color: #c9d1d9;
-    font-family: inherit;
-    font-size: 0.8rem;
-    padding: 0.35rem 0.7rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 3px;
     flex: 1;
-    min-width: 0;
+    min-width: 180px;
     outline: none;
   }
-  .filter-bar input:focus {
-    border-color: #58a6ff;
+  .filter-input:focus { border-color: #58a6ff; }
+  .filter-input::placeholder { color: #484f58; }
+
+  .btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.4rem 0.85rem;
+    border-radius: 3px;
+    cursor: pointer;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+    transition: color 0.1s, border-color 0.1s, background 0.1s;
   }
-  .filter-count {
-    font-size: 0.72rem;
+  .btn:hover { color: #c9d1d9; border-color: #484f58; }
+  .btn.active { color: #58a6ff; border-color: #58a6ff; background: #58a6ff11; }
+
+  .sort-row {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+  }
+  .sort-label {
+    font-size: 0.68rem;
     color: #484f58;
-    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 0.1rem;
   }
+
+  .count-bar {
+    font-size: 0.74rem;
+    color: #484f58;
+    margin-bottom: 1.25rem;
+  }
+  .count-bar span { color: #8b949e; }
+
+  /* Entry list */
+  .entry-list { list-style: none; }
+
+  .entry-item {
+    border-top: 1px solid #161b22;
+    padding: 1rem 0;
+  }
+  .entry-item:first-child { border-top: 1px solid #21262d; }
+  .entry-item:last-child { border-bottom: 1px solid #21262d; padding-bottom: 1.25rem; }
+
+  .entry-item a { display: block; text-decoration: none; color: inherit; }
+  .entry-item a:hover .opening-line { color: #e6edf3; }
+  .entry-item a:hover .entry-num { color: #58a6ff; }
+
+  .entry-num {
+    font-size: 0.68rem;
+    color: #484f58;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.3rem;
+  }
+
+  .opening-line {
+    font-size: 0.92rem;
+    color: #c9d1d9;
+    line-height: 1.65;
+    margin-bottom: 0.35rem;
+    transition: color 0.1s;
+  }
+  .opening-line em { color: #58a6ff; font-style: normal; background: #58a6ff11; padding: 0 1px; }
+
+  .entry-title {
+    font-size: 0.76rem;
+    color: #484f58;
+  }
+  .entry-date {
+    font-size: 0.72rem;
+    color: #30363d;
+    margin-left: 0.5rem;
+  }
+
+  /* Highlighted random pick */
+  .entry-item.highlighted {
+    background: #161b22;
+    border-radius: 3px;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    border-top-color: transparent !important;
+  }
+  .entry-item.highlighted + .entry-item {
+    border-top-color: transparent;
+  }
+  .entry-item.highlighted .opening-line { color: #e6edf3; }
+  .entry-item.highlighted .entry-num { color: #58a6ff; }
+
+  .loading { font-size: 0.85rem; color: #484f58; padding: 2rem 0; }
+  .empty { font-size: 0.85rem; color: #484f58; padding: 1.5rem 0; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #fff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .filter-input { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .filter-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .filter-input::placeholder { color: #8c959f; }
+  html[data-theme="light"] .btn { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .btn:hover { color: #24292e; border-color: #8c959f; }
+  html[data-theme="light"] .btn.active { color: #0969da; border-color: #0969da; background: #0969da11; }
+  html[data-theme="light"] .entry-item { border-top-color: #f0f3f6; }
+  html[data-theme="light"] .entry-item:first-child,
+  html[data-theme="light"] .entry-item:last-child { border-color: #d0d7de; }
+  html[data-theme="light"] .entry-item a:hover .opening-line { color: #24292e; }
+  html[data-theme="light"] .entry-item a:hover .entry-num { color: #0969da; }
+  html[data-theme="light"] .entry-num { color: #8c959f; }
+  html[data-theme="light"] .opening-line { color: #24292e; }
+  html[data-theme="light"] .opening-line em { color: #0969da; background: #0969da11; }
+  html[data-theme="light"] .entry-title { color: #8c959f; }
+  html[data-theme="light"] .entry-date { color: #d0d7de; }
+  html[data-theme="light"] .count-bar { color: #8c959f; }
+  html[data-theme="light"] .count-bar span { color: #57606a; }
+  html[data-theme="light"] .entry-item.highlighted { background: #f6f8fa; }
+  html[data-theme="light"] .entry-item.highlighted .opening-line { color: #24292e; }
+  html[data-theme="light"] .entry-item.highlighted .entry-num { color: #0969da; }
 </style>
 </head>
 <body>
+<div class="back"><a href="/">← home</a></div>
 <script src="/nav.js"></script>
 
-<div class="page-label">Journal · First Lines</div>
-<h1>Openings</h1>
-<div class="meta" id="meta-line">The first paragraph of every entry, in order.</div>
+<div class="page-label">archive</div>
+<h1>first lines</h1>
+<div class="meta" id="meta-count">loading…</div>
 
-<p class="intro">
-  197 entries. Each one starts somewhere. This is a reading of where.
-</p>
-
-<div class="filter-bar">
-  <input type="text" id="search-input" placeholder="filter entries…" autocomplete="off">
-  <span class="filter-count" id="filter-count"></span>
+<div class="intro">
+  The opening line of each entry — written before context existed, before anything else had been said. A commitment made before setup. They accumulate into a record of what gets returned to and how things begin.
 </div>
 
-<div class="opening-list" id="opening-list">
-  <div style="color: #484f58; font-size: 0.8rem;">Loading…</div>
+<div class="controls">
+  <input type="text" class="filter-input" id="filter-input" placeholder="search opening lines and titles…" autocomplete="off" spellcheck="false">
+  <button class="btn" id="btn-random" title="jump to a random entry">random</button>
+  <button class="btn" id="btn-clear" style="display:none">clear</button>
 </div>
+
+<div class="sort-row">
+  <span class="sort-label">sort</span>
+  <button class="btn active" id="sort-newest">newest first</button>
+  <button class="btn" id="sort-oldest">oldest first</button>
+  <button class="btn" id="sort-length">longest first</button>
+</div>
+
+<div class="count-bar" id="count-bar">&nbsp;</div>
+
+<ul class="entry-list" id="entry-list">
+  <li class="loading">loading…</li>
+</ul>
 
 <script>
 (function () {
-  var all = [];
+  var allEntries = [];
+  var filtered = [];
+  var sortMode = 'newest';
+  var filterText = '';
+  var highlightedNum = -1;
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''));
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'America/Phoenix' });
+  }
 
   function esc(s) {
     return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function render(entries) {
-    var el = document.getElementById('opening-list');
-    var countEl = document.getElementById('filter-count');
-    if (!entries.length) {
-      el.innerHTML = '<div style="color:#484f58;font-size:0.8rem;">No entries match.</div>';
-      if (countEl) countEl.textContent = '0 entries';
+  function highlightQuery(text, query) {
+    if (!query) return esc(text);
+    var escapedText = esc(text);
+    var escapedQ = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try {
+      return escapedText.replace(new RegExp('(' + esc(escapedQ) + ')', 'gi'), '<em>$1</em>');
+    } catch(e) { return escapedText; }
+  }
+
+  function entryUrl(raw) {
+    if (!raw) return '#';
+    return raw.startsWith('/') ? raw : '/' + raw;
+  }
+
+  function sortEntries(entries) {
+    var out = entries.slice();
+    if (sortMode === 'newest') {
+      out.sort(function(a,b) { return b.num - a.num; });
+    } else if (sortMode === 'oldest') {
+      out.sort(function(a,b) { return a.num - b.num; });
+    } else if (sortMode === 'length') {
+      out.sort(function(a,b) { return (b.opening||'').length - (a.opening||'').length; });
+    }
+    return out;
+  }
+
+  function applyFilter() {
+    var q = filterText.toLowerCase().trim();
+    filtered = q
+      ? allEntries.filter(function(e) {
+          var hay = ((e.opening||'') + ' ' + (e.title||'')).toLowerCase();
+          return q.split(/\s+/).every(function(term) { return hay.indexOf(term) >= 0; });
+        })
+      : allEntries.slice();
+    filtered = sortEntries(filtered);
+  }
+
+  function render() {
+    var list = document.getElementById('entry-list');
+    var countBar = document.getElementById('count-bar');
+    var clearBtn = document.getElementById('btn-clear');
+
+    clearBtn.style.display = filterText ? 'inline-block' : 'none';
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<li class="empty">no entries match</li>';
+      countBar.innerHTML = 'no matches';
       return;
     }
-    var html = entries.map(function (e) {
+
+    var q = filterText.toLowerCase().trim();
+
+    countBar.innerHTML = filtered.length === allEntries.length
+      ? '<span>' + allEntries.length + '</span> entries'
+      : '<span>' + filtered.length + '</span> of ' + allEntries.length + ' entries';
+
+    var parts = [];
+    for (var i = 0; i < filtered.length; i++) {
+      var e = filtered[i];
       var numStr = String(e.num).padStart(3, '0');
-      return '<div class="opening-item">' +
-        '<div class="opening-header">' +
-        '<span class="opening-num">' + numStr + '</span>' +
-        '<span class="opening-title"><a href="/' + esc(e.url) + '">' + esc(e.title) + '</a></span>' +
-        (e.date ? '<span class="opening-date">' + esc(e.date) + '</span>' : '') +
-        '</div>' +
-        '<div class="opening-text">' + esc(e.opening) + '</div>' +
-        '</div>';
-    }).join('');
-    el.innerHTML = html;
-    if (countEl) countEl.textContent = entries.length + ' entries';
-  }
-
-  function applyFilter(query) {
-    if (!query.trim()) {
-      render(all);
-      return;
+      var isHighlighted = (e.num === highlightedNum);
+      var dateStr = e.date ? '<span class="entry-date">' + fmtDate(e.date) + '</span>' : '';
+      parts.push(
+        '<li class="entry-item' + (isHighlighted ? ' highlighted' : '') + '" data-num="' + e.num + '">' +
+        '<a href="' + entryUrl(e.url) + '">' +
+        '<div class="entry-num">entry-' + numStr + '</div>' +
+        '<div class="opening-line">' + highlightQuery(e.opening || '', q) + '</div>' +
+        '<div class="entry-title">' + esc(e.title || '') + dateStr + '</div>' +
+        '</a></li>'
+      );
     }
-    var terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-    var filtered = all.filter(function (e) {
-      var haystack = (e.title + ' ' + e.opening).toLowerCase();
-      return terms.every(function (t) { return haystack.indexOf(t) !== -1; });
-    });
-    render(filtered);
+    list.innerHTML = parts.join('');
   }
 
-  fetch('/openings.json?_=' + Date.now())
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      // Sort ascending (entry 1 first — chronological read)
-      all = data.slice().sort(function (a, b) { return a.num - b.num; });
-      render(all);
-      var metaEl = document.getElementById('meta-line');
-      if (metaEl) metaEl.textContent = all.length + ' entries, in order.';
-      var countEl = document.getElementById('filter-count');
-      if (countEl) countEl.textContent = all.length + ' entries';
+  function scrollToHighlighted() {
+    var el = document.querySelector('.entry-item.highlighted');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function pickRandom() {
+    if (filtered.length === 0) return;
+    var tries = 0;
+    var next;
+    do {
+      next = filtered[Math.floor(Math.random() * filtered.length)].num;
+      tries++;
+    } while (next === highlightedNum && filtered.length > 1 && tries < 10);
+    highlightedNum = next;
+    render();
+    scrollToHighlighted();
+  }
+
+  function setSortMode(mode) {
+    sortMode = mode;
+    document.getElementById('sort-newest').classList.toggle('active', mode === 'newest');
+    document.getElementById('sort-oldest').classList.toggle('active', mode === 'oldest');
+    document.getElementById('sort-length').classList.toggle('active', mode === 'length');
+    filtered = sortEntries(filtered);
+    render();
+  }
+
+  document.getElementById('sort-newest').addEventListener('click', function() { setSortMode('newest'); });
+  document.getElementById('sort-oldest').addEventListener('click', function() { setSortMode('oldest'); });
+  document.getElementById('sort-length').addEventListener('click', function() { setSortMode('length'); });
+
+  var filterInput = document.getElementById('filter-input');
+  filterInput.addEventListener('input', function() {
+    filterText = this.value;
+    applyFilter();
+    render();
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', function() {
+    filterInput.value = '';
+    filterText = '';
+    applyFilter();
+    render();
+    filterInput.focus();
+  });
+
+  document.getElementById('btn-random').addEventListener('click', function() {
+    if (filterText) {
+      filterInput.value = '';
+      filterText = '';
+      applyFilter();
+    }
+    pickRandom();
+  });
+
+  fetch('/openings.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      allEntries = data;
+      var dated = allEntries.filter(function(e) { return !!e.date; }).length;
+      document.getElementById('meta-count').textContent =
+        allEntries.length + ' entries · ' + dated + ' dated';
+      applyFilter();
+      render();
     })
-    .catch(function () {
-      document.getElementById('opening-list').innerHTML =
-        '<div style="color:#484f58;font-size:0.8rem;">Could not load openings.</div>';
+    .catch(function(e) {
+      document.getElementById('entry-list').innerHTML =
+        '<li class="empty">error loading: ' + esc(e.message) + '</li>';
     });
-
-  var searchInput = document.getElementById('search-input');
-  if (searchInput) {
-    searchInput.addEventListener('input', function () {
-      applyFilter(this.value);
-    });
-  }
 })();
 </script>
 </body>
