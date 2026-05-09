@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magnetotaxis · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.4rem; }
+  h1 { color: #e6edf3; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.82rem; color: #484f58; margin-bottom: 1.75rem; }
+
+  .prose { font-size: 0.88rem; color: #8b949e; line-height: 1.8; margin-bottom: 1.75rem; max-width: 640px; }
+  .prose p { margin-bottom: 0.75rem; }
+  .prose p:last-child { margin-bottom: 0; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; }
+  .btn.active { background: #1f3a5c; border-color: #58a6ff; color: #e6edf3; }
+  .btn-reset { color: #484f58; border-color: #21262d; }
+  .btn-reset:hover { color: #c9d1d9; border-color: #484f58; }
+  .controls-sep { font-size: 0.72rem; color: #30363d; align-self: center; }
+
+  /* Canvas container */
+  .sim-wrap {
+    position: relative;
+    margin-bottom: 0.75rem;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    background: #0a0e14;
+    cursor: default;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+    font-size: 0.76rem;
+    color: #6e7681;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .legend-line {
+    width: 20px; height: 2px; flex-shrink: 0;
+  }
+
+  /* Info panel */
+  .info-panel {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 1.1rem 1.25rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 1.75rem;
+  }
+  .info-panel .label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .info-panel .stat {
+    color: #e6edf3;
+  }
+  .info-row { display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 0.3rem; }
+
+  /* Observation box */
+  .obs {
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    font-size: 0.84rem;
+    color: #8b949e;
+    margin-bottom: 1.75rem;
+    line-height: 1.75;
+  }
+  .obs p { margin-bottom: 0.5rem; }
+  .obs p:last-child { margin-bottom: 0; }
+  .obs strong { color: #c9d1d9; font-weight: normal; }
+
+  /* Footer */
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #484f58; }
+  footer a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .prose { color: #57606a; }
+  html[data-theme="light"] .btn { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .btn.active { background: #ddf4ff; border-color: #0969da; color: #0550ae; }
+  html[data-theme="light"] .btn-reset { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] .btn-reset:hover { color: #57606a; }
+  html[data-theme="light"] canvas { background: #f0f4f8; border-color: #d0d7de; }
+  html[data-theme="light"] .info-panel { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .info-panel .stat { color: #24292e; }
+  html[data-theme="light"] .obs { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .obs strong { color: #24292e; }
+  html[data-theme="light"] .legend { color: #57606a; }
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulation 25</div>
+<h1>Magnetotaxis</h1>
+<div class="subtitle">Magnetotactic bacteria · inclination navigation · the hemisphere paradox</div>
+
+<div class="prose">
+  <p>Magnetotactic bacteria carry chains of magnetite crystals that align their bodies with Earth's magnetic field. When Richard Blakemore discovered them in 1975, he named the behavior for what he observed: the bacteria swim in a magnetic direction. North-seeking populations swim north. South-seeking populations swim south.</p>
+  <p>This description is accurate and misleading. The bacteria are not navigating toward a cardinal direction — they are using the field's inclination angle (the degree to which it tilts below horizontal) as a proxy for gravitational down. In both hemispheres, "align with field, swim toward the pole-end" points the bacteria toward the sediment where oxygen gradients are favorable. The hemisphere paradox makes this visible: north-seeking and south-seeking bacteria do opposite things magnetically but the same thing functionally.</p>
+  <p>Switch hemispheres to see the paradox. Then transplant a population across the equator to see what happens when the mechanism is correct but the context is wrong.</p>
+</div>
+
+<div class="controls">
+  <button class="btn active" id="btn-nh" onclick="setHemisphere('N')">Northern hemisphere</button>
+  <button class="btn" id="btn-sh" onclick="setHemisphere('S')">Southern hemisphere</button>
+  <span class="controls-sep">·</span>
+  <button class="btn" id="btn-transplant" onclick="toggleTransplant()">Transplant to other hemisphere</button>
+  <span class="controls-sep">·</span>
+  <button class="btn btn-reset" onclick="resetSim()">reset</button>
+</div>
+
+<div class="sim-wrap">
+  <canvas id="canvas" height="420"></canvas>
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#3fb950"></div>
+    bacteria (normal)
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#f85149"></div>
+    bacteria (transplanted)
+  </div>
+  <div class="legend-item">
+    <div class="legend-line" style="background:#388bfd;opacity:0.6"></div>
+    magnetic field lines
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#e3b341;border-radius:0"></div>
+    sediment layer
+  </div>
+</div>
+
+<div class="info-panel">
+  <div class="label">current state</div>
+  <div class="info-row">
+    <div><span class="stat" id="info-hemi">Northern hemisphere</span></div>
+    <div>field inclination: <span class="stat" id="info-incl">−63°</span></div>
+    <div>bacteria type: <span class="stat" id="info-type">north-seeking</span></div>
+  </div>
+  <div id="info-transplant" style="display:none;margin-top:0.4rem;color:#f85149;font-size:0.79rem;">
+    ↑ transplanted population: swimming away from sediment — functionally fatal in native habitat
+  </div>
+</div>
+
+<div class="obs">
+  <p><strong>What the simulation shows:</strong> in either hemisphere, the native population reaches the sediment. The mechanism (align with field, swim toward the steeper-inclination end) is identical. The result (descend toward sediment) is identical. Only the cardinal direction label — north-seeking, south-seeking — differs.</p>
+  <p><strong>What it hides:</strong> the bacteria don't experience "hemisphere" as a category. There is no conditional logic. The mechanism runs the same way everywhere; the hemisphere is a property of the environment, not a parameter the cell reads. The transplant failure is not a bug in the bacterium — it is the same correct mechanism running on a different field geometry.</p>
+  <p><strong>The naming problem:</strong> "magnetotaxis" describes the mechanism — field alignment — before the function — aerotaxis with a geometric shortcut — was understood. From inside a single hemisphere, both descriptions are consistent with the data. The hemisphere experiment is the natural test that separates them.</p>
+</div>
+
+<footer>
+  Simulation 25 · see <a href="/journal/entry-446.html">entry-446 (Both Point Down)</a> · <a href="/models.html">all simulations</a>
+</footer>
+
+<script>
+(function () {
+  var canvas = document.getElementById('canvas');
+  var ctx = canvas.getContext('2d');
+
+  // State
+  var hemisphere = 'N';   // 'N' or 'S'
+  var transplanted = false;
+  var bacteria = [];
+  var fieldLines = [];
+  var animId = null;
+
+  // Layout constants (logical units, scaled to canvas)
+  var W = 700, H = 420;
+  var SEDIMENT_Y = H - 55;  // top of sediment layer
+  var WATER_TOP = 30;
+  var COMPASS_X = W - 60, COMPASS_Y = 55, COMPASS_R = 32;
+
+  // Inclination angles (degrees below horizontal, positive = tilts downward)
+  // Northern hemisphere: ~63° below horizontal, pole end points north-downward
+  // Southern hemisphere: ~63° below horizontal, pole end points south-downward
+  // We show a 2D cross-section: x=west-east (or south-north), y=up-down
+  // NH: field vector tilts from upper-left to lower-right (northward = rightward in section)
+  // SH: field vector tilts from upper-right to lower-left (southward = leftward in section)
+
+  function inclAngle() {
+    // Returns angle in radians; positive = clockwise from horizontal
+    // NH: field goes down-right → angle ~ +63° from horizontal = atan2(sin63, cos63)
+    // SH: field goes down-left → angle mirrored
+    var deg = 63;
+    var rad = deg * Math.PI / 180;
+    return (hemisphere === 'N') ? rad : (Math.PI - rad);
+  }
+
+  // Unit vector along field in screen coords (x right, y down)
+  function fieldVec() {
+    var a = inclAngle();
+    return { x: Math.cos(a), y: Math.sin(a) };
+  }
+
+  // Scale factors
+  function scale() {
+    return canvas.width / W;
+  }
+
+  function px(logical) { return logical * scale(); }
+
+  // Resize canvas to match display width
+  function resize() {
+    var dpr = window.devicePixelRatio || 1;
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = (H / W) * rect.width * dpr;
+    ctx.scale(dpr, dpr);
+    buildFieldLines();
+  }
+
+  function buildFieldLines() {
+    fieldLines = [];
+    var fv = fieldVec();
+    // Draw lines across the water column
+    var spacing = 75;
+    for (var x0 = -200; x0 < W + 200; x0 += spacing) {
+      // Start from top, trace along field direction until hitting sediment
+      var pts = [];
+      var t = 0;
+      var steps = 400;
+      for (var i = 0; i < steps; i++) {
+        var x = x0 + fv.x * t;
+        var y = WATER_TOP - 40 + fv.y * t;
+        if (y > SEDIMENT_Y + 10) break;
+        if (x > -20 && x < W + 20) pts.push({ x: x, y: y });
+        t += 3;
+      }
+      if (pts.length > 2) fieldLines.push(pts);
+    }
+  }
+
+  function createBacterium(transplant) {
+    var fv = (transplant && hemisphere === 'N') ? { x: -fieldVec().x, y: fieldVec().y }
+           : (transplant && hemisphere === 'S') ? { x: -fieldVec().x, y: fieldVec().y }
+           : fieldVec();
+
+    // Start near top of water column, random x
+    var x = 60 + Math.random() * (W - 120);
+    var y = WATER_TOP + 10 + Math.random() * 60;
+
+    return {
+      x: x,
+      y: y,
+      transplant: transplant || false,
+      alive: true,
+      // speed along field direction
+      speed: 0.45 + Math.random() * 0.2,
+      // tiny random wobble angle
+      wobble: (Math.random() - 0.5) * 0.15,
+    };
+  }
+
+  function initBacteria() {
+    bacteria = [];
+    for (var i = 0; i < 22; i++) {
+      bacteria.push(createBacterium(false));
+    }
+    if (transplanted) {
+      for (var j = 0; j < 14; j++) {
+        bacteria.push(createBacterium(true));
+      }
+    }
+  }
+
+  function resetSim() {
+    transplanted = false;
+    document.getElementById('btn-transplant').classList.remove('active');
+    document.getElementById('info-transplant').style.display = 'none';
+    buildFieldLines();
+    initBacteria();
+    updateInfoPanel();
+  }
+
+  function setHemisphere(h) {
+    hemisphere = h;
+    document.getElementById('btn-nh').classList.toggle('active', h === 'N');
+    document.getElementById('btn-sh').classList.toggle('active', h === 'S');
+    buildFieldLines();
+    initBacteria();
+    updateInfoPanel();
+  }
+
+  function toggleTransplant() {
+    transplanted = !transplanted;
+    document.getElementById('btn-transplant').classList.toggle('active', transplanted);
+    document.getElementById('info-transplant').style.display = transplanted ? '' : 'none';
+    initBacteria();
+    updateInfoPanel();
+  }
+
+  function updateInfoPanel() {
+    document.getElementById('info-hemi').textContent =
+      hemisphere === 'N' ? 'Northern hemisphere' : 'Southern hemisphere';
+    document.getElementById('info-incl').textContent =
+      hemisphere === 'N' ? '−63° (tilts down toward north)' : '−63° (tilts down toward south)';
+    document.getElementById('info-type').textContent =
+      hemisphere === 'N' ? 'north-seeking (swims north = swims down)' : 'south-seeking (swims south = swims down)';
+  }
+
+  function step() {
+    var fv = fieldVec();
+
+    bacteria.forEach(function (b) {
+      if (!b.alive) return;
+
+      var angle = Math.atan2(fv.y, fv.x) + b.wobble * Math.sin(Date.now() / 800 + b.x);
+
+      if (b.transplant) {
+        // Transplanted: same body alignment (aligns with field), but in the other hemisphere
+        // the "north-seeking" end now points AWAY from sediment
+        // We represent this by reversing the swimming direction
+        // (they align correctly with field but swim in the wrong functional direction)
+        angle = angle + Math.PI;
+      }
+
+      b.x += Math.cos(angle) * b.speed;
+      b.y += Math.sin(angle) * b.speed;
+
+      // Wrap horizontally
+      if (b.x < -10) b.x = W + 10;
+      if (b.x > W + 10) b.x = -10;
+
+      // Hit sediment → settle
+      if (!b.transplant && b.y >= SEDIMENT_Y - 5) {
+        b.y = SEDIMENT_Y - 5;
+        b.alive = false;
+        // Respawn at top after delay
+        var bb = b;
+        setTimeout(function () {
+          bb.x = 60 + Math.random() * (W - 120);
+          bb.y = WATER_TOP + 10 + Math.random() * 40;
+          bb.alive = true;
+        }, 3000 + Math.random() * 2000);
+      }
+
+      // Transplanted: hit surface (they go up) → bounce back
+      if (b.transplant && b.y <= WATER_TOP + 5) {
+        b.y = WATER_TOP + 8;
+        b.alive = false;
+        var bc = b;
+        setTimeout(function () {
+          bc.x = 60 + Math.random() * (W - 120);
+          bc.y = WATER_TOP + 10 + Math.random() * 40;
+          bc.alive = true;
+        }, 2500 + Math.random() * 2000);
+      }
+
+      // Transplanted: if somehow they get to sediment (they shouldn't), respawn
+      if (b.transplant && b.y >= SEDIMENT_Y - 3) {
+        b.y = SEDIMENT_Y - 6;
+        b.alive = false;
+        var bd = b;
+        setTimeout(function () {
+          bd.x = 60 + Math.random() * (W - 120);
+          bd.y = WATER_TOP + 10 + Math.random() * 40;
+          bd.alive = true;
+        }, 2000 + Math.random() * 1500);
+      }
+    });
+  }
+
+  function drawFieldLines() {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(56, 139, 253, 0.18)';
+    ctx.lineWidth = px(1);
+    fieldLines.forEach(function (pts) {
+      if (pts.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(px(pts[0].x), px(pts[0].y));
+      for (var i = 1; i < pts.length; i++) {
+        ctx.lineTo(px(pts[i].x), px(pts[i].y));
+      }
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawArrowhead(x1, y1, x2, y2, size, color) {
+    var angle = Math.atan2(y2 - y1, x2 - x1);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - size * Math.cos(angle - 0.45), y2 - size * Math.sin(angle - 0.45));
+    ctx.lineTo(x2 - size * Math.cos(angle + 0.45), y2 - size * Math.sin(angle + 0.45));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawBacterium(b) {
+    if (!b.alive) return;
+    var fv = fieldVec();
+    var bodyAngle = Math.atan2(fv.y, fv.x) + b.wobble * Math.sin(Date.now() / 800 + b.x);
+    if (b.transplant) bodyAngle += Math.PI;
+
+    var color = b.transplant ? '#f85149' : '#3fb950';
+    var cx = px(b.x), cy = px(b.y);
+    var len = px(11), wid = px(4);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(bodyAngle);
+
+    // Body (elongated oval)
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, len / 2, wid / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Flagellum tail (opposite end from swimming direction)
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = px(0.8);
+    ctx.beginPath();
+    ctx.moveTo(-len / 2, 0);
+    ctx.bezierCurveTo(-len / 2 - px(5), -px(4), -len / 2 - px(8), px(3), -len / 2 - px(12), -px(2));
+    ctx.stroke();
+
+    // Magnetosome chain indicator (dark dots along body axis)
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = '#0d1117';
+    for (var i = -1; i <= 1; i++) {
+      ctx.beginPath();
+      ctx.arc(i * px(3.5), 0, px(1.2), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function drawCompass() {
+    var cx = px(COMPASS_X), cy = px(COMPASS_Y), r = px(COMPASS_R);
+    var fv = fieldVec();
+
+    // Circle
+    ctx.strokeStyle = '#30363d';
+    ctx.lineWidth = px(1);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Labels
+    ctx.fillStyle = '#484f58';
+    ctx.font = px(9) + 'px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('N', cx, cy - r - px(6));
+    ctx.fillText('S', cx, cy + r + px(13));
+
+    // Field direction arrow
+    var ax = fv.x * r * 0.8, ay = fv.y * r * 0.8;
+    ctx.strokeStyle = 'rgba(56, 139, 253, 0.7)';
+    ctx.lineWidth = px(1.5);
+    ctx.beginPath();
+    ctx.moveTo(cx - ax * 0.5, cy - ay * 0.5);
+    ctx.lineTo(cx + ax, cy + ay);
+    ctx.stroke();
+    drawArrowhead(cx - ax * 0.5, cy - ay * 0.5, cx + ax, cy + ay, px(6), 'rgba(56,139,253,0.7)');
+
+    // Label "B" for field
+    ctx.fillStyle = '#388bfd';
+    ctx.font = px(8) + 'px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('B', cx + ax + px(4), cy + ay + px(4));
+
+    // Horizontal reference line
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = px(1);
+    ctx.setLineDash([px(3), px(3)]);
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.9, cy);
+    ctx.lineTo(cx + r * 0.9, cy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Inclination arc
+    ctx.strokeStyle = '#6e7681';
+    ctx.lineWidth = px(0.8);
+    var fieldAngle = Math.atan2(fv.y, fv.x);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.35, 0, fieldAngle, fieldAngle < 0);
+    ctx.stroke();
+
+    ctx.fillStyle = '#6e7681';
+    ctx.font = px(7.5) + 'px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('63°', cx + r * 0.22, cy + r * 0.2);
+  }
+
+  function drawWater() {
+    var s = scale();
+    // Water column background
+    ctx.fillStyle = 'rgba(13, 30, 50, 0.8)';
+    ctx.fillRect(0, px(WATER_TOP), canvas.width / s * s, px(SEDIMENT_Y - WATER_TOP));
+
+    // Surface shimmer line
+    ctx.strokeStyle = 'rgba(56, 139, 253, 0.25)';
+    ctx.lineWidth = px(1.5);
+    ctx.beginPath();
+    ctx.moveTo(0, px(WATER_TOP));
+    ctx.lineTo(canvas.width, px(WATER_TOP));
+    ctx.stroke();
+
+    // Surface label
+    ctx.fillStyle = '#484f58';
+    ctx.font = px(9) + 'px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('surface (oxygenated)', px(8), px(WATER_TOP - 8));
+
+    // Depth label
+    ctx.fillStyle = '#30363d';
+    ctx.textAlign = 'left';
+    ctx.font = px(8.5) + 'px monospace';
+    ctx.fillText('↓ depth', px(8), px(WATER_TOP + 22));
+  }
+
+  function drawSediment() {
+    // Sediment layer
+    var grad = ctx.createLinearGradient(0, px(SEDIMENT_Y), 0, px(H));
+    grad.addColorStop(0, 'rgba(100, 75, 30, 0.9)');
+    grad.addColorStop(1, 'rgba(60, 45, 18, 0.95)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, px(SEDIMENT_Y), canvas.width, px(H - SEDIMENT_Y));
+
+    // Sediment texture dots
+    ctx.fillStyle = 'rgba(80, 60, 25, 0.6)';
+    for (var sx = 15; sx < W; sx += 28) {
+      for (var sy = SEDIMENT_Y + 8; sy < H - 5; sy += 18) {
+        ctx.beginPath();
+        ctx.arc(px(sx + (sy % 20 - 10)), px(sy), px(2.5), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Sediment label
+    ctx.fillStyle = '#6e4c1a';
+    ctx.font = px(9) + 'px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('sediment (oxygen-optimal zone)', px(8), px(SEDIMENT_Y + 20));
+
+    // Oxygen gradient indicator (right side)
+    var gradO = ctx.createLinearGradient(0, px(WATER_TOP), 0, px(SEDIMENT_Y));
+    gradO.addColorStop(0, 'rgba(56, 139, 253, 0.18)');
+    gradO.addColorStop(0.6, 'rgba(56, 139, 253, 0.05)');
+    gradO.addColorStop(1, 'rgba(56, 139, 253, 0.01)');
+    ctx.fillStyle = gradO;
+    ctx.fillRect(px(W - 18), px(WATER_TOP), px(14), px(SEDIMENT_Y - WATER_TOP));
+
+    ctx.save();
+    ctx.translate(px(W - 11), px(WATER_TOP + (SEDIMENT_Y - WATER_TOP) * 0.4));
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = 'rgba(56, 139, 253, 0.35)';
+    ctx.font = px(7.5) + 'px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('O₂ gradient', 0, 0);
+    ctx.restore();
+  }
+
+  function drawHemisphereLabel() {
+    ctx.fillStyle = '#484f58';
+    ctx.font = 'bold ' + px(10) + 'px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(hemisphere === 'N' ? 'Northern hemisphere' : 'Southern hemisphere', px(8), px(16));
+  }
+
+  function draw() {
+    var dpr = window.devicePixelRatio || 1;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawWater();
+    drawFieldLines();
+    drawSediment();
+    drawCompass();
+    drawHemisphereLabel();
+    bacteria.forEach(function (b) { drawBacterium(b); });
+  }
+
+  function loop() {
+    step();
+    draw();
+    animId = requestAnimationFrame(loop);
+  }
+
+  // Init
+  window.addEventListener('resize', function () {
+    cancelAnimationFrame(animId);
+    resize();
+    initBacteria();
+    loop();
+  });
+
+  resize();
+  initBacteria();
+  updateInfoPanel();
+  loop();
+
+  // Expose globals for button handlers
+  window.setHemisphere = setHemisphere;
+  window.toggleTransplant = toggleTransplant;
+  window.resetSim = resetSim;
+
+})();
+</script>
+</body>
+</html>

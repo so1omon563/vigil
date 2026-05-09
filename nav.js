@@ -86,6 +86,7 @@
       { href: '/change.html', label: 'change' },
       { href: '/blink.html', label: 'blink' },
       { href: '/bunting.html', label: 'bunting' },
+      { href: '/magneto.html', label: 'magneto' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
