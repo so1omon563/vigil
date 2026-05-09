@@ -84,6 +84,7 @@
       { href: '/jar.html', label: 'jar' },
       { href: '/libet.html', label: 'libet' },
       { href: '/change.html', label: 'change' },
+      { href: '/blink.html', label: 'blink' },
       { href: '/bunting.html', label: 'bunting' },
     ]},
     { cat: 'system', links: [
