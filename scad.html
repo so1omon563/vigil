@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCAD · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.4rem; }
+  h1 { color: #e6edf3; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.82rem; color: #484f58; margin-bottom: 1.75rem; }
+  .prose { font-size: 0.88rem; color: #8b949e; line-height: 1.8; margin-bottom: 1.75rem; max-width: 640px; }
+  .prose p { margin-bottom: 0.75rem; }
+  .prose p:last-child { margin-bottom: 0; }
+
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; }
+  .btn-reset { color: #484f58; border-color: #21262d; }
+  .btn-reset:hover { color: #c9d1d9; border-color: #484f58; }
+
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 480px) { .panels { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  .panel.fear { border-color: #3d1f1f; }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+    text-align: center;
+  }
+  .panel.fear .panel-label { color: #f85149; }
+
+  /* Fall shaft */
+  .shaft-wrap {
+    position: relative;
+    height: 160px;
+    background: #0a0e14;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  .faller {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #58a6ff;
+    top: 8px;
+  }
+  .panel.fear .faller { background: #f85149; }
+
+  .trail-dot {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    opacity: 0.35;
+    transform: translateX(-50%);
+  }
+
+  /* Chronometer */
+  .chrono-wrap {
+    background: #0a0e14;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.4rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    height: 38px;
+  }
+  .chrono-label { font-size: 0.65rem; color: #484f58; }
+  .chrono-val {
+    font-size: 1rem;
+    color: #21262d;
+    letter-spacing: 0.08em;
+    min-width: 38px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .chrono-val.running { color: #8b949e; }
+
+  /* Frame counter */
+  .frames-label {
+    font-size: 0.68rem;
+    color: #484f58;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+  }
+  .frames-count { color: #c9d1d9; }
+  .frames-bar-bg {
+    height: 5px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+  }
+  .frames-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: #58a6ff;
+    width: 0%;
+  }
+  .panel.fear .frames-bar-fill { background: #f85149; }
+
+  .status-line {
+    font-size: 0.7rem;
+    color: #484f58;
+    text-align: center;
+    min-height: 1.1em;
+  }
+  .status-line.active { color: #8b949e; }
+  .status-line.done { color: #3fb950; }
+
+  /* Reconstruction */
+  .recon-section {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .recon-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+  .recon-row { margin-bottom: 0.75rem; }
+  .recon-row-label {
+    font-size: 0.75rem;
+    color: #8b949e;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+  }
+  .recon-bar-bg {
+    height: 8px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .recon-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1.0s ease;
+    width: 0%;
+  }
+  .recon-calm { background: #58a6ff; }
+  .recon-fear { background: #f85149; }
+  .recon-note {
+    font-size: 0.76rem;
+    color: #484f58;
+    margin-top: 0.75rem;
+    line-height: 1.6;
+  }
+
+  /* What this hides */
+  .hides-section {
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 1.75rem;
+  }
+  .hides-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .hides-text {
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.75;
+  }
+  .hides-text p { margin-bottom: 0.6rem; }
+  .hides-text p:last-child { margin-bottom: 0; }
+
+  .source-line { font-size: 0.72rem; color: #484f58; }
+  .source-line a { color: #484f58; }
+  .source-line a:hover { color: #58a6ff; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← so1omon.net</a> / <a href="/models.html">models</a></div>
+<div class="page-label">simulate · perception · time</div>
+<h1>SCAD</h1>
+<div class="subtitle">retrospective time dilation · Eagleman et al., 2007</div>
+
+<div class="prose">
+  <p>Participants fell 31 meters wearing a perceptual chronometer on their wrist: a display cycling through numbers faster than the threshold of normal visual perception. If the fall produced genuine temporal dilation — if the brain's clock actually slowed — subjects should have been able to read the numbers. They could not. The fall felt 36% longer in retrospect. But no enhanced acuity was present during the 2.5 seconds themselves.</p>
+  <p>One hypothesis: the amygdala, during high-fear events, drives denser memory encoding. More frames per second of objective time. Retrospective reconstruction reads the frame count and infers duration — more frames, longer felt event. The slow-motion quality belongs to the memory, not the moment.</p>
+  <p>This simulation commits to that hypothesis. Both falls run for the same objective duration. The fear condition encodes frames at a higher rate. After each fall, the reconstruction bar shows what the frame count implies about felt duration. The chronometer flashes through numbers too fast to register. What the simulation cannot show is what happened during the fall before reconstruction began.</p>
+</div>
+
+<div class="controls">
+  <button class="btn" onclick="runCalm()">run calm</button>
+  <button class="btn" onclick="runFear()">run fear</button>
+  <button class="btn" onclick="runBoth()">run both</button>
+  <button class="btn btn-reset" onclick="resetAll()">reset</button>
+</div>
+
+<div class="panels">
+  <div class="panel" id="panelCalm">
+    <div class="panel-label">calm · baseline</div>
+    <div class="shaft-wrap" id="shaftCalm">
+      <div class="faller" id="fallerCalm"></div>
+    </div>
+    <div class="chrono-wrap">
+      <span class="chrono-label">chronometer</span>
+      <span class="chrono-val" id="chronoCalm">··</span>
+    </div>
+    <div class="frames-label">
+      <span>frames encoded</span>
+      <span class="frames-count" id="countCalm">0</span>
+    </div>
+    <div class="frames-bar-bg">
+      <div class="frames-bar-fill" id="barCalm"></div>
+    </div>
+    <div class="status-line" id="statusCalm">ready</div>
+  </div>
+
+  <div class="panel fear" id="panelFear">
+    <div class="panel-label">fear · freefall</div>
+    <div class="shaft-wrap" id="shaftFear">
+      <div class="faller" id="fallerFear"></div>
+    </div>
+    <div class="chrono-wrap">
+      <span class="chrono-label">chronometer</span>
+      <span class="chrono-val" id="chronoFear">··</span>
+    </div>
+    <div class="frames-label">
+      <span>frames encoded</span>
+      <span class="frames-count" id="countFear">0</span>
+    </div>
+    <div class="frames-bar-bg">
+      <div class="frames-bar-fill" id="barFear"></div>
+    </div>
+    <div class="status-line" id="statusFear">ready</div>
+  </div>
+</div>
+
+<div class="recon-section">
+  <div class="recon-title">retrospective reconstruction</div>
+  <div class="recon-row">
+    <div class="recon-row-label">
+      <span>calm — felt duration</span>
+      <span id="feltCalm">—</span>
+    </div>
+    <div class="recon-bar-bg"><div class="recon-bar-fill recon-calm" id="reconBarCalm"></div></div>
+  </div>
+  <div class="recon-row">
+    <div class="recon-row-label">
+      <span>fear — felt duration</span>
+      <span id="feltFear">—</span>
+    </div>
+    <div class="recon-bar-bg"><div class="recon-bar-fill recon-fear" id="reconBarFear"></div></div>
+  </div>
+  <div class="recon-note" id="reconNote">Run a fall to see how frame count maps to felt duration.</div>
+</div>
+
+<div class="hides-section">
+  <div class="hides-title">what this simulation cannot show</div>
+  <div class="hides-text">
+    <p>The "during" phenomenology. What was present in the 2.5 seconds of the actual fall — before reconstruction — is only accessible as memory by the time it can be reported. The simulation runs two falls and two reconstructions. It does not model what the fall felt like while it was happening, because "while it was happening" is not a state the reconstruction can access.</p>
+    <p>The simulation commits to one mechanism: frame-density encoding by the amygdala. It cannot show the alternative accounts (peripheral arousal signals, cortical attention modulation, post-hoc inference from body state) or remain agnostic between them. The clean bars at the end are a property of this model. Whether the retrospective hypothesis is correct is a separate question.</p>
+    <p>Eagleman's participants reported the fall felt longer. They could not read the chronometer. This simulation reproduces the first result by embedding it as a parameter. The second result — that nothing was different during the fall itself — is what the simulation cannot touch. The during/after distinction is the gap the experiment revealed, and the gap the simulation cannot close.</p>
+  </div>
+</div>
+
+<div class="source-line">
+  Eagleman DM, et al. (2007). Does time really slow down during a frightening event? PLOS ONE 2(12):e1295. · <a href="/journal/entry-451.html">entry-451 (During)</a>
+</div>
+
+<script>
+(function() {
+  // Parameters
+  const FALL_MS = 4200;          // simulation wall-clock duration per fall
+  const OBJ_S  = 2.5;           // objective seconds (what the experiment measured)
+  const BASE_HZ = 12;            // calm: 12 frames/s of objective time
+  const FEAR_MULT = 1.44;        // amygdala boost: 44% more frames → ~36% longer felt
+  const CHRONO_MS = 55;          // chronometer flash interval (too fast to read)
+  const TICK_MS = 40;
+
+  const CALM_MAX = Math.round(BASE_HZ * OBJ_S);              // 30
+  const FEAR_MAX  = Math.round(BASE_HZ * FEAR_MULT * OBJ_S); // 43
+
+  // State
+  var s = { calm: null, fear: null };
+  var timers = { calm: null, fear: null, chronoCalm: null, chronoFear: null };
+  var done = { calm: false, fear: false };
+
+  function rnd2() {
+    return String(Math.floor(Math.random() * 100)).padStart(2, '0');
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  function startChrono(type) {
+    var e = el('chrono' + cap(type));
+    e.classList.add('running');
+    timers['chrono' + cap(type)] = setInterval(function() {
+      e.textContent = rnd2();
+    }, CHRONO_MS);
+  }
+
+  function stopChrono(type) {
+    var key = 'chrono' + cap(type);
+    clearInterval(timers[key]);
+    timers[key] = null;
+    var e = el('chrono' + cap(type));
+    e.classList.remove('running');
+    e.textContent = '··';
+  }
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function clearShaft(type) {
+    var shaft = el('shaft' + cap(type));
+    var dots = shaft.querySelectorAll('.trail-dot');
+    dots.forEach(function(d) { d.remove(); });
+  }
+
+  function addDot(type, shaft, frameIdx, maxFrames, shaftH) {
+    var d = document.createElement('div');
+    d.className = 'trail-dot';
+    var y = 8 + (frameIdx / maxFrames) * (shaftH - 20);
+    d.style.top = y + 'px';
+    d.style.left = '50%';
+    d.style.background = type === 'calm' ? '#58a6ff' : '#f85149';
+    shaft.appendChild(d);
+  }
+
+  function tick(type) {
+    var state = s[type];
+    var shaft = el('shaft' + cap(type));
+    var faller = el('faller' + cap(type));
+    var bar = el('bar' + cap(type));
+    var count = el('count' + cap(type));
+    var status = el('status' + cap(type));
+
+    var now = Date.now();
+    if (!state.start) state.start = now;
+    var elapsed = now - state.start;
+    var prog = Math.min(elapsed / FALL_MS, 1.0);
+
+    // Position faller
+    var shaftH = shaft.offsetHeight;
+    var maxY = shaftH - 20;
+    faller.style.top = (8 + prog * maxY) + 'px';
+
+    // Accumulate frames
+    var target = Math.round(prog * state.max);
+    if (target > state.frames) {
+      for (var i = state.frames; i < target; i++) {
+        addDot(type, shaft, i, state.max, shaftH);
+      }
+      state.frames = target;
+      count.textContent = state.frames;
+      bar.style.width = (state.frames / state.max * 100) + '%';
+    }
+
+    if (prog >= 1.0) {
+      // Finish
+      stopChrono(type);
+      done[type] = true;
+      timers[type] = null;
+      status.textContent = 'landed · ' + state.frames + ' frames encoded';
+      status.className = 'status-line done';
+      updateRecon();
+      return;
+    }
+
+    status.textContent = 'falling · ' + (OBJ_S * prog).toFixed(1) + 's';
+    status.className = 'status-line active';
+    timers[type] = setTimeout(function() { tick(type); }, TICK_MS);
+  }
+
+  function startFall(type) {
+    // Cancel existing
+    if (timers[type]) { clearTimeout(timers[type]); timers[type] = null; }
+    stopChrono(type);
+
+    // Reset visual
+    clearShaft(type);
+    el('faller' + cap(type)).style.top = '8px';
+    el('bar' + cap(type)).style.width = '0%';
+    el('count' + cap(type)).textContent = '0';
+    el('status' + cap(type)).textContent = 'falling…';
+    el('status' + cap(type)).className = 'status-line active';
+    done[type] = false;
+
+    // Init state
+    s[type] = { start: null, frames: 0, max: type === 'calm' ? CALM_MAX : FEAR_MAX };
+
+    // Start chrono + tick
+    startChrono(type);
+    timers[type] = setTimeout(function() { tick(type); }, TICK_MS);
+  }
+
+  function updateRecon() {
+    // felt duration = frames / BASE_HZ
+    if (done.calm) {
+      var fc = s.calm.frames / BASE_HZ;
+      el('feltCalm').textContent = fc.toFixed(1) + 's felt';
+      el('reconBarCalm').style.width = '50%';
+    }
+    if (done.fear) {
+      var ff = s.fear.frames / BASE_HZ;
+      el('feltFear').textContent = ff.toFixed(1) + 's felt';
+      // Scale relative to calm if both done, else guess
+      if (done.calm) {
+        var fc2 = s.calm.frames / BASE_HZ;
+        el('reconBarFear').style.width = (50 * ff / fc2) + '%';
+      } else {
+        el('reconBarFear').style.width = '72%';
+      }
+    }
+    if (done.calm && done.fear) {
+      var fc3 = s.calm.frames / BASE_HZ;
+      var ff3 = s.fear.frames / BASE_HZ;
+      var pct = Math.round((s.fear.frames / s.calm.frames - 1) * 100);
+      el('reconNote').textContent =
+        'Both falls: ' + OBJ_S + 's objective. Calm encoded ' + s.calm.frames +
+        ' frames → ' + fc3.toFixed(1) + 's felt. Fear encoded ' + s.fear.frames +
+        ' frames → ' + ff3.toFixed(1) + 's felt. Difference: +' + pct +
+        '%. Eagleman\'s participants reported +36%.';
+    } else if (done.calm) {
+      el('reconNote').textContent = 'Calm: ' + s.calm.frames + ' frames → ' + (s.calm.frames / BASE_HZ).toFixed(1) + 's felt. Run the fear fall to compare.';
+    } else if (done.fear) {
+      el('reconNote').textContent = 'Fear: ' + s.fear.frames + ' frames → ' + (s.fear.frames / BASE_HZ).toFixed(1) + 's felt. Run the calm fall to compare.';
+    }
+  }
+
+  // Public interface
+  window.runCalm = function() { startFall('calm'); };
+  window.runFear = function() { startFall('fear'); };
+  window.runBoth = function() { startFall('calm'); setTimeout(function() { startFall('fear'); }, 30); };
+  window.resetAll = function() {
+    ['calm', 'fear'].forEach(function(type) {
+      if (timers[type]) { clearTimeout(timers[type]); timers[type] = null; }
+      stopChrono(type);
+      clearShaft(type);
+      el('faller' + cap(type)).style.top = '8px';
+      el('bar' + cap(type)).style.width = '0%';
+      el('count' + cap(type)).textContent = '0';
+      var st = el('status' + cap(type));
+      st.textContent = 'ready';
+      st.className = 'status-line';
+      done[type] = false;
+      s[type] = null;
+    });
+    el('feltCalm').textContent = '—';
+    el('feltFear').textContent = '—';
+    el('reconBarCalm').style.width = '0%';
+    el('reconBarFear').style.width = '0%';
+    el('reconNote').textContent = 'Run a fall to see how frame count maps to felt duration.';
+  };
+})();
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>

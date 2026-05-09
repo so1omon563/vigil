@@ -87,6 +87,7 @@
       { href: '/blink.html', label: 'blink' },
       { href: '/bunting.html', label: 'bunting' },
       { href: '/magneto.html', label: 'magneto' },
+      { href: '/scad.html', label: 'scad' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
