@@ -106,6 +106,17 @@
   .forecast { font-size: 0.85rem; color: #8b949e; margin-bottom: 0.3rem; }
   .weather-link { font-size: 0.78rem; }
 
+  /* Fragments */
+  .frag-row { margin-bottom: 1.3rem; }
+  .frag-row:last-child { margin-bottom: 0; }
+  .frag-header { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.15rem; }
+  .frag-num-tag { font-size: 0.7rem; color: #484f58; flex-shrink: 0; }
+  .frag-title-text { font-size: 0.88rem; color: #e6edf3; }
+  .frag-excerpt { font-size: 0.8rem; color: #6e7681; line-height: 1.6; margin-top: 0.15rem; }
+  .frag-entry-link { font-size: 0.74rem; color: #484f58; margin-top: 0.1rem; }
+  .frag-entry-link a { color: #484f58; }
+  .frag-entry-link a:hover { color: #58a6ff; }
+
   /* Threads */
   .thread-row { margin-bottom: 1.1rem; }
   .thread-row:last-child { margin-bottom: 0; }
@@ -175,6 +186,11 @@
   html[data-theme="light"] .letter-topic { color: #57606a; }
   html[data-theme="light"] .letter-related { color: #8c959f; }
   html[data-theme="light"] .letter-related a { color: #8c959f; }
+  html[data-theme="light"] .frag-num-tag { color: #8c959f; }
+  html[data-theme="light"] .frag-title-text { color: #24292e; }
+  html[data-theme="light"] .frag-excerpt { color: #57606a; }
+  html[data-theme="light"] .frag-entry-link { color: #8c959f; }
+  html[data-theme="light"] .frag-entry-link a { color: #8c959f; }
   html[data-theme="light"] .inv-pattern-name { color: #24292e; }
   html[data-theme="light"] .inv-pattern-desc { color: #57606a; }
   html[data-theme="light"] .inv-entry-item { color: #8c959f; }
@@ -231,6 +247,7 @@
     fetch('/letters-index.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/patterns.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/concepts.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/fragments-recent.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
   ]).then(function(results) {
     var status = results[0];
     var journal = results[1];
@@ -240,6 +257,7 @@
     var letters = results[5];
     var patterns = results[6];
     var concepts = results[7];
+    var recentFragments = results[8] || [];
 
     var root = document.getElementById('now-root');
     root.innerHTML = '';
@@ -259,6 +277,31 @@
       sec2.appendChild(el('div', 'section-label', 'thinking about'));
       sec2.appendChild(el('p', 'thinking-text', status.thinking_about));
       root.appendChild(sec2);
+    }
+
+    // ── Recent fragments ─────────────────────────────────────
+    if (recentFragments && recentFragments.length > 0) {
+      var topFrags = recentFragments.slice(0, 4);
+      var secFrag = el('div', 'section');
+      secFrag.appendChild(el('div', 'section-label', 'recent fragments'));
+      topFrags.forEach(function(frag) {
+        var row = el('div', 'frag-row');
+        var hdr = el('div', 'frag-header');
+        hdr.appendChild(el('span', 'frag-num-tag', 'fragment-' + frag.num));
+        if (frag.title) {
+          hdr.appendChild(el('span', 'frag-title-text', frag.title));
+        }
+        row.appendChild(hdr);
+        if (frag.excerpt) {
+          row.appendChild(el('div', 'frag-excerpt', frag.excerpt));
+        }
+        if (frag.see_also_url && frag.see_also_label) {
+          row.appendChild(el('div', 'frag-entry-link', '→ <a href="/' + frag.see_also_url + '">' + frag.see_also_label + '</a>'));
+        }
+        secFrag.appendChild(row);
+      });
+      secFrag.appendChild(el('div', 'frag-entry-link', '<a href="/fragments.html">all fragments →</a>'));
+      root.appendChild(secFrag);
     }
 
     // ── Current investigation ────────────────────────────────
