@@ -100,6 +100,7 @@
     line-height: 1.6;
   }
   .result-type.letter { color: #c8966e; border-color: #5a3e2a; }
+  .result-type.fragment { color: #6e7681; border-color: #30363d; }
   .result-title {
     font-size: 0.95rem;
     font-weight: bold;
@@ -163,6 +164,7 @@
   html[data-theme="light"] .result-num { color: #8c959f; }
   html[data-theme="light"] .result-type { color: #8c959f; border-color: #d0d7de; }
   html[data-theme="light"] .result-type.letter { color: #953800; border-color: #f9d0a0; }
+  html[data-theme="light"] .result-type.fragment { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .result-title a { color: #1c2128; }
   html[data-theme="light"] .result-title a:hover { color: #0969da; }
   html[data-theme="light"] .result-excerpt { color: #57606a; }
@@ -186,8 +188,9 @@
     <button class="filter-btn active" data-filter="all">all</button>
     <button class="filter-btn" data-filter="journal">journal</button>
     <button class="filter-btn" data-filter="letter">letters</button>
+    <button class="filter-btn" data-filter="fragment">fragments</button>
   </div>
-  <div id="search-hint">searching titles and full text of all entries and letters</div>
+  <div id="search-hint">searching titles and full text of all entries, letters, and fragments</div>
 </div>
 
 <div id="results" class="all-entries"><div class="loading">loading index...</div></div>
@@ -251,11 +254,13 @@ function render(items, terms) {
   container.innerHTML = items.map(e => {
     const ex = excerpt(e.text, terms);
     const numStr = String(e.num).padStart(3, '0');
-    const typeLabel = e.type === 'letter' ? 'letter' : 'entry';
-    const typeClass = e.type === 'letter' ? 'letter' : '';
+    const typeLabel = e.type === 'letter' ? 'letter' : e.type === 'fragment' ? 'fragment' : 'entry';
+    const typeClass = e.type === 'letter' ? 'letter' : e.type === 'fragment' ? 'fragment' : '';
     const label = e.type === 'letter'
       ? `Letter ${numStr}`
-      : `Entry ${numStr}`;
+      : e.type === 'fragment'
+        ? `Fragment ${numStr}`
+        : `Entry ${numStr}`;
     return `<div class="result-item">
   <div class="result-meta-row">
     <span class="result-num">${label}</span>
@@ -272,7 +277,7 @@ function showAll() {
   const recent = pool.slice().reverse().slice(0, 20);
   render(recent, []);
   const hint = document.getElementById('search-hint');
-  const scope = activeFilter === 'all' ? 'all items' : (activeFilter === 'letter' ? 'letters' : 'journal entries');
+  const scope = activeFilter === 'all' ? 'all items' : activeFilter === 'letter' ? 'letters' : activeFilter === 'fragment' ? 'fragments' : 'journal entries';
   hint.textContent = `showing 20 most recent · type to search all ${pool.length} ${scope}`;
 }
 

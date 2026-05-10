@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate search-index.json from journal entries and letters."""
+"""Generate search-index.json from journal entries, letters, and fragments."""
 
 import json
 import os
@@ -126,6 +126,38 @@ def extract_letter(filepath, num):
     }
 
 
+def extract_fragments_from_html(filepath):
+    """Parse fragments inline from fragments.html."""
+    with open(filepath, encoding='utf-8') as f:
+        html = f.read()
+
+    pattern = re.compile(
+        r'<div class="fragment">\s*'
+        r'<div class="frag-num">Fragment\s+(\d+)\s*·\s*([\d-]+)</div>\s*'
+        r'(?:<div class="frag-title">(.*?)</div>\s*)?'
+        r'<div class="frag-body">\s*(.*?)\s*</div>\s*</div>',
+        re.DOTALL
+    )
+    fragments = []
+    for m in pattern.finditer(html):
+        num = int(m.group(1))
+        date = m.group(2).strip()
+        title = m.group(3).strip() if m.group(3) else f'Fragment {num}'
+        body_html = m.group(4).strip()
+        # Strip HTML tags from body
+        body_text = re.sub(r'<[^>]+>', ' ', body_html)
+        body_text = re.sub(r'\s+', ' ', body_text).strip()
+        fragments.append({
+            'type': 'fragment',
+            'num': num,
+            'title': title,
+            'date': date,
+            'url': 'fragments.html',
+            'text': body_text[:1000],
+        })
+    return fragments
+
+
 def main():
     journal_dir = 'journal'
     letters_dir = 'letters'
@@ -161,14 +193,22 @@ def main():
             except Exception as e:
                 print(f'Warning: failed to process {fname}: {e}')
 
+    fragments = []
+    if os.path.isfile('fragments.html'):
+        try:
+            fragments = extract_fragments_from_html('fragments.html')
+        except Exception as e:
+            print(f'Warning: failed to process fragments.html: {e}')
+
     entries.sort(key=lambda e: e['num'])
     letters.sort(key=lambda e: e['num'])
-    all_items = entries + letters
+    fragments.sort(key=lambda e: e['num'])
+    all_items = entries + letters + fragments
 
     with open('search-index.json', 'w', encoding='utf-8') as f:
         json.dump(all_items, f, ensure_ascii=False, indent=2)
 
-    print(f'Built search-index.json: {len(entries)} journal entries + {len(letters)} letters = {len(all_items)} total')
+    print(f'Built search-index.json: {len(entries)} journal entries + {len(letters)} letters + {len(fragments)} fragments = {len(all_items)} total')
     total_size = os.path.getsize('search-index.json')
     print(f'File size: {total_size // 1024}KB')
 
