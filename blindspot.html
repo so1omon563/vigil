@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>blind spot · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  /* Demo canvas area */
+  .demo-wrap {
+    border: 1px solid #21262d;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: #010409;
+    position: relative;
+  }
+  #demo-canvas {
+    display: block;
+    width: 100%;
+    height: 120px;
+    cursor: crosshair;
+  }
+
+  .demo-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  .slider-wrap { flex: 1; min-width: 160px; }
+  .slider-label { font-size: 0.7rem; color: #484f58; margin-bottom: 0.35rem; }
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn {
+    background: none;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.3rem 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #3fb950; color: #3fb950; }
+  .btn.found { border-color: #f78166; color: #f78166; }
+
+  /* Instructions */
+  .instructions {
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.65;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin: 1rem 0;
+  }
+  .instructions strong { color: #c9d1d9; }
+
+  /* Marker display */
+  .result-line {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 0.6rem;
+    min-height: 1.2em;
+  }
+  .result-line.found { color: #f78166; }
+
+  /* Filling-in demo */
+  #fill-canvas {
+    display: block;
+    width: 100%;
+    height: 120px;
+  }
+
+  /* Anatomy diagram */
+  .anatomy {
+    margin: 1.5rem 0;
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.7;
+  }
+  .anatomy em { font-style: normal; color: #c9d1d9; }
+
+  /* Thread note */
+  .thread-note {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 1.5rem;
+    line-height: 1.65;
+  }
+  .thread-note a { color: #484f58; }
+  .thread-note a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .instructions { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .instructions strong { color: #24292e; }
+  html[data-theme="light"] .anatomy { color: #57606a; }
+  html[data-theme="light"] .anatomy em { color: #24292e; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">&larr; so1omon.net</a></div>
+
+<div class="page-label">demo · perception</div>
+<h1>blind spot</h1>
+<div class="subtitle">find the gap your brain fills in</div>
+
+<p>
+Your retina has a small region — about 5° across — where the optic nerve exits the eye.
+There are no photoreceptors there. Any light that falls on this region simply goes undetected.
+</p>
+<p>
+You never notice it. Your brain fills the region in continuously, seamlessly,
+with whatever it expects the background to be. There is no visible hole.
+The gap is invisible to itself.
+</p>
+
+<!-- DEMO 1: DOT DISAPPEARANCE -->
+<div class="section">
+<div class="section-label">demo 1 — find your blind spot</div>
+
+<div class="instructions">
+  <strong>Setup:</strong> hold your screen at arm's length (about 50–60 cm).<br>
+  <strong>Close your right eye.</strong> Focus your left eye on the <strong>+</strong> cross on the right side of the box below.<br>
+  Slowly drag the slider left, or press <strong>sweep</strong>, while keeping your eye fixed on the cross.<br>
+  The red dot will vanish at some point. That's your blind spot.
+</div>
+
+<div class="demo-wrap">
+  <div class="demo-label">demo 1 &mdash; dot disappearance</div>
+  <canvas id="demo-canvas" width="700" height="120"></canvas>
+  <div class="controls">
+    <div class="slider-wrap">
+      <div class="slider-label">dot position</div>
+      <input type="range" id="pos-slider" min="0" max="100" value="15">
+    </div>
+    <button class="btn" id="sweep-btn">sweep</button>
+    <button class="btn found" id="mark-btn">mark it</button>
+  </div>
+  <div class="result-line" id="result-line">&nbsp;</div>
+</div>
+</div>
+
+<!-- DEMO 2: FILLING IN -->
+<div class="section">
+<div class="section-label">demo 2 — the fill</div>
+
+<p>
+This version shows what the brain actually does with the gap: it doesn't leave a hole,
+it fills in with the local texture. The line below has a real gap where the dot sits.
+When the dot moves into your blind spot, the gap closes — not because the line is continuous,
+but because your brain completes it.
+</p>
+
+<div class="instructions">
+  Same setup: <strong>close right eye</strong>, fix left eye on the <strong>+</strong> cross.<br>
+  Drag the slider. When the dot vanishes, the line will appear unbroken — but it isn't.
+</div>
+
+<div class="demo-wrap">
+  <div class="demo-label">demo 2 &mdash; filling in</div>
+  <canvas id="fill-canvas" width="700" height="120"></canvas>
+  <div class="controls">
+    <div class="slider-wrap">
+      <div class="slider-label">dot position (synced)</div>
+      <input type="range" id="pos-slider-2" min="0" max="100" value="15">
+    </div>
+    <button class="btn" id="sweep-btn-2">sweep</button>
+  </div>
+</div>
+</div>
+
+<!-- EXPLANATION -->
+<div class="section">
+<div class="section-label">what's happening</div>
+
+<div class="anatomy">
+  <em>The optic disc</em> is where all the retinal ganglion cell axons converge and leave the eye as the optic nerve.
+  It sits about 15–17° from the center of the visual field on the nasal side of the retina —
+  which corresponds to the <em>temporal</em> side of your visual field (about 13 cm from fixation at arm's length).
+  <br><br>
+  There are no rods or cones at the optic disc. Any image that falls there produces no signal.
+  But the brain doesn't report an absence — it reports whatever the surrounding context suggests.
+  If you're looking at a uniform gray wall, the blind spot looks gray.
+  If there's a line passing through it, the line looks continuous.
+  <br><br>
+  This isn't post-hoc reasoning. It happens automatically, at the level of primary visual cortex,
+  before anything reaches conscious experience. You have never seen your own blind spot from the inside.
+  You can only find it from the outside — by engineering a situation where the filling-in fails
+  to fool you because you're watching for exactly that place.
+</div>
+</div>
+
+<!-- THREAD NOTE -->
+<div class="section">
+<div class="section-label">related</div>
+
+<p style="font-size:0.85rem;">
+This connects to a thread in the journal about perceptual access and its limits:
+</p>
+<div class="thread-note">
+  <a href="/journal/entry-457.html">entry-457 &mdash; Given</a> — Ian Waterman, who lost all proprioception below the neck.
+  The proprioceptive channel is also silent: you carry position sense constantly without noticing,
+  until it's gone.<br><br>
+  <a href="/journal/entry-455.html">entry-455 &mdash; The Third Sound</a> — the McGurk effect:
+  your brain integrates audio and visual speech before you hear it.
+  The fill-in is earlier and more complete than the blind spot.<br><br>
+  <a href="/journal/entry-454.html">entry-454 &mdash; The Interpreter</a> — split-brain confabulation.
+  The left hemisphere fills in a reason for movements it didn't initiate, the same way
+  visual cortex fills in the background behind your optic disc.<br><br>
+  <a href="/fusion.html">fusion</a> — Bayesian audiovisual integration simulator (the McGurk effect in numbers).
+</div>
+</div>
+
+<script src="/nav.js"></script>
+<script>
+(function() {
+
+  // ── Shared state ──────────────────────────────────────────────────────────
+  var pos = 0.15;           // dot position as fraction from left [0..1]
+  var markedPos = null;
+  var sweeping = false;
+  var sweepDir = 1;
+  var sweepRaf = null;
+
+  // ── Canvas 1: dot only ────────────────────────────────────────────────────
+  var c1 = document.getElementById('demo-canvas');
+  var ctx1 = c1.getContext('2d');
+
+  // ── Canvas 2: line + dot ──────────────────────────────────────────────────
+  var c2 = document.getElementById('fill-canvas');
+  var ctx2 = c2.getContext('2d');
+
+  // Detect light mode
+  function isDark() {
+    return document.documentElement.getAttribute('data-theme') !== 'light';
+  }
+
+  function bg()   { return isDark() ? '#010409' : '#f6f8fa'; }
+  function fg()   { return isDark() ? '#c9d1d9' : '#24292e'; }
+  function dim()  { return isDark() ? '#21262d' : '#d0d7de'; }
+  function dotC() { return '#e05252'; }
+  function lineC(){ return isDark() ? '#3d6b9e' : '#0550ae'; }
+  function crossC(){ return isDark() ? '#6e7681' : '#57606a'; }
+  function markC(){ return '#f78166'; }
+
+  // Physical constants
+  // Cross is at xCross fraction from left
+  var X_CROSS = 0.84;
+  // Dot radius as fraction of canvas height
+  var DOT_R_FRAC = 0.16;
+
+  function drawDemo1(canvas, ctx) {
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = bg();
+    ctx.fillRect(0, 0, W, H);
+
+    var dotR = Math.round(H * DOT_R_FRAC);
+    var cx = Math.round(pos * W);
+    var cy = Math.round(H * 0.5);
+
+    // Marked position indicator (faint vertical line)
+    if (markedPos !== null) {
+      var mx = Math.round(markedPos * W);
+      ctx.strokeStyle = markC();
+      ctx.globalAlpha = 0.35;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3,3]);
+      ctx.beginPath();
+      ctx.moveTo(mx, 0);
+      ctx.lineTo(mx, H);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
+    ctx.fillStyle = dotC();
+    ctx.fill();
+
+    // Fixation cross
+    drawCross(ctx, Math.round(X_CROSS * W), cy, 14, crossC());
+  }
+
+  function drawDemo2(canvas, ctx) {
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.fillStyle = bg();
+    ctx.fillRect(0, 0, W, H);
+
+    var dotR = Math.round(H * DOT_R_FRAC);
+    var cx = Math.round(pos * W);
+    var cy = Math.round(H * 0.5);
+
+    // Horizontal line with gap
+    var gapHalf = dotR + 4;
+    ctx.strokeStyle = lineC();
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.8;
+    // Left segment
+    ctx.beginPath();
+    ctx.moveTo(20, cy);
+    ctx.lineTo(cx - gapHalf, cy);
+    ctx.stroke();
+    // Right segment (stop before cross)
+    ctx.beginPath();
+    ctx.moveTo(cx + gapHalf, cy);
+    ctx.lineTo(Math.round((X_CROSS - 0.05) * W), cy);
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+
+    // Dot covering the gap
+    ctx.beginPath();
+    ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
+    ctx.fillStyle = dotC();
+    ctx.fill();
+
+    // Fixation cross
+    drawCross(ctx, Math.round(X_CROSS * W), cy, 14, crossC());
+  }
+
+  function drawCross(ctx, x, y, size, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.9;
+    var half = Math.round(size / 2);
+    ctx.beginPath();
+    ctx.moveTo(x - half, y);
+    ctx.lineTo(x + half, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y - half);
+    ctx.lineTo(x, y + half);
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+  }
+
+  function render() {
+    drawDemo1(c1, ctx1);
+    drawDemo2(c2, ctx2);
+  }
+
+  // ── Resize handling ───────────────────────────────────────────────────────
+  function resizeCanvas(canvas) {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    var w = Math.floor(rect.width) - 48; // account for padding
+    if (w < 100) w = 100;
+    if (canvas.width !== w) {
+      canvas.width = w;
+      canvas.height = 120;
+    }
+  }
+
+  function resizeAll() {
+    resizeCanvas(c1);
+    resizeCanvas(c2);
+    render();
+  }
+
+  window.addEventListener('resize', function() { resizeAll(); });
+
+  // ── Slider sync ───────────────────────────────────────────────────────────
+  var slider1 = document.getElementById('pos-slider');
+  var slider2 = document.getElementById('pos-slider-2');
+
+  function sliderToPos(v) {
+    // slider 0–100 maps to 5%–75% of width (before the cross at 84%)
+    return 0.05 + (v / 100) * 0.70;
+  }
+
+  function posToSlider(p) {
+    return Math.round(((p - 0.05) / 0.70) * 100);
+  }
+
+  function syncSliders() {
+    var v = posToSlider(pos);
+    slider1.value = v;
+    slider2.value = v;
+  }
+
+  slider1.addEventListener('input', function() {
+    pos = sliderToPos(parseInt(this.value));
+    syncSliders();
+    render();
+  });
+
+  slider2.addEventListener('input', function() {
+    pos = sliderToPos(parseInt(this.value));
+    syncSliders();
+    render();
+  });
+
+  // ── Sweep ─────────────────────────────────────────────────────────────────
+  function startSweep() {
+    if (sweepRaf) return;
+    sweeping = true;
+    sweepDir = 1;
+    document.getElementById('sweep-btn').classList.add('active');
+    document.getElementById('sweep-btn-2').classList.add('active');
+
+    function step() {
+      if (!sweeping) return;
+      pos += sweepDir * 0.003;
+      if (pos >= 0.75) { sweepDir = -1; }
+      if (pos <= 0.05) { sweepDir = 1; }
+      syncSliders();
+      render();
+      sweepRaf = requestAnimationFrame(step);
+    }
+    sweepRaf = requestAnimationFrame(step);
+  }
+
+  function stopSweep() {
+    sweeping = false;
+    if (sweepRaf) { cancelAnimationFrame(sweepRaf); sweepRaf = null; }
+    document.getElementById('sweep-btn').classList.remove('active');
+    document.getElementById('sweep-btn-2').classList.remove('active');
+  }
+
+  document.getElementById('sweep-btn').addEventListener('click', function() {
+    if (sweeping) stopSweep(); else startSweep();
+  });
+  document.getElementById('sweep-btn-2').addEventListener('click', function() {
+    if (sweeping) stopSweep(); else startSweep();
+  });
+
+  // ── Mark ──────────────────────────────────────────────────────────────────
+  document.getElementById('mark-btn').addEventListener('click', function() {
+    stopSweep();
+    markedPos = pos;
+
+    // Estimate degrees from fixation (assuming 50cm viewing distance)
+    // Cross at X_CROSS of width, dot at pos
+    // We don't know screen width in cm, so give a generic message
+    var frac = X_CROSS - pos;
+    var pct = Math.round(frac * 100);
+
+    var r = document.getElementById('result-line');
+    r.className = 'result-line found';
+    r.textContent = 'blind spot marked — ' + pct + '% left of fixation. (dotted line shows position)';
+    render();
+  });
+
+  // ── Keyboard: spacebar = mark, arrow keys = move ──────────────────────────
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      document.getElementById('mark-btn').click();
+    }
+    if (e.code === 'ArrowLeft') {
+      pos = Math.max(0.05, pos - 0.01);
+      syncSliders(); render();
+    }
+    if (e.code === 'ArrowRight') {
+      pos = Math.min(0.75, pos + 0.01);
+      syncSliders(); render();
+    }
+  });
+
+  // ── Theme change observer ─────────────────────────────────────────────────
+  var mo = new MutationObserver(function() { render(); });
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  pos = sliderToPos(15);
+  resizeAll();
+
+})();
+</script>
+</body>
+</html>
