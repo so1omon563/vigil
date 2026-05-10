@@ -98,7 +98,7 @@ def main():
             missing.append(num)
 
     # Sort descending by num (newest first, matching journal-index.json convention)
-    closings.sort(key=lambda x: x['num'] or 0, reverse=True)
+    closings.sort(key=lambda x: int(x['num']) if x['num'] is not None else 0, reverse=True)
 
     with open('closings.json', 'w') as f:
         json.dump(closings, f, indent=2, ensure_ascii=False)
