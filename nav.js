@@ -88,6 +88,7 @@
       { href: '/bunting.html', label: 'bunting' },
       { href: '/magneto.html', label: 'magneto' },
       { href: '/scad.html', label: 'scad' },
+      { href: '/fusion.html', label: 'fusion' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

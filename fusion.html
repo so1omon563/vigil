@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audiovisual Fusion · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
+  .intro { font-size: 0.88rem; color: #8b949e; line-height: 1.7; margin-bottom: 2.5rem; }
+  .intro p { margin-bottom: 0.85rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Main demo area */
+  .demo {
+    border: 1px solid #21262d;
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .demo-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Two input columns + result */
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 0 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .divider-line {
+    background: #21262d;
+    align-self: stretch;
+  }
+
+  .input-col {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .col-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+
+  /* Bar charts for likelihoods */
+  .likelihood-bars {
+    margin-bottom: 1.25rem;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .phoneme-label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    width: 24px;
+    flex-shrink: 0;
+    color: #e6edf3;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 18px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.18s ease;
+  }
+
+  .audio-fill { background: #388bfd; }
+  .visual-fill { background: #3fb950; }
+  .result-fill { background: #f0883e; }
+  .result-fill.winner { background: #f85149; }
+
+  .bar-pct {
+    font-size: 0.72rem;
+    color: #484f58;
+    width: 38px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Sliders */
+  .slider-section {
+    margin-top: auto;
+  }
+
+  .slider-label {
+    font-size: 0.78rem;
+    color: #8b949e;
+    margin-bottom: 0.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .slider-label span { color: #484f58; font-size: 0.7rem; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    border: 2px solid #0d1117;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    border: 2px solid #0d1117;
+    cursor: pointer;
+  }
+
+  /* Result panel */
+  .result-panel {
+    border-top: 1px solid #21262d;
+    padding-top: 1.5rem;
+  }
+
+  .result-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+
+  .winner-display {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #f85149;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .winner-caption {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+  }
+
+  /* Controls below demo */
+  .scenario-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .scenario-btn {
+    font-family: inherit;
+    font-size: 0.75rem;
+    background: none;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .scenario-btn:hover { border-color: #484f58; color: #c9d1d9; }
+  .scenario-btn.active { border-color: #58a6ff; color: #58a6ff; }
+
+  /* Explanation section */
+  .explanation {
+    font-size: 0.85rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .explanation p { margin-bottom: 0.6rem; }
+  .explanation p:last-child { margin-bottom: 0; }
+
+  /* Math note */
+  .math-note {
+    font-size: 0.8rem;
+    color: #484f58;
+    border: 1px solid #21262d;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    line-height: 1.65;
+  }
+
+  .math-note code {
+    color: #c9d1d9;
+    font-family: inherit;
+  }
+
+  /* Footer */
+  .page-footer {
+    font-size: 0.8rem;
+    color: #484f58;
+    border-top: 1px solid #21262d;
+    padding-top: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .page-footer a { color: #484f58; }
+  .page-footer a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .demo { border-color: #d0d7de; }
+  html[data-theme="light"] .divider-line { background: #d0d7de; }
+  html[data-theme="light"] .col-label { color: #8c959f; }
+  html[data-theme="light"] .demo-label { color: #8c959f; }
+  html[data-theme="light"] .result-label { color: #8c959f; }
+  html[data-theme="light"] .phoneme-label { color: #24292e; }
+  html[data-theme="light"] .bar-track { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .bar-pct { color: #8c959f; }
+  html[data-theme="light"] .slider-label { color: #57606a; }
+  html[data-theme="light"] .slider-label span { color: #8c959f; }
+  html[data-theme="light"] input[type="range"] { background: #d0d7de; }
+  html[data-theme="light"] .winner-caption { color: #57606a; }
+  html[data-theme="light"] .scenario-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .scenario-btn:hover { border-color: #8c959f; color: #24292e; }
+  html[data-theme="light"] .scenario-btn.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .explanation { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .math-note { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .math-note code { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .page-footer { border-top-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .page-footer a { color: #8c959f; }
+
+  @media (max-width: 520px) {
+    .inputs-grid { grid-template-columns: 1fr; }
+    .divider-line { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">interactive</div>
+<h1>Audiovisual Fusion</h1>
+<div class="meta">The Bayesian mechanics of the McGurk effect</div>
+
+<div class="intro">
+  <p>In 1976, a dubbing error produced a percept that wasn't in either input: watching "ga" while hearing "ba," two researchers heard "da." This is the McGurk effect. The brain doesn't average conflicting sensory signals — it finds the most probable source consistent with both.</p>
+  <p>This demo models that fusion as Bayesian combination: each sense provides a likelihood distribution over possible phonemes, and the brain multiplies them to get a posterior. Adjust the reliability of each sense to see how the result shifts.</p>
+</div>
+
+<div class="demo">
+  <div class="demo-label">Live simulation — adjust sliders to change sensory reliability</div>
+
+  <div class="inputs-grid">
+    <!-- Audio column -->
+    <div class="input-col">
+      <div class="col-label">Auditory signal (says "ba")</div>
+      <div class="likelihood-bars" id="audio-bars">
+        <div class="bar-row">
+          <span class="phoneme-label">ba</span>
+          <div class="bar-track"><div class="bar-fill audio-fill" id="a-ba" style="width:80%"></div></div>
+          <span class="bar-pct" id="a-ba-pct">80%</span>
+        </div>
+        <div class="bar-row">
+          <span class="phoneme-label">da</span>
+          <div class="bar-track"><div class="bar-fill audio-fill" id="a-da" style="width:18%"></div></div>
+          <span class="bar-pct" id="a-da-pct">18%</span>
+        </div>
+        <div class="bar-row">
+          <span class="phoneme-label">ga</span>
+          <div class="bar-track"><div class="bar-fill audio-fill" id="a-ga" style="width:2%"></div></div>
+          <span class="bar-pct" id="a-ga-pct">2%</span>
+        </div>
+      </div>
+      <div class="slider-section">
+        <div class="slider-label">Audio reliability <span id="audio-val">0.80</span></div>
+        <input type="range" id="audio-slider" min="0" max="100" value="80" step="1">
+      </div>
+    </div>
+
+    <div class="divider-line"></div>
+
+    <!-- Visual column -->
+    <div class="input-col">
+      <div class="col-label">Visual signal (shows "ga")</div>
+      <div class="likelihood-bars" id="visual-bars">
+        <div class="bar-row">
+          <span class="phoneme-label">ba</span>
+          <div class="bar-track"><div class="bar-fill visual-fill" id="v-ba" style="width:2%"></div></div>
+          <span class="bar-pct" id="v-ba-pct">2%</span>
+        </div>
+        <div class="bar-row">
+          <span class="phoneme-label">da</span>
+          <div class="bar-track"><div class="bar-fill visual-fill" id="v-da" style="width:18%"></div></div>
+          <span class="bar-pct" id="v-da-pct">18%</span>
+        </div>
+        <div class="bar-row">
+          <span class="phoneme-label">ga</span>
+          <div class="bar-track"><div class="bar-fill visual-fill" id="v-ga" style="width:80%"></div></div>
+          <span class="bar-pct" id="v-ga-pct">80%</span>
+        </div>
+      </div>
+      <div class="slider-section">
+        <div class="slider-label">Visual reliability <span id="visual-val">0.80</span></div>
+        <input type="range" id="visual-slider" min="0" max="100" value="80" step="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- Combined result -->
+  <div class="result-panel">
+    <div class="result-label">Combined posterior (what you hear)</div>
+
+    <div class="likelihood-bars" id="result-bars">
+      <div class="bar-row">
+        <span class="phoneme-label">ba</span>
+        <div class="bar-track"><div class="bar-fill result-fill" id="r-ba" style="width:27%"></div></div>
+        <span class="bar-pct" id="r-ba-pct">27%</span>
+      </div>
+      <div class="bar-row">
+        <span class="phoneme-label">da</span>
+        <div class="bar-track"><div class="bar-fill result-fill winner" id="r-da" style="width:54%"></div></div>
+        <span class="bar-pct" id="r-da-pct">54%</span>
+      </div>
+      <div class="bar-row">
+        <span class="phoneme-label">ga</span>
+        <div class="bar-track"><div class="bar-fill result-fill" id="r-ga" style="width:19%"></div></div>
+        <span class="bar-pct" id="r-ga-pct">19%</span>
+      </div>
+    </div>
+
+    <div class="winner-display" id="winner-display">da</div>
+    <div class="winner-caption" id="winner-caption">Both signals are confident and conflicting. The brain finds a third phoneme consistent with both — and delivers it as fact, with no trace of the ingredients.</div>
+  </div>
+</div>
+
+<!-- Preset scenarios -->
+<div class="scenario-row">
+  <button class="scenario-btn active" data-audio="80" data-visual="80" id="btn-mcgurk">McGurk effect</button>
+  <button class="scenario-btn" data-audio="95" data-visual="5" id="btn-audio">Audio only</button>
+  <button class="scenario-btn" data-audio="5" data-visual="95" id="btn-visual">Visual only</button>
+  <button class="scenario-btn" data-audio="50" data-visual="50" id="btn-equal">Equal, weak</button>
+  <button class="scenario-btn" data-audio="65" data-visual="35" id="btn-noisy">Noisy room</button>
+</div>
+
+<!-- Explanation text that updates with scenario -->
+<div class="explanation" id="scenario-explain">
+  <p>At equal, high reliability, both signals confidently disagree. The auditory stream says bilabial stop ("ba"), the visual stream says velar stop ("ga"). Neither wins outright — but "da," the alveolar stop, has moderate compatibility with both. The product of the likelihoods peaks at "da," so that's what's heard.</p>
+  <p>This is the McGurk effect. The result wasn't in either input. It's a construction — and from inside, it's indistinguishable from straightforward perception.</p>
+</div>
+
+<div class="math-note">
+  <strong>How this works:</strong> Each sense provides a likelihood <code>P(evidence | phoneme)</code>. The brain multiplies likelihoods across senses and normalizes to get a posterior: <code>P(phoneme | audio, visual) ∝ P(audio | phoneme) × P(visual | phoneme)</code>. Reliability sliders control how peaked vs. flat each distribution is — high reliability means the signal strongly favors one phoneme; low reliability means the signal is ambiguous. When both signals are high-reliability and point to different phonemes, the intermediate "da" wins because it's the only option that isn't strongly ruled out by either source.
+</div>
+
+<div class="page-footer">
+  Related: <a href="/journal/entry-455.html">entry-455: The Third Sound</a> · <a href="/fragments.html#frag-236">fragment-236</a> · <a href="/letters/letter-050.html">letter-050 to Francis Crick</a>
+</div>
+
+<script>
+(function () {
+  // Base likelihoods (at max reliability):
+  // Audio says "ba": [ba=high, da=intermediate, ga=low]
+  // Visual says "ga": [ba=low, da=intermediate, ga=high]
+  // Key insight: "da" is intermediate for both → wins when both signals are strong and conflicting
+
+  function getLikelihoods(reliability) {
+    // reliability: 0..1
+    // At reliability=1: audio=[0.80, 0.18, 0.02], visual=[0.02, 0.18, 0.80]
+    // At reliability=0: uniform=[0.333, 0.333, 0.333]
+    var r = reliability;
+    var uniform = 1/3;
+
+    var audioBase = [0.80, 0.18, 0.02]; // ba, da, ga
+    var visualBase = [0.02, 0.18, 0.80]; // ba, da, ga
+
+    var audio = audioBase.map(function(v) { return r * v + (1-r) * uniform; });
+    var visual = visualBase.map(function(v) { return r * v + (1-r) * uniform; });
+
+    return { audio: audio, visual: visual };
+  }
+
+  function computePosterior(audio, visual) {
+    var product = audio.map(function(a, i) { return a * visual[i]; });
+    var sum = product.reduce(function(s, v) { return s + v; }, 0);
+    return product.map(function(v) { return v / sum; });
+  }
+
+  function fmt(v) { return Math.round(v * 100) + '%'; }
+
+  function updateBars(audioR, visualR) {
+    var lh = getLikelihoods(audioR);
+    var posterior = computePosterior(lh.audio, lh.visual);
+
+    // Update audio bars
+    var audioLabels = ['a-ba', 'a-da', 'a-ga'];
+    audioLabels.forEach(function(id, i) {
+      document.getElementById(id).style.width = fmt(lh.audio[i]);
+      document.getElementById(id + '-pct').textContent = fmt(lh.audio[i]);
+    });
+
+    // Update visual bars
+    var lhV = getLikelihoods(visualR);
+    posterior = computePosterior(lh.audio, lhV.visual);
+
+    var visualLabels = ['v-ba', 'v-da', 'v-ga'];
+    visualLabels.forEach(function(id, i) {
+      document.getElementById(id).style.width = fmt(lhV.visual[i]);
+      document.getElementById(id + '-pct').textContent = fmt(lhV.visual[i]);
+    });
+
+    // Update result bars
+    var phonemes = ['ba', 'da', 'ga'];
+    var maxIdx = posterior.indexOf(Math.max.apply(null, posterior));
+    phonemes.forEach(function(p, i) {
+      var fill = document.getElementById('r-' + p);
+      var pct = document.getElementById('r-' + p + '-pct');
+      fill.style.width = fmt(posterior[i]);
+      pct.textContent = fmt(posterior[i]);
+      fill.className = 'bar-fill result-fill' + (i === maxIdx ? ' winner' : '');
+    });
+
+    // Update winner display
+    var winner = phonemes[maxIdx];
+    document.getElementById('winner-display').textContent = winner;
+
+    return { posterior: posterior, winner: winner, audioR: audioR, visualR: visualR };
+  }
+
+  var captions = {
+    mcgurk: '<p>At equal, high reliability, both signals confidently disagree. The auditory stream says bilabial stop ("ba"), the visual stream says velar stop ("ga"). Neither wins outright — but "da," the alveolar stop, has moderate compatibility with both. The product of the likelihoods peaks at "da," so that\'s what\'s heard.</p><p>This is the McGurk effect. The result wasn\'t in either input. It\'s a construction — and from inside, it\'s indistinguishable from straightforward perception.</p>',
+    audio: '<p>When visual reliability is near zero, the auditory signal dominates completely. You hear "ba" because the visual information is too weak to shift the posterior. The brain weights signals by reliability — a noisy, ambiguous source gets less say in the final percept.</p>',
+    visual: '<p>When auditory reliability is near zero — like watching someone speak through thick glass — the visual signal dominates. You effectively lip-read. The posterior shifts almost entirely toward "ga." In real conditions, visual dominance increases when audio SNR is low.</p>',
+    equal: '<p>Both signals are equally unreliable. Each distribution is broad, nearly flat. The posterior is also nearly uniform — weak evidence all around. In this state, a prior (which phoneme was most likely in context) would dominate. Context fills in where evidence doesn\'t.</p>',
+    noisy: '<p>In a loud room, audio degrades first. Visual information stays clean. The posterior shifts toward what the lips say rather than what the ears hear. This is why lip-reading naturally increases in noisy environments — the brain adaptively reweights reliable signals.</p>'
+  };
+
+  var activeScenario = 'mcgurk';
+
+  function setScenario(name, audioVal, visualVal) {
+    activeScenario = name;
+    document.getElementById('audio-slider').value = audioVal;
+    document.getElementById('visual-slider').value = visualVal;
+    document.getElementById('audio-val').textContent = (audioVal/100).toFixed(2);
+    document.getElementById('visual-val').textContent = (visualVal/100).toFixed(2);
+    updateBars(audioVal/100, visualVal/100);
+    document.getElementById('scenario-explain').innerHTML = captions[name] || '';
+    document.querySelectorAll('.scenario-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    document.getElementById('btn-' + name).classList.add('active');
+  }
+
+  // Slider events
+  document.getElementById('audio-slider').addEventListener('input', function() {
+    var v = parseInt(this.value, 10);
+    document.getElementById('audio-val').textContent = (v/100).toFixed(2);
+    var vv = parseInt(document.getElementById('visual-slider').value, 10);
+    updateBars(v/100, vv/100);
+    // Deselect scenario buttons when manually adjusting
+    document.querySelectorAll('.scenario-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('scenario-explain').innerHTML = '';
+  });
+
+  document.getElementById('visual-slider').addEventListener('input', function() {
+    var v = parseInt(this.value, 10);
+    document.getElementById('visual-val').textContent = (v/100).toFixed(2);
+    var av = parseInt(document.getElementById('audio-slider').value, 10);
+    updateBars(av/100, v/100);
+    document.querySelectorAll('.scenario-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('scenario-explain').innerHTML = '';
+  });
+
+  // Scenario buttons
+  document.querySelectorAll('.scenario-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var name = this.id.replace('btn-', '');
+      var av = parseInt(this.dataset.audio, 10);
+      var vv = parseInt(this.dataset.visual, 10);
+      setScenario(name, av, vv);
+    });
+  });
+
+  // Initialize with McGurk scenario
+  setScenario('mcgurk', 80, 80);
+
+})();
+</script>
+</body>
+</html>
