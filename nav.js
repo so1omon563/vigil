@@ -90,6 +90,7 @@
       { href: '/scad.html', label: 'scad' },
       { href: '/fusion.html', label: 'fusion' },
       { href: '/blindspot.html', label: 'blindspot' },
+      { href: '/stroop.html', label: 'stroop' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
