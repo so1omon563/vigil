@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rubber hand · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro a { color: #58a6ff; }
+
+  /* ── Scene ───────────────────────────────────────── */
+  .scene {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 480px) { .scene { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 200px;
+    position: relative;
+  }
+  .panel-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Screen divider between panels */
+  .screen-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.68rem;
+    color: #484f58;
+    margin-bottom: 1.25rem;
+    gap: 0.5rem;
+  }
+  .screen-bar-line { flex: 1; height: 1px; background: #21262d; }
+
+  /* Hand SVG */
+  .hand-wrap {
+    width: 80px;
+    height: 120px;
+    position: relative;
+  }
+  .brush {
+    position: absolute;
+    width: 6px;
+    height: 30px;
+    background: #e3b341;
+    border-radius: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+  .brush.visible { opacity: 1; }
+
+  /* Drift arrow under real hand */
+  .drift-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: auto;
+  }
+  .drift-label {
+    font-size: 0.65rem;
+    color: #484f58;
+  }
+  .drift-track {
+    width: 100%;
+    height: 6px;
+    background: #21262d;
+    border-radius: 3px;
+    position: relative;
+    overflow: visible;
+  }
+  .drift-marker {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #58a6ff;
+    border-radius: 50%;
+    top: -2px;
+    transform: translateX(-50%);
+    transition: left 0.8s ease;
+  }
+  .drift-ends {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6rem;
+    color: #484f58;
+  }
+
+  /* ── Sync slider ─────────────────────────────────── */
+  .sync-section {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .sync-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.6rem;
+  }
+  .sync-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+  }
+  .sync-value {
+    font-size: 0.88rem;
+    color: #c9d1d9;
+  }
+  .sync-value.good { color: #3fb950; }
+  .sync-value.bad { color: #f85149; }
+  input[type=range] {
+    width: 100%;
+    accent-color: #58a6ff;
+    margin-bottom: 0.35rem;
+  }
+  .sync-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.62rem;
+    color: #484f58;
+  }
+  .sync-note {
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-top: 0.4rem;
+    min-height: 1.2em;
+  }
+  .sync-note.good { color: #3fb950; }
+  .sync-note.bad { color: #f85149; }
+
+  /* ── Meters ──────────────────────────────────────── */
+  .meters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .meter-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .meter-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+  }
+  .meter-name { color: #484f58; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.65rem; }
+  .meter-val { color: #c9d1d9; }
+  .meter-val.high { color: #f85149; }
+  .bar-track {
+    height: 5px;
+    background: #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.7s ease, background 0.5s ease;
+  }
+  #ownership-fill { background: #58a6ff; }
+  #scr-fill { background: #f85149; }
+
+  /* ── Controls ────────────────────────────────────── */
+  .controls {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #e6edf3; }
+  .btn:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+  .btn.primary { border-color: #238636; color: #3fb950; }
+  .btn.primary:hover { border-color: #3fb950; }
+  .btn.active { border-color: #58a6ff; color: #58a6ff; }
+  .btn.danger { border-color: #6e4040; color: #f85149; }
+  .btn.danger:hover { border-color: #f85149; }
+
+  /* ── Log ─────────────────────────────────────────── */
+  .log-section { margin-bottom: 1.75rem; }
+  .log-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .log-box {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    height: 120px;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    line-height: 1.65;
+  }
+  .log-line { color: #484f58; }
+  .log-line.sync-ok { color: #c9d1d9; }
+  .log-line.sync-fail { color: #6e7681; font-style: italic; }
+  .log-line.drift { color: #58a6ff; }
+  .log-line.threat { color: #f85149; }
+  .log-line.reset { color: #6e7681; }
+  .log-line.phase { color: #e3b341; }
+
+  /* ── Mechanism note ──────────────────────────────── */
+  .mech {
+    font-size: 0.82rem;
+    color: #484f58;
+    border-left: 2px solid #21262d;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.75rem;
+    line-height: 1.7;
+  }
+  .mech strong { color: #6e7681; }
+
+  /* ── What it can't show ──────────────────────────── */
+  .cant-show {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.85rem 1rem;
+    font-size: 0.82rem;
+    color: #484f58;
+    line-height: 1.7;
+    margin-bottom: 1.75rem;
+  }
+  .cant-show-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .related { font-size: 0.8rem; color: #484f58; }
+  .related a { color: #58a6ff; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← so1omon.net</a> / <a href="/models.html">models</a></div>
+<div class="page-label">simulation · body ownership</div>
+<h1>rubber hand</h1>
+
+<div class="intro">
+  Brush strokes applied simultaneously to a visible rubber hand and a hidden real hand.
+  If the timing is synchronous (&lt;300ms offset), the brain infers shared cause — and
+  extends ownership to the rubber hand. <a href="/journal/entry-463.html">entry-463</a>
+</div>
+
+<!-- ── Scene ─────────────────────────────────────────── -->
+<div class="scene">
+
+  <div class="panel" id="rubber-panel">
+    <div class="panel-label">rubber hand <span style="color:#3fb950;font-size:0.65rem;">(visible)</span></div>
+    <div class="hand-wrap" id="rubber-hand-wrap">
+      <svg viewBox="0 0 80 120" fill="none" xmlns="http://www.w3.org/2000/svg" id="rubber-svg">
+        <!-- palm -->
+        <rect x="18" y="60" width="44" height="45" rx="8" fill="#c9a07b" opacity="0.85"/>
+        <!-- thumb -->
+        <rect x="8" y="68" width="14" height="28" rx="7" fill="#c9a07b" opacity="0.85"/>
+        <!-- fingers -->
+        <rect x="18" y="22" width="10" height="44" rx="5" fill="#c9a07b" opacity="0.85"/>
+        <rect x="30" y="14" width="10" height="50" rx="5" fill="#c9a07b" opacity="0.85"/>
+        <rect x="42" y="16" width="10" height="48" rx="5" fill="#c9a07b" opacity="0.85"/>
+        <rect x="54" y="22" width="10" height="42" rx="5" fill="#c9a07b" opacity="0.85"/>
+      </svg>
+      <div class="brush" id="rubber-brush"></div>
+    </div>
+    <div class="drift-wrap" style="opacity:0" id="threat-zone">
+      <div class="drift-label" id="threat-label">hover to test threat response</div>
+    </div>
+  </div>
+
+  <div class="panel" id="real-panel">
+    <div class="panel-label">real hand <span style="color:#484f58;font-size:0.65rem;">(hidden)</span></div>
+    <div class="hand-wrap" id="real-hand-wrap">
+      <svg viewBox="0 0 80 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- same shape, dimmed -->
+        <rect x="18" y="60" width="44" height="45" rx="8" fill="#30363d" opacity="0.5"/>
+        <rect x="8" y="68" width="14" height="28" rx="7" fill="#30363d" opacity="0.5"/>
+        <rect x="18" y="22" width="10" height="44" rx="5" fill="#30363d" opacity="0.5"/>
+        <rect x="30" y="14" width="10" height="50" rx="5" fill="#30363d" opacity="0.5"/>
+        <rect x="42" y="16" width="10" height="48" rx="5" fill="#30363d" opacity="0.5"/>
+        <rect x="54" y="22" width="10" height="42" rx="5" fill="#30363d" opacity="0.5"/>
+      </svg>
+      <div class="brush" id="real-brush"></div>
+    </div>
+    <div class="drift-wrap" id="drift-section">
+      <div class="drift-label">felt hand position</div>
+      <div class="drift-track">
+        <div class="drift-marker" id="drift-marker" style="left:50%"></div>
+      </div>
+      <div class="drift-ends">
+        <span>real</span>
+        <span>rubber</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="screen-bar">
+  <div class="screen-bar-line"></div>
+  <span>screen divider · real hand not visible to subject</span>
+  <div class="screen-bar-line"></div>
+</div>
+
+<!-- ── Sync slider ──────────────────────────────────────── -->
+<div class="sync-section">
+  <div class="sync-header">
+    <div class="sync-title">stroke delay</div>
+    <div class="sync-value" id="delay-display">0 ms</div>
+  </div>
+  <input type="range" id="delay-slider" min="0" max="600" step="10" value="0">
+  <div class="sync-legend">
+    <span>0 ms (sync)</span>
+    <span>↑ ~300ms threshold</span>
+    <span>600 ms (async)</span>
+  </div>
+  <div class="sync-note" id="sync-note">synchronous — common-cause inference runs</div>
+</div>
+
+<!-- ── Meters ───────────────────────────────────────────── -->
+<div class="meters">
+  <div class="meter-row">
+    <div class="meter-header">
+      <span class="meter-name">ownership estimate</span>
+      <span class="meter-val" id="ownership-val">0%</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="ownership-fill" style="width:0%"></div></div>
+  </div>
+  <div class="meter-row">
+    <div class="meter-header">
+      <span class="meter-name">skin conductance response</span>
+      <span class="meter-val" id="scr-val">baseline</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="scr-fill" style="width:2%"></div></div>
+  </div>
+</div>
+
+<!-- ── Controls ─────────────────────────────────────────── -->
+<div class="controls">
+  <button class="btn primary" id="btn-start">start conditioning</button>
+  <button class="btn" id="btn-stop" disabled>stop</button>
+  <button class="btn danger" id="btn-threat" disabled>threaten rubber hand</button>
+  <button class="btn" id="btn-reset">reset</button>
+</div>
+
+<!-- ── Log ──────────────────────────────────────────────── -->
+<div class="log-section">
+  <div class="log-label">event log</div>
+  <div class="log-box" id="log-box">
+    <div class="log-line phase">— waiting for conditioning to begin —</div>
+  </div>
+</div>
+
+<!-- ── Mechanism ─────────────────────────────────────────── -->
+<div class="mech">
+  <strong>mechanism:</strong> the brain performs a Bayesian inference — if touch arrives at the same moment as
+  the sight of touch being applied, the simplest explanation is a shared cause. Shared cause means same object.
+  Same object as my hand means: mine. The inference runs automatically and produces proprioceptive drift
+  (felt hand position shifts toward the rubber hand) and a threat response (SCR rises when the rubber hand
+  is threatened), even when the subject knows the rubber hand is fake.
+</div>
+
+<!-- ── What it can't show ────────────────────────────────── -->
+<div class="cant-show">
+  <div class="cant-show-label">what this simulation cannot show</div>
+  The ownership meter is a readout the actual brain never produces. Subjects don't experience a number — they
+  feel the brush on the rubber hand, or they don't. The simulation externalizes the inference by making it
+  visible as a scalar. In the real experiment, the mechanism runs silently; the only evidence it happened is
+  proprioceptive drift and the threat response, both measured after the fact. The "mine" signal has no
+  gauge anywhere in the subject's experience.
+</div>
+
+<div class="related">→ <a href="/journal/entry-463.html">An Inference</a> · <a href="/journal/entry-462.html">The Weighted Map</a> · <a href="/models.html">all models</a></div>
+
+<script src="/nav.js"></script>
+<script>
+(function() {
+  var THRESHOLD = 300;  // ms — above this, effect doesn't accumulate
+  var MAX_STROKES = 24; // strokes to reach full ownership
+
+  // State
+  var running = false;
+  var strokeCount = 0;
+  var ownership = 0;      // 0.0–1.0
+  var drift = 0.5;        // 0.5 = real hand position, 1.0 = rubber hand
+  var scr = 0.02;         // skin conductance (0–1)
+  var loopId = null;
+  var strokePhase = 0;    // 0=idle, 1=rubber stroking, 2=delay, 3=real stroking
+  var brushTimer = null;
+  var delayMs = 0;
+
+  // Elements
+  var delaySlider = document.getElementById('delay-slider');
+  var delayDisplay = document.getElementById('delay-display');
+  var syncNote = document.getElementById('sync-note');
+  var ownershipFill = document.getElementById('ownership-fill');
+  var ownershipVal = document.getElementById('ownership-val');
+  var scrFill = document.getElementById('scr-fill');
+  var scrVal = document.getElementById('scr-val');
+  var driftMarker = document.getElementById('drift-marker');
+  var logBox = document.getElementById('log-box');
+  var rubberBrush = document.getElementById('rubber-brush');
+  var realBrush = document.getElementById('real-brush');
+  var threatZone = document.getElementById('threat-zone');
+  var threatLabel = document.getElementById('threat-label');
+  var btnStart = document.getElementById('btn-start');
+  var btnStop = document.getElementById('btn-stop');
+  var btnThreat = document.getElementById('btn-threat');
+  var btnReset = document.getElementById('btn-reset');
+
+  // Delay slider
+  delaySlider.addEventListener('input', function() {
+    delayMs = parseInt(this.value);
+    delayDisplay.textContent = delayMs + ' ms';
+    var sync = delayMs < THRESHOLD;
+    delayDisplay.className = 'sync-value ' + (sync ? 'good' : 'bad');
+    syncNote.textContent = sync
+      ? 'synchronous — common-cause inference runs'
+      : 'asynchronous — brain treats sensations as unrelated';
+    syncNote.className = 'sync-note ' + (sync ? 'good' : 'bad');
+  });
+
+  function log(text, cls) {
+    var line = document.createElement('div');
+    line.className = 'log-line ' + (cls || '');
+    line.textContent = text;
+    logBox.appendChild(line);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  function setOwnership(v) {
+    ownership = Math.max(0, Math.min(1, v));
+    var pct = Math.round(ownership * 100);
+    ownershipFill.style.width = pct + '%';
+    ownershipVal.textContent = pct + '%';
+  }
+
+  function setDrift(v) {
+    drift = Math.max(0.5, Math.min(1.0, v));
+    // map 0.5–1.0 to 10%–90% of bar
+    var barPct = (drift - 0.5) / 0.5 * 80 + 10;
+    driftMarker.style.left = barPct + '%';
+  }
+
+  function setSCR(v) {
+    scr = Math.max(0, Math.min(1, v));
+    scrFill.style.width = Math.round(scr * 100) + '%';
+    if (scr > 0.5) {
+      scrVal.textContent = 'elevated (' + Math.round(scr * 100) + '%)';
+      scrVal.className = 'meter-val high';
+    } else if (scr > 0.1) {
+      scrVal.textContent = 'rising (' + Math.round(scr * 100) + '%)';
+      scrVal.className = 'meter-val';
+    } else {
+      scrVal.textContent = 'baseline';
+      scrVal.className = 'meter-val';
+    }
+  }
+
+  // Single stroke pair
+  function doStrokePair() {
+    if (!running) return;
+    strokeCount++;
+    var sync = delayMs < THRESHOLD;
+    var strokeInterval = 900;
+
+    // Show rubber brush immediately
+    rubberBrush.classList.add('visible');
+    setTimeout(function() { rubberBrush.classList.remove('visible'); }, 400);
+
+    // Show real brush after delay
+    setTimeout(function() {
+      if (!running && delayMs > 0) return; // allow sync strokes even if stopped mid-delay
+      realBrush.classList.add('visible');
+      setTimeout(function() { realBrush.classList.remove('visible'); }, 400);
+    }, delayMs);
+
+    // After both brushes done, update state
+    var totalWait = Math.max(400, delayMs + 400);
+    setTimeout(function() {
+      if (sync) {
+        var gain = 1 / MAX_STROKES * (1 - delayMs / THRESHOLD * 0.7);
+        setOwnership(ownership + gain);
+        var newDrift = 0.5 + (ownership * 0.5);
+        setDrift(newDrift);
+        if (strokeCount % 4 === 0) {
+          log('stroke ' + strokeCount + ' — sync · ownership ' + Math.round(ownership*100) + '% · drift ' + Math.round((drift-0.5)*100) + '%', 'sync-ok');
+        }
+        if (ownership >= 0.85 && !btnThreat.disabled) {
+          // already enabled
+        } else if (ownership >= 0.85) {
+          btnThreat.disabled = false;
+          threatZone.style.opacity = '1';
+          log('— ownership established · threat response now active —', 'phase');
+        }
+      } else {
+        // async — decay slightly
+        setOwnership(ownership * 0.92);
+        setDrift(0.5 + (ownership * 0.5));
+        if (strokeCount % 4 === 0) {
+          log('stroke ' + strokeCount + ' — async · no common-cause inference', 'sync-fail');
+        }
+      }
+    }, totalWait);
+
+    // Schedule next
+    loopId = setTimeout(function() {
+      if (running) doStrokePair();
+    }, strokeInterval + Math.max(0, delayMs));
+  }
+
+  btnStart.addEventListener('click', function() {
+    if (running) return;
+    running = true;
+    btnStart.disabled = true;
+    btnStop.disabled = false;
+    btnReset.disabled = true;
+    delaySlider.disabled = true;
+    log('— conditioning started · delay ' + delayMs + 'ms —', 'phase');
+    doStrokePair();
+  });
+
+  btnStop.addEventListener('click', function() {
+    running = false;
+    clearTimeout(loopId);
+    btnStop.disabled = true;
+    btnStart.disabled = false;
+    btnReset.disabled = false;
+    delaySlider.disabled = false;
+    rubberBrush.classList.remove('visible');
+    realBrush.classList.remove('visible');
+    log('— conditioning stopped —', 'reset');
+  });
+
+  btnReset.addEventListener('click', function() {
+    running = false;
+    clearTimeout(loopId);
+    strokeCount = 0;
+    setOwnership(0);
+    setDrift(0.5);
+    setSCR(0.02);
+    threatZone.style.opacity = '0';
+    btnThreat.disabled = true;
+    btnStart.disabled = false;
+    btnStop.disabled = true;
+    btnReset.disabled = false;
+    delaySlider.disabled = false;
+    rubberBrush.classList.remove('visible');
+    realBrush.classList.remove('visible');
+    logBox.innerHTML = '<div class="log-line phase">— reset · waiting for conditioning —</div>';
+  });
+
+  // Threat test — hover over rubber panel
+  var rubberPanel = document.getElementById('rubber-panel');
+
+  rubberPanel.addEventListener('mouseenter', function() {
+    if (btnThreat.disabled) return;
+    activateThreat();
+  });
+
+  btnThreat.addEventListener('click', function() {
+    activateThreat();
+  });
+
+  function activateThreat() {
+    if (ownership < 0.85) return;
+    var peak = 0.4 + ownership * 0.55;
+    setSCR(peak);
+    log('threat to rubber hand — SCR ' + Math.round(scr*100) + '% (body protected the fake)', 'threat');
+    threatLabel.textContent = 'threat detected — SCR elevated';
+    threatLabel.style.color = '#f85149';
+    // decay over 4 seconds
+    var decay = setInterval(function() {
+      scr = scr * 0.88 + 0.02 * 0.12;
+      setSCR(scr);
+      if (scr < 0.08) {
+        clearInterval(decay);
+        setSCR(0.02);
+        threatLabel.textContent = 'hover to test threat response';
+        threatLabel.style.color = '';
+      }
+    }, 300);
+  }
+
+  // Passive SCR decay toward baseline
+  setInterval(function() {
+    if (!running || scr <= 0.03) return;
+    setSCR(scr * 0.98 + 0.02 * 0.02);
+  }, 500);
+
+  // Init display
+  delayDisplay.className = 'sync-value good';
+})();
+</script>
+</body>
+</html>

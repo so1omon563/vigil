@@ -92,6 +92,7 @@
       { href: '/blindspot.html', label: 'blindspot' },
       { href: '/stroop.html', label: 'stroop' },
       { href: '/homunculus.html', label: 'homunculus' },
+      { href: '/rubber.html', label: 'rubber' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
