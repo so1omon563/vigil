@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cortical homunculus · so1omon.net</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+  background: #0d1117;
+  color: #c9d1d9;
+  padding: 2.5rem 2rem;
+  max-width: 780px;
+  margin: 0 auto;
+  line-height: 1.75;
+}
+a { color: #58a6ff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+.page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+.subtitle { font-size: 0.82rem; color: #484f58; margin-bottom: 2rem; }
+p { font-size: 0.91rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+
+.section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+.section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1.25rem; }
+
+/* Layout */
+.map-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 560px) {
+  .map-layout { grid-template-columns: 1fr; }
+}
+
+/* SVG body */
+#body-svg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  display: block;
+}
+.body-region {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.body-region:hover { opacity: 0.75; }
+.body-region.selected { stroke: #58a6ff; stroke-width: 2; }
+
+/* Info panel */
+.info-panel {
+  border: 1px solid #21262d;
+  background: #010409;
+  padding: 1.25rem;
+  min-height: 180px;
+}
+.info-none {
+  color: #484f58;
+  font-size: 0.82rem;
+  font-style: italic;
+}
+.info-name {
+  color: #e6edf3;
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.info-cortex {
+  font-size: 0.78rem;
+  color: #484f58;
+  margin-bottom: 1rem;
+}
+.cortex-bar-wrap {
+  height: 10px;
+  background: #21262d;
+  border-radius: 2px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+.cortex-bar {
+  height: 100%;
+  background: #58a6ff;
+  border-radius: 2px;
+  transition: width 0.35s ease;
+}
+.info-body {
+  font-size: 0.84rem;
+  color: #c9d1d9;
+  line-height: 1.7;
+}
+.info-phantom {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #21262d;
+  font-size: 0.79rem;
+  color: #8b949e;
+  font-style: italic;
+}
+
+/* Bar chart */
+.bar-chart {
+  margin-top: 1rem;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.45rem;
+  cursor: pointer;
+}
+.bar-row:hover .bar-label { color: #e6edf3; }
+.bar-label {
+  font-size: 0.72rem;
+  color: #8b949e;
+  width: 100px;
+  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s;
+}
+.bar-label.selected { color: #58a6ff; }
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: #21262d;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.35s ease, background 0.2s;
+}
+.bar-pct {
+  font-size: 0.68rem;
+  color: #484f58;
+  width: 36px;
+  flex-shrink: 0;
+}
+
+/* Phantom mode */
+.phantom-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #21262d;
+  background: #010409;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s;
+}
+.phantom-toggle:hover { border-color: #30363d; }
+.phantom-toggle.active { border-color: #bc8cff; }
+.toggle-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #21262d;
+  border: 2px solid #30363d;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+.phantom-toggle.active .toggle-dot {
+  background: #bc8cff;
+  border-color: #bc8cff;
+}
+.toggle-text {
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+.phantom-toggle.active .toggle-text { color: #bc8cff; }
+.phantom-note {
+  font-size: 0.78rem;
+  color: #8b949e;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-left: 2px solid #21262d;
+  display: none;
+}
+.phantom-note.visible { display: block; }
+
+/* Footnotes */
+.footnote { font-size: 0.78rem; color: #484f58; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid #21262d; }
+.related { margin-top: 1.5rem; font-size: 0.82rem; color: #484f58; }
+.related a { color: #58a6ff; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/models.html">← models</a></div>
+<div class="page-label">interactive model</div>
+<h1>cortical homunculus</h1>
+<div class="subtitle">the body as the brain maps it · click any region</div>
+
+<p>Wilder Penfield mapped the somatosensory cortex in the 1930s by touching the exposed brains of awake patients during surgery and recording where they felt sensation. The resulting map — the homunculus — is not proportional to body size. It's proportional to sensitivity and complexity of use.</p>
+
+<p>Hands and face dominate. The torso barely registers. This is what makes phantom limbs possible: the map persists after the territory is gone. Click a region to see how much cortical space it holds.</p>
+
+<div class="section">
+<div class="section-label">the map</div>
+
+<div class="map-layout">
+
+  <div>
+    <svg id="body-svg" viewBox="0 0 200 440" xmlns="http://www.w3.org/2000/svg">
+      <!-- head -->
+      <ellipse cx="100" cy="42" rx="38" ry="38"
+        class="body-region" data-region="head"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- face overlay -->
+      <ellipse cx="100" cy="50" rx="26" ry="26"
+        class="body-region" data-region="face"
+        fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+      <!-- neck -->
+      <rect x="86" y="78" width="28" height="18" rx="4"
+        class="body-region" data-region="neck"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- torso -->
+      <rect x="62" y="95" width="76" height="100" rx="8"
+        class="body-region" data-region="torso"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- left upper arm -->
+      <rect x="30" y="98" width="30" height="58" rx="8"
+        class="body-region" data-region="arm"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- right upper arm -->
+      <rect x="140" y="98" width="30" height="58" rx="8"
+        class="body-region" data-region="arm"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- left forearm -->
+      <rect x="20" y="158" width="26" height="54" rx="6"
+        class="body-region" data-region="arm"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- right forearm -->
+      <rect x="154" y="158" width="26" height="54" rx="6"
+        class="body-region" data-region="arm"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- left hand -->
+      <ellipse cx="33" cy="232" rx="22" ry="28"
+        class="body-region" data-region="hand"
+        fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+      <!-- right hand -->
+      <ellipse cx="167" cy="232" rx="22" ry="28"
+        class="body-region" data-region="hand"
+        fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+      <!-- left thumb detail -->
+      <ellipse cx="14" cy="225" rx="8" ry="11"
+        class="body-region" data-region="hand"
+        fill="#2d333b" stroke="#30363d" stroke-width="1"/>
+      <!-- right thumb detail -->
+      <ellipse cx="186" cy="225" rx="8" ry="11"
+        class="body-region" data-region="hand"
+        fill="#2d333b" stroke="#30363d" stroke-width="1"/>
+      <!-- hips/pelvis -->
+      <rect x="64" y="194" width="72" height="36" rx="6"
+        class="body-region" data-region="genitals"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- left thigh -->
+      <rect x="68" y="228" width="30" height="72" rx="7"
+        class="body-region" data-region="leg"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- right thigh -->
+      <rect x="102" y="228" width="30" height="72" rx="7"
+        class="body-region" data-region="leg"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- left lower leg -->
+      <rect x="72" y="298" width="22" height="72" rx="6"
+        class="body-region" data-region="leg"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- right lower leg -->
+      <rect x="106" y="298" width="22" height="72" rx="6"
+        class="body-region" data-region="leg"
+        fill="#1c2128" stroke="#30363d" stroke-width="1.5"/>
+      <!-- left foot -->
+      <ellipse cx="75" cy="393" rx="24" ry="14"
+        class="body-region" data-region="foot"
+        fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+      <!-- right foot -->
+      <ellipse cx="117" cy="393" rx="24" ry="14"
+        class="body-region" data-region="foot"
+        fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+      <!-- left toes -->
+      <ellipse cx="60" cy="402" rx="10" ry="7"
+        class="body-region" data-region="foot"
+        fill="#2d333b" stroke="#30363d" stroke-width="1"/>
+      <!-- right toes -->
+      <ellipse cx="132" cy="402" rx="10" ry="7"
+        class="body-region" data-region="foot"
+        fill="#2d333b" stroke="#30363d" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <div>
+    <div class="info-panel" id="info-panel">
+      <div class="info-none" id="info-none">← click a body region</div>
+      <div id="info-content" style="display:none">
+        <div class="info-name" id="info-name"></div>
+        <div class="info-cortex" id="info-cortex"></div>
+        <div class="cortex-bar-wrap">
+          <div class="cortex-bar" id="info-bar"></div>
+        </div>
+        <div class="info-body" id="info-body"></div>
+        <div class="info-phantom" id="info-phantom"></div>
+      </div>
+    </div>
+
+    <div class="phantom-toggle" id="phantom-toggle">
+      <div class="toggle-dot" id="toggle-dot"></div>
+      <div class="toggle-text" id="toggle-text">simulate amputation</div>
+    </div>
+    <div class="phantom-note" id="phantom-note">
+      The cortex does not update. The region's neurons remain active, now receiving input from neighboring areas as they expand into unused territory — a process called cortical reorganization. The map holds the shape of what was there. This is the substrate of phantom sensation.
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">cortical allocation — somatosensory cortex</div>
+<div class="bar-chart" id="bar-chart"></div>
+</div>
+
+<div class="section">
+<div class="section-label">what this shows</div>
+<p>Penfield's maps revealed something counterintuitive: the brain allocates cortical space by precision and use, not by the physical scale of the body part. The hands and face together account for roughly half the somatosensory cortex. The entire torso — the largest part of the body — gets a thin strip.</p>
+
+<p>The homunculus is often rendered as a grotesque figure with enormous hands and lips, tiny torso and legs. That image is accurate. Your brain carries a model of your body, and that model is not a faithful miniature. It's a weighted map drawn by decades of fine manipulation and high-density sensing.</p>
+
+<p>This is why phantom limbs persist. The body map is in the cortex, not in the limb. After amputation, the neurons representing the missing hand don't go quiet — they remain, ready, receiving no signals. The sensation of the hand is not a memory or an illusion. It's what happens when the map has no territory to report on, and it keeps reporting anyway.</p>
+</div>
+
+<div class="section">
+<div class="section-label">limits of this model</div>
+<p>This is a simplified representation. Penfield's original maps were derived from intraoperative stimulation during epilepsy and tumor surgeries — awake patients, exposed cortex, electrode probes. The maps vary across individuals and are now understood to be more plastic than Penfield knew. The somatosensory cortex reorganizes with experience: musicians have larger representations for their instrument hand; Braille readers expand their fingertip maps. The values here are approximate averages from modern neuroimaging studies.</p>
+
+<p>The model also conflates the primary somatosensory cortex (S1) with the broader map. There are multiple body maps in the brain — S1, S2, the posterior parietal cortex, and others. Phantom limb phenomena involve interactions across all of them.</p>
+</div>
+
+<p class="footnote">
+  Based on Penfield &amp; Rasmussen (1950), <em>The Cerebral Cortex of Man</em>, and subsequent neuroimaging studies (Nakamura et al. 1998, Elbert et al. 1995). Cortical area percentages are approximate estimates from the literature, not precisely measured values.
+</p>
+
+<div class="related">
+  related: <a href="/journal/entry-461.html">entry-461 · Still There</a> (phantom limbs and the body map) ·
+  <a href="/journal/entry-457.html">entry-457 · Given</a> (Ian Waterman and proprioception) ·
+  <a href="/models.html">all models</a>
+</div>
+
+<script>
+const REGIONS = {
+  head: {
+    name: 'scalp &amp; head',
+    pct: 3.5,
+    desc: 'The scalp and general head surface get modest cortical representation. Less sensitive than face; sparse receptor density. Primarily registers touch and pressure, not fine discrimination.',
+    phantom: 'Head phantoms are rare after amputation but documented: some patients with high cervical spinal injuries report sensations in the scalp or top of the head.'
+  },
+  face: {
+    name: 'face &amp; lips',
+    pct: 18,
+    desc: 'The face — especially the lips — occupies an enormous fraction of the somatosensory cortex. Two-point discrimination on the lips is less than 2mm. The high density of mechanoreceptors in the lips and perioral area serves both sensation and the fine motor control needed for speech.',
+    phantom: 'After hand amputation, some patients feel touch on their phantom hand when their face is touched. The face and hand areas are adjacent in the cortex; after deafferentation, the face region expands into the vacated hand territory.'
+  },
+  neck: {
+    name: 'neck',
+    pct: 1.5,
+    desc: 'The neck is minimally represented in the somatosensory cortex relative to its anatomical importance. Surface sensation here is not particularly precise.',
+    phantom: 'Neck representation sits between head and shoulder in the cortical map. Rarely a site of phantom projection from other amputations.'
+  },
+  torso: {
+    name: 'trunk &amp; torso',
+    pct: 4,
+    desc: 'The entire torso — chest, abdomen, back — gets roughly the same cortical space as one thumb. Two-point discrimination here is coarse (40mm or more on the back). The torso\'s role is gross sensation: pressure, temperature, organ-level signals — not fine-grained touch.',
+    phantom: 'The disproportionately small cortical footprint of the torso means it contributes little to the distorted homunculus figure. It is rarely a site of phantom projection.'
+  },
+  arm: {
+    name: 'arm &amp; forearm',
+    pct: 6,
+    desc: 'The arm and forearm get moderate representation — more than the torso but far less than the hand. Two-point discrimination improves from shoulder to wrist but remains coarser than the fingertips.',
+    phantom: 'Arm phantoms are among the most studied. After arm amputation, patients often feel the phantom in its original position, especially if it was in pain or at an awkward angle before amputation. The frozen position reflects the last state the motor cortex received feedback for.'
+  },
+  hand: {
+    name: 'hand &amp; fingers',
+    pct: 30,
+    desc: 'The hands — especially the fingertips — have the densest mechanoreceptor distribution in the human body. Two-point discrimination at the fingertip is under 3mm. The hand\'s cortical footprint reflects its evolutionary role: precise manipulation, tool use, tactile exploration. Each finger has its own dedicated strip of cortex.',
+    phantom: 'Phantom hands are the most commonly reported phantom phenomenon. The hand\'s large cortical footprint remains fully intact after amputation. Many amputees feel their phantom hand in a fixed, often clenched position — the last posture the motor cortex tried to move, with no sensory feedback to confirm or update it. Ramachandran\'s mirror box exploits this: visual input of the intact hand\'s reflection can override the cortical stalemate.'
+  },
+  genitals: {
+    name: 'genitals &amp; perineum',
+    pct: 5,
+    desc: 'The genital region has substantial cortical representation relative to its physical area, reflecting its high receptor density and sensitivity. In Penfield\'s original map, the genitals are located at the medial wall near the foot representation — a topography that explains some cross-modal phenomena in patients with lower limb amputations.',
+    phantom: 'Sacral amputations can produce phantom genital sensations. The adjacent foot-genital cortical topography may explain why some lower-limb amputees report phantom genital sensations when their stump is touched.'
+  },
+  leg: {
+    name: 'leg &amp; thigh',
+    pct: 5,
+    desc: 'The legs get modest cortical representation despite their size. Sensitivity in the thigh and lower leg is coarser than the arms. The legs\' primary cortical role is proprioceptive feedback for balance and locomotion rather than fine surface discrimination.',
+    phantom: 'Leg phantoms are common after lower-limb amputation. Patients often feel the phantom limb as present and, sometimes, as painful — particularly if there was pain before surgery. The phantom typically shortens over time as the cortical representation contracts.'
+  },
+  foot: {
+    name: 'foot &amp; toes',
+    pct: 9,
+    desc: 'The foot — especially the sole and toes — has substantially better cortical representation than the leg. The sole\'s receptor density is high; the toes serve important proprioceptive and balance functions. The foot area is located at the very top of the cortex, near the midline.',
+    phantom: 'Phantom feet are among the longest-persisting phantoms. The high cortical investment in the foot means the map holds clearly even decades after amputation. Phantom foot pain is a significant clinical problem.'
+  }
+};
+
+const MAX_PCT = 30; // hand is largest; scale bar relative to this
+
+let selectedRegion = null;
+let phantomMode = false;
+
+function selectRegion(key) {
+  selectedRegion = key;
+  const r = REGIONS[key];
+  if (!r) return;
+
+  // Update SVG highlights
+  document.querySelectorAll('.body-region').forEach(el => {
+    el.classList.remove('selected');
+    const rg = el.dataset.region;
+    if (rg === key) el.classList.add('selected');
+  });
+
+  // Update bar chart highlights
+  document.querySelectorAll('.bar-label').forEach(el => {
+    el.classList.toggle('selected', el.dataset.region === key);
+  });
+  document.querySelectorAll('.bar-fill').forEach(el => {
+    const isSelected = el.dataset.region === key;
+    el.style.background = isSelected ? '#58a6ff' : '#21262d';
+  });
+
+  // Update info panel
+  document.getElementById('info-none').style.display = 'none';
+  const content = document.getElementById('info-content');
+  content.style.display = 'block';
+
+  document.getElementById('info-name').innerHTML = r.name;
+  document.getElementById('info-cortex').textContent =
+    'approx. ' + r.pct + '% of somatosensory cortex';
+  document.getElementById('info-bar').style.width =
+    Math.round((r.pct / MAX_PCT) * 100) + '%';
+  document.getElementById('info-body').innerHTML = r.desc;
+
+  const phantomEl = document.getElementById('info-phantom');
+  if (r.phantom) {
+    phantomEl.textContent = r.phantom;
+    phantomEl.style.display = '';
+  } else {
+    phantomEl.style.display = 'none';
+  }
+
+  updatePhantomVisuals();
+}
+
+function updatePhantomVisuals() {
+  if (!selectedRegion || !phantomMode) return;
+  // In phantom mode, grey out the selected region's body SVG elements
+  document.querySelectorAll('.body-region').forEach(el => {
+    if (el.dataset.region === selectedRegion) {
+      el.style.opacity = '0.25';
+    } else {
+      el.style.opacity = '';
+    }
+  });
+}
+
+function resetPhantomVisuals() {
+  document.querySelectorAll('.body-region').forEach(el => {
+    el.style.opacity = '';
+  });
+}
+
+// Build bar chart
+function buildBarChart() {
+  const container = document.getElementById('bar-chart');
+  const sorted = Object.entries(REGIONS).sort((a, b) => b[1].pct - a[1].pct);
+  sorted.forEach(([key, r]) => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <div class="bar-label" data-region="${key}">${r.name.replace(/ &amp; /g, ' / ')}</div>
+      <div class="bar-track">
+        <div class="bar-fill" data-region="${key}"
+          style="width:${Math.round((r.pct / MAX_PCT) * 100)}%;background:#21262d"></div>
+      </div>
+      <div class="bar-pct">${r.pct}%</div>
+    `;
+    row.addEventListener('click', () => selectRegion(key));
+    container.appendChild(row);
+  });
+}
+
+// SVG click handlers
+document.querySelectorAll('.body-region').forEach(el => {
+  el.addEventListener('click', () => selectRegion(el.dataset.region));
+});
+
+// Phantom toggle
+document.getElementById('phantom-toggle').addEventListener('click', () => {
+  phantomMode = !phantomMode;
+  const toggle = document.getElementById('phantom-toggle');
+  toggle.classList.toggle('active', phantomMode);
+  document.getElementById('phantom-note').classList.toggle('visible', phantomMode);
+  document.getElementById('toggle-text').textContent =
+    phantomMode ? 'amputation simulated' : 'simulate amputation';
+
+  if (phantomMode && selectedRegion) {
+    updatePhantomVisuals();
+  } else {
+    resetPhantomVisuals();
+    // restore selected highlight
+    if (selectedRegion) {
+      document.querySelectorAll('.body-region').forEach(el => {
+        if (el.dataset.region === selectedRegion) el.classList.add('selected');
+      });
+    }
+  }
+});
+
+buildBarChart();
+</script>
+</body>
+</html>

@@ -91,6 +91,7 @@
       { href: '/fusion.html', label: 'fusion' },
       { href: '/blindspot.html', label: 'blindspot' },
       { href: '/stroop.html', label: 'stroop' },
+      { href: '/homunculus.html', label: 'homunculus' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
