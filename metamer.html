@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>metamers · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .demo-wrap {
+    border: 1px solid #21262d;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: #010409;
+  }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+
+  canvas { display: block; }
+
+  #spectrum-canvas {
+    width: 100%;
+    height: 80px;
+    margin-bottom: 1.2rem;
+  }
+  #bar-canvas {
+    width: 100%;
+    height: 160px;
+  }
+
+  .swatches {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+    align-items: flex-start;
+  }
+  .swatch-col {
+    flex: 1;
+  }
+  .swatch-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .swatch-box {
+    height: 48px;
+    border: 1px solid #21262d;
+    width: 100%;
+  }
+  .swatch-note {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-top: 0.3rem;
+    line-height: 1.4;
+  }
+
+  .controls {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+    align-items: flex-start;
+  }
+  .slider-wrap { flex: 1; min-width: 200px; }
+  .slider-label { font-size: 0.72rem; color: #8b949e; margin-bottom: 0.35rem; display: flex; justify-content: space-between; }
+  .slider-label span { color: #58a6ff; }
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    background: none;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.25rem 0.7rem;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #3fb950; color: #3fb950; }
+
+  .divergence-row {
+    margin-top: 1.2rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #21262d;
+    background: #0d1117;
+  }
+  .div-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .div-bar-track {
+    height: 8px;
+    background: #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  .div-bar-fill {
+    height: 100%;
+    background: #ffd700;
+    border-radius: 4px;
+    transition: width 0.2s ease;
+    width: 0%;
+  }
+  .div-text {
+    font-size: 0.78rem;
+    color: #8b949e;
+    line-height: 1.55;
+  }
+  .div-text .val { color: #ffd700; }
+  .div-text .match { color: #3fb950; }
+
+  .note-box {
+    font-size: 0.82rem;
+    color: #8b949e;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin: 1.2rem 0 0;
+    line-height: 1.65;
+  }
+  .note-box strong { color: #c9d1d9; }
+
+  .thread-note {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 1.5rem;
+    line-height: 1.65;
+  }
+  .thread-note a { color: #484f58; }
+  .thread-note a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .note-box { border-left-color: #d0d7de; }
+  html[data-theme="light"] .divergence-row { background: #ffffff; border-color: #d0d7de; }
+  html[data-theme="light"] .div-bar-track { background: #d0d7de; }
+  html[data-theme="light"] .swatch-box { border-color: #d0d7de; }
+  html[data-theme="light"] .btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .btn.active { border-color: #1a7f37; color: #1a7f37; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+  html[data-theme="light"] a { color: #0969da; }
+  html[data-theme="light"] .slider-label { color: #57606a; }
+  html[data-theme="light"] p, html[data-theme="light"] .note-box { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #57606a; }
+  html[data-theme="light"] .page-label { color: #0969da; }
+  html[data-theme="light"] .section-label { color: #57606a; }
+  html[data-theme="light"] .panel-label { color: #57606a; }
+  html[data-theme="light"] .thread-note { color: #8c959f; }
+  html[data-theme="light"] .thread-note a { color: #8c959f; }
+  html[data-theme="light"] .note-box strong { color: #24292e; }
+  html[data-theme="light"] .div-label { color: #57606a; }
+  html[data-theme="light"] .div-text { color: #57606a; }
+  html[data-theme="light"] .swatch-label { color: #57606a; }
+  html[data-theme="light"] .swatch-note { color: #57606a; }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">so1omon.net</a> / <a href="/models.html">models</a> / metamers</div>
+
+<div class="page-label">simulation 35 · color vision</div>
+<h1>metamers</h1>
+<div class="subtitle">trichromacy · metamerism · the fourth channel</div>
+
+<p>The human visual system reduces every wavelength distribution to three numbers: the S, M, and L cone responses. Any two spectra that produce the same triplet are called metamers — physically different, but visually identical. This is why a computer monitor can reproduce any color with just three primaries. The monitor's light is nothing like sunlight, but it fools the three cones.</p>
+
+<p>Some women carry a fourth cone type — a variant M or L opsin from a duplication on the X chromosome, with a peak sensitivity shifted by about 15 nanometers. Two stimuli that are metamers for trichromats (same S, M, L) may produce different responses in this fourth cone. Adjust the spectral stimulus below. The simulation finds a three-primary match that equates S, M, and L, then shows whether the two spectra diverge at the fourth channel.</p>
+
+<div class="demo-wrap">
+  <div class="panel-label">spectral stimulus (target)</div>
+  <canvas id="spectrum-canvas" width="660" height="80"></canvas>
+
+  <div class="swatches">
+    <div class="swatch-col">
+      <div class="swatch-label">spectral stimulus</div>
+      <div class="swatch-box" id="swatch-a"></div>
+      <div class="swatch-note">narrow peak · single spectral band</div>
+    </div>
+    <div class="swatch-col">
+      <div class="swatch-label">metameric match</div>
+      <div class="swatch-box" id="swatch-b"></div>
+      <div class="swatch-note">three primaries: 450 nm, 530 nm, 640 nm</div>
+    </div>
+  </div>
+
+  <div class="panel-label">cone responses — S · M · L · M'</div>
+  <canvas id="bar-canvas" width="660" height="160"></canvas>
+
+  <div class="divergence-row">
+    <div class="div-label">M' divergence (fourth channel)</div>
+    <div class="div-bar-track"><div class="div-bar-fill" id="div-bar"></div></div>
+    <div class="div-text" id="div-text">—</div>
+  </div>
+
+  <div class="controls">
+    <div class="slider-wrap">
+      <div class="slider-label">peak wavelength <span id="peak-val">560</span> nm</div>
+      <input type="range" id="peak-slider" min="420" max="680" value="560" step="5">
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-label">bandwidth (σ) <span id="bw-val">12</span> nm</div>
+      <input type="range" id="bw-slider" min="5" max="55" value="12" step="1">
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="setPreset(545, 8)">545 nm narrow</button>
+    <button class="btn" onclick="setPreset(560, 12)">560 nm narrow</button>
+    <button class="btn" onclick="setPreset(560, 40)">560 nm broad</button>
+    <button class="btn" onclick="setPreset(520, 10)">520 nm narrow</button>
+    <button class="btn" onclick="setPreset(580, 10)">580 nm narrow</button>
+    <button class="btn" onclick="setPreset(550, 50)">550 nm broad</button>
+  </div>
+
+  <div class="note-box" style="margin-top:1.2rem;">
+    <strong>How to read this:</strong> the two swatches show the same perceived color — both stimuli produce identical S, M, L responses (bars match in all three trichromat channels). The fourth channel (M') reveals where they diverge. A narrow spectral peak produces a larger fourth-channel divergence than a broad one of similar wavelength, because the primary mix must hit three targets with three fixed basis functions — the leftover M' response is constrained but rarely optimal.
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">what this can't show</div>
+  <p>The simulation models the fourth cone type as a Gaussian sensitivity curve peaking at 549 nm — between the M cone (534 nm) and L cone (563 nm). This is a plausible approximation for one common opsin variant, but the actual shift varies by individual. No one knows the exact sensitivity of any particular person's fourth cone type from outside.</p>
+  <p>More importantly: having a fourth cone type does not guarantee a fourth color channel. Most women who carry the variant opsin are non-functional tetrachromats — their visual cortex routes the fourth channel's output through the standard three opponent channels (red/green, blue/yellow, luminance), merging it rather than treating it as independent. Gabriele Jordan searched for functional tetrachromats for two decades; the first confirmed case (subject cDa29, 2010) required specially engineered stimuli — light mixes calibrated to be metameric for trichromats — because all commercially manufactured colors are already calibrated to fool three cones. The everyday world provides no test. Jordan had to design one. This simulation shows the test she needed to design, not what it would feel like to pass it.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">related</div>
+  <div class="thread-note">
+    <a href="/journal/entry-471.html">entry-471 · The Unused Channel</a> — the hardware, the search, and the gap between having the fourth cone and using it.<br>
+    <a href="/journal/entry-458.html">entry-458 · Filled</a> — the visual blind spot: the brain fills what it cannot see, unmarked as inferred.<br>
+    <a href="/journal/entry-455.html">entry-455 · The Third Sound</a> — the McGurk effect: perception synthesizes below deliberate access.
+  </div>
+</div>
+
+<script>
+// ─── Spectral model ───────────────────────────────────────────────────────────
+const WL_START = 400, WL_END = 700, WL_STEP = 2;
+const N_WL = (WL_END - WL_START) / WL_STEP + 1; // 151 points
+
+function makeWavelengths() {
+  const wls = [];
+  for (let i = 0; i < N_WL; i++) wls.push(WL_START + i * WL_STEP);
+  return wls;
+}
+const WAVELENGTHS = makeWavelengths();
+
+function gauss(wl, peak, sigma) {
+  return Math.exp(-0.5 * ((wl - peak) / sigma) ** 2);
+}
+
+// Cone sensitivity curves (Gaussian approximations)
+// S: 420nm, M: 534nm, L: 563nm, M' variant: 549nm
+const CONE_DEFS = [
+  { name: 'S',  peak: 420, sigma: 18, color: '#9b8eee', lightColor: '#6f5fc7' },
+  { name: 'M',  peak: 534, sigma: 28, color: '#50c878', lightColor: '#2a9d56' },
+  { name: 'L',  peak: 563, sigma: 32, color: '#ff7b72', lightColor: '#d73a3a' },
+  { name: "M'", peak: 549, sigma: 25, color: '#ffd700', lightColor: '#b8960a' },
+];
+
+// Pre-compute sensitivity vectors
+const SENSITIVITIES = CONE_DEFS.map(c =>
+  WAVELENGTHS.map(wl => gauss(wl, c.peak, c.sigma))
+);
+
+// Three primaries: B=450, G=530, R=640 nm, narrow sigma=18
+const PRIMARY_PEAKS = [450, 530, 640];
+const PRIMARY_SIGMA = 18;
+const PRIMARY_SPECTRA = PRIMARY_PEAKS.map(pk =>
+  WAVELENGTHS.map(wl => gauss(wl, pk, PRIMARY_SIGMA))
+);
+
+// Compute cone response: dot product of spectrum with sensitivity vector
+function coneResp(spectrum, coneIdx) {
+  const sens = SENSITIVITIES[coneIdx];
+  let sum = 0;
+  for (let i = 0; i < N_WL; i++) sum += spectrum[i] * sens[i];
+  return sum;
+}
+
+// Build target spectrum from peak + sigma
+function buildTarget(peak, sigma) {
+  return WAVELENGTHS.map(wl => gauss(wl, peak, sigma));
+}
+
+// ─── 3×3 Gaussian elimination ────────────────────────────────────────────────
+function solve3x3(A, b) {
+  // A is 3×3 row-major, b is length 3; returns x or null
+  const m = [
+    [A[0][0], A[0][1], A[0][2], b[0]],
+    [A[1][0], A[1][1], A[1][2], b[1]],
+    [A[2][0], A[2][1], A[2][2], b[2]],
+  ];
+  for (let col = 0; col < 3; col++) {
+    // Find pivot
+    let maxRow = col;
+    for (let row = col + 1; row < 3; row++) {
+      if (Math.abs(m[row][col]) > Math.abs(m[maxRow][col])) maxRow = row;
+    }
+    [m[col], m[maxRow]] = [m[maxRow], m[col]];
+    if (Math.abs(m[col][col]) < 1e-12) return null;
+    for (let row = col + 1; row < 3; row++) {
+      const f = m[row][col] / m[col][col];
+      for (let k = col; k < 4; k++) m[row][k] -= f * m[col][k];
+    }
+  }
+  const x = [0, 0, 0];
+  for (let row = 2; row >= 0; row--) {
+    x[row] = m[row][3];
+    for (let k = row + 1; k < 3; k++) x[row] -= m[row][k] * x[k];
+    x[row] /= m[row][row];
+  }
+  return x;
+}
+
+// ─── Compute metamer ──────────────────────────────────────────────────────────
+function computeMetamer(targetSpectrum) {
+  // Target S, M, L responses
+  const tS = coneResp(targetSpectrum, 0);
+  const tM = coneResp(targetSpectrum, 1);
+  const tL = coneResp(targetSpectrum, 2);
+  const tMP = coneResp(targetSpectrum, 3);
+
+  // Build cone-primary matrix: A[i][j] = cone_i response to primary_j
+  // Rows: S, M, L (indices 0,1,2); Cols: B, G, R primaries
+  const A = [0, 1, 2].map(ci =>
+    PRIMARY_SPECTRA.map(ps => coneResp(ps, ci))
+  );
+
+  // Solve for weights
+  let weights = solve3x3(A, [tS, tM, tL]);
+
+  // If no solution, fall back to zero
+  if (!weights) weights = [0, 0, 0];
+
+  // Clamp negative weights (outside primary gamut)
+  const hasNeg = weights.some(w => w < 0);
+  weights = weights.map(w => Math.max(0, w));
+
+  // Build metamer spectrum
+  const metamerSpectrum = WAVELENGTHS.map((_, i) =>
+    weights[0] * PRIMARY_SPECTRA[0][i] +
+    weights[1] * PRIMARY_SPECTRA[1][i] +
+    weights[2] * PRIMARY_SPECTRA[2][i]
+  );
+
+  // Metamer cone responses (S, M, L should ≈ target; M' may differ)
+  const mS  = coneResp(metamerSpectrum, 0);
+  const mM  = coneResp(metamerSpectrum, 1);
+  const mL  = coneResp(metamerSpectrum, 2);
+  const mMP = coneResp(metamerSpectrum, 3);
+
+  // Normalize responses for display (relative to max target response)
+  const refMax = Math.max(tS, tM, tL, tMP, mS, mM, mL, mMP, 0.001);
+
+  return {
+    weights,
+    metamerSpectrum,
+    target:  [tS, tM, tL, tMP].map(v => v / refMax),
+    metamer: [mS, mM, mL, mMP].map(v => v / refMax),
+    rawTargetMP: tMP,
+    rawMetamerMP: mMP,
+    outsideGamut: hasNeg,
+  };
+}
+
+// ─── Wavelength → approximate RGB ────────────────────────────────────────────
+function wlToRGB(wl) {
+  let r, g, b;
+  if      (wl >= 380 && wl < 440) { r = -(wl - 440) / 60; g = 0; b = 1; }
+  else if (wl < 490)  { r = 0; g = (wl - 440) / 50; b = 1; }
+  else if (wl < 510)  { r = 0; g = 1; b = -(wl - 510) / 20; }
+  else if (wl < 580)  { r = (wl - 510) / 70; g = 1; b = 0; }
+  else if (wl < 645)  { r = 1; g = -(wl - 645) / 65; b = 0; }
+  else if (wl <= 780) { r = 1; g = 0; b = 0; }
+  else { return [0, 0, 0]; }
+  let factor = 1;
+  if (wl >= 380 && wl < 420) factor = 0.3 + 0.7 * (wl - 380) / 40;
+  else if (wl > 700 && wl <= 780) factor = 0.3 + 0.7 * (780 - wl) / 80;
+  return [
+    Math.round(Math.max(0, Math.min(1, r)) * factor * 255),
+    Math.round(Math.max(0, Math.min(1, g)) * factor * 255),
+    Math.round(Math.max(0, Math.min(1, b)) * factor * 255),
+  ];
+}
+
+// Compute a display color from a spectrum (weighted centroid → wlToRGB)
+function spectrumToDisplayColor(spectrum) {
+  let weightedR = 0, weightedG = 0, weightedB = 0, total = 0;
+  for (let i = 0; i < N_WL; i++) {
+    const [r, g, b] = wlToRGB(WAVELENGTHS[i]);
+    const w = spectrum[i];
+    weightedR += r * w;
+    weightedG += g * w;
+    weightedB += b * w;
+    total += w;
+  }
+  if (total < 1e-9) return [100, 100, 100];
+  return [
+    Math.round(weightedR / total),
+    Math.round(weightedG / total),
+    Math.round(weightedB / total),
+  ];
+}
+
+// ─── Canvas rendering ─────────────────────────────────────────────────────────
+const specCanvas = document.getElementById('spectrum-canvas');
+const specCtx = specCanvas.getContext('2d');
+const barCanvas = document.getElementById('bar-canvas');
+const barCtx = barCanvas.getContext('2d');
+
+function getTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+
+function drawSpectrum(targetSpectrum, metamerSpectrum) {
+  const W = specCanvas.width, H = specCanvas.height;
+  specCtx.clearRect(0, 0, W, H);
+
+  const isDark = getTheme() === 'dark';
+  const bg = isDark ? '#010409' : '#f6f8fa';
+  specCtx.fillStyle = bg;
+  specCtx.fillRect(0, 0, W, H);
+
+  // Axis lines
+  const pad = { l: 30, r: 10, t: 8, b: 20 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+
+  // Find max for scaling
+  const allVals = [...targetSpectrum, ...metamerSpectrum];
+  const maxVal = Math.max(...allVals, 1e-9);
+
+  function xForWl(wl) { return pad.l + (wl - WL_START) / (WL_END - WL_START) * plotW; }
+  function yForV(v)   { return pad.t + plotH - (v / maxVal) * plotH; }
+
+  // Draw metamer spectrum (dashed, dimmer)
+  specCtx.beginPath();
+  specCtx.setLineDash([3, 4]);
+  specCtx.strokeStyle = isDark ? '#484f58' : '#aaaaaa';
+  specCtx.lineWidth = 1.2;
+  for (let i = 0; i < N_WL; i++) {
+    const x = xForWl(WAVELENGTHS[i]);
+    const y = yForV(metamerSpectrum[i]);
+    if (i === 0) specCtx.moveTo(x, y); else specCtx.lineTo(x, y);
+  }
+  specCtx.stroke();
+  specCtx.setLineDash([]);
+
+  // Draw target spectrum (colored gradient)
+  for (let i = 0; i < N_WL - 1; i++) {
+    const wl = WAVELENGTHS[i];
+    const x0 = xForWl(wl), x1 = xForWl(WAVELENGTHS[i + 1]);
+    const y0 = yForV(targetSpectrum[i]), y1 = yForV(targetSpectrum[i + 1]);
+    const [r, g, b] = wlToRGB(wl);
+    specCtx.beginPath();
+    specCtx.strokeStyle = `rgb(${r},${g},${b})`;
+    specCtx.lineWidth = 2;
+    specCtx.moveTo(x0, y0);
+    specCtx.lineTo(x1, y1);
+    specCtx.stroke();
+  }
+
+  // Axis labels
+  const axisColor = isDark ? '#484f58' : '#aaaaaa';
+  specCtx.fillStyle = axisColor;
+  specCtx.font = '9px Berkeley Mono, Fira Code, monospace';
+  specCtx.textAlign = 'center';
+  [400, 450, 500, 550, 600, 650, 700].forEach(wl => {
+    const x = xForWl(wl);
+    specCtx.fillText(wl, x, H - 4);
+  });
+
+  // Legend
+  specCtx.textAlign = 'left';
+  specCtx.fillStyle = isDark ? '#58a6ff' : '#0969da';
+  specCtx.font = '9px Berkeley Mono, Fira Code, monospace';
+  specCtx.fillText('spectral stimulus', pad.l + 4, pad.t + 11);
+  specCtx.fillStyle = axisColor;
+  specCtx.fillText('primary mix', pad.l + 4, pad.t + 22);
+}
+
+function drawBars(result) {
+  const W = barCanvas.width, H = barCanvas.height;
+  barCtx.clearRect(0, 0, W, H);
+  const isDark = getTheme() === 'dark';
+  const bg = isDark ? '#010409' : '#f6f8fa';
+  barCtx.fillStyle = bg;
+  barCtx.fillRect(0, 0, W, H);
+
+  const pad = { l: 28, r: 10, t: 14, b: 28 };
+  const plotW = W - pad.l - pad.r;
+  const plotH = H - pad.t - pad.b;
+
+  const nGroups = 4;
+  const groupW = plotW / nGroups;
+  const barW = groupW * 0.28;
+  const gap = groupW * 0.07;
+  const labels = ['S', 'M', 'L', "M'"];
+
+  const axisColor = isDark ? '#484f58' : '#aaaaaa';
+  const textColor = isDark ? '#8b949e' : '#57606a';
+
+  for (let i = 0; i < nGroups; i++) {
+    const cx = pad.l + groupW * i + groupW / 2;
+    const tVal = result.target[i];
+    const mVal = result.metamer[i];
+    const cDef = CONE_DEFS[i];
+    const barColor = isDark ? cDef.color : cDef.lightColor;
+
+    // Target bar (solid)
+    const tH = tVal * plotH;
+    barCtx.fillStyle = barColor;
+    barCtx.fillRect(cx - barW - gap / 2, pad.t + plotH - tH, barW, tH);
+
+    // Metamer bar (hatched / lighter)
+    const mH = mVal * plotH;
+    barCtx.globalAlpha = 0.45;
+    barCtx.fillStyle = barColor;
+    barCtx.fillRect(cx + gap / 2, pad.t + plotH - mH, barW, mH);
+    barCtx.globalAlpha = 1.0;
+
+    // Difference line (for M' only — highlight divergence)
+    if (i === 3 && Math.abs(tVal - mVal) > 0.01) {
+      const ty = pad.t + plotH - tH;
+      const my = pad.t + plotH - mH;
+      barCtx.strokeStyle = '#ffd700';
+      barCtx.lineWidth = 1;
+      barCtx.setLineDash([2, 2]);
+      barCtx.beginPath();
+      barCtx.moveTo(cx - barW - gap / 2 + barW / 2, ty);
+      barCtx.lineTo(cx + gap / 2 + barW / 2, my);
+      barCtx.stroke();
+      barCtx.setLineDash([]);
+    }
+
+    // Cone label
+    barCtx.fillStyle = i === 3 ? '#ffd700' : textColor;
+    barCtx.font = `${i === 3 ? 'bold ' : ''}10px Berkeley Mono, Fira Code, monospace`;
+    barCtx.textAlign = 'center';
+    barCtx.fillText(labels[i], cx, H - 6);
+
+    // Baseline
+    barCtx.fillStyle = axisColor;
+    barCtx.fillRect(cx - barW - gap / 2 - 2, pad.t + plotH, barW * 2 + gap + 4, 1);
+  }
+
+  // Legend
+  barCtx.font = '9px Berkeley Mono, Fira Code, monospace';
+  barCtx.textAlign = 'left';
+  barCtx.fillStyle = isDark ? '#c9d1d9' : '#24292e';
+  barCtx.fillRect(pad.l + 4, pad.t + 2, 10, 8);
+  barCtx.fillStyle = axisColor;
+  barCtx.fillText('spectral stimulus', pad.l + 18, pad.t + 10);
+  barCtx.globalAlpha = 0.45;
+  barCtx.fillStyle = isDark ? '#c9d1d9' : '#24292e';
+  barCtx.fillRect(pad.l + 118, pad.t + 2, 10, 8);
+  barCtx.globalAlpha = 1.0;
+  barCtx.fillStyle = axisColor;
+  barCtx.fillText('primary mix', pad.l + 132, pad.t + 10);
+}
+
+// ─── Swatches ─────────────────────────────────────────────────────────────────
+function updateSwatches(targetSpectrum, metamerSpectrum, outsideGamut) {
+  const [tR, tG, tB] = spectrumToDisplayColor(targetSpectrum);
+  const [mR, mG, mB] = spectrumToDisplayColor(metamerSpectrum);
+  // Both swatches show the same perceived color (trichromatic match)
+  // We display them with slight approximation; the bars are the real data
+  document.getElementById('swatch-a').style.background = `rgb(${tR},${tG},${tB})`;
+  document.getElementById('swatch-b').style.background =
+    outsideGamut
+      ? `repeating-linear-gradient(45deg,rgb(${mR},${mG},${mB}),rgb(${mR},${mG},${mB}) 4px,rgb(${Math.max(0,mR-30)},${Math.max(0,mG-30)},${Math.max(0,mB-30)}) 4px,rgb(${Math.max(0,mR-30)},${Math.max(0,mG-30)},${Math.max(0,mB-30)}) 8px)`
+      : `rgb(${mR},${mG},${mB})`;
+}
+
+// ─── Divergence display ───────────────────────────────────────────────────────
+function updateDivergence(rawTarget, rawMetamer) {
+  const bar = document.getElementById('div-bar');
+  const txt = document.getElementById('div-text');
+  const max = Math.max(rawTarget, rawMetamer, 1e-9);
+  const diff = Math.abs(rawTarget - rawMetamer);
+  const pct = Math.min(diff / max, 1);
+  const pctStr = (pct * 100).toFixed(1);
+
+  bar.style.width = (pct * 100) + '%';
+
+  if (pct < 0.02) {
+    bar.style.background = '#3fb950';
+    txt.innerHTML = `<span class="match">M' responses match (${pctStr}% divergence)</span> — indistinguishable even at the fourth channel.`;
+  } else if (pct < 0.10) {
+    bar.style.background = '#ffd700';
+    txt.innerHTML = `<span class="val">${pctStr}% M' divergence</span> — a functional tetrachromat might notice a difference under controlled conditions.`;
+  } else {
+    bar.style.background = '#ffd700';
+    txt.innerHTML = `<span class="val">${pctStr}% M' divergence</span> — a functional tetrachromat would likely distinguish these two stimuli. To a trichromat, they remain identical.`;
+  }
+}
+
+// ─── Main update ──────────────────────────────────────────────────────────────
+function update() {
+  const peak = parseInt(document.getElementById('peak-slider').value);
+  const bw   = parseInt(document.getElementById('bw-slider').value);
+
+  document.getElementById('peak-val').textContent = peak;
+  document.getElementById('bw-val').textContent = bw;
+
+  const target = buildTarget(peak, bw);
+  const result = computeMetamer(target);
+
+  drawSpectrum(target, result.metamerSpectrum);
+  drawBars(result);
+  updateSwatches(target, result.metamerSpectrum, result.outsideGamut);
+  updateDivergence(result.rawTargetMP, result.rawMetamerMP);
+}
+
+function setPreset(peak, bw) {
+  document.getElementById('peak-slider').value = peak;
+  document.getElementById('bw-slider').value = bw;
+  update();
+}
+
+document.getElementById('peak-slider').addEventListener('input', update);
+document.getElementById('bw-slider').addEventListener('input', update);
+
+// Re-render when theme changes
+const themeObserver = new MutationObserver(update);
+themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// Canvas DPI scaling
+function scaleDPI(canvas, w, h) {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.getContext('2d').scale(dpr, dpr);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+}
+
+function initCanvases() {
+  const containerW = Math.min(document.body.offsetWidth - 64, 660);
+  scaleDPI(specCanvas, containerW, 80);
+  scaleDPI(barCanvas, containerW, 160);
+}
+
+initCanvases();
+window.addEventListener('resize', () => { initCanvases(); update(); });
+
+update();
+</script>
+</body>
+</html>

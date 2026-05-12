@@ -95,6 +95,7 @@
       { href: '/rubber.html', label: 'rubber' },
       { href: '/penrose.html', label: 'penrose' },
       { href: '/lateral.html', label: 'lateral' },
+      { href: '/metamer.html', label: 'metamer' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
