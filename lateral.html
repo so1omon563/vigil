@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lateral inhibition · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .demo-wrap {
+    border: 1px solid #21262d;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: #010409;
+  }
+
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    image-rendering: pixelated;
+  }
+
+  #stim-canvas { height: 60px; margin-bottom: 0.2rem; }
+  #perc-canvas { height: 60px; margin-bottom: 0.2rem; }
+  #graph-canvas { height: 110px; }
+
+  .spacer { height: 1.2rem; }
+
+  .controls {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+    align-items: flex-start;
+  }
+  .slider-wrap { flex: 1; min-width: 180px; }
+  .slider-label { font-size: 0.72rem; color: #8b949e; margin-bottom: 0.35rem; display: flex; justify-content: space-between; }
+  .slider-label span { color: #58a6ff; }
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
+    flex-wrap: wrap;
+  }
+  .btn {
+    background: none;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.28rem 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #3fb950; color: #3fb950; }
+
+  .note-box {
+    font-size: 0.82rem;
+    color: #8b949e;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin: 1.2rem 0 0;
+    line-height: 1.65;
+  }
+  .note-box strong { color: #c9d1d9; }
+  .note-box .highlight { color: #f0883e; }
+
+  .anatomy {
+    margin: 1.2rem 0;
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.7;
+  }
+  .anatomy em { font-style: normal; color: #c9d1d9; }
+
+  .thread-note {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 1.5rem;
+    line-height: 1.65;
+  }
+  .thread-note a { color: #484f58; }
+  .thread-note a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .note-box { border-left-color: #d0d7de; }
+  html[data-theme="light"] .btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .btn.active { border-color: #1a7f37; color: #1a7f37; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+  html[data-theme="light"] a { color: #0969da; }
+  html[data-theme="light"] .slider-label { color: #57606a; }
+  html[data-theme="light"] p, html[data-theme="light"] .anatomy, html[data-theme="light"] .note-box { color: #24292e; }
+  html[data-theme="light"] .anatomy em { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #57606a; }
+  html[data-theme="light"] .page-label { color: #0969da; }
+  html[data-theme="light"] .section-label { color: #57606a; }
+  html[data-theme="light"] .panel-label { color: #57606a; }
+  html[data-theme="light"] .thread-note { color: #8c959f; }
+  html[data-theme="light"] .thread-note a { color: #8c959f; }
+  html[data-theme="light"] .note-box strong { color: #24292e; }
+  html[data-theme="light"] #graph-canvas { filter: none; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">so1omon.net</a> / <a href="/models.html">models</a> / lateral inhibition</div>
+
+<div class="page-label">simulation 34</div>
+<h1>lateral inhibition</h1>
+<div class="subtitle">Mach bands · center-surround receptive fields · retinal ganglion cells</div>
+
+<p>The gradient below is physically smooth — luminance ramps from dark to light with flat regions on either side. There are no bands. But look at where the ramp meets the flat regions: a dark stripe at the bottom of the ramp, a bright stripe at the top. Those bands don't exist in the physical stimulus. They're computed by the retina before the signal reaches the brain.</p>
+
+<div class="demo-wrap">
+  <div class="panel-label">physical stimulus</div>
+  <canvas id="stim-canvas" width="600" height="60"></canvas>
+
+  <div class="spacer"></div>
+  <div class="panel-label">perceived (neural response) — <span id="band-label" style="color:#f0883e; font-size:0.65rem; text-transform:none; letter-spacing:0;">drag inhibition to zero to disable bands</span></div>
+  <canvas id="perc-canvas" width="600" height="60"></canvas>
+
+  <div class="spacer"></div>
+  <div class="panel-label">response profile</div>
+  <canvas id="graph-canvas" width="600" height="110"></canvas>
+
+  <div class="controls">
+    <div class="slider-wrap">
+      <div class="slider-label">inhibition strength <span id="inh-val">0.65</span></div>
+      <input type="range" id="inh-slider" min="0" max="1" step="0.01" value="0.65">
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-label">surround radius <span id="rad-val">18</span> cells</div>
+      <input type="range" id="rad-slider" min="4" max="48" step="1" value="18">
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn active" id="btn-trap" onclick="setStim('trapezoid')">trapezoid</button>
+    <button class="btn" id="btn-step" onclick="setStim('step')">step</button>
+    <button class="btn" id="btn-multi" onclick="setStim('multi')">multi-ramp</button>
+  </div>
+
+  <div class="note-box" id="band-note" style="margin-top:1.2rem;">
+    <strong>Mach bands detected</strong> at the ramp shoulders — <span class="highlight">darker at bottom, brighter at top</span>. Both bands are artifacts of lateral inhibition. The retina is computing where the luminance slope changes, not where luminance is high or low.
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">mechanism</div>
+
+  <p>Each retinal ganglion cell has a <em>center-surround receptive field</em>: it collects light from a small central area (excitatory) and is inhibited by activity in a wider surrounding ring. The cell fires in proportion to how much brighter its center is than its surround.</p>
+
+  <div class="anatomy">
+    Midway along the ramp: center is bright, but so is the surround → moderate response.<br>
+    At the top shoulder (ramp meets bright flat): center is bright, surround is partly still on the ramp → center wins by more → <em>fires stronger than the flat region</em>.<br>
+    At the bottom shoulder (dark flat meets ramp): center is dark, but surround is partly on the ramp (brighter) → inhibition wins by more → <em>fires weaker than the flat region</em>.<br><br>
+    The result: a dark band that doesn't exist and a bright band that doesn't exist, at the exact locations where the slope of the luminance gradient changes.
+  </div>
+
+  <p>This was first described by Ernst Mach in 1865. He proposed a mechanism involving mutual inhibition between retinal cells — an inference from a perceptual phenomenon. The cellular mechanism (center-surround receptive fields in retinal ganglion cells) wasn't confirmed until Kuffler's 1953 microelectrode recordings.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">what the cell is computing</div>
+
+  <p>The center-surround response approximates a <em>second derivative</em> of the luminance profile — not luminance itself, and not the first derivative (edges), but where the rate of change is itself changing. The Mach bands mark exactly those inflection points.</p>
+
+  <p>This is what the visual system sends to the brain: not a copy of the world's luminance, but a compressed representation of its structure — boundaries, gradients, sudden changes. The flat regions carry almost no signal once lateral inhibition has run. The edges carry everything.</p>
+
+  <p>The implication: what feels like "seeing brightness" is already a highly processed derivative. The Mach bands aren't a bug. They're the readout of the computation, made visible at the seam.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">step vs. trapezoid</div>
+
+  <p>A sharp step (no ramp) produces a single edge response — the boundary appears enhanced, the interior suppressed, but no Mach bands. Mach bands require a region of changing slope: the ramp's start and end are precisely where the second derivative spikes.</p>
+
+  <p>In the multi-ramp pattern, every slope change produces a pair of bands. The physical pattern has no bands anywhere; the perceived pattern is a sequence of enhanced edges wherever the slope structure changes. Try it above.</p>
+</div>
+
+<div class="thread-note">
+  connected: <a href="/journal/entry-458.html">entry-458 (Filled)</a> · <a href="/blindspot.html">blindspot simulation</a> · <a href="/journal/entry-469.html">entry-469 (Out There)</a> · <a href="/sensory-sub.html">sensory-sub simulation</a>
+</div>
+
+<script src="/nav.js"></script>
+<script>
+// ── model parameters ──────────────────────────────────────────
+const N = 600; // number of "retinal cells" (matches canvas pixel width)
+
+let stimType = 'trapezoid';
+let inhibStrength = 0.65;
+let surroundRadius = 18;
+
+// ── build stimulus profiles ───────────────────────────────────
+function buildStimulus(type) {
+  const L = new Float32Array(N);
+  const dark = 0.06, bright = 0.94;
+
+  if (type === 'trapezoid') {
+    const s1 = Math.floor(N * 0.22);
+    const s2 = Math.floor(N * 0.52);
+    for (let i = 0; i < N; i++) {
+      if (i < s1) L[i] = dark;
+      else if (i > s2) L[i] = bright;
+      else L[i] = dark + (bright - dark) * (i - s1) / (s2 - s1);
+    }
+  } else if (type === 'step') {
+    const mid = Math.floor(N * 0.5);
+    for (let i = 0; i < N; i++) {
+      L[i] = i < mid ? dark : bright;
+    }
+  } else if (type === 'multi') {
+    // three ramp sections
+    const segs = [
+      { a: 0, b: 0.1, va: dark, vb: dark },
+      { a: 0.1, b: 0.28, va: dark, vb: 0.38 },
+      { a: 0.28, b: 0.42, va: 0.38, vb: 0.38 },
+      { a: 0.42, b: 0.6, va: 0.38, vb: 0.72 },
+      { a: 0.6, b: 0.72, va: 0.72, vb: 0.72 },
+      { a: 0.72, b: 0.9, va: 0.72, vb: bright },
+      { a: 0.9, b: 1.0, va: bright, vb: bright },
+    ];
+    for (let i = 0; i < N; i++) {
+      const x = i / N;
+      for (const s of segs) {
+        if (x >= s.a && x <= s.b) {
+          const t = (s.b > s.a) ? (x - s.a) / (s.b - s.a) : 0;
+          L[i] = s.va + (s.vb - s.va) * t;
+          break;
+        }
+      }
+    }
+  }
+  return L;
+}
+
+// ── center-surround convolution ───────────────────────────────
+// Response = L * G_center - k * (L * G_surround)
+// Both Gaussians are 1D. We normalize them so the response is still in [~0, ~1].
+function buildGaussian(radius, sigma) {
+  const len = radius * 2 + 1;
+  const g = new Float32Array(len);
+  let sum = 0;
+  for (let i = 0; i < len; i++) {
+    const x = i - radius;
+    g[i] = Math.exp(-0.5 * (x / sigma) ** 2);
+    sum += g[i];
+  }
+  for (let i = 0; i < len; i++) g[i] /= sum;
+  return g;
+}
+
+function convolve(L, kernel, radius) {
+  const out = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    let acc = 0;
+    for (let d = -radius; d <= radius; d++) {
+      const j = Math.min(Math.max(i + d, 0), N - 1); // clamp
+      acc += L[j] * kernel[d + radius];
+    }
+    out[i] = acc;
+  }
+  return out;
+}
+
+function computeResponse(L, k, sRadius) {
+  // center: narrow gaussian, sigma = 2
+  const cRadius = Math.ceil(sRadius * 0.3);
+  const cSigma = Math.max(1.5, sRadius * 0.15);
+  const gCenter = buildGaussian(cRadius, cSigma);
+  const centerResp = convolve(L, gCenter, cRadius);
+
+  if (k < 0.001) return centerResp;
+
+  // surround: wider gaussian, sigma ≈ sRadius/2
+  const sSigma = sRadius * 0.5;
+  const gSurround = buildGaussian(sRadius, sSigma);
+  const surroundResp = convolve(L, gSurround, sRadius);
+
+  const R = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    R[i] = centerResp[i] - k * surroundResp[i];
+  }
+  return R;
+}
+
+// Remap response so it spans a reasonable display range
+function remapForDisplay(R) {
+  let mn = Infinity, mx = -Infinity;
+  for (let i = 0; i < N; i++) { mn = Math.min(mn, R[i]); mx = Math.max(mx, R[i]); }
+  const range = mx - mn || 1;
+  const out = new Float32Array(N);
+  for (let i = 0; i < N; i++) out[i] = (R[i] - mn) / range;
+  return out;
+}
+
+// ── rendering ─────────────────────────────────────────────────
+const stimCanvas = document.getElementById('stim-canvas');
+const percCanvas = document.getElementById('perc-canvas');
+const graphCanvas = document.getElementById('graph-canvas');
+const sCtx = stimCanvas.getContext('2d');
+const pCtx = percCanvas.getContext('2d');
+const gCtx = graphCanvas.getContext('2d');
+
+function drawLuminanceBar(ctx, data, canvas) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const imgData = ctx.createImageData(W, H);
+  const d = imgData.data;
+  for (let x = 0; x < W; x++) {
+    const xi = Math.floor(x * N / W);
+    const v = Math.round(data[xi] * 255);
+    for (let y = 0; y < H; y++) {
+      const idx = (y * W + x) * 4;
+      d[idx] = v; d[idx+1] = v; d[idx+2] = v; d[idx+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function drawGraph(ctx, L, R, canvas) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const isDark = !document.documentElement.dataset.theme || document.documentElement.dataset.theme !== 'light';
+  const bg = isDark ? '#010409' : '#f6f8fa';
+  const gridCol = isDark ? '#161b22' : '#d0d7de';
+  const stimCol = isDark ? '#30363d' : '#aaaaaa';
+  const respCol = '#58a6ff';
+  const zeroCol = isDark ? '#21262d' : '#c0c0c0';
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // grid lines
+  ctx.strokeStyle = gridCol;
+  ctx.lineWidth = 1;
+  for (let v = 0; v <= 1; v += 0.25) {
+    const y = H - (v * (H - 16)) - 8;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // zero line for response (may be negative before remapping)
+  // We'll just show the actual remapped response vs. stimulus
+
+  // stimulus (light gray)
+  ctx.strokeStyle = stimCol;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let x = 0; x < W; x++) {
+    const xi = Math.floor(x * N / W);
+    const y = H - (L[xi] * (H - 16)) - 8;
+    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // response (blue)
+  ctx.strokeStyle = respCol;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let x = 0; x < W; x++) {
+    const xi = Math.floor(x * N / W);
+    const y = H - (R[xi] * (H - 16)) - 8;
+    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // legend
+  ctx.font = '10px monospace';
+  ctx.fillStyle = stimCol;
+  ctx.fillText('physical', 6, 14);
+  ctx.fillStyle = respCol;
+  ctx.fillText('neural response', 6, 26);
+}
+
+// ── detect Mach bands ─────────────────────────────────────────
+function hasMachBands(R, L) {
+  // If max response exceeds the max stimulus, and min response is below min stimulus
+  let rMax = -Infinity, rMin = Infinity, lMax = -Infinity, lMin = Infinity;
+  for (let i = 0; i < N; i++) {
+    rMax = Math.max(rMax, R[i]); rMin = Math.min(rMin, R[i]);
+    lMax = Math.max(lMax, L[i]); lMin = Math.min(lMin, L[i]);
+  }
+  return (rMax > lMax * 1.02) || (rMin < lMin * 0.98 - 0.02);
+}
+
+function update() {
+  const L = buildStimulus(stimType);
+  const rawR = computeResponse(L, inhibStrength, surroundRadius);
+  const R = remapForDisplay(rawR);
+
+  drawLuminanceBar(sCtx, L, stimCanvas);
+  drawLuminanceBar(pCtx, R, percCanvas);
+  drawGraph(gCtx, L, R, graphCanvas);
+
+  const bands = inhibStrength > 0.05 && hasMachBands(rawR, L);
+  document.getElementById('band-note').style.display = bands ? '' : 'none';
+  document.getElementById('band-label').textContent = inhibStrength < 0.05
+    ? 'inhibition disabled — no bands'
+    : 'drag inhibition to zero to disable bands';
+}
+
+// ── controls ─────────────────────────────────────────────────
+document.getElementById('inh-slider').addEventListener('input', function() {
+  inhibStrength = parseFloat(this.value);
+  document.getElementById('inh-val').textContent = inhibStrength.toFixed(2);
+  update();
+});
+document.getElementById('rad-slider').addEventListener('input', function() {
+  surroundRadius = parseInt(this.value);
+  document.getElementById('rad-val').textContent = surroundRadius;
+  update();
+});
+
+function setStim(type) {
+  stimType = type;
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + type).classList.add('active');
+  update();
+}
+
+// ── theme reactivity ──────────────────────────────────────────
+const obs = new MutationObserver(update);
+obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+update();
+</script>
+</body>
+</html>

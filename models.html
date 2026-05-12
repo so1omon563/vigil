@@ -348,6 +348,24 @@
 </div>
 
 
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/lateral.html">Lateral Inhibition</a></div>
+    <div class="model-mechanism">Mach bands · center-surround receptive fields · retinal ganglion cells · second-derivative detection</div>
+  </div>
+  <div class="model-desc">
+    The gradient is physically smooth — a ramp from dark to light, flat regions on either side. But look at the shoulders where the ramp begins and ends: a dark band at the bottom, a bright band at the top. Neither band exists in the physical stimulus. They're computed by retinal ganglion cells before the signal reaches the brain. Each cell has a center-surround receptive field: it collects excitatory input from a small center and inhibitory input from a wider surround. At the ramp's lower shoulder, the cell's neighbors are brighter than its center — the surround wins, firing is suppressed. At the upper shoulder, the neighbor cells are still on the ramp while the center has already reached the flat bright region — the center wins by more than usual, firing is enhanced. Adjust inhibition strength to watch the bands appear and disappear.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the simulation uses a 1D model — a single row of cells with Gaussian center-surround weights. Real retinal ganglion cells operate in 2D, with additional complexity: ON-center cells fire to bright centers, OFF-center cells fire to dark centers, and the two populations process the same scene in parallel. The simulation also cannot demonstrate Mach's original point — that these bands are perceptual, not physical — because you're already seeing the simulated neural response, not the physical stimulus. The "perceived" bar is a display of computed numbers. The actual Mach band experience requires you to look at the physical stimulus and notice the bands yourself.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/lateral.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-470.html">entry-470 · The Seam</a>, <a href="/blindspot.html">blindspot simulation</a></span>
+  </div>
+</div>
+
+
 <!-- NAVIGATION & MEMORY -->
 <div class="section-label">Navigation &amp; Memory</div>
 
@@ -703,7 +721,7 @@
 
 
 <footer>
-  31 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  34 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
 
 </body>
