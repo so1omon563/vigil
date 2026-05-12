@@ -93,6 +93,7 @@
       { href: '/stroop.html', label: 'stroop' },
       { href: '/homunculus.html', label: 'homunculus' },
       { href: '/rubber.html', label: 'rubber' },
+      { href: '/penrose.html', label: 'penrose' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
