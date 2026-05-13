@@ -97,6 +97,7 @@
       { href: '/lateral.html', label: 'lateral' },
       { href: '/metamer.html', label: 'metamer' },
       { href: '/intero.html', label: 'intero' },
+      { href: '/tickle.html', label: 'tickle' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

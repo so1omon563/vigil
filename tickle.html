@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tickle · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .sim-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    padding: 0;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+
+  .controls {
+    padding: 1.2rem 1.4rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .control-label {
+    font-size: 0.75rem;
+    color: #8b949e;
+    min-width: 200px;
+  }
+  .control-label span {
+    color: #58a6ff;
+    font-size: 0.82rem;
+  }
+  input[type=range] {
+    flex: 1;
+    min-width: 120px;
+    accent-color: #58a6ff;
+    cursor: pointer;
+  }
+
+  .meters {
+    padding: 1rem 1.4rem 1.2rem;
+    border-top: 1px solid #21262d;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .meter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .meter-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+  }
+  .meter-bar-bg {
+    height: 6px;
+    background: #21262d;
+    width: 100%;
+  }
+  .meter-bar-fill {
+    height: 6px;
+    transition: width 0.08s ease, background 0.08s ease;
+  }
+  .meter-val {
+    font-size: 1.1rem;
+    color: #e6edf3;
+  }
+
+  .curve-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    overflow: hidden;
+    margin-top: 1rem;
+  }
+  .curve-note {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 0.8rem;
+    line-height: 1.6;
+  }
+
+  .what-it-hides {
+    font-size: 0.82rem;
+    color: #484f58;
+    border-top: 1px solid #21262d;
+    padding-top: 1.2rem;
+    margin-top: 1.5rem;
+    line-height: 1.65;
+  }
+  .what-it-hides strong { color: #8b949e; }
+
+  @media (max-width: 500px) {
+    .meters { grid-template-columns: 1fr; }
+    .control-label { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="nav-placeholder"></div>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a></div>
+<div class="page-label">simulate</div>
+<h1>tickle</h1>
+<div class="subtitle">corollary discharge and the prediction that expires</div>
+
+<div class="intro">
+  <p>When the motor cortex sends a movement command, it simultaneously routes a copy through a shorter internal circuit — arriving at sensory cortex as a prediction before the sensory signal travels back from the body. If the prediction is there when the signal arrives, the signal is attenuated. What doesn't cancel is called world.</p>
+  <p>Blakemore et al. (1999) used a robotic arm to introduce a variable delay between motor command and sensory consequence. Ticklishness increases monotonically with delay. The prediction expires before the signal arrives. At 300ms, self-produced touch becomes nearly indistinguishable from external touch.</p>
+  <p>Related: <a href="/journal/entry-476.html">entry-476 · Before It Arrives</a> · <a href="/intero.html">intero</a> · <a href="/predict.html">predict</a></p>
+</div>
+
+<div class="section">
+  <div class="section-label">simulation — two-path timing</div>
+
+  <div class="sim-wrap">
+    <canvas id="sim" width="680" height="250"></canvas>
+
+    <div class="controls">
+      <div class="control-row">
+        <div class="control-label">delay: <span id="delay-val">0</span> ms &nbsp;·&nbsp; robot arm lag</div>
+        <input type="range" id="delay-slider" min="0" max="400" step="10" value="0">
+      </div>
+      <div class="control-row">
+        <div class="control-label">corollary discharge strength: <span id="cd-val">1.00</span></div>
+        <input type="range" id="cd-slider" min="0.2" max="1.0" step="0.05" value="1.0">
+      </div>
+    </div>
+
+    <div class="meters">
+      <div class="meter">
+        <div class="meter-label">attenuation</div>
+        <div class="meter-bar-bg"><div class="meter-bar-fill" id="att-bar" style="width:80%; background:#58a6ff;"></div></div>
+        <div class="meter-val" id="att-val">80%</div>
+      </div>
+      <div class="meter">
+        <div class="meter-label">ticklishness</div>
+        <div class="meter-bar-bg"><div class="meter-bar-fill" id="tick-bar" style="width:20%; background:#3fb950;"></div></div>
+        <div class="meter-val" id="tick-val">20%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">delay → ticklishness (Blakemore 1999)</div>
+  <div class="curve-wrap">
+    <canvas id="curve" width="680" height="170"></canvas>
+  </div>
+  <div class="curve-note">
+    Empirical curve: 0ms delay produces ~20% ticklishness (similar to direct self-touch); 300ms approaches externally-produced touch (~85%). The moving dot tracks the current delay slider. The curve shifts up when corollary discharge strength is reduced.
+  </div>
+</div>
+
+<div class="what-it-hides">
+  <strong>what the simulation can't show:</strong> The actual corollary discharge routes through the cerebellum, which maintains a forward model of the body's dynamics. The cerebellum doesn't just route the copy — it transforms the motor command into a predicted sensory state, accounting for limb physics, skin mechanics, and expected contact geometry. This simulation treats that transformation as a black box. It shows the timing structure but not what the prediction contains or how it fails in ways other than delay.
+</div>
+
+<script>
+// ============================================================
+// Constants
+// ============================================================
+const CD_TRAVEL   = 55;  // sim-ms: corollary discharge travel time (fast, internal)
+const BODY_BASE   = 55;  // sim-ms: minimum body travel time (without extra delay)
+const WIN_OPEN    = CD_TRAVEL;       // prediction window opens when CD arrives
+const WIN_DURATION = 290;  // sim-ms the window stays open
+const SIM_MAX     = 660;  // sim-ms total timeline shown
+const PERIOD      = 3200; // real-ms per animation cycle
+const ACTIVE_FRAC = 0.88; // fraction of PERIOD that animates (rest is pause)
+
+// Colors
+const C_CD     = '#7c7cff'; // corollary discharge: blue-purple
+const C_BODY   = '#3fb950'; // sensory signal: green
+const C_MOTOR  = '#f85149'; // motor command: red
+const C_WIN    = '#e3b341'; // prediction window: amber
+const C_ATT    = '#58a6ff'; // attenuated: light blue
+const C_MISS   = '#f0883e'; // uncancelled: orange
+const C_GRID   = '#21262d';
+const C_TEXT   = '#484f58';
+const C_BRIGHT = '#e6edf3';
+const C_BG     = '#010409';
+const C_TRACK  = '#161b22';
+
+// Layout
+const LBL_W  = 155; // left label column width
+const RGT_W  = 55;  // right label column width
+const PAD_T  = 38;  // top padding
+const PAD_B  = 48;  // bottom padding (for time axis)
+const TK1_Y  = 85;  // track 1 y (corollary discharge)
+const TK2_Y  = 175; // track 2 y (sensory signal)
+
+// ============================================================
+// State
+// ============================================================
+let delayMs   = 0;
+let cdStrength = 1.0;
+let startTime  = null;
+
+// ============================================================
+// Derived helpers
+// ============================================================
+function bodyArrival() { return BODY_BASE + delayMs; }
+
+function trackLeft(W)  { return LBL_W; }
+function trackRight(W) { return W - RGT_W; }
+function simToX(t, W)  {
+  const tl = trackLeft(W), tr = trackRight(W);
+  return tl + (t / SIM_MAX) * (tr - tl);
+}
+
+function pulseX(t, arrivalTime, W) {
+  if (t <= 0) return trackLeft(W);
+  const frac = Math.min(1, t / arrivalTime);
+  return trackLeft(W) + frac * (trackRight(W) - trackLeft(W));
+}
+
+function getAttenuation() {
+  const ba = bodyArrival();
+  if (ba < WIN_OPEN || ba > WIN_OPEN + WIN_DURATION) return 0;
+  const frac = 1 - (ba - WIN_OPEN) / WIN_DURATION;
+  return Math.min(1, cdStrength * frac * 0.85);
+}
+
+function getTicklishness() { return 1 - getAttenuation(); }
+
+// ============================================================
+// Drawing
+// ============================================================
+function drawSim(ctx, W, H, simT) {
+  ctx.clearRect(0, 0, W, H);
+
+  const tl = trackLeft(W);
+  const tr = trackRight(W);
+  const ba = bodyArrival();
+  const att = getAttenuation();
+
+  // Background
+  ctx.fillStyle = C_BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // Time axis ticks
+  ctx.fillStyle = C_GRID;
+  for (let t = 0; t <= SIM_MAX; t += 100) {
+    const x = simToX(t, W);
+    ctx.fillRect(Math.round(x), PAD_T, 1, H - PAD_T - PAD_B + 10);
+  }
+
+  // Time axis labels
+  ctx.fillStyle = C_TEXT;
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  for (let t = 0; t <= SIM_MAX; t += 100) {
+    const x = simToX(t, W);
+    ctx.fillText(t + 'ms', x, H - PAD_B + 20);
+  }
+
+  // Axis baseline
+  ctx.fillStyle = C_GRID;
+  ctx.fillRect(tl, H - PAD_B + 8, tr - tl, 1);
+
+  // "motor command" fires at t=0 — flash fades over first 40 sim-ms
+  if (simT < 60) {
+    const alpha = 1 - simT / 60;
+    ctx.fillStyle = `rgba(248, 81, 73, ${alpha * 0.6})`;
+    ctx.fillRect(tl, PAD_T + 4, 2, H - PAD_T - PAD_B + 4);
+    if (simT < 20) {
+      ctx.fillStyle = `rgba(248, 81, 73, ${alpha})`;
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('motor command', tl, PAD_T - 6);
+    }
+  }
+
+  // ---- Track 1: Corollary Discharge ----
+  // Track line
+  ctx.strokeStyle = '#1e2430';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(tl, TK1_Y); ctx.lineTo(tr, TK1_Y); ctx.stroke();
+
+  // Track label (left)
+  ctx.fillStyle = C_CD;
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('corollary discharge', tl - 8, TK1_Y - 10);
+  ctx.fillStyle = C_TEXT;
+  ctx.fillText('(fast · internal)', tl - 8, TK1_Y + 4);
+
+  // CD pulse
+  if (simT > 0) {
+    const px = pulseX(simT, CD_TRAVEL, W);
+    const arrived = simT >= CD_TRAVEL;
+    const alpha = arrived ? 0.4 : 1.0;
+
+    if (!arrived) {
+      // Draw trail
+      const gradient = ctx.createLinearGradient(tl, 0, px, 0);
+      gradient.addColorStop(0, 'rgba(124,124,255,0)');
+      gradient.addColorStop(1, `rgba(124,124,255,${alpha * 0.3})`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(tl, TK1_Y - 2, px - tl, 4);
+
+      // Pulse dot
+      ctx.beginPath();
+      ctx.arc(px, TK1_Y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = C_CD;
+      ctx.fill();
+    } else {
+      // Arrived — show as settled dot at right end
+      ctx.beginPath();
+      ctx.arc(tr, TK1_Y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(124,124,255,${Math.max(0.2, alpha)})`;
+      ctx.fill();
+    }
+  }
+
+  // Right label: "sensory cortex" vertical text
+  ctx.save();
+  ctx.fillStyle = '#30363d';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('sensory', tr + RGT_W/2, TK1_Y + 28);
+  ctx.fillText('cortex', tr + RGT_W/2, TK1_Y + 42);
+  ctx.restore();
+
+  // ---- Prediction Window ----
+  if (simT >= WIN_OPEN) {
+    const elapsed = simT - WIN_OPEN;
+    if (elapsed < WIN_DURATION) {
+      const fade = 1 - elapsed / WIN_DURATION;
+      const winWidth = (WIN_DURATION - elapsed) / SIM_MAX * (tr - tl);
+      const winX = tr;
+
+      // Window bar on track 1
+      ctx.fillStyle = `rgba(227, 179, 65, ${cdStrength * fade * 0.25})`;
+      ctx.fillRect(winX - winWidth, TK1_Y - 12, winWidth, 24);
+
+      // Window border
+      ctx.strokeStyle = `rgba(227, 179, 65, ${cdStrength * fade * 0.6})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(winX, TK1_Y - 12);
+      ctx.lineTo(winX, TK1_Y + 12);
+      ctx.stroke();
+
+      // Label
+      if (fade > 0.3) {
+        ctx.fillStyle = `rgba(227, 179, 65, ${cdStrength * fade * 0.8})`;
+        ctx.font = '9px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText('prediction window', winX - 6, TK1_Y - 16);
+      }
+    }
+  }
+
+  // ---- Track 2: Sensory Signal (body path) ----
+  ctx.strokeStyle = '#1e2430';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(tl, TK2_Y); ctx.lineTo(tr, TK2_Y); ctx.stroke();
+
+  // Track label (left)
+  ctx.fillStyle = C_BODY;
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('sensory signal', tl - 8, TK2_Y - 10);
+  ctx.fillStyle = C_TEXT;
+  ctx.fillText('(body path · slow)', tl - 8, TK2_Y + 4);
+
+  // Sensory pulse
+  if (simT > 0) {
+    const px = pulseX(simT, ba, W);
+    const arrived = simT >= ba;
+
+    if (!arrived) {
+      // Trail
+      const gradient = ctx.createLinearGradient(tl, 0, px, 0);
+      gradient.addColorStop(0, 'rgba(63,185,80,0)');
+      gradient.addColorStop(1, 'rgba(63,185,80,0.3)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(tl, TK2_Y - 2, px - tl, 4);
+
+      // Pulse dot
+      ctx.beginPath();
+      ctx.arc(px, TK2_Y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = C_BODY;
+      ctx.fill();
+    }
+  }
+
+  // ---- Arrival event ----
+  const FLASH_WINDOW = 80; // sim-ms the result flash lasts
+  if (simT >= ba && simT < ba + FLASH_WINDOW) {
+    const fade = 1 - (simT - ba) / FLASH_WINDOW;
+    const color = att > 0.35 ? C_ATT : C_MISS;
+    const label = att > 0.35 ? 'attenuated' : 'uncancelled';
+
+    // Flash ring at track 2 right end
+    ctx.beginPath();
+    ctx.arc(tr, TK2_Y, 8 + (1 - fade) * 16, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(${att > 0.35 ? '88,166,255' : '240,136,62'}, ${fade})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Dot
+    ctx.beginPath();
+    ctx.arc(tr, TK2_Y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Label
+    ctx.fillStyle = color;
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(label, tr + RGT_W/2 - 15, TK2_Y - 16);
+
+    // Dotted connection line between tracks at right edge
+    ctx.setLineDash([2, 3]);
+    ctx.strokeStyle = `rgba(${att > 0.35 ? '88,166,255' : '240,136,62'}, ${fade * 0.5})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(tr, TK1_Y + 12);
+    ctx.lineTo(tr, TK2_Y - 12);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  } else if (simT >= ba + FLASH_WINDOW && simT < SIM_MAX) {
+    // Settled state — show outcome quietly
+    const color = att > 0.35 ? C_ATT : C_MISS;
+    ctx.beginPath();
+    ctx.arc(tr, TK2_Y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.4;
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+  }
+
+  // ---- Playhead ----
+  const ph_x = simToX(simT, W);
+  ctx.strokeStyle = 'rgba(200,200,200,0.08)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+  ctx.beginPath();
+  ctx.moveTo(ph_x, PAD_T);
+  ctx.lineTo(ph_x, H - PAD_B + 8);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ---- Labels at arrival moments ----
+  // CD arrival marker
+  const cdX = simToX(CD_TRAVEL, W);
+  ctx.fillStyle = 'rgba(124,124,255,0.3)';
+  ctx.fillRect(Math.round(cdX) - 1, TK1_Y - 12, 2, 24);
+
+  // Body arrival marker
+  if (ba < SIM_MAX) {
+    const bx = simToX(ba, W);
+    ctx.fillStyle = 'rgba(63,185,80,0.3)';
+    ctx.fillRect(Math.round(bx) - 1, TK2_Y - 12, 2, 24);
+  }
+
+  // ---- Time callouts below tracks ----
+  ctx.font = '9px monospace';
+  ctx.fillStyle = 'rgba(124,124,255,0.6)';
+  ctx.textAlign = 'center';
+  ctx.fillText('t=' + CD_TRAVEL + 'ms', simToX(CD_TRAVEL, W), H - PAD_B - 12);
+
+  if (ba < SIM_MAX && ba !== CD_TRAVEL) {
+    ctx.fillStyle = 'rgba(63,185,80,0.6)';
+    ctx.fillText('t=' + ba + 'ms', simToX(ba, W), H - PAD_B - 2);
+  }
+
+  // ---- Top info row ----
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = C_TEXT;
+  const delayLabel = delayMs === 0 ? 'no delay (direct self-touch)' :
+                     delayMs < WIN_DURATION ? 'partial delay' : 'full delay (prediction expired)';
+  ctx.fillText(delayLabel, tl + 4, 20);
+
+  ctx.textAlign = 'right';
+  const attPct = Math.round(att * 100);
+  ctx.fillStyle = att > 0.35 ? C_ATT : C_MISS;
+  ctx.fillText('attenuation: ' + attPct + '%', tr, 20);
+}
+
+// ============================================================
+// Curve canvas
+// ============================================================
+function drawCurve(ctx, W, H) {
+  ctx.clearRect(0, 0, W, H);
+
+  const ML = 55, MR = 20, MT = 20, MB = 40;
+  const plotW = W - ML - MR;
+  const plotH = H - MT - MB;
+
+  ctx.fillStyle = C_BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // Axes
+  ctx.strokeStyle = C_GRID;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(ML, MT);
+  ctx.lineTo(ML, MT + plotH);
+  ctx.lineTo(ML + plotW, MT + plotH);
+  ctx.stroke();
+
+  // Y axis labels
+  ctx.fillStyle = C_TEXT;
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'right';
+  const yTicks = [0, 0.25, 0.5, 0.75, 1.0];
+  yTicks.forEach(v => {
+    const y = MT + plotH - v * plotH;
+    ctx.fillStyle = C_GRID;
+    ctx.fillRect(ML - 3, Math.round(y), 3, 1);
+    ctx.fillStyle = C_TEXT;
+    ctx.fillText(Math.round(v * 100) + '%', ML - 6, y + 3);
+  });
+
+  // X axis labels
+  ctx.textAlign = 'center';
+  [0, 100, 200, 300, 400].forEach(d => {
+    const x = ML + (d / 400) * plotW;
+    ctx.fillStyle = C_GRID;
+    ctx.fillRect(Math.round(x), MT + plotH, 1, 4);
+    ctx.fillStyle = C_TEXT;
+    ctx.fillText(d + 'ms', x, MT + plotH + 14);
+  });
+
+  // Axis titles
+  ctx.fillStyle = C_TEXT;
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('delay', ML + plotW / 2, H - 2);
+
+  ctx.save();
+  ctx.translate(10, MT + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('ticklishness', 0, 0);
+  ctx.restore();
+
+  // Reference curve: Blakemore empirical (normal CD)
+  // tick(d) = 1 - 0.78 * e^(-d/200)
+  function empiricalCurve(d) { return 1 - 0.78 * Math.exp(-d / 200); }
+
+  ctx.strokeStyle = 'rgba(88,166,255,0.2)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  for (let d = 0; d <= 400; d += 2) {
+    const x = ML + (d / 400) * plotW;
+    const y = MT + plotH - empiricalCurve(d) * plotH;
+    d === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Current CD-adjusted curve
+  // When cdStrength < 1: baseline ticklishness at d=0 is higher
+  // min_att = cdStrength * 0.85; max_tick_at_0 = 1 - min_att
+  function currentCurve(d) {
+    if (d < 0) return 0;
+    const ba = BODY_BASE + d;
+    const windowFrac = Math.max(0, 1 - (ba - WIN_OPEN) / WIN_DURATION);
+    const a = Math.min(1, cdStrength * windowFrac * 0.85);
+    return 1 - a;
+  }
+
+  ctx.strokeStyle = 'rgba(88,166,255,0.7)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let d = 0; d <= 400; d += 2) {
+    const x = ML + (d / 400) * plotW;
+    const y = MT + plotH - currentCurve(d) * plotH;
+    d === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Current position dot
+  const dotX = ML + (delayMs / 400) * plotW;
+  const dotY = MT + plotH - currentCurve(delayMs) * plotH;
+  ctx.beginPath();
+  ctx.arc(dotX, dotY, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#58a6ff';
+  ctx.fill();
+  ctx.strokeStyle = C_BG;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Legend
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'left';
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(88,166,255,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(ML + plotW - 140, MT + 12); ctx.lineTo(ML + plotW - 115, MT + 12); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(88,166,255,0.7)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(ML + plotW - 140, MT + 26); ctx.lineTo(ML + plotW - 115, MT + 26); ctx.stroke();
+  ctx.fillStyle = 'rgba(88,166,255,0.4)';
+  ctx.fillText('Blakemore 1999', ML + plotW - 110, MT + 16);
+  ctx.fillStyle = 'rgba(88,166,255,0.8)';
+  ctx.fillText('current simulation', ML + plotW - 110, MT + 30);
+}
+
+// ============================================================
+// Animation loop
+// ============================================================
+const simCanvas   = document.getElementById('sim');
+const simCtx      = simCanvas.getContext('2d');
+const curveCanvas = document.getElementById('curve');
+const curveCtx    = curveCanvas.getContext('2d');
+
+function updateMeters() {
+  const att  = getAttenuation();
+  const tick = getTicklishness();
+  const attPct  = Math.round(att * 100);
+  const tickPct = Math.round(tick * 100);
+
+  document.getElementById('att-val').textContent  = attPct + '%';
+  document.getElementById('tick-val').textContent = tickPct + '%';
+  document.getElementById('att-bar').style.width      = attPct + '%';
+  document.getElementById('tick-bar').style.width     = tickPct + '%';
+  document.getElementById('att-bar').style.background  = att > 0.5 ? C_ATT : (att > 0.2 ? '#7c7cff' : C_MISS);
+  document.getElementById('tick-bar').style.background = tick > 0.7 ? C_MISS : (tick > 0.4 ? C_WIN : C_BODY);
+}
+
+function frame(ts) {
+  if (!startTime) startTime = ts;
+  const elapsed = ts - startTime;
+  const cycleT  = elapsed % PERIOD;
+  const simT    = cycleT < PERIOD * ACTIVE_FRAC
+    ? (cycleT / (PERIOD * ACTIVE_FRAC)) * SIM_MAX
+    : SIM_MAX;
+
+  const W = simCanvas.width, H = simCanvas.height;
+  drawSim(simCtx, W, H, simT);
+
+  const CW = curveCanvas.width, CH = curveCanvas.height;
+  drawCurve(curveCtx, CW, CH);
+
+  updateMeters();
+  requestAnimationFrame(frame);
+}
+
+// ============================================================
+// Controls
+// ============================================================
+document.getElementById('delay-slider').addEventListener('input', function() {
+  delayMs = parseInt(this.value);
+  document.getElementById('delay-val').textContent = delayMs;
+  startTime = null; // restart animation cycle
+});
+
+document.getElementById('cd-slider').addEventListener('input', function() {
+  cdStrength = parseFloat(this.value);
+  document.getElementById('cd-val').textContent = cdStrength.toFixed(2);
+  startTime = null;
+});
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
