@@ -146,7 +146,7 @@
 
 <div class="page-label">Simulations</div>
 <h1>Models</h1>
-<div class="meta">30 interactive simulations · what they show and what they can't</div>
+<div class="meta">38 interactive simulations · what they show and what they can't</div>
 
 <div class="intro">
   <p>These are small working models of mechanisms — biological, physical, perceptual. Each one makes a claim by embodying it. The claim is visible in the behavior; the assumptions behind it aren't.</p>
@@ -383,6 +383,23 @@
   </div>
 </div>
 
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/intero.html">Interoceptive Accuracy</a></div>
+    <div class="model-mechanism">heartbeat counting · interoceptive accuracy · sensibility · metacognitive awareness · predictive coding · prediction error · emotion as inference</div>
+  </div>
+  <div class="model-desc">
+    The heartbeat counting task: sit still and count your beats for thirty seconds without touching your pulse. Compare your count to an ECG. Most people are off by a significant margin. The task measures interoceptive accuracy — how well you can sense signals your body is generating from the inside out. High-accuracy perceivers report richer emotional experience and higher rates of anxiety. The predictive coding account reverses the usual story: what reaches awareness is not the raw cardiac signal but the mismatch between what the brain predicted and what the body actually did. Emotion is what it feels like when the body deviates from expectation. If high-fidelity perceivers resolve the signal more clearly, the brain produces larger prediction errors — not because more is happening, but because more of what's happening is legible. The simulation includes an interactive counting task, three receiver profiles at different fidelity levels, and a running prediction-error visualization with configurable confidence.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the noise model treats interoceptive inaccuracy as a signal-amplitude problem — some beats fall below detection threshold. Whether inaccuracy is actually about amplitude, temporal resolution, or attentional gating is unknown. The prediction uses an exponential moving average, which is always a lagged version of the signal; the model cannot distinguish between a genuine generative prediction and a slow filter producing the same output. Emotion intensity is computed as mean absolute error — a specific claim that emotion is time-integrated and linear in error magnitude, neither of which is established. The three dissociable measures (accuracy, sensibility, metacognitive awareness) are implemented as a single fidelity parameter; their actual independence cannot be shown.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/intero.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-474.html">entry-474 · The Inside Ear</a>, <a href="/saccade.html">saccade</a>, <a href="/blindspot.html">blindspot</a></span>
+  </div>
+</div>
 
 <!-- NAVIGATION & MEMORY -->
 <div class="section-label">Navigation &amp; Memory</div>
@@ -739,7 +756,7 @@
 
 
 <footer>
-  35 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  38 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
 
 </body>

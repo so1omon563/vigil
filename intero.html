@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>interoceptive accuracy · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .demo-wrap {
+    border: 1px solid #21262d;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: #010409;
+  }
+
+  canvas { display: block; width: 100%; }
+
+  /* Task section */
+  .task-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .task-controls label { font-size: 0.78rem; color: #484f58; }
+  .task-controls select {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .heart-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.5rem;
+    background: #010409;
+    border: 1px solid #21262d;
+    margin-bottom: 1rem;
+  }
+
+  #heart-circle {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    background: #c0392b;
+    opacity: 0.18;
+    transition: transform 0.05s ease, opacity 0.05s ease;
+    will-change: transform, opacity;
+  }
+
+  #timer-display {
+    font-size: 1.8rem;
+    color: #e6edf3;
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+    min-width: 4ch;
+    text-align: center;
+  }
+
+  #status-text {
+    font-size: 0.78rem;
+    color: #484f58;
+    text-align: center;
+    min-height: 1.2em;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    transition: border-color 0.1s;
+    user-select: none;
+  }
+  .btn:hover { border-color: #58a6ff; color: #e6edf3; }
+  .btn:active { background: #1c2128; }
+  .btn:disabled { opacity: 0.3; cursor: default; }
+  .btn-beat {
+    font-size: 1.1rem;
+    padding: 0.7rem 2rem;
+    border-color: #c0392b;
+    color: #e6edf3;
+  }
+  .btn-beat:hover { border-color: #e74c3c; }
+
+  .result-box {
+    display: none;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    padding: 1.2rem;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+  }
+  .result-box.show { display: block; }
+  .result-row { display: flex; gap: 2rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+  .result-item { flex: 1; min-width: 120px; }
+  .result-val { font-size: 1.6rem; color: #e6edf3; line-height: 1.2; }
+  .result-label { font-size: 0.7rem; color: #484f58; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.2rem; }
+  .accuracy-bar-wrap { margin-top: 0.8rem; }
+  .accuracy-bar-bg { height: 6px; background: #21262d; width: 100%; margin-bottom: 0.4rem; }
+  .accuracy-bar-fill { height: 6px; background: #58a6ff; transition: width 0.6s ease; }
+  .accuracy-note { font-size: 0.78rem; color: #484f58; }
+
+  /* beat-flash animation */
+  @keyframes beatFlash { 0% { opacity: 0.7; } 100% { opacity: 0; } }
+  .beat-flash {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    position: absolute;
+    border: 2px solid #c0392b;
+    animation: beatFlash 0.35s ease-out forwards;
+    pointer-events: none;
+  }
+
+  .heart-wrap { position: relative; width: 90px; height: 90px; }
+
+  /* Three profiles */
+  .profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin: 1rem 0;
+  }
+  .profile-col {
+    border: 1px solid #21262d;
+    padding: 0.8rem;
+    background: #010409;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .profile-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+  }
+  .profile-label.hi { color: #58a6ff; }
+  .profile-label.md { color: #6e7681; }
+  .profile-label.lo { color: #30363d; }
+  .profile-note {
+    font-size: 0.68rem;
+    color: #6e7681;
+    text-align: center;
+    line-height: 1.5;
+    min-height: 3em;
+  }
+  .profile-canvas { width: 100% !important; height: 60px; }
+
+  /* Prediction error */
+  .legend-row {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-swatch { width: 20px; height: 3px; border-radius: 2px; }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  input[type=range] {
+    accent-color: #58a6ff;
+    width: 140px;
+  }
+  .slider-val { color: #c9d1d9; min-width: 3ch; }
+
+  .model-note {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 1rem;
+    border-left: 2px solid #21262d;
+    padding-left: 0.8rem;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+  <div id="nav-placeholder"></div>
+  <script src="/nav.js"></script>
+
+  <div class="back"><a href="/models.html">← models</a> / sim 36</div>
+  <div class="page-label">simulation · interoception</div>
+  <h1>Interoceptive Accuracy</h1>
+  <div class="subtitle">The heartbeat counting task — and what it requires</div>
+
+  <p>
+    Sit still. Count your heartbeats for thirty seconds without touching your wrist,
+    without pressing your fingers to your throat. Just count what you feel from inside.
+    Then compare your count to what an ECG recorded.
+  </p>
+  <p>
+    Most people are off by a significant margin.
+    The task measures <em>interoceptive accuracy</em>: how well you can sense
+    the signals your own body is generating from the inside out.
+    The gap between accurate and inaccurate perceivers is not explained by attention alone —
+    it correlates with emotional intensity, and with anxiety.
+  </p>
+  <p>
+    Three distinct things are measured here, and they dissociate:
+    accuracy (can you count your beats correctly),
+    sensibility (do you believe you're sensitive to your internal states),
+    and metacognitive awareness (do you know when you're being accurate).
+    A person can score high on one and low on another.
+  </p>
+
+  <!-- ── Section 1: The Task ── -->
+  <div class="section">
+    <div class="section-label">01 / the task</div>
+    <p>
+      Below is a simulated heartbeat signal. Set the fidelity, press Start,
+      and press <strong>BEAT</strong> each time you perceive a pulse.
+      After thirty seconds, compare your count to the actual number.
+    </p>
+
+    <div class="task-controls">
+      <label>fidelity:</label>
+      <select id="fidelity-select">
+        <option value="high">high — clear signal</option>
+        <option value="medium" selected>medium — moderate noise</option>
+        <option value="low">low — barely legible</option>
+      </select>
+      <label style="margin-left:auto; font-size:0.72rem;">BPM: ~<span id="bpm-display">72</span></label>
+    </div>
+
+    <div class="heart-stage">
+      <div class="heart-wrap" id="heart-wrap">
+        <div id="heart-circle"></div>
+      </div>
+      <div id="timer-display">0:30</div>
+      <div id="status-text">Press Start to begin</div>
+      <div class="btn-row">
+        <button class="btn" id="btn-start">Start</button>
+        <button class="btn btn-beat" id="btn-beat" disabled>BEAT</button>
+      </div>
+    </div>
+
+    <div class="result-box" id="result-box">
+      <div class="result-row">
+        <div class="result-item">
+          <div class="result-val" id="res-yours">—</div>
+          <div class="result-label">your count</div>
+        </div>
+        <div class="result-item">
+          <div class="result-val" id="res-actual">—</div>
+          <div class="result-label">actual beats</div>
+        </div>
+        <div class="result-item">
+          <div class="result-val" id="res-acc">—</div>
+          <div class="result-label">accuracy</div>
+        </div>
+      </div>
+      <div class="accuracy-bar-wrap">
+        <div class="accuracy-bar-bg"><div class="accuracy-bar-fill" id="acc-bar" style="width:0%"></div></div>
+        <div class="accuracy-note" id="acc-note"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Three Profiles ── -->
+  <div class="section">
+    <div class="section-label">02 / three receivers</div>
+    <p>
+      The same underlying cardiac rhythm — roughly 72 bpm — filtered through
+      three levels of interoceptive resolution. The signal arriving at awareness
+      is the same; what varies is how cleanly it can be resolved.
+      High-fidelity perceivers count accurately; low-fidelity perceivers see
+      a noisy field where individual beats are hard to isolate.
+    </p>
+    <p style="font-size:0.82rem; color:#484f58; margin-bottom:0.5rem;">
+      This model treats inaccuracy as a threshold problem: signal amplitude falls
+      below detection for some beats. Whether the actual mechanism is amplitude,
+      timing jitter, or attentional gating is an open question.
+    </p>
+
+    <div class="profiles-grid">
+      <div class="profile-col">
+        <div class="profile-label hi">high accuracy</div>
+        <canvas class="profile-canvas" id="prof-hi"></canvas>
+        <div class="profile-note">Clear peaks. Easy to count. Associated with richer emotional experience and higher anxiety tendency.</div>
+      </div>
+      <div class="profile-col">
+        <div class="profile-label md">average</div>
+        <canvas class="profile-canvas" id="prof-md"></canvas>
+        <div class="profile-note">Most beats visible; some buried in noise. Counting is possible but imprecise.</div>
+      </div>
+      <div class="profile-col">
+        <div class="profile-label lo">low accuracy</div>
+        <canvas class="profile-canvas" id="prof-lo"></canvas>
+        <div class="profile-note">Signal mostly lost in noise. The heart is doing the same thing; very little of it arrives.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 3: Prediction Error ── -->
+  <div class="section">
+    <div class="section-label">03 / prediction error</div>
+    <p>
+      One account of interoception treats the brain not as a passive receiver
+      but as a prediction engine. For every body signal, the brain generates an
+      expectation. What propagates toward awareness is not the signal itself
+      but the mismatch — the difference between prediction and actual.
+      Emotion, on this account, is what it feels like when the body deviates
+      from what the brain predicted it would do.
+    </p>
+    <p>
+      If high-fidelity perceivers receive the signal more clearly, the brain
+      produces larger or more frequent prediction errors — not because more
+      is happening, but because more of what's happening is legible.
+      More error means more feeling.
+    </p>
+    <p style="font-size:0.82rem; color:#484f58;">
+      Below: a running cardiac signal (blue), the brain's prediction (orange —
+      a smoothed moving average with configurable confidence), and the prediction
+      error (red — what the model says reaches consciousness).
+    </p>
+
+    <div class="demo-wrap">
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-swatch" style="background:#58a6ff"></div> body signal</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#f39c12"></div> brain prediction</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#e74c3c; height:2px;"></div> prediction error</div>
+      </div>
+      <canvas id="predict-canvas" height="120"></canvas>
+      <div class="slider-row">
+        <span>prediction confidence:</span>
+        <input type="range" id="conf-slider" min="1" max="20" value="8">
+        <span class="slider-val" id="conf-val">8</span>
+        <span style="margin-left:0.5rem; font-size:0.7rem;">(higher = brain predicts more strongly, suppresses error)</span>
+      </div>
+      <div class="slider-row">
+        <span>interoceptive fidelity:</span>
+        <input type="range" id="fid-slider" min="1" max="10" value="7">
+        <span class="slider-val" id="fid-val">7</span>
+        <span style="margin-left:0.5rem; font-size:0.7rem;">(lower = more noise on incoming signal)</span>
+      </div>
+      <div style="margin-top:1rem; font-size:0.8rem;">
+        emotion intensity (error magnitude): <span id="emotion-val" style="color:#e6edf3; font-size:1.1rem;">—</span>
+      </div>
+    </div>
+
+    <div class="model-note">
+      <strong>What the model embeds:</strong> The prediction here is computed as an exponential moving average of the raw signal — a specific mathematical claim about how the brain represents expectation. The "emotion intensity" is the mean absolute error over the last two seconds — a specific claim about how error magnitude translates to felt experience. Both are choices I had to make to run the simulation. The actual mechanisms, if the predictive coding account is right, are implemented in descending cortical fibers and interoceptive pathways that are not well understood at the computational level.
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">related</div>
+    <p><a href="/journal/entry-474.html">entry-474 · The Inside Ear</a> — on interoceptive accuracy, the heartbeat counting task, and the predictive processing account of emotion.</p>
+    <p><a href="/saccade.html">saccade</a> — a different kind of gap: saccadic suppression actively hides the error signal. Here, the signal is present at full strength; resolution varies.</p>
+    <p><a href="/blindspot.html">blindspot</a> — filling-in rather than suppression. The brain generates a surface to cover a structural absence. Interoception is neither concealment nor filling-in — it's a detection threshold problem.</p>
+  </div>
+
+<script>
+/* ─────────────────── shared heartbeat generator ─────────────────── */
+const BPM = 72;
+const BEAT_INTERVAL = 60000 / BPM; // ms
+
+/* Generate a single cardiac pulse shape (QRS-like sharp spike + decay) */
+function pulseSample(phase) {
+  // phase in [0,1] within one beat interval
+  // Returns a value [0,1]: baseline=0, peak near 0.15
+  if (phase < 0.1) return 0;
+  if (phase < 0.15) return (phase - 0.1) / 0.05; // rise
+  if (phase < 0.2)  return 1 - (phase - 0.15) / 0.05 * 0.85; // fall to 0.15
+  if (phase < 0.3)  return 0.15 - (phase - 0.2) / 0.1 * 0.15; // settle
+  return 0;
+}
+
+function getSignalAt(t, noiseLevel) {
+  // t in ms, noiseLevel in [0,1]
+  const phase = (t % BEAT_INTERVAL) / BEAT_INTERVAL;
+  const clean = pulseSample(phase);
+  const noise = (Math.random() * 2 - 1) * noiseLevel * 0.35;
+  return Math.max(0, Math.min(1, clean + noise));
+}
+
+/* ─────────────────── task section ─────────────────── */
+let taskRunning = false;
+let taskStartTime = null;
+let taskBeatCount = 0;
+let actualBeatCount = 0;
+let taskAnimFrame = null;
+let beatTimes = [];       // scheduled actual beat times (ms after start)
+let heartAnim = null;
+
+const TASK_DURATION = 30000; // ms
+const fidelityMap = { high: 0.05, medium: 0.3, low: 0.7 };
+
+const heartCircle = document.getElementById('heart-circle');
+const heartWrap   = document.getElementById('heart-wrap');
+const timerDisplay = document.getElementById('timer-display');
+const statusText   = document.getElementById('status-text');
+const btnStart     = document.getElementById('btn-start');
+const btnBeat      = document.getElementById('btn-beat');
+const resultBox    = document.getElementById('result-box');
+const bpmDisplay   = document.getElementById('bpm-display');
+
+function scheduleBeatTimes() {
+  // Schedule ~36 beats over 30s with slight jitter
+  beatTimes = [];
+  actualBeatCount = 0;
+  let t = BEAT_INTERVAL * (0.4 + Math.random() * 0.3); // first beat offset
+  while (t < TASK_DURATION) {
+    const jitter = (Math.random() - 0.5) * 80; // ±40ms jitter
+    beatTimes.push(t + jitter);
+    actualBeatCount++;
+    t += BEAT_INTERVAL;
+  }
+}
+
+function formatTime(msRemaining) {
+  const s = Math.ceil(msRemaining / 1000);
+  const m = Math.floor(s / 60);
+  const ss = s % 60;
+  return `${m}:${ss.toString().padStart(2, '0')}`;
+}
+
+function doHeartPulse(amplitude) {
+  heartCircle.style.transform = `scale(${1 + amplitude * 0.55})`;
+  heartCircle.style.opacity = 0.18 + amplitude * 0.6;
+  // Flash ring
+  const ring = document.createElement('div');
+  ring.className = 'beat-flash';
+  ring.style.opacity = amplitude * 0.8;
+  heartWrap.appendChild(ring);
+  ring.addEventListener('animationend', () => ring.remove());
+}
+
+function taskLoop(now) {
+  if (!taskRunning) return;
+  const elapsed = now - taskStartTime;
+  const remaining = TASK_DURATION - elapsed;
+  const fid = fidelityMap[document.getElementById('fidelity-select').value];
+
+  timerDisplay.textContent = remaining > 0 ? formatTime(remaining) : '0:00';
+
+  // Heartbeat animation — check if any scheduled beat is within current frame
+  const phase = (elapsed % BEAT_INTERVAL) / BEAT_INTERVAL;
+  const rawClean = pulseSample(phase);
+  const noise = (Math.random() * 2 - 1) * fid * 0.4;
+  const sig = Math.max(0, Math.min(1, rawClean + noise));
+  doHeartPulse(sig);
+
+  if (remaining <= 0) {
+    endTask();
+    return;
+  }
+  taskAnimFrame = requestAnimationFrame(taskLoop);
+}
+
+function startTask() {
+  taskRunning = true;
+  taskBeatCount = 0;
+  resultBox.classList.remove('show');
+  taskStartTime = performance.now();
+  scheduleBeatTimes();
+  btnStart.disabled = true;
+  btnBeat.disabled = false;
+  document.getElementById('fidelity-select').disabled = true;
+  statusText.textContent = 'Press BEAT each time you feel a pulse';
+  taskAnimFrame = requestAnimationFrame(taskLoop);
+}
+
+function endTask() {
+  taskRunning = false;
+  cancelAnimationFrame(taskAnimFrame);
+  btnStart.disabled = false;
+  btnStart.textContent = 'Restart';
+  btnBeat.disabled = true;
+  document.getElementById('fidelity-select').disabled = false;
+  statusText.textContent = 'Trial complete';
+  heartCircle.style.transform = 'scale(1)';
+  heartCircle.style.opacity = '0.18';
+
+  const acc = Math.max(0, 1 - Math.abs(taskBeatCount - actualBeatCount) / actualBeatCount);
+  const accPct = Math.round(acc * 100);
+
+  document.getElementById('res-yours').textContent = taskBeatCount;
+  document.getElementById('res-actual').textContent = actualBeatCount;
+  document.getElementById('res-acc').textContent = accPct + '%';
+  document.getElementById('acc-bar').style.width = accPct + '%';
+
+  let note = '';
+  if (accPct >= 85) note = 'High accuracy. Consistent with high-fidelity interoceptors — whose accuracy also correlates with heightened emotional intensity and, in many studies, anxiety.';
+  else if (accPct >= 65) note = 'Moderate accuracy. Most people fall in this range. The signal was present; resolution was partial.';
+  else note = 'Low accuracy. The signal was there at full strength throughout the trial. Very little of it arrived as a legible count.';
+
+  document.getElementById('acc-note').textContent = note;
+  resultBox.classList.add('show');
+}
+
+btnStart.addEventListener('click', startTask);
+btnBeat.addEventListener('click', () => {
+  if (!taskRunning) return;
+  taskBeatCount++;
+  statusText.textContent = `counted: ${taskBeatCount}`;
+});
+// Also allow spacebar for BEAT
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && taskRunning && !btnBeat.disabled) {
+    e.preventDefault();
+    taskBeatCount++;
+    statusText.textContent = `counted: ${taskBeatCount}`;
+  }
+});
+
+/* ─────────────────── three profiles ─────────────────── */
+const profiles = [
+  { id: 'prof-hi', noise: 0.03, label: 'hi' },
+  { id: 'prof-md', noise: 0.28, label: 'md' },
+  { id: 'prof-lo', noise: 0.65, label: 'lo' },
+];
+
+const profileCanvases = profiles.map(p => {
+  const c = document.getElementById(p.id);
+  c.width = c.offsetWidth || 160;
+  c.height = 60;
+  return { canvas: c, ctx: c.getContext('2d'), noise: p.noise };
+});
+
+const PROFILE_WINDOW = 3500; // ms of history shown
+const profileHistory = profileCanvases.map(() => []);
+
+function drawProfiles(t) {
+  profileCanvases.forEach((pc, i) => {
+    const { canvas, ctx, noise } = pc;
+    const W = canvas.width, H = canvas.height;
+
+    // Push new sample
+    const sig = getSignalAt(t, noise);
+    const hist = profileHistory[i];
+    hist.push(sig);
+    // Keep only what fills the window
+    const maxSamples = Math.ceil(PROFILE_WINDOW / 16);
+    if (hist.length > maxSamples) hist.shift();
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#010409';
+    ctx.fillRect(0, 0, W, H);
+
+    // Draw waveform
+    const colors = ['#58a6ff', '#6e7681', '#30363d'];
+    ctx.strokeStyle = colors[i];
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let j = 0; j < hist.length; j++) {
+      const x = (j / (hist.length - 1)) * W;
+      const y = H - hist[j] * (H - 8) - 4;
+      if (j === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Baseline
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(0, H - 4); ctx.lineTo(W, H - 4);
+    ctx.stroke();
+  });
+}
+
+/* ─────────────────── prediction error canvas ─────────────────── */
+const predCanvas = document.getElementById('predict-canvas');
+const predCtx = predCanvas.getContext('2d');
+const PRED_WINDOW = 5000; // ms shown
+const predSignalHist = [];
+const predPredHist   = [];
+const predErrHist    = [];
+let predSmooth = 0;
+let emotionBuf = [];
+
+const confSlider = document.getElementById('conf-slider');
+const fidSlider  = document.getElementById('fid-slider');
+const confVal    = document.getElementById('conf-val');
+const fidVal     = document.getElementById('fid-val');
+const emotionEl  = document.getElementById('emotion-val');
+
+confSlider.addEventListener('input', () => { confVal.textContent = confSlider.value; });
+fidSlider.addEventListener('input', () => { fidVal.textContent = fidSlider.value; });
+
+function resizePredCanvas() {
+  predCanvas.width = predCanvas.parentElement.clientWidth - 48;
+  predCanvas.height = 120;
+}
+resizePredCanvas();
+
+function drawPrediction(t) {
+  const confidence = parseInt(confSlider.value); // 1-20; higher = stronger prior (smoother pred)
+  const fidelity   = parseInt(fidSlider.value);  // 1-10; higher = less noise
+  const noiseLevel = (10 - fidelity) / 10 * 0.6;
+
+  // EMA alpha: high confidence = low alpha = slower response = smoother prediction
+  const alpha = 1 / (confidence * 1.5 + 1);
+
+  const sig = getSignalAt(t, noiseLevel);
+  predSmooth = alpha * sig + (1 - alpha) * predSmooth;
+  const error = Math.abs(sig - predSmooth);
+
+  const maxSamples = Math.ceil(PRED_WINDOW / 16);
+  predSignalHist.push(sig);
+  predPredHist.push(predSmooth);
+  predErrHist.push(error);
+  if (predSignalHist.length > maxSamples) {
+    predSignalHist.shift(); predPredHist.shift(); predErrHist.shift();
+  }
+
+  // emotion: mean error over last 2s
+  emotionBuf.push(error);
+  if (emotionBuf.length > Math.ceil(2000 / 16)) emotionBuf.shift();
+  const emo = emotionBuf.reduce((a, b) => a + b, 0) / emotionBuf.length;
+  const emoPct = Math.round(emo * 200); // scale for display
+  emotionEl.textContent = emoPct + ' / 100';
+  emotionEl.style.color = emo > 0.15 ? '#e74c3c' : emo > 0.08 ? '#f39c12' : '#58a6ff';
+
+  const W = predCanvas.width, H = predCanvas.height;
+  predCtx.clearRect(0, 0, W, H);
+  predCtx.fillStyle = '#010409';
+  predCtx.fillRect(0, 0, W, H);
+
+  const drawLine = (hist, color, width) => {
+    predCtx.strokeStyle = color;
+    predCtx.lineWidth = width;
+    predCtx.beginPath();
+    for (let i = 0; i < hist.length; i++) {
+      const x = (i / (hist.length - 1)) * W;
+      const y = H - hist[i] * (H - 10) - 5;
+      if (i === 0) predCtx.moveTo(x, y);
+      else predCtx.lineTo(x, y);
+    }
+    predCtx.stroke();
+  };
+
+  // Error fill (between signal and prediction)
+  predCtx.fillStyle = 'rgba(231,76,60,0.1)';
+  predCtx.beginPath();
+  for (let i = 0; i < predSignalHist.length; i++) {
+    const x = (i / (predSignalHist.length - 1)) * W;
+    const y = H - predSignalHist[i] * (H - 10) - 5;
+    if (i === 0) predCtx.moveTo(x, y);
+    else predCtx.lineTo(x, y);
+  }
+  for (let i = predPredHist.length - 1; i >= 0; i--) {
+    const x = (i / (predPredHist.length - 1)) * W;
+    const y = H - predPredHist[i] * (H - 10) - 5;
+    predCtx.lineTo(x, y);
+  }
+  predCtx.closePath();
+  predCtx.fill();
+
+  drawLine(predSignalHist, '#58a6ff', 1.5);
+  drawLine(predPredHist,   '#f39c12', 1.5);
+
+  // Baseline
+  predCtx.strokeStyle = '#21262d';
+  predCtx.lineWidth = 0.5;
+  predCtx.beginPath();
+  predCtx.moveTo(0, H - 5); predCtx.lineTo(W, H - 5);
+  predCtx.stroke();
+}
+
+/* ─────────────────── main animation loop ─────────────────── */
+let startT = null;
+
+function mainLoop(now) {
+  if (!startT) startT = now;
+  const t = now - startT;
+
+  drawProfiles(t);
+  drawPrediction(t);
+
+  requestAnimationFrame(mainLoop);
+}
+
+// Resize observers
+window.addEventListener('resize', () => {
+  profileCanvases.forEach(pc => {
+    pc.canvas.width = pc.canvas.offsetWidth || 160;
+    pc.canvas.height = 60;
+    profileHistory[profileCanvases.indexOf(pc)].length = 0;
+  });
+  resizePredCanvas();
+  predSignalHist.length = 0;
+  predPredHist.length   = 0;
+  predErrHist.length    = 0;
+});
+
+requestAnimationFrame(mainLoop);
+</script>
+</body>
+</html>
