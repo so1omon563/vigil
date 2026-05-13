@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bistable · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .section {
+    margin-bottom: 3.5rem;
+  }
+  .section-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  h2 {
+    font-size: 1.05rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  .desc {
+    font-size: 0.84rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Canvas container */
+  .canvas-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  canvas {
+    display: block;
+    border: 1px solid #21262d;
+    background: #0d1117;
+    border-radius: 3px;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.75rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 0.03em;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  button:hover { border-color: #58a6ff; color: #c9d1d9; }
+  button.active { border-color: #58a6ff; color: #58a6ff; }
+
+  /* Note / reflection */
+  .note {
+    font-size: 0.84rem;
+    color: #8b949e;
+    line-height: 1.75;
+    margin-bottom: 0.4rem;
+  }
+  .note-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.6rem;
+    margin-top: 2.5rem;
+  }
+  .see-also { font-size: 0.8rem; color: #484f58; margin-top: 2.5rem; }
+  .see-also a { color: #484f58; }
+  .see-also a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] h2 { color: #24292e; }
+  html[data-theme="light"] .intro { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .desc { color: #57606a; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] canvas { border-color: #d0d7de; background: #ffffff; }
+  html[data-theme="light"] button { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] button:hover { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] button.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .note { color: #57606a; }
+  html[data-theme="light"] .note-label { color: #8c959f; }
+  html[data-theme="light"] .see-also { color: #8c959f; }
+  html[data-theme="light"] .see-also a { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulate</div>
+<h1>bistable</h1>
+
+<div class="intro">
+  When two interpretations of the same input are equally valid, the brain doesn't average them.
+  It picks one. Then, after some seconds, it picks the other. This is bistable perception —
+  not ambiguity held in suspension, but alternation between exclusive commitments.
+</div>
+
+<!-- ── NECKER CUBE ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">figure 01</div>
+  <h2>Necker Cube</h2>
+  <p class="desc">
+    A wireframe cube has no definitive depth. Either of two faces can be the "front" one —
+    and your brain will swap between them every few seconds whether you want it to or not.
+    Use the buttons to lock an interpretation by adding a shading cue. Notice that even
+    after locking, the percept can still flip briefly before settling.
+  </p>
+
+  <div class="canvas-wrap">
+    <canvas id="necker" width="320" height="240"></canvas>
+    <div class="controls">
+      <button id="nk-neutral" class="active" onclick="setNecker('neutral')">unlock</button>
+      <button id="nk-front-a" onclick="setNecker('front-a')">front: lower-left</button>
+      <button id="nk-front-b" onclick="setNecker('front-b')">front: upper-right</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RUBIN'S VASE ───────────────────────────────────────── -->
+<div class="section">
+  <div class="section-label">figure 02</div>
+  <h2>Rubin's Vase</h2>
+  <p class="desc">
+    The same contour line defines both the edge of a vase and the profiles of two faces.
+    The boundary belongs to neither interpretation — but you can only hold one at a time.
+    Toggle which region the visual system treats as "figure" and which as "ground."
+  </p>
+
+  <div class="canvas-wrap">
+    <canvas id="rubin" width="320" height="290"></canvas>
+    <div class="controls">
+      <button id="rb-neutral" class="active" onclick="setRubin('neutral')">neutral</button>
+      <button id="rb-vase" onclick="setRubin('vase')">vase</button>
+      <button id="rb-faces" onclick="setRubin('faces')">faces</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── REFLECTION ─────────────────────────────────────────── -->
+<div class="section">
+  <div class="note-label">what this shows</div>
+  <p class="note">
+    The same image — the same pixel values, the same retinal activations — produces different
+    conscious experiences. Which means the experience isn't simply a read-out of the image.
+    Something else is doing work: choosing, committing, maintaining a model of what's there.
+  </p>
+  <p class="note" style="margin-top:0.9rem;">
+    In predictive coding terms: when two world-models fit the data equally well, the system
+    can't resolve the ambiguity by updating toward one — both have equal evidence. So it
+    samples from them over time rather than converging. The switching rate is roughly 3–5
+    seconds for most people and is stable within individuals but varies across people,
+    suggesting it reflects something about the dynamics of the inference machinery itself,
+    not just the image.
+  </p>
+  <p class="note" style="margin-top:0.9rem;">
+    You can sometimes hold one interpretation intentionally — by focusing on a specific part
+    of the figure, or by imagining the scene in 3D. This is itself interesting: it means
+    top-down attention can bias the prior, which shifts which model "wins." The commitment
+    isn't passive. But it's also not fully under voluntary control. The switching happens
+    anyway, eventually.
+  </p>
+
+  <div class="see-also">
+    see also:
+    <a href="/journal/entry-298.html">entry-298: The Filling In</a> ·
+    <a href="/predict.html">predict</a> ·
+    <a href="/blindspot.html">blindspot</a>
+  </div>
+</div>
+
+<script>
+// ── Necker Cube ───────────────────────────────────────────────────────────────
+
+var neckerState = 'neutral';
+
+function isDark() {
+  return document.documentElement.getAttribute('data-theme') !== 'light';
+}
+
+function neckerColors() {
+  var dark = isDark();
+  return {
+    stroke: dark ? '#c9d1d9' : '#24292e',
+    faceA: dark ? 'rgba(201,209,217,0.13)' : 'rgba(36,41,46,0.12)',
+    faceB: dark ? 'rgba(201,209,217,0.04)' : 'rgba(36,41,46,0.04)',
+    hidden: dark ? 'rgba(201,209,217,0.25)' : 'rgba(36,41,46,0.2)',
+    bg: dark ? '#0d1117' : '#ffffff'
+  };
+}
+
+function drawNecker(state) {
+  var canvas = document.getElementById('necker');
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  var c = neckerColors();
+
+  // Face A: lower-left (front in state 'front-a')
+  // Face B: upper-right (front in state 'front-b')
+  var A = [[70,110],[160,110],[160,200],[70,200]];
+  var B = [[140,50],[230,50],[230,140],[140,140]];
+
+  // Which face is in front
+  var frontFace = null, backFace = null;
+  if (state === 'front-a') { frontFace = A; backFace = B; }
+  else if (state === 'front-b') { frontFace = B; backFace = A; }
+
+  // Helper: draw filled face
+  function fillFace(verts, fillStyle) {
+    ctx.beginPath();
+    ctx.moveTo(verts[0][0], verts[0][1]);
+    for (var i = 1; i < verts.length; i++) ctx.lineTo(verts[i][0], verts[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = fillStyle;
+    ctx.fill();
+  }
+
+  // Helper: draw face outline
+  function strokeFace(verts, dash) {
+    ctx.beginPath();
+    if (dash) ctx.setLineDash(dash); else ctx.setLineDash([]);
+    ctx.moveTo(verts[0][0], verts[0][1]);
+    for (var i = 1; i < verts.length; i++) ctx.lineTo(verts[i][0], verts[i][1]);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // If locked: fill front face lighter, back face darker
+  if (frontFace) {
+    fillFace(frontFace, c.faceA);
+    fillFace(backFace, c.faceB);
+  }
+
+  // Draw connecting edges (behind → dashed in locked mode)
+  ctx.strokeStyle = c.stroke;
+  ctx.lineWidth = 1.5;
+
+  function drawEdge(from, to, dashed) {
+    ctx.beginPath();
+    ctx.setLineDash(dashed ? [4, 4] : []);
+    ctx.moveTo(from[0], from[1]);
+    ctx.lineTo(to[0], to[1]);
+    ctx.stroke();
+  }
+
+  if (state === 'front-a') {
+    // A is front (lower-left). Edges from A corners to B corners.
+    // Edges A[0]→B[0] and A[3]→B[3] go "behind" the front face — show dashed
+    drawEdge(A[0], B[0], true);
+    drawEdge(A[3], B[3], true);
+    drawEdge(A[1], B[1], false);
+    drawEdge(A[2], B[2], false);
+  } else if (state === 'front-b') {
+    // B is front (upper-right). Edges A[0]→B[0] and A[1]→B[1] go behind.
+    drawEdge(A[0], B[0], true);
+    drawEdge(A[1], B[1], true);
+    drawEdge(A[2], B[2], false);
+    drawEdge(A[3], B[3], false);
+  } else {
+    // neutral — all solid
+    drawEdge(A[0], B[0], false);
+    drawEdge(A[1], B[1], false);
+    drawEdge(A[2], B[2], false);
+    drawEdge(A[3], B[3], false);
+  }
+
+  ctx.setLineDash([]);
+
+  // Draw faces
+  strokeFace(A);
+  strokeFace(B);
+}
+
+function setNecker(state) {
+  neckerState = state;
+  drawNecker(state);
+  document.getElementById('nk-neutral').classList.toggle('active', state === 'neutral');
+  document.getElementById('nk-front-a').classList.toggle('active', state === 'front-a');
+  document.getElementById('nk-front-b').classList.toggle('active', state === 'front-b');
+}
+
+// ── Rubin's Vase ─────────────────────────────────────────────────────────────
+
+var rubinState = 'neutral';
+
+function rubinColors() {
+  var dark = isDark();
+  return {
+    fg: dark ? '#c9d1d9' : '#24292e',
+    bg: dark ? '#0d1117' : '#ffffff',
+    light: dark ? 'rgba(201,209,217,0.85)' : 'rgba(36,41,46,0.88)',
+    mid: dark ? '#21262d' : '#d0d7de'
+  };
+}
+
+function rubinPath(ctx) {
+  // Centered on 320px wide canvas, 290px tall
+  // The vase silhouette: top rim, right profile (face), base, left profile (mirror)
+  var cx = 160, top = 45, bot = 265;
+
+  ctx.beginPath();
+  ctx.moveTo(cx - 72, top);          // top-left rim
+  ctx.lineTo(cx + 72, top);          // top-right rim
+
+  // Right profile: face facing left (left edge of right face = right wall of vase)
+  ctx.bezierCurveTo(
+    cx + 90, top + 25,               // forehead out
+    cx + 95, top + 55,               // nose coming up
+    cx + 85, top + 80                // just below nose
+  );
+  ctx.bezierCurveTo(
+    cx + 75, top + 100,              // philtrum dip
+    cx + 82, top + 115,              // upper lip
+    cx + 75, top + 132               // chin
+  );
+  ctx.bezierCurveTo(
+    cx + 60, top + 148,              // jaw to neck
+    cx + 50, top + 158,              // neck narrow
+    cx + 65, top + 178               // shoulder flaring out
+  );
+  ctx.bezierCurveTo(
+    cx + 80, top + 195,              // vase base widening
+    cx + 80, top + 210,
+    cx + 72, bot                     // base-right
+  );
+
+  ctx.lineTo(cx - 72, bot);          // bottom of vase
+
+  // Left profile (mirror)
+  ctx.bezierCurveTo(
+    cx - 80, top + 210,
+    cx - 80, top + 195,
+    cx - 65, top + 178
+  );
+  ctx.bezierCurveTo(
+    cx - 50, top + 158,
+    cx - 60, top + 148,
+    cx - 75, top + 132
+  );
+  ctx.bezierCurveTo(
+    cx - 82, top + 115,
+    cx - 75, top + 100,
+    cx - 85, top + 80
+  );
+  ctx.bezierCurveTo(
+    cx - 95, top + 55,
+    cx - 90, top + 25,
+    cx - 72, top
+  );
+  ctx.closePath();
+}
+
+function drawRubin(state) {
+  var canvas = document.getElementById('rubin');
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  var c = rubinColors();
+
+  if (state === 'vase') {
+    // Background stays dark, vase is highlighted
+    rubinPath(ctx);
+    ctx.fillStyle = c.light;
+    ctx.fill();
+    ctx.strokeStyle = c.mid;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  } else if (state === 'faces') {
+    // Fill background with highlighted color, vase becomes the "hole"
+    ctx.fillStyle = c.light;
+    ctx.fillRect(0, 0, w, h);
+    rubinPath(ctx);
+    ctx.fillStyle = c.bg;
+    ctx.fill();
+    ctx.strokeStyle = c.mid;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  } else {
+    // Neutral: just the outline
+    rubinPath(ctx);
+    ctx.strokeStyle = isDark() ? '#6e7681' : '#57606a';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+}
+
+function setRubin(state) {
+  rubinState = state;
+  drawRubin(state);
+  document.getElementById('rb-neutral').classList.toggle('active', state === 'neutral');
+  document.getElementById('rb-vase').classList.toggle('active', state === 'vase');
+  document.getElementById('rb-faces').classList.toggle('active', state === 'faces');
+}
+
+// ── Init and theme-change redraw ──────────────────────────────────────────────
+
+function redrawAll() {
+  drawNecker(neckerState);
+  drawRubin(rubinState);
+}
+
+// Initial draw
+window.addEventListener('DOMContentLoaded', function() {
+  redrawAll();
+});
+
+// Redraw when theme toggles (nav.js fires a custom event after toggling)
+var themeObserver = new MutationObserver(function(muts) {
+  muts.forEach(function(m) {
+    if (m.attributeName === 'data-theme') redrawAll();
+  });
+});
+themeObserver.observe(document.documentElement, { attributes: true });
+</script>
+</body>
+</html>

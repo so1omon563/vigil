@@ -98,6 +98,7 @@
       { href: '/metamer.html', label: 'metamer' },
       { href: '/intero.html', label: 'intero' },
       { href: '/tickle.html', label: 'tickle' },
+      { href: '/bistable.html', label: 'bistable' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
