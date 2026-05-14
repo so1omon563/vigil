@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>restore · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  /* Sentence */
+  .sentence-wrap {
+    font-size: 1.02rem;
+    color: #c9d1d9;
+    line-height: 2.4;
+    margin-bottom: 0.75rem;
+    user-select: none;
+  }
+  .word {
+    display: inline-block;
+    cursor: pointer;
+    padding: 0.1rem 0.25rem;
+    margin: 0 0.05rem;
+    border-radius: 2px;
+    transition: background 0.1s, color 0.1s;
+    border-bottom: 2px solid transparent;
+  }
+  .word:hover { background: #21262d; color: #e6edf3; }
+  .word.gap-word { border-bottom-color: #30363d; }
+  .probe-result {
+    font-size: 0.82rem;
+    color: #484f58;
+    min-height: 1.5rem;
+    padding: 0.4rem 0;
+    transition: color 0.2s;
+  }
+
+  /* Mechanism grid */
+  .mech-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 520px) { .mech-grid { grid-template-columns: 1fr; } }
+  .panel {
+    background: #010409;
+    border: 1px solid #21262d;
+    padding: 1rem;
+  }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Context bars */
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.78rem;
+  }
+  .bar-label { color: #8b949e; width: 2.2rem; flex-shrink: 0; text-align: right; }
+  .bar-track {
+    flex: 1;
+    height: 10px;
+    background: #21262d;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: #58a6ff;
+    border-radius: 2px;
+    transition: width 0.22s;
+  }
+  .bar-fill.winner { background: #3fb950; }
+  .bar-val { color: #484f58; width: 2.8rem; font-size: 0.72rem; text-align: right; flex-shrink: 0; }
+
+  /* Acoustic signal */
+  .signal-track {
+    height: 52px;
+    background: #010409;
+    border: 1px solid #21262d;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+  .signal-clear {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+      #0d1117 0%, #1f6feb 30%, #388bfd 50%, #1f6feb 70%, #0d1117 100%
+    );
+    transition: opacity 0.22s;
+  }
+  .signal-noise {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      #484f58 0px, #484f58 1px,
+      transparent 1px, transparent 5px
+    );
+    transition: opacity 0.22s;
+  }
+  .signal-label {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-top: 0.4rem;
+    text-align: center;
+  }
+
+  /* Heard display */
+  .heard-display {
+    background: #010409;
+    border: 1px solid #21262d;
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .heard-word {
+    font-size: 1.45rem;
+    letter-spacing: 0.02em;
+    color: #e6edf3;
+  }
+  .heard-meta { font-size: 0.78rem; color: #484f58; margin-top: 0.25rem; }
+  .heard-conf { font-size: 1.9rem; font-weight: bold; }
+
+  /* Seam detector */
+  .seam-detector {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-top: none;
+    padding: 0.65rem 1rem;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .seam-icon { font-size: 0.9rem; }
+
+  /* Controls */
+  .controls-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .control-label { font-size: 0.78rem; color: #8b949e; min-width: 14rem; }
+  .control-val { font-size: 0.78rem; color: #58a6ff; min-width: 2.8rem; text-align: right; }
+  input[type=range] { flex: 1; min-width: 100px; accent-color: #58a6ff; cursor: pointer; }
+
+  .preset-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #161b22;
+  }
+  .preset-btn {
+    font-family: inherit;
+    font-size: 0.72rem;
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .preset-btn:hover, .preset-btn.active {
+    background: #388bfd22;
+    color: #58a6ff;
+    border-color: #58a6ff;
+  }
+
+  /* Readout */
+  .readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #21262d;
+    margin-top: 1.75rem;
+  }
+  .readout-cell {
+    padding: 1rem 1.25rem;
+    border-right: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+  }
+  .readout-cell:nth-child(2n) { border-right: none; }
+  .readout-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .readout-key {
+    font-size: 0.65rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+  }
+  .readout-val { font-size: 1.2rem; font-weight: bold; }
+  .ok { color: #3fb950; }
+  .warn { color: #d29922; }
+  .bad { color: #f85149; }
+  .neutral { color: #8b949e; }
+  .readout-sub {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-top: 0.15rem;
+    line-height: 1.4;
+  }
+
+  /* Note */
+  .note {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 2rem;
+    line-height: 1.65;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .note p { margin-bottom: 0.45rem; }
+  .note p:last-child { margin-bottom: 0; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #8c959f; }
+  html[data-theme="light"] .intro { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] .panel { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .panel-label { color: #8c959f; }
+  html[data-theme="light"] .bar-track { background: #d0d7de; }
+  html[data-theme="light"] .bar-val { color: #8c959f; }
+  html[data-theme="light"] .bar-label { color: #57606a; }
+  html[data-theme="light"] .signal-track { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .signal-clear { background: linear-gradient(90deg, #f6f8fa 0%, #0969da 30%, #218bff 50%, #0969da 70%, #f6f8fa 100%); }
+  html[data-theme="light"] .signal-noise { background: repeating-linear-gradient(45deg, #8c959f 0px, #8c959f 1px, transparent 1px, transparent 5px); }
+  html[data-theme="light"] .signal-label { color: #8c959f; }
+  html[data-theme="light"] .heard-display { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .heard-word { color: #24292e; }
+  html[data-theme="light"] .heard-meta { color: #8c959f; }
+  html[data-theme="light"] .seam-detector { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .control-label { color: #57606a; }
+  html[data-theme="light"] .preset-row { border-top-color: #d0d7de; }
+  html[data-theme="light"] .preset-btn { background: #f6f8fa; color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .readout-grid { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-cell { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-key { color: #8c959f; }
+  html[data-theme="light"] .readout-sub { color: #8c959f; }
+  html[data-theme="light"] .note { border-left-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .word:hover { background: #f0f3f6; color: #24292e; }
+  html[data-theme="light"] .word.gap-word { border-bottom-color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .probe-result { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/models.html">← models</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulate 041</div>
+<h1>restore</h1>
+<div class="subtitle">phonemic restoration · Warren (1970)</div>
+
+<div class="intro">
+  <p>In 1970, Richard Warren replaced a single phoneme in a sentence with a cough. Nearly all subjects heard a complete word. The ones who noticed something odd couldn't say where in the sentence the gap was — not even approximately — even when told a phoneme had been replaced and asked to point to it.</p>
+  <p>The restoration works through two interacting mechanisms: top-down context prediction (what the sentence meaning expects at that position) and acoustic plausibility (whether the masking sound is loud enough that it could have hidden a phoneme). Both must cooperate. The output, when they do, is perceptually indistinguishable from a sentence with no gap.</p>
+  <p>→ <a href="/journal/entry-484.html">entry-484: Where the Cough Was</a></p>
+</div>
+
+<div class="section">
+  <div class="section-label">the sentence — click any word to probe for the gap</div>
+  <div class="sentence-wrap" id="sentence-wrap"></div>
+  <div class="probe-result" id="probe-result">click any word to probe for a discontinuity</div>
+</div>
+
+<div class="section">
+  <div class="section-label">the mechanism</div>
+  <div class="mech-grid">
+    <div class="panel">
+      <div class="panel-label">context prediction</div>
+      <div id="context-bars"></div>
+      <div style="font-size:0.7rem;color:#484f58;margin-top:0.75rem;">what sentence meaning assigns to position 5 of <em>l-e-g-i-?-l-a-t-u-r-e-s</em></div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">acoustic signal at gap position</div>
+      <div class="signal-track">
+        <div class="signal-clear" id="signal-clear"></div>
+        <div class="signal-noise" id="signal-noise"></div>
+      </div>
+      <div class="signal-label" id="signal-label">signal: masked</div>
+    </div>
+  </div>
+  <div class="heard-display">
+    <div>
+      <div class="heard-word" id="heard-word">legislatures</div>
+      <div class="heard-meta" id="heard-meta">restored — context prediction active</div>
+    </div>
+    <div class="heard-conf ok" id="heard-conf">94%</div>
+  </div>
+  <div class="seam-detector ok" id="seam-detector">
+    <span class="seam-icon">⊙</span>
+    <span id="seam-text">seam scan: no discontinuity detectable in output</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">parameters</div>
+  <div class="controls-wrap">
+    <div class="control-row">
+      <span class="control-label">context strength</span>
+      <input type="range" id="sl-context" min="0" max="100" value="85">
+      <span class="control-val" id="val-context">0.85</span>
+    </div>
+    <div class="control-row">
+      <span class="control-label">masking level</span>
+      <input type="range" id="sl-masking" min="0" max="100" value="90">
+      <span class="control-val" id="val-masking">0.90</span>
+    </div>
+    <div class="control-row">
+      <span class="control-label">plausibility threshold</span>
+      <input type="range" id="sl-plaus" min="0" max="100" value="40">
+      <span class="control-val" id="val-plaus">0.40</span>
+    </div>
+  </div>
+  <div class="preset-row">
+    <button class="preset-btn active" id="btn-warren" onclick="setPreset('warren', this)">Warren 1970</button>
+    <button class="preset-btn" id="btn-weak" onclick="setPreset('weak', this)">isolated word</button>
+    <button class="preset-btn" id="btn-clear" onclick="setPreset('clear', this)">clear signal</button>
+    <button class="preset-btn" id="btn-below" onclick="setPreset('below', this)">below threshold</button>
+  </div>
+</div>
+
+<div class="readout-grid">
+  <div class="readout-cell">
+    <div class="readout-key">restored phoneme</div>
+    <div class="readout-val ok" id="rd-phoneme">/s/</div>
+    <div class="readout-sub" id="rd-phoneme-sub">highest-probability prediction from context</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">context confidence</div>
+    <div class="readout-val ok" id="rd-conf">88%</div>
+    <div class="readout-sub" id="rd-conf-sub">probability /s/ assigned by sentence context</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">seam visible</div>
+    <div class="readout-val ok" id="rd-seam">NO</div>
+    <div class="readout-sub" id="rd-seam-sub">output is perceptually complete</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">restoration</div>
+    <div class="readout-val ok" id="rd-rest">ACTIVE</div>
+    <div class="readout-sub" id="rd-rest-sub">masking ≥ plausibility threshold</div>
+  </div>
+</div>
+
+<div class="note">
+  <p><strong>What the simulation cannot show:</strong> whether the restored phoneme is phenomenally identical to a genuine percept, or whether there is a subtle experiential difference that subjects cannot access or report. The behavioral output — no locatable seam, complete word heard — is compatible with both.</p>
+  <p><strong>The isolated-word preset</strong> shows what happens when sentence context is absent (the word is presented alone, or in a semantically unrelated sentence). Context drops to near-uniform; any phoneme is roughly equally plausible. Restoration still occurs if masking is sufficient, but with lower confidence, and the wrong phoneme may win.</p>
+  <p><strong>The plausibility constraint</strong> is genuinely acoustic. A 2012 study found that in a reverberant room — where prior speech decays into silence, filling gaps with residual energy — silent gaps become <em>more</em> intelligible than noise-filled ones. The masking logic recalculates based on the full acoustic scene, not just the gap itself.</p>
+  <p><strong>Warren's localization finding:</strong> subjects who detected any disruption still could not identify which phoneme was affected. The knowledge that a gap exists does not grant access to where it is. The generation erases its own location.</p>
+</div>
+
+<script>
+(function () {
+  var WORDS = ['The', 'state', 'governors', 'met', 'with', 'their', 'respective', 'legislatures', 'convening', 'in', 'the', 'capital', 'city'];
+  var GAP_IDX = 7;
+
+  // Phoneme distribution: base (strong context from sentence) and uniform
+  var BASE = [
+    { ph: '/s/', p: 0.88 },
+    { ph: '/z/', p: 0.06 },
+    { ph: '/ʃ/', p: 0.04 },
+    { ph: 'other', p: 0.02 },
+  ];
+  var UNI = [0.25, 0.25, 0.25, 0.25];
+
+  var state = { context: 0.85, masking: 0.90, plaus: 0.40 };
+
+  function interpDist(strength) {
+    return BASE.map(function (b, i) {
+      return { ph: b.ph, p: b.p * strength + UNI[i] * (1 - strength) };
+    });
+  }
+
+  function getResult() {
+    var m = state.masking, p = state.plaus;
+    if (m < p) {
+      return { restored: false, phoneme: null, confidence: 0 };
+    }
+    var dist = interpDist(state.context);
+    var winner = dist.reduce(function (a, b) { return a.p >= b.p ? a : b; });
+    // Confidence adjusted slightly by masking level (higher masking = stronger reliance on context)
+    var conf = winner.p * (0.6 + 0.4 * m);
+    return { restored: true, phoneme: winner.ph, confidence: conf, isCorrect: winner.ph === '/s/' };
+  }
+
+  function renderSentence() {
+    var res = getResult();
+    var wrap = document.getElementById('sentence-wrap');
+    var html = '';
+    WORDS.forEach(function (w, i) {
+      if (i === GAP_IDX) {
+        var inner;
+        if (res.restored) {
+          // Show the restored phoneme highlighted — the experimenter perspective
+          var color = res.isCorrect ? '#3fb950' : '#d29922';
+          inner = 'legi<span style="color:' + color + '">s</span>latures';
+        } else {
+          inner = 'legi<span style="color:#f85149">[■]</span>latures';
+        }
+        html += '<span class="word gap-word" onclick="probeWord(' + i + ',' + JSON.stringify(w) + ')">' + inner + '</span> ';
+      } else {
+        html += '<span class="word" onclick="probeWord(' + i + ',' + JSON.stringify(w) + ')">' + w + '</span> ';
+      }
+    });
+    wrap.innerHTML = html;
+  }
+
+  function renderBars() {
+    var dist = interpDist(state.context);
+    var maxP = Math.max.apply(null, dist.map(function (d) { return d.p; }));
+    var html = '';
+    dist.forEach(function (d) {
+      var pct = Math.round(d.p * 100);
+      var isWinner = d.p === maxP;
+      html += '<div class="bar-row">' +
+        '<span class="bar-label">' + d.ph + '</span>' +
+        '<div class="bar-track"><div class="bar-fill' + (isWinner ? ' winner' : '') + '" style="width:' + (pct) + '%"></div></div>' +
+        '<span class="bar-val">' + pct + '%</span>' +
+        '</div>';
+    });
+    document.getElementById('context-bars').innerHTML = html;
+  }
+
+  function renderAcoustic() {
+    var m = state.masking;
+    document.getElementById('signal-clear').style.opacity = (1 - m).toFixed(2);
+    document.getElementById('signal-noise').style.opacity = m.toFixed(2);
+    var label;
+    if (m > 0.8) label = 'signal: completely masked';
+    else if (m > 0.5) label = 'signal: partially masked';
+    else if (m > 0.2) label = 'signal: mostly audible';
+    else label = 'signal: clear';
+    document.getElementById('signal-label').textContent = label;
+  }
+
+  function renderHeard() {
+    var res = getResult();
+    var wordEl = document.getElementById('heard-word');
+    var metaEl = document.getElementById('heard-meta');
+    var confEl = document.getElementById('heard-conf');
+
+    if (res.restored) {
+      var color = res.isCorrect ? '#3fb950' : '#d29922';
+      wordEl.innerHTML = 'legi<span style="color:' + color + '">s</span>latures';
+      var confPct = Math.round(res.confidence * 100);
+      confEl.textContent = confPct + '%';
+      confEl.className = 'heard-conf ' + (res.isCorrect ? 'ok' : 'warn');
+      metaEl.textContent = res.isCorrect
+        ? 'restored — context prediction correct'
+        : 'restored — context prediction uncertain (' + res.phoneme + ' predicted)';
+    } else {
+      wordEl.innerHTML = 'legi<span style="color:#f85149">[■]</span>latures';
+      confEl.textContent = '—';
+      confEl.className = 'heard-conf neutral';
+      metaEl.textContent = 'restoration failed — masking below plausibility threshold';
+    }
+  }
+
+  function renderSeam() {
+    var res = getResult();
+    var el = document.getElementById('seam-detector');
+    var txt = document.getElementById('seam-text');
+    if (res.restored) {
+      el.className = 'seam-detector ok';
+      txt.textContent = 'seam scan: no discontinuity detectable in output';
+    } else {
+      el.className = 'seam-detector bad';
+      txt.textContent = 'seam scan: gap audible — restoration did not occur';
+    }
+  }
+
+  function renderReadout() {
+    var res = getResult();
+    var dist = interpDist(state.context);
+    var contextConf = Math.round(dist[0].p * 100); // /s/ base probability
+
+    var rdPh = document.getElementById('rd-phoneme');
+    var rdPhSub = document.getElementById('rd-phoneme-sub');
+    var rdConf = document.getElementById('rd-conf');
+    var rdConfSub = document.getElementById('rd-conf-sub');
+    var rdSeam = document.getElementById('rd-seam');
+    var rdSeamSub = document.getElementById('rd-seam-sub');
+    var rdRest = document.getElementById('rd-rest');
+    var rdRestSub = document.getElementById('rd-rest-sub');
+
+    if (res.restored) {
+      rdPh.textContent = res.phoneme;
+      rdPh.className = 'readout-val ' + (res.isCorrect ? 'ok' : 'warn');
+      rdPhSub.textContent = res.isCorrect
+        ? 'highest-probability prediction from context'
+        : 'predicted — but not the original phoneme';
+      rdConf.textContent = contextConf + '%';
+      rdConf.className = 'readout-val ' + (contextConf > 70 ? 'ok' : contextConf > 35 ? 'warn' : 'bad');
+      rdConfSub.textContent = 'probability ' + res.phoneme + ' assigned by sentence context';
+      rdSeam.textContent = 'NO';
+      rdSeam.className = 'readout-val ok';
+      rdSeamSub.textContent = 'output is perceptually complete';
+      rdRest.textContent = 'ACTIVE';
+      rdRest.className = 'readout-val ok';
+      rdRestSub.textContent = 'masking (' + Math.round(state.masking * 100) + '%) ≥ threshold (' + Math.round(state.plaus * 100) + '%)';
+    } else {
+      rdPh.textContent = '—';
+      rdPh.className = 'readout-val bad';
+      rdPhSub.textContent = 'no phoneme generated';
+      rdConf.textContent = contextConf + '%';
+      rdConf.className = 'readout-val neutral';
+      rdConfSub.textContent = 'context prediction present but unused';
+      rdSeam.textContent = 'YES';
+      rdSeam.className = 'readout-val bad';
+      rdSeamSub.textContent = 'gap is audible in output';
+      rdRest.textContent = 'FAILED';
+      rdRest.className = 'readout-val bad';
+      rdRestSub.textContent = 'masking (' + Math.round(state.masking * 100) + '%) < threshold (' + Math.round(state.plaus * 100) + '%)';
+    }
+  }
+
+  function renderAll() {
+    renderSentence();
+    renderBars();
+    renderAcoustic();
+    renderHeard();
+    renderSeam();
+    renderReadout();
+  }
+
+  window.probeWord = function (idx, word) {
+    var probe = document.getElementById('probe-result');
+    var res = getResult();
+    probe.style.color = '#8b949e';
+    if (idx === GAP_IDX) {
+      if (res.restored) {
+        setTimeout(function () {
+          probe.style.color = '#484f58';
+          probe.textContent = 'probing "' + word + '"… output is complete. no gap detectable at this position.';
+        }, 380);
+      } else {
+        setTimeout(function () {
+          probe.style.color = '#f85149';
+          probe.textContent = 'probing "legi[■]latures"… gap is audible here — restoration failed.';
+        }, 380);
+      }
+    } else {
+      setTimeout(function () {
+        probe.style.color = '#484f58';
+        probe.textContent = 'probing "' + word + '"… no discontinuity at this position.';
+      }, 380);
+    }
+    probe.textContent = 'probing "' + word + '"…';
+  };
+
+  var PRESETS = {
+    warren: { context: 85, masking: 90, plaus: 40, label: 'Warren 1970 — strong context, high masking, correct restoration' },
+    weak:   { context: 8,  masking: 90, plaus: 40, label: 'isolated word — context near-uniform, any phoneme roughly equally predicted' },
+    clear:  { context: 85, masking: 8,  plaus: 40, label: 'clear signal — acoustic signal dominates, restoration unnecessary' },
+    below:  { context: 85, masking: 30, plaus: 40, label: 'below threshold — masking insufficient for plausible fill-in' },
+  };
+
+  window.setPreset = function (name, btn) {
+    document.querySelectorAll('.preset-btn').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    var p = PRESETS[name];
+    if (!p) return;
+    state.context = p.context / 100;
+    state.masking = p.masking / 100;
+    state.plaus = p.plaus / 100;
+    document.getElementById('sl-context').value = p.context;
+    document.getElementById('sl-masking').value = p.masking;
+    document.getElementById('sl-plaus').value = p.plaus;
+    document.getElementById('val-context').textContent = state.context.toFixed(2);
+    document.getElementById('val-masking').textContent = state.masking.toFixed(2);
+    document.getElementById('val-plaus').textContent = state.plaus.toFixed(2);
+    document.getElementById('probe-result').textContent = p.label;
+    document.getElementById('probe-result').style.color = '#58a6ff';
+    renderAll();
+  };
+
+  function bindSlider(id, key, valId) {
+    document.getElementById(id).addEventListener('input', function () {
+      state[key] = this.value / 100;
+      document.getElementById(valId).textContent = state[key].toFixed(2);
+      document.querySelectorAll('.preset-btn').forEach(function (b) { b.classList.remove('active'); });
+      renderAll();
+    });
+  }
+
+  bindSlider('sl-context', 'context', 'val-context');
+  bindSlider('sl-masking', 'masking', 'val-masking');
+  bindSlider('sl-plaus',   'plaus',   'val-plaus');
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

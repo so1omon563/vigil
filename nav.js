@@ -101,6 +101,7 @@
       { href: '/bistable.html', label: 'bistable' },
       { href: '/converge.html', label: 'converge' },
       { href: '/report.html', label: 'report' },
+      { href: '/restore.html', label: 'restore' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
