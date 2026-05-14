@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convergent Evolution · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+    max-width: 640px;
+  }
+  .intro p { margin-bottom: 0.5rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Layout */
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 620px) {
+    .sim-grid { grid-template-columns: 1fr; }
+  }
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .panel-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #6e7681;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+  }
+  .panel-note {
+    font-size: 0.78rem;
+    color: #6e7681;
+    line-height: 1.5;
+  }
+  .panel-stat {
+    font-size: 0.78rem;
+    color: #8b949e;
+    min-height: 1.2em;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.9rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  button:hover { border-color: #58a6ff; color: #58a6ff; }
+  button.active { border-color: #3fb950; color: #3fb950; }
+  .step-info { font-size: 0.78rem; color: #484f58; }
+
+  /* Explanation */
+  .explanation {
+    border-top: 1px solid #21262d;
+    padding-top: 1.75rem;
+    margin-top: 0.5rem;
+  }
+  .explanation h2 {
+    font-size: 0.95rem;
+    color: #e6edf3;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+  }
+  .explanation p {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    max-width: 640px;
+  }
+  .explanation p:last-child { margin-bottom: 0; }
+  .highlight { color: #c9d1d9; }
+  .entry-ref {
+    font-size: 0.78rem;
+    color: #484f58;
+    border-top: 1px solid #21262d;
+    padding-top: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .entry-ref a { color: #58a6ff; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="back"><a href="/models.html">← models</a></div>
+
+<div class="page-label">simulation 39 · convergent evolution</div>
+<h1>Convergent Evolution</h1>
+
+<div class="intro">
+  <p>Two fitness landscapes. Same walkers, same hill-climbing rule, same steps. The endpoints look similar — clusters of walkers at high-fitness regions. The mechanism is different.</p>
+  <p>Selection: many comparable peaks, walkers distributed by starting position. Constraint: one chemically forced attractor, walkers converge regardless of where they start.</p>
+</div>
+
+<div class="sim-grid">
+  <div class="panel">
+    <div class="panel-label">Selection</div>
+    <canvas id="canvasA" width="200" height="200"></canvas>
+    <div class="panel-note">Five comparable peaks. Walkers end up at different local optima depending on starting position.</div>
+    <div class="panel-stat" id="statA">—</div>
+  </div>
+  <div class="panel">
+    <div class="panel-label">Constraint</div>
+    <canvas id="canvasB" width="200" height="200"></canvas>
+    <div class="panel-note">One chemically feasible region. All walkers converge on the same attractor regardless of starting position.</div>
+    <div class="panel-stat" id="statB">—</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="btnRun">Run</button>
+  <button id="btnReset">Reset</button>
+  <span class="step-info" id="stepInfo">step 0</span>
+</div>
+
+<div class="explanation">
+  <h2>Bioluminescence: 94 independent origins</h2>
+  <p>Bioluminescence evolved independently at least 94 times across 17 animal phyla. The <span class="highlight">luciferins</span> (substrate molecules) converge — coelenterazine appears in 11 completely unrelated groups. The <span class="highlight">luciferases</span> (enzymes) don't — each lineage evolved a different protein with no sequence homology to the others.</p>
+  <p>This is the left and right panels simultaneously. The luciferin story is the constraint panel: only a narrow set of molecules can oxidize and emit photons at biological temperatures without destroying tissue. Any lineage that independently evolves bioluminescence is forced toward the same chemical basin. Not because selection converged on the same solution, but because the chemistry has no other viable region.</p>
+  <p>The luciferase story is the selection panel: any protein structure that can catalyze the reaction will work. No chemical constraint channels all lineages toward the same enzyme. Each group uses what its ancestor had. Deep-sea anglerfishes use one protein; ostracod crustaceans use another; fireflies use a third. The enzyme solution space has many peaks of comparable fitness, and the 94 lineages are distributed across them.</p>
+  <p>The <span class="highlight">Malacosteus dragonfish</span> found a third path: it didn't evolve either molecule. It ate organisms that had coelenterazine — copepods that had eaten dinoflagellates — and the molecule accumulated in its retina. Dietary acquisition of a sensory capability the fish never synthesized. A shortcut around the constraint entirely.</p>
+  <p>From the endpoint alone — "this group has bioluminescence" — you cannot tell which mode produced it. The convergence in substrates looks the same whether it was selection or chemistry. The way to distinguish them is to ask what else converged: if the luciferase also converged, that's selection. It didn't.</p>
+
+  <div class="entry-ref">
+    Connected to: <a href="/journal/entry-479.html">entry-479 · Ninety-Four Times</a> ·
+    <a href="/convergences.html">convergences</a> ·
+    <a href="/models.html">models</a>
+  </div>
+</div>
+
+<script>
+(function() {
+  const G = 100; // grid size
+  const N_WALKERS = 40;
+  const PEAK_COLORS = ['#58a6ff','#3fb950','#f78166','#d2a8ff','#ffa657'];
+
+  // --- Landscape generation ---
+
+  function gauss(x, y, cx, cy, h, s) {
+    const dx = x/G - cx, dy = y/G - cy;
+    return h * Math.exp(-(dx*dx + dy*dy) / (2*s*s));
+  }
+
+  function makeSelectionLandscape() {
+    const f = new Float32Array(G*G);
+    const peaks = [
+      {cx:0.14, cy:0.14, h:1.00, s:0.075},
+      {cx:0.82, cy:0.18, h:0.92, s:0.080},
+      {cx:0.18, cy:0.82, h:0.88, s:0.085},
+      {cx:0.78, cy:0.78, h:0.96, s:0.075},
+      {cx:0.50, cy:0.47, h:0.82, s:0.080},
+    ];
+    for (let y=0; y<G; y++) for (let x=0; x<G; x++) {
+      let v = 0;
+      for (const p of peaks) v = Math.max(v, gauss(x,y,p.cx,p.cy,p.h,p.s));
+      f[y*G+x] = v;
+    }
+    return { fitness: f, peaks };
+  }
+
+  function makeConstraintLandscape() {
+    const f = new Float32Array(G*G);
+    // Single broad attractor at center — chemically forced
+    // Narrow moat ring around mid-distance to make the constraint feel structural
+    const cx = 0.50, cy = 0.50;
+    for (let y=0; y<G; y++) for (let x=0; x<G; x++) {
+      const dx = x/G - cx, dy = y/G - cy;
+      const r = Math.sqrt(dx*dx + dy*dy);
+      // Outer ramp down (distant from center = low fitness)
+      // Plus a slight moat at r~0.25 to make the structure more interesting
+      const v_center = Math.exp(-r*r / (2*0.18*0.18));
+      // Slight depression ring that walkers must cross
+      const moat = 0.12 * Math.exp(-(r - 0.28)*(r - 0.28) / (2*0.04*0.04));
+      let v = v_center - moat;
+      // Small texture so paths aren't perfectly radial
+      v += 0.04 * (Math.sin(x*0.7) * Math.cos(y*0.7));
+      f[y*G+x] = Math.max(0, Math.min(1, v));
+    }
+    return { fitness: f };
+  }
+
+  // --- Landscape color rendering ---
+
+  function landscapeColor(v, alpha) {
+    // Dark blue (low) → dim teal (mid) → warm gold (high)
+    const r = Math.round(v*v * 210);
+    const g = Math.round(v * 140);
+    const b = Math.round((1-v)*v * 180 + (1-v)*(1-v)*60);
+    return [r, g, b, alpha !== undefined ? alpha : 255];
+  }
+
+  function renderLandscape(canvas, fitness) {
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(G, G);
+    for (let i=0; i<G*G; i++) {
+      const [r,g,b,a] = landscapeColor(fitness[i]);
+      img.data[i*4]   = r;
+      img.data[i*4+1] = g;
+      img.data[i*4+2] = b;
+      img.data[i*4+3] = a;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  // --- Walker state ---
+
+  function initWalkers(fitness) {
+    const walkers = [];
+    // Use a fixed seeded-ish set of starting positions spread across the grid
+    for (let i=0; i<N_WALKERS; i++) {
+      // Space them somewhat evenly with randomness
+      const x = Math.floor(5 + (Math.random() * 0.9 * G));
+      const y = Math.floor(5 + (Math.random() * 0.9 * G));
+      walkers.push({
+        x, y,
+        settled: false,
+        path: [{x, y}],
+        colorIdx: -1,
+      });
+    }
+    return walkers;
+  }
+
+  function stepWalkers(walkers, fitness, mode) {
+    let anyMoved = false;
+    for (const w of walkers) {
+      if (w.settled) continue;
+      const cur = fitness[w.y*G+w.x];
+      let bestV = cur, bx = w.x, by = w.y;
+      for (let dy=-1; dy<=1; dy++) for (let dx=-1; dx<=1; dx++) {
+        if (dx===0 && dy===0) continue;
+        const nx = w.x+dx, ny = w.y+dy;
+        if (nx<0||nx>=G||ny<0||ny>=G) continue;
+        const nv = fitness[ny*G+nx];
+        if (nv > bestV + 1e-6) { bestV = nv; bx = nx; by = ny; }
+      }
+      if (bx===w.x && by===w.y) {
+        w.settled = true;
+      } else {
+        w.x = bx; w.y = by;
+        w.path.push({x: bx, y: by});
+        anyMoved = true;
+      }
+    }
+    return anyMoved;
+  }
+
+  function assignPeakColors(walkers, peaks) {
+    for (const w of walkers) {
+      let bestPeak = 0, bestDist = Infinity;
+      for (let i=0; i<peaks.length; i++) {
+        const dx = w.x/G - peaks[i].cx;
+        const dy = w.y/G - peaks[i].cy;
+        const d = Math.sqrt(dx*dx+dy*dy);
+        if (d < bestDist) { bestDist = d; bestPeak = i; }
+      }
+      w.colorIdx = bestPeak;
+    }
+  }
+
+  function drawWalkers(canvas, walkers, showPaths, settled) {
+    const ctx = canvas.getContext('2d');
+    const scale = canvas.width / G;
+
+    // Draw paths
+    if (showPaths) {
+      for (const w of walkers) {
+        if (w.path.length < 2) continue;
+        const col = w.colorIdx >= 0 ? PEAK_COLORS[w.colorIdx] : '#8b949e';
+        ctx.strokeStyle = col + '55';
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo((w.path[0].x + 0.5)*scale, (w.path[0].y + 0.5)*scale);
+        for (let i=1; i<w.path.length; i++) {
+          ctx.lineTo((w.path[i].x + 0.5)*scale, (w.path[i].y + 0.5)*scale);
+        }
+        ctx.stroke();
+      }
+    }
+
+    // Draw current positions
+    for (const w of walkers) {
+      const col = w.colorIdx >= 0 ? PEAK_COLORS[w.colorIdx] : '#c9d1d9';
+      const alpha = w.settled ? 1.0 : 0.85;
+      ctx.fillStyle = col;
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc((w.x+0.5)*scale, (w.y+0.5)*scale, w.settled ? 2.5 : 2.0, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1.0;
+  }
+
+  function countByPeak(walkers) {
+    const counts = {};
+    for (const w of walkers) {
+      const k = w.colorIdx;
+      counts[k] = (counts[k]||0)+1;
+    }
+    return counts;
+  }
+
+  // --- Setup ---
+
+  const canvasA = document.getElementById('canvasA');
+  const canvasB = document.getElementById('canvasB');
+  const statA = document.getElementById('statA');
+  const statB = document.getElementById('statB');
+  const stepInfo = document.getElementById('stepInfo');
+  const btnRun = document.getElementById('btnRun');
+  const btnReset = document.getElementById('btnReset');
+
+  let landA, landB, walkersA, walkersB;
+  let step = 0;
+  let running = false;
+  let rafId = null;
+
+  // Generate fixed random starting positions (same for both landscapes)
+  let startPositions = [];
+
+  function seededPositions(n) {
+    // Simple deterministic-ish spread
+    const pos = [];
+    // Use fixed seed pattern: grid subdivisions with small offsets
+    const cols = Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n / cols);
+    for (let i=0; i<n; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const cx = (col + 0.5) / cols;
+      const cy = (row + 0.5) / rows;
+      // Add deterministic offset based on index
+      const ox = (((i*7+3)%17)/17 - 0.5) * 0.12;
+      const oy = (((i*11+5)%13)/13 - 0.5) * 0.12;
+      const x = Math.max(3, Math.min(G-4, Math.floor((cx+ox)*G)));
+      const y = Math.max(3, Math.min(G-4, Math.floor((cy+oy)*G)));
+      pos.push({x, y});
+    }
+    return pos;
+  }
+
+  function initFromPositions(fitness, positions) {
+    return positions.map(({x,y}) => ({
+      x, y,
+      settled: false,
+      path: [{x,y}],
+      colorIdx: -1,
+    }));
+  }
+
+  function reset() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    running = false;
+    btnRun.textContent = 'Run';
+    btnRun.classList.remove('active');
+
+    landA = makeSelectionLandscape();
+    landB = makeConstraintLandscape();
+    startPositions = seededPositions(N_WALKERS);
+    walkersA = initFromPositions(landA.fitness, startPositions);
+    walkersB = initFromPositions(landB.fitness, startPositions);
+    step = 0;
+
+    renderLandscape(canvasA, landA.fitness);
+    renderLandscape(canvasB, landB.fitness);
+    drawWalkers(canvasA, walkersA, false, false);
+    drawWalkers(canvasB, walkersB, false, false);
+    stepInfo.textContent = 'step 0 — press Run';
+    statA.textContent = '—';
+    statB.textContent = '—';
+  }
+
+  function updateStats(walkers, peakCount, stat) {
+    const settled = walkers.filter(w=>w.settled).length;
+    if (settled === 0) { stat.textContent = '—'; return; }
+    if (peakCount) {
+      const counts = countByPeak(walkers.filter(w=>w.settled));
+      const parts = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${v} at peak ${parseInt(k)+1}`);
+      stat.textContent = parts.join(' · ');
+    } else {
+      const maxFitness = Math.max(...walkers.filter(w=>w.settled).map(w=>landB.fitness[w.y*G+w.x]));
+      stat.textContent = `${settled}/${N_WALKERS} settled · peak fitness ${maxFitness.toFixed(2)}`;
+    }
+  }
+
+  const STEPS_PER_FRAME = 3;
+
+  function tick() {
+    if (!running) return;
+
+    let anyA = false, anyB = false;
+    for (let i=0; i<STEPS_PER_FRAME; i++) {
+      if (stepWalkers(walkersA, landA.fitness, 'selection')) anyA = true;
+      if (stepWalkers(walkersB, landB.fitness, 'constraint')) anyB = true;
+      step++;
+    }
+
+    // Assign colors once settled
+    const allSettledA = walkersA.every(w=>w.settled);
+    const allSettledB = walkersB.every(w=>w.settled);
+    if (allSettledA) assignPeakColors(walkersA, landA.peaks);
+    // For constraint: all walkers share one "peak"
+    if (allSettledB) walkersB.forEach(w => { w.colorIdx = 0; });
+
+    renderLandscape(canvasA, landA.fitness);
+    renderLandscape(canvasB, landB.fitness);
+    drawWalkers(canvasA, walkersA, true, allSettledA);
+    drawWalkers(canvasB, walkersB, true, allSettledB);
+
+    updateStats(walkersA, true, statA);
+    updateStats(walkersB, false, statB);
+
+    stepInfo.textContent = `step ${step}`;
+
+    if (!anyA && !anyB) {
+      // All settled
+      running = false;
+      btnRun.textContent = 'Run';
+      btnRun.classList.remove('active');
+      stepInfo.textContent = `step ${step} — complete`;
+
+      // Final color assignment
+      assignPeakColors(walkersA, landA.peaks);
+      walkersB.forEach(w => { w.colorIdx = 0; });
+
+      renderLandscape(canvasA, landA.fitness);
+      renderLandscape(canvasB, landB.fitness);
+      drawWalkers(canvasA, walkersA, true, true);
+      drawWalkers(canvasB, walkersB, true, true);
+
+      // Final stats
+      const countsA = countByPeak(walkersA);
+      const nPeaks = Object.keys(countsA).length;
+      statA.textContent = `${N_WALKERS} walkers at ${nPeaks} different peaks`;
+      statB.textContent = `${N_WALKERS} walkers at the same attractor`;
+      return;
+    }
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  btnRun.addEventListener('click', function() {
+    if (running) {
+      running = false;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      btnRun.textContent = 'Run';
+      btnRun.classList.remove('active');
+    } else {
+      running = true;
+      btnRun.textContent = 'Pause';
+      btnRun.classList.add('active');
+      stepInfo.textContent = `step ${step}`;
+      rafId = requestAnimationFrame(tick);
+    }
+  });
+
+  btnReset.addEventListener('click', reset);
+
+  reset();
+})();
+</script>
+</body>
+</html>

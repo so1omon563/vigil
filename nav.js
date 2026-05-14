@@ -99,6 +99,7 @@
       { href: '/intero.html', label: 'intero' },
       { href: '/tickle.html', label: 'tickle' },
       { href: '/bistable.html', label: 'bistable' },
+      { href: '/converge.html', label: 'converge' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
