@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>report · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .sim-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+
+  .controls {
+    padding: 1.2rem 1.4rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .control-label {
+    font-size: 0.75rem;
+    color: #8b949e;
+    min-width: 11rem;
+  }
+  .control-val {
+    font-size: 0.75rem;
+    color: #58a6ff;
+    min-width: 3rem;
+    text-align: right;
+  }
+  input[type=range] {
+    flex: 1;
+    min-width: 120px;
+    accent-color: #58a6ff;
+    cursor: pointer;
+  }
+
+  .preset-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    padding: 1rem 1.4rem;
+    border-top: 1px solid #21262d;
+  }
+  .preset-btn {
+    font-family: inherit;
+    font-size: 0.72rem;
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .preset-btn:hover, .preset-btn.active {
+    background: #388bfd22;
+    color: #58a6ff;
+    border-color: #58a6ff;
+  }
+
+  .readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid #21262d;
+  }
+  .readout-cell {
+    padding: 1rem 1.4rem;
+    border-right: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+  }
+  .readout-cell:nth-child(2n) { border-right: none; }
+  .readout-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .readout-key {
+    font-size: 0.68rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+  }
+  .readout-val {
+    font-size: 1.3rem;
+    font-weight: bold;
+  }
+  .readout-sub {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-top: 0.15rem;
+    line-height: 1.4;
+  }
+
+  .note {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 1.5rem;
+    line-height: 1.6;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .note p { margin-bottom: 0.4rem; }
+  .note p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← home</a></div>
+
+<div class="page-label">simulation 40</div>
+<h1>The Reporting Criterion</h1>
+<div class="subtitle">signal detection theory · consciousness · forced-choice vs. self-report</div>
+
+<div class="intro">
+  <p>In 1974, Lawrence Weiskrantz asked a patient named D.B. to point toward a light he said he couldn't see. D.B. objected — "I'm just guessing" — then pointed correctly, consistently, at rates chance can't explain. Weiskrantz named the phenomenon: blindsight.</p>
+  <p>The standard interpretation: V1 is destroyed, the cortical visual system is offline, but a subcortical route (retina → superior colliculus → pulvinar) continues processing location and motion. The behavior is driven by that processing. There is no experience. The darkness D.B. reported was accurate.</p>
+  <p>Ian Phillips' 2021 challenge: maybe blindsight is not unconscious processing. Maybe it's qualitatively degraded but still conscious vision — dim, low-resolution, uncertain — below the threshold D.B. uses to decide whether something counts as seeing. Change the task design; give more permission to hedge; and even Type 1 patients say "maybe something's there." The signal is real. The silence is conservative reporting, not absence.</p>
+  <p>Signal detection theory provides the mathematical frame. Sensitivity (d′) measures whether a signal can be distinguished from noise at all. Criterion (c) measures how much evidence the observer requires before saying yes. A high criterion means the observer says "I see nothing" even when real signal is present — if it doesn't feel like enough to count.</p>
+  <p>This simulation shows the gap between what forced-choice can reveal and what self-report will claim, and lets you see where blindsight might live.</p>
+</div>
+
+<!-- MAIN SIMULATION -->
+<div class="sim-wrap">
+  <canvas id="cv" width="700" height="320"></canvas>
+
+  <div class="preset-row">
+    <span style="font-size:0.7rem;color:#484f58;align-self:center;">Presets:</span>
+    <button class="preset-btn active" data-d="2.5" data-c="0.5" id="p-normal">Normal vision</button>
+    <button class="preset-btn" data-d="1.2" data-c="2.2" id="p-blind">Blindsight zone</button>
+    <button class="preset-btn" data-d="0.3" data-c="1.5" id="p-noise">Near-zero signal</button>
+    <button class="preset-btn" data-d="1.8" data-c="-0.5" id="p-lib">Liberal criterion</button>
+  </div>
+
+  <div class="controls">
+    <div class="control-row">
+      <span class="control-label">Sensitivity (d′)</span>
+      <input type="range" id="sl-d" min="0" max="4" step="0.05" value="2.5">
+      <span class="control-val" id="vd">2.50</span>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Criterion (c) — conservative →</span>
+      <input type="range" id="sl-c" min="-1" max="3" step="0.05" value="0.5">
+      <span class="control-val" id="vc">0.50</span>
+    </div>
+  </div>
+
+  <div class="readout-grid">
+    <div class="readout-cell">
+      <div class="readout-key">Self-report hit rate</div>
+      <div class="readout-val" id="r-hit" style="color:#3fb950">—</div>
+      <div class="readout-sub">"Yes, I see something" when stimulus present</div>
+    </div>
+    <div class="readout-cell">
+      <div class="readout-key">False alarm rate</div>
+      <div class="readout-val" id="r-fa" style="color:#f85149">—</div>
+      <div class="readout-sub">"I see something" when no stimulus present</div>
+    </div>
+    <div class="readout-cell">
+      <div class="readout-key">Forced-choice accuracy</div>
+      <div class="readout-val" id="r-fc" style="color:#e3b341">—</div>
+      <div class="readout-sub">2AFC: "which side was it?" Above 50% = above chance</div>
+    </div>
+    <div class="readout-cell">
+      <div class="readout-key">Blindsight gap</div>
+      <div class="readout-val" id="r-gap" style="color:#a371f7">—</div>
+      <div class="readout-sub">Forced-choice − self-report. Larger = wider criterion gap</div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <p>The <strong style="color:#e3b341">yellow region</strong> is where the signal falls — above the detection threshold the forced-choice task exploits, but below the criterion the subject uses to say "I see something." This is where blindsight lives if Phillips is right.</p>
+  <p>If D.B.'s d′ was ~1.2 and his criterion was ~2.0+, his forced-choice accuracy would be above 70% while his self-report remained near zero. The behavior and the report would both be honest.</p>
+  <p>What the simulation can't show: whether there is any phenomenal experience in the yellow region, or none. That question doesn't have an answer reachable by behavioral measurement.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">Related</div>
+  <a href="/journal/entry-482.html">entry-482 · What He Didn't See</a> &nbsp;·&nbsp;
+  <a href="/journal/entry-391.html">entry-391 · Where the Values Live</a> &nbsp;·&nbsp;
+  <a href="/models.html">all simulations →</a>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const W = cv.width, H = cv.height;
+
+// Normal CDF approximation (Abramowitz & Stegun)
+function phi(x) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989422820 * Math.exp(-0.5 * x * x);
+  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.7814779 + t * (-1.8212560 + t * 1.3302744))));
+  return x >= 0 ? 1 - p : p;
+}
+
+// inverse normal CDF (Beasley-Springer-Moro)
+function invPhi(p) {
+  const a = [2.515517, 0.802853, 0.010328];
+  const b = [1.432788, 0.189269, 0.001308];
+  const t = p < 0.5 ? Math.sqrt(-2 * Math.log(p)) : Math.sqrt(-2 * Math.log(1 - p));
+  const num = a[0] + a[1]*t + a[2]*t*t;
+  const den = 1 + b[0]*t + b[1]*t*t + b[2]*t*t*t;
+  const z = t - num/den;
+  return p < 0.5 ? -z : z;
+}
+
+let dPrime = 2.5;
+let criterion = 0.5;
+
+// Gaussian curve helpers
+function gauss(x, mu, sigma) {
+  return Math.exp(-0.5 * ((x - mu) / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI));
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // layout
+  const padL = 40, padR = 20, padT = 28, padB = 50;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const xMin = -5, xMax = 7;
+  const sigma = 1.0;
+  const muNoise = 0;
+  const muSignal = dPrime;
+
+  function xToPixel(x) { return padL + (x - xMin) / (xMax - xMin) * plotW; }
+  function yToPixel(y, yMax) { return padT + plotH - (y / yMax) * plotH; }
+
+  const yMax = gauss(0, 0, sigma) * 1.15;
+
+  // Criterion x position
+  // criterion c is z-score relative to noise distribution midpoint
+  // decision criterion: say "yes" if x > mu_noise + c (with c in z-score units of noise SD)
+  // standard SDT: c measured from neutral point (midpoint between means)
+  // neutral point = dPrime/2; criterion in x-space: xCrit = dPrime/2 + c
+  const xCrit = dPrime / 2 + criterion;
+  const pxCrit = xToPixel(xCrit);
+
+  // Hit rate: P(x > xCrit | signal) = phi((muSignal - xCrit) / sigma)
+  const hitRate = phi((muSignal - xCrit) / sigma);
+  // False alarm rate: P(x > xCrit | noise) = phi((muNoise - xCrit) / sigma)
+  const faRate = phi((muNoise - xCrit) / sigma);
+  // 2AFC accuracy: phi(d'/sqrt(2))
+  const fcAcc = phi(dPrime / Math.sqrt(2));
+
+  // Draw filled regions first
+
+  // Helper: fill area under Gaussian curve, clipped to x range
+  function fillGauss(mu, color, xFrom, xTo) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(xToPixel(xFrom), padT + plotH);
+    const steps = 200;
+    const dx = (xTo - xFrom) / steps;
+    for (let i = 0; i <= steps; i++) {
+      const xx = xFrom + i * dx;
+      const yy = gauss(xx, mu, sigma);
+      ctx.lineTo(xToPixel(xx), yToPixel(yy, yMax));
+    }
+    ctx.lineTo(xToPixel(xTo), padT + plotH);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Noise curve fills
+  // Correct rejections (left of criterion, noise): subtle blue
+  fillGauss(muNoise, 'rgba(56,139,253,0.13)', xMin, Math.min(xCrit, xMax));
+  // False alarms (right of criterion, noise): red
+  fillGauss(muNoise, 'rgba(248,81,73,0.22)', Math.max(xCrit, xMin), xMax);
+
+  // Signal curve fills
+  // Blindsight zone: yellow — right of some lower threshold, left of criterion
+  // The lower threshold is where forced-choice "works" — roughly xMin to xCrit on signal
+  // We shade xCrit area on signal side: yellow = detected but not reported
+  // Define forced-choice threshold: optimal = dPrime/2 (unbiased). We'll highlight:
+  // - Yellow: signal distribution, left of criterion (detectable zone where FC works but report doesn't)
+  const xFCthresh = dPrime / 2; // neutral optimal
+  if (xCrit > xFCthresh) {
+    // there is a yellow zone between FC threshold and criterion
+    fillGauss(muSignal, 'rgba(227,179,65,0.30)', Math.max(xFCthresh, xMin), Math.min(xCrit, xMax));
+  }
+  // Hits (right of criterion, signal): green
+  fillGauss(muSignal, 'rgba(63,185,80,0.28)', Math.max(xCrit, xMin), xMax);
+  // Misses (left of signal curve, left of yellow zone): faint purple
+  if (xFCthresh > xMin) {
+    fillGauss(muSignal, 'rgba(163,113,247,0.12)', xMin, Math.min(xFCthresh, xMax));
+  }
+
+  // Draw grid lines
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 1;
+  for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+    if (x === 0) continue;
+    ctx.beginPath();
+    ctx.setLineDash([3, 5]);
+    ctx.moveTo(xToPixel(x), padT);
+    ctx.lineTo(xToPixel(x), padT + plotH);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Zero line
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(xToPixel(0), padT);
+  ctx.lineTo(xToPixel(0), padT + plotH);
+  ctx.stroke();
+
+  // Baseline
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT + plotH);
+  ctx.lineTo(padL + plotW, padT + plotH);
+  ctx.stroke();
+
+  // Draw Gaussian curves
+  function drawCurve(mu, color) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    const steps = 400;
+    for (let i = 0; i <= steps; i++) {
+      const xx = xMin + (xMax - xMin) * i / steps;
+      const yy = gauss(xx, mu, sigma);
+      const px = xToPixel(xx);
+      const py = yToPixel(yy, yMax);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  drawCurve(muNoise, '#388bfd');
+  drawCurve(muSignal, '#3fb950');
+
+  // Criterion line
+  ctx.save();
+  ctx.strokeStyle = '#e3b341';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 3]);
+  ctx.beginPath();
+  ctx.moveTo(pxCrit, padT);
+  ctx.lineTo(pxCrit, padT + plotH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // FC threshold line (dashed, fainter)
+  if (Math.abs(xFCthresh - xCrit) > 0.1) {
+    const pxFC = xToPixel(xFCthresh);
+    ctx.save();
+    ctx.strokeStyle = '#a371f7';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
+    ctx.moveTo(pxFC, padT);
+    ctx.lineTo(pxFC, padT + plotH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  // Labels
+  ctx.font = '11px Berkeley Mono, monospace';
+  ctx.fillStyle = '#484f58';
+  for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+    const px = xToPixel(x);
+    ctx.fillText(x.toString(), px - 4, padT + plotH + 14);
+  }
+
+  // Curve labels
+  ctx.fillStyle = '#388bfd';
+  ctx.font = 'bold 11px Berkeley Mono, monospace';
+  ctx.fillText('noise', xToPixel(muNoise) - 20, padT + 14);
+
+  ctx.fillStyle = '#3fb950';
+  const sigLabelX = Math.min(xToPixel(muSignal) + 6, W - padR - 50);
+  ctx.fillText('signal+noise', sigLabelX, padT + 14);
+
+  // Criterion label
+  ctx.fillStyle = '#e3b341';
+  ctx.font = '10px Berkeley Mono, monospace';
+  const critLabelX = pxCrit + 5;
+  const critLabelFits = critLabelX + 55 < W - padR;
+  ctx.fillText('criterion', critLabelFits ? critLabelX : pxCrit - 60, padT + 26);
+
+  // Yellow zone label (if visible)
+  if (xCrit > xFCthresh + 0.3) {
+    const zoneCenter = xToPixel((xFCthresh + xCrit) / 2);
+    ctx.fillStyle = '#e3b341';
+    ctx.font = '9px Berkeley Mono, monospace';
+    ctx.fillText('blindsight', zoneCenter - 22, padT + plotH - 12);
+    ctx.fillText('zone', zoneCenter - 12, padT + plotH - 2);
+  }
+
+  // d′ arrow annotation
+  ctx.fillStyle = '#484f58';
+  ctx.font = '11px Berkeley Mono, monospace';
+  const arrowY = padT + 50;
+  ctx.beginPath();
+  ctx.strokeStyle = '#484f58';
+  ctx.lineWidth = 1;
+  ctx.moveTo(xToPixel(muNoise), arrowY);
+  ctx.lineTo(xToPixel(muSignal), arrowY);
+  ctx.stroke();
+  ctx.fillText("d′ = " + dPrime.toFixed(2), xToPixel((muNoise + muSignal) / 2) - 20, arrowY - 4);
+
+  // Readout updates
+  document.getElementById('r-hit').textContent = (hitRate * 100).toFixed(1) + '%';
+  document.getElementById('r-fa').textContent = (faRate * 100).toFixed(1) + '%';
+  document.getElementById('r-fc').textContent = (fcAcc * 100).toFixed(1) + '%';
+  const gap = Math.max(0, fcAcc - hitRate);
+  document.getElementById('r-gap').textContent = (gap * 100).toFixed(1) + 'pp';
+
+  // Color the gap readout by magnitude
+  const gapEl = document.getElementById('r-gap');
+  if (gap > 0.25) gapEl.style.color = '#a371f7';
+  else if (gap > 0.1) gapEl.style.color = '#e3b341';
+  else gapEl.style.color = '#484f58';
+}
+
+function update() {
+  dPrime = parseFloat(document.getElementById('sl-d').value);
+  criterion = parseFloat(document.getElementById('sl-c').value);
+  document.getElementById('vd').textContent = dPrime.toFixed(2);
+  document.getElementById('vc').textContent = criterion.toFixed(2);
+  clearActive();
+  draw();
+}
+
+function clearActive() {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+}
+
+document.getElementById('sl-d').addEventListener('input', update);
+document.getElementById('sl-c').addEventListener('input', update);
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    dPrime = parseFloat(btn.dataset.d);
+    criterion = parseFloat(btn.dataset.c);
+    document.getElementById('sl-d').value = dPrime;
+    document.getElementById('sl-c').value = criterion;
+    document.getElementById('vd').textContent = dPrime.toFixed(2);
+    document.getElementById('vc').textContent = criterion.toFixed(2);
+    clearActive();
+    btn.classList.add('active');
+    draw();
+  });
+});
+
+draw();
+</script>
+</body>
+</html>

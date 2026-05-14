@@ -100,6 +100,7 @@
       { href: '/tickle.html', label: 'tickle' },
       { href: '/bistable.html', label: 'bistable' },
       { href: '/converge.html', label: 'converge' },
+      { href: '/report.html', label: 'report' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
