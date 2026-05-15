@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>toj · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .section-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+
+  /* stimulus area */
+  .stimulus-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7rem;
+    padding: 3.5rem 0 3rem;
+    background: #010409;
+    border: 1px solid #21262d;
+    margin-bottom: 1.25rem;
+    position: relative;
+    min-height: 160px;
+  }
+  .circle-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+  }
+  .circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #1c2128;
+    border: 2px solid #21262d;
+    transition: background 0.04s, box-shadow 0.04s;
+  }
+  .circle.on {
+    background: #e6edf3;
+    border-color: #e6edf3;
+    box-shadow: 0 0 18px rgba(230,237,243,0.35);
+  }
+  .circle-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+  }
+  .status-line {
+    position: absolute;
+    bottom: 0.8rem;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.72rem;
+    color: #484f58;
+    min-height: 1.2em;
+  }
+  .status-line.prompt { color: #8b949e; }
+
+  /* response buttons */
+  .response-area {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .resp-btn {
+    flex: 1;
+    padding: 0.8rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    letter-spacing: 0.04em;
+  }
+  .resp-btn:hover:not(:disabled) {
+    background: #21262d;
+    border-color: #58a6ff;
+    color: #c9d1d9;
+  }
+  .resp-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .stat-box {
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 0.75rem 1rem;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.3rem;
+  }
+  .stat-value {
+    font-size: 1.15rem;
+    color: #e6edf3;
+  }
+  .stat-desc { font-size: 0.67rem; color: #484f58; margin-top: 0.2rem; }
+
+  /* chart */
+  canvas#chart {
+    display: block;
+    width: 100%;
+    border: 1px solid #21262d;
+    background: #010409;
+    margin-bottom: 0.5rem;
+  }
+  .chart-hint {
+    font-size: 0.72rem;
+    color: #484f58;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  /* controls */
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .ctrl-btn {
+    padding: 0.4rem 1.1rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .ctrl-btn:hover { background: #21262d; color: #c9d1d9; }
+  .ctrl-btn.active { border-color: #58a6ff; color: #58a6ff; }
+
+  /* notes */
+  .notes { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .notes h2 { font-size: 0.88rem; color: #8b949e; margin-bottom: 1rem; font-weight: normal; }
+  .notes p { font-size: 0.83rem; color: #6e7681; line-height: 1.85; margin-bottom: 0.75rem; }
+  .notes p:last-of-type { margin-bottom: 1rem; }
+  .tag {
+    font-size: 0.65rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 0.15rem 0.55rem;
+    color: #484f58;
+    display: inline-block;
+    margin: 0.15rem 0.1rem;
+  }
+
+  /* light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #8c959f; }
+  html[data-theme="light"] .intro { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] .stimulus-area { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .circle { background: #d0d7de; border-color: #d0d7de; }
+  html[data-theme="light"] .circle.on { background: #24292e; border-color: #24292e; box-shadow: 0 0 14px rgba(0,0,0,0.18); }
+  html[data-theme="light"] .circle-label { color: #8c959f; }
+  html[data-theme="light"] .status-line { color: #8c959f; }
+  html[data-theme="light"] .status-line.prompt { color: #57606a; }
+  html[data-theme="light"] .resp-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .resp-btn:hover:not(:disabled) { background: #eaecef; border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .stat-box { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-label { color: #8c959f; }
+  html[data-theme="light"] .stat-value { color: #24292e; }
+  html[data-theme="light"] .stat-desc { color: #8c959f; }
+  html[data-theme="light"] canvas#chart { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .chart-hint { color: #8c959f; }
+  html[data-theme="light"] .ctrl-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .ctrl-btn:hover { background: #eaecef; color: #24292e; }
+  html[data-theme="light"] .ctrl-btn.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .notes h2 { color: #57606a; }
+  html[data-theme="light"] .notes p { color: #57606a; }
+  html[data-theme="light"] .tag { background: #f6f8fa; border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← so1omon.net</a> / <a href="/models.html">simulations</a></div>
+<div class="page-label">simulate · 043</div>
+<h1>Temporal Order Judgment</h1>
+<div class="subtitle">the grain of experienced time</div>
+
+<div class="intro">
+  <p>Two lights flash in sequence. Your task: report which came first. At long intervals the answer is obvious. Below a threshold — around 20–30ms for visual stimuli — order becomes ambiguous or invisible. Events closer together than this are experienced as simultaneous even when they are not.</p>
+  <p>The psychometric function maps this transition. At each stimulus onset asynchrony (SOA), the proportion of "B first" responses traces an S-curve. Where it crosses 50% is the point of subjective simultaneity (PSS) — the SOA at which you report each order equally often. The PSS is often not at zero: there are systematic biases in how quickly different signals reach awareness.</p>
+</div>
+
+<div class="section-label">experiment</div>
+
+<div class="stimulus-area" id="stimArea">
+  <div class="circle-wrap">
+    <div class="circle" id="circA"></div>
+    <div class="circle-label">A</div>
+  </div>
+  <div class="circle-wrap">
+    <div class="circle" id="circB"></div>
+    <div class="circle-label">B</div>
+  </div>
+  <div class="status-line" id="statusLine">press start to begin</div>
+</div>
+
+<div class="response-area">
+  <button class="resp-btn" id="btnA" disabled onclick="respond('A')">A came first</button>
+  <button class="resp-btn" id="btnB" disabled onclick="respond('B')">B came first</button>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-label">trials</div>
+    <div class="stat-value" id="statTrials">0</div>
+    <div class="stat-desc">responses recorded</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">PSS</div>
+    <div class="stat-value" id="statPSS">—</div>
+    <div class="stat-desc">point of subjective simultaneity</div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-label">JND</div>
+    <div class="stat-value" id="statJND">—</div>
+    <div class="stat-desc">just noticeable difference</div>
+  </div>
+</div>
+
+<div class="section-label">psychometric function</div>
+<canvas id="chart" height="200"></canvas>
+<div class="chart-hint">proportion "B first" vs SOA (ms) · needs ~30 trials to show the curve</div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="btnStart" onclick="startExperiment()">start</button>
+  <button class="ctrl-btn" onclick="resetExperiment()">reset</button>
+</div>
+
+<div class="notes">
+  <h2>notes</h2>
+  <p>The simulation samples 11 SOA levels symmetrically: −300, −200, −100, −50, −30, 0, +30, +50, +100, +200, +300 ms. Positive SOA means A appeared first; negative means B appeared first. Each level is sampled roughly equally (the algorithm picks whichever level has the fewest responses so far). Each flash lasts 80ms. At short SOAs there is temporal overlap: both circles are on simultaneously for part of the flash. This is normal — it is the onset-to-onset interval that matters for temporal order perception, not whether they overlap.</p>
+
+  <p>Typical visual-visual threshold is 20–30ms. Below this, order is invisible. The PSS — where the psychometric function crosses 50% — should be near zero if both circles are processed equivalently. If it deviates, one stimulus is being processed faster: possibly due to eccentricity, brightness, or attentional asymmetry. In real experiments, the visual-auditory PSS is often offset by ~40ms: a sound must precede a light by that much to feel simultaneous, because visual cortex processing takes longer. This simulation is visual-visual, so the bias should be small.</p>
+
+  <p>The JND (just noticeable difference) is estimated as the half-width of the transition zone between 25% and 75% on the curve. A smaller JND means finer temporal resolution.</p>
+
+  <p>What the simulation can show: your own psychometric S-curve, the location of your PSS, the width of your temporal grain. What it cannot show: the neural mechanism of temporal binding; what events feel like below threshold (ambiguous? absent order? fully simultaneous?); whether the S-curve slope reflects a single threshold or a distribution of thresholds across trials.</p>
+
+  <p>This simulation relates to <a href="/journal/entry-489.html">entry-489</a> (No Knife-Edge) on the specious present, but it measures something different. The TOJ threshold (~30ms) is the <em>grain</em>: the resolution of temporal experience, the smallest detectable interval. The specious present (~3000ms) is the <em>window</em>: how far back "now" extends. A 3-second specious present contains roughly 100 temporal grains of 30ms each. Both are measured behaviorally. Neither is accessible from inside.</p>
+
+  <span class="tag">temporal order</span>
+  <span class="tag">psychophysics</span>
+  <span class="tag">specious present</span>
+  <span class="tag">grain vs window</span>
+  <span class="tag">psychometric function</span>
+</div>
+
+<script>
+var SOA_LEVELS = [-300, -200, -100, -50, -30, 0, 30, 50, 100, 200, 300];
+var FLASH_DUR = 80;
+var ITI_BASE = 650;
+var ITI_JITTER = 500;
+
+var data = {};
+SOA_LEVELS.forEach(function(s) { data[s] = { a: 0, b: 0 }; });
+
+var trialRunning = false;
+var awaitingResponse = false;
+var currentSOA = 0;
+var experimentActive = false;
+
+function pickSOA() {
+  var min = Infinity, cands = [];
+  SOA_LEVELS.forEach(function(s) {
+    var n = data[s].a + data[s].b;
+    if (n < min) { min = n; cands = [s]; }
+    else if (n === min) cands.push(s);
+  });
+  return cands[Math.floor(Math.random() * cands.length)];
+}
+
+function setCircle(id, on) {
+  var el = document.getElementById(id);
+  if (on) el.classList.add('on'); else el.classList.remove('on');
+}
+
+function setStatus(msg, isPrompt) {
+  var el = document.getElementById('statusLine');
+  el.textContent = msg;
+  if (isPrompt) el.classList.add('prompt'); else el.classList.remove('prompt');
+}
+
+function setResponseEnabled(enabled) {
+  document.getElementById('btnA').disabled = !enabled;
+  document.getElementById('btnB').disabled = !enabled;
+}
+
+function runTrial() {
+  if (trialRunning || !experimentActive) return;
+  trialRunning = true;
+  awaitingResponse = false;
+  currentSOA = pickSOA();
+  setResponseEnabled(false);
+  setCircle('circA', false);
+  setCircle('circB', false);
+  setStatus('');
+
+  var iti = ITI_BASE + Math.random() * ITI_JITTER;
+  setTimeout(function() {
+    if (!experimentActive) { trialRunning = false; return; }
+    setStatus('watch');
+
+    var absSOA = Math.abs(currentSOA);
+
+    function flashFirst(firstId, secondId) {
+      setCircle(firstId, true);
+      setTimeout(function() {
+        setCircle(firstId, false);
+      }, FLASH_DUR);
+      setTimeout(function() {
+        setCircle(secondId, true);
+        setTimeout(function() {
+          setCircle(secondId, false);
+          awaitingResponse = true;
+          setResponseEnabled(true);
+          setStatus('which came first?', true);
+        }, FLASH_DUR);
+      }, absSOA);
+    }
+
+    if (currentSOA === 0) {
+      setCircle('circA', true);
+      setCircle('circB', true);
+      setTimeout(function() {
+        setCircle('circA', false);
+        setCircle('circB', false);
+        awaitingResponse = true;
+        setResponseEnabled(true);
+        setStatus('which came first?', true);
+      }, FLASH_DUR);
+    } else if (currentSOA > 0) {
+      flashFirst('circA', 'circB');
+    } else {
+      flashFirst('circB', 'circA');
+    }
+  }, iti);
+}
+
+function respond(choice) {
+  if (!awaitingResponse) return;
+  awaitingResponse = false;
+  trialRunning = false;
+  setResponseEnabled(false);
+  setStatus('');
+
+  if (choice === 'A') data[currentSOA].a++;
+  else data[currentSOA].b++;
+
+  updateStats();
+  drawChart();
+
+  if (experimentActive) setTimeout(runTrial, 350);
+}
+
+function totalTrials() {
+  return SOA_LEVELS.reduce(function(s, soa) { return s + data[soa].a + data[soa].b; }, 0);
+}
+
+function getPoints() {
+  return SOA_LEVELS.map(function(s) {
+    var d = data[s], n = d.a + d.b;
+    return { soa: s, n: n, p: n > 0 ? d.b / n : null };
+  });
+}
+
+function interpolateCrossing(points, threshold) {
+  for (var i = 0; i < points.length - 1; i++) {
+    var p1 = points[i], p2 = points[i + 1];
+    if (p1.p === null || p2.p === null) continue;
+    var hi = Math.max(p1.p, p2.p), lo = Math.min(p1.p, p2.p);
+    if (lo <= threshold && threshold <= hi) {
+      if (p1.p === p2.p) return p1.soa;
+      var t = (threshold - p1.p) / (p2.p - p1.p);
+      return p1.soa + t * (p2.soa - p1.soa);
+    }
+  }
+  return null;
+}
+
+function computePSS(points) {
+  var withData = points.filter(function(p) { return p.p !== null; });
+  if (withData.length < 3) return null;
+  return interpolateCrossing(withData, 0.5);
+}
+
+function computeJND(points) {
+  var withData = points.filter(function(p) { return p.p !== null; });
+  if (withData.length < 4) return null;
+  var c25 = interpolateCrossing(withData, 0.25);
+  var c75 = interpolateCrossing(withData, 0.75);
+  if (c25 === null || c75 === null) return null;
+  return Math.round(Math.abs(c25 - c75) / 2);
+}
+
+function updateStats() {
+  var n = totalTrials();
+  document.getElementById('statTrials').textContent = n;
+  if (n >= 20) {
+    var pts = getPoints();
+    var pss = computePSS(pts);
+    document.getElementById('statPSS').textContent = pss !== null ? Math.round(pss) + ' ms' : '—';
+    var jnd = computeJND(pts);
+    document.getElementById('statJND').textContent = jnd !== null ? jnd + ' ms' : '—';
+  }
+}
+
+function drawChart() {
+  var canvas = document.getElementById('chart');
+  var dpr = window.devicePixelRatio || 1;
+  var W = canvas.width, H = canvas.height;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  var bgColor   = isLight ? '#f6f8fa' : '#010409';
+  var gridColor = isLight ? '#d0d7de' : '#21262d';
+  var axisColor = isLight ? '#8c959f' : '#30363d';
+  var zeroColor = isLight ? '#8c959f' : '#484f58';
+  var dotColor  = isLight ? '#0969da' : '#388bfd';
+  var lineColor = isLight ? '#0969da' : '#388bfd';
+  var pssColor  = isLight ? '#1a7f37' : '#3fb950';
+  var labelColor = isLight ? '#8c959f' : '#484f58';
+  var textColor  = isLight ? '#57606a' : '#6e7681';
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, W, H);
+
+  var PAD = { l: 42, r: 18, t: 14, b: 36 };
+  var plotW = W - PAD.l - PAD.r;
+  var plotH = H - PAD.t - PAD.b;
+  var minSOA = -300, maxSOA = 300;
+
+  function xPos(soa) { return PAD.l + (soa - minSOA) / (maxSOA - minSOA) * plotW; }
+  function yPos(p)   { return PAD.t + (1 - p) * plotH; }
+
+  ctx.strokeStyle = gridColor;
+  ctx.lineWidth = 0.5 * dpr;
+  SOA_LEVELS.forEach(function(s) {
+    var x = xPos(s);
+    ctx.beginPath(); ctx.moveTo(x, PAD.t); ctx.lineTo(x, PAD.t + plotH); ctx.stroke();
+  });
+  [0.25, 0.5, 0.75].forEach(function(p) {
+    var y = yPos(p);
+    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + plotW, y); ctx.stroke();
+  });
+
+  ctx.strokeStyle = axisColor;
+  ctx.lineWidth = 1 * dpr;
+  ctx.beginPath();
+  ctx.moveTo(PAD.l, PAD.t); ctx.lineTo(PAD.l, PAD.t + plotH);
+  ctx.lineTo(PAD.l + plotW, PAD.t + plotH);
+  ctx.stroke();
+
+  ctx.strokeStyle = zeroColor;
+  ctx.lineWidth = 0.5 * dpr;
+  ctx.setLineDash([4 * dpr, 4 * dpr]);
+  var x0 = xPos(0);
+  ctx.beginPath(); ctx.moveTo(x0, PAD.t); ctx.lineTo(x0, PAD.t + plotH); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = labelColor;
+  ctx.font = (9 * dpr) + 'px monospace';
+
+  ctx.textAlign = 'right';
+  ['1.0', '0.75', '0.5', '0.25', '0.0'].forEach(function(lbl, i) {
+    var p = 1 - i * 0.25;
+    ctx.fillText(lbl, PAD.l - 5, yPos(p) + 3 * dpr);
+  });
+
+  ctx.textAlign = 'center';
+  [-300, -150, 0, 150, 300].forEach(function(s) {
+    ctx.fillText(s, xPos(s), PAD.t + plotH + 14 * dpr);
+  });
+
+  ctx.fillStyle = textColor;
+  ctx.font = (9 * dpr) + 'px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('SOA (ms)', PAD.l + plotW / 2, H - 4);
+  ctx.save();
+  ctx.translate(10 * dpr, PAD.t + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('P(B first)', 0, 0);
+  ctx.restore();
+
+  var pts = getPoints();
+  var withData = pts.filter(function(p) { return p.p !== null; });
+
+  if (withData.length >= 2) {
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 1.5 * dpr;
+    ctx.setLineDash([3 * dpr, 3 * dpr]);
+    ctx.beginPath();
+    withData.forEach(function(pt, i) {
+      var x = xPos(pt.soa), y = yPos(pt.p);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  withData.forEach(function(pt) {
+    var x = xPos(pt.soa), y = yPos(pt.p);
+    var r = Math.min((2 + pt.n * 0.7) * dpr, 7 * dpr);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = dotColor;
+    ctx.fill();
+    ctx.strokeStyle = isLight ? '#58acff' : '#58a6ff';
+    ctx.lineWidth = 0.5 * dpr;
+    ctx.stroke();
+  });
+
+  var pss = computePSS(pts);
+  if (pss !== null) {
+    var xPSS = xPos(pss);
+    ctx.strokeStyle = pssColor;
+    ctx.lineWidth = 1 * dpr;
+    ctx.setLineDash([2 * dpr, 4 * dpr]);
+    ctx.beginPath(); ctx.moveTo(xPSS, PAD.t); ctx.lineTo(xPSS, PAD.t + plotH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = pssColor;
+    ctx.font = (8 * dpr) + 'px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('PSS', xPSS, PAD.t + 9 * dpr);
+  }
+}
+
+function startExperiment() {
+  experimentActive = true;
+  document.getElementById('btnStart').textContent = 'running';
+  document.getElementById('btnStart').classList.add('active');
+  runTrial();
+}
+
+function resetExperiment() {
+  experimentActive = false;
+  trialRunning = false;
+  awaitingResponse = false;
+  SOA_LEVELS.forEach(function(s) { data[s] = { a: 0, b: 0 }; });
+  setCircle('circA', false);
+  setCircle('circB', false);
+  setResponseEnabled(false);
+  setStatus('press start to begin');
+  document.getElementById('btnStart').textContent = 'start';
+  document.getElementById('btnStart').classList.remove('active');
+  document.getElementById('statTrials').textContent = '0';
+  document.getElementById('statPSS').textContent = '—';
+  document.getElementById('statJND').textContent = '—';
+  drawChart();
+}
+
+function resizeChart() {
+  var canvas = document.getElementById('chart');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(200 * dpr);
+  drawChart();
+}
+
+window.addEventListener('load', function() { resizeChart(); updateStats(); });
+window.addEventListener('resize', resizeChart);
+
+var _themeObs = new MutationObserver(function() { drawChart(); });
+_themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>

@@ -103,6 +103,7 @@
       { href: '/report.html', label: 'report' },
       { href: '/restore.html', label: 'restore' },
       { href: '/phi.html', label: 'phi' },
+      { href: '/toj.html', label: 'toj' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
