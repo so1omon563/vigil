@@ -102,6 +102,7 @@
       { href: '/converge.html', label: 'converge' },
       { href: '/report.html', label: 'report' },
       { href: '/restore.html', label: 'restore' },
+      { href: '/phi.html', label: 'phi' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

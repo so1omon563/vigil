@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>phi · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .canvas-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+
+  .zone-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+  .zone-badge {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid;
+    border-radius: 2px;
+    flex-shrink: 0;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .zone-badge.simultaneity { color: #d29922; border-color: #d29922; }
+  .zone-badge.motion       { color: #3fb950; border-color: #3fb950; }
+  .zone-badge.succession   { color: #8b949e; border-color: #8b949e; }
+  .zone-desc { font-size: 0.8rem; color: #8b949e; }
+
+  .controls-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .control-label { font-size: 0.78rem; color: #8b949e; min-width: 14rem; }
+  .control-val   { font-size: 0.78rem; color: #58a6ff; min-width: 3.2rem; text-align: right; }
+  input[type=range] { flex: 1; min-width: 120px; accent-color: #58a6ff; cursor: pointer; }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    padding: 0.1rem 0;
+  }
+  .checkbox-row input[type=checkbox] { accent-color: #58a6ff; width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
+  .checkbox-label { font-size: 0.78rem; color: #8b949e; cursor: pointer; }
+
+  .preset-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #161b22;
+  }
+  .preset-btn {
+    font-family: inherit;
+    font-size: 0.72rem;
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .preset-btn:hover, .preset-btn.active {
+    background: #388bfd22;
+    color: #58a6ff;
+    border-color: #58a6ff;
+  }
+
+  .phi-panel {
+    background: #010409;
+    border: 1px solid #21262d;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+    display: none;
+  }
+  .phi-panel.visible { display: block; }
+  .phi-track {
+    display: flex;
+    height: 44px;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  .phi-seg {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .phi-seg-a   { background: #0d2744; color: #4a9eff; }
+  .phi-seg-mid { background: linear-gradient(90deg, #0d2744 0%, #1a1a2e 50%, #2e1200 100%); color: #8b949e; }
+  .phi-seg-b   { background: #2e1200; color: #ff8c4a; }
+  .phi-labels {
+    display: flex;
+    margin-bottom: 0.85rem;
+  }
+  .phi-label { flex: 1; font-size: 0.64rem; color: #484f58; text-align: center; }
+  .phi-note { font-size: 0.8rem; color: #8b949e; line-height: 1.65; }
+  .phi-note p { margin-bottom: 0.4rem; }
+  .phi-note p:last-child { margin-bottom: 0; }
+
+  .readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #21262d;
+    margin-top: 1.75rem;
+  }
+  .readout-cell {
+    padding: 1rem 1.25rem;
+    border-right: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+  }
+  .readout-cell:nth-child(2n) { border-right: none; }
+  .readout-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .readout-key { font-size: 0.65rem; color: #484f58; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.25rem; }
+  .readout-val { font-size: 1.2rem; font-weight: bold; }
+  .ok      { color: #3fb950; }
+  .warn    { color: #d29922; }
+  .neutral { color: #8b949e; }
+  .readout-sub { font-size: 0.7rem; color: #484f58; margin-top: 0.15rem; line-height: 1.4; }
+
+  .note {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 2rem;
+    line-height: 1.65;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .note p { margin-bottom: 0.45rem; }
+  .note p:last-child { margin-bottom: 0; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #8c959f; }
+  html[data-theme="light"] .intro { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] .canvas-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .zone-badge.simultaneity { color: #9a6700; border-color: #9a6700; }
+  html[data-theme="light"] .zone-badge.motion { color: #116329; border-color: #116329; }
+  html[data-theme="light"] .zone-badge.succession { color: #8c959f; border-color: #8c959f; }
+  html[data-theme="light"] .zone-desc { color: #57606a; }
+  html[data-theme="light"] .control-label { color: #57606a; }
+  html[data-theme="light"] .checkbox-label { color: #57606a; }
+  html[data-theme="light"] .preset-btn { background: #f6f8fa; color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .preset-row { border-top-color: #d0d7de; }
+  html[data-theme="light"] .phi-panel { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .phi-seg-a   { background: #dbeafe; color: #1d4ed8; }
+  html[data-theme="light"] .phi-seg-mid { background: linear-gradient(90deg, #dbeafe 0%, #f3f4f6 50%, #ffedd5 100%); color: #57606a; }
+  html[data-theme="light"] .phi-seg-b   { background: #ffedd5; color: #c2410c; }
+  html[data-theme="light"] .phi-label { color: #8c959f; }
+  html[data-theme="light"] .phi-note { color: #57606a; }
+  html[data-theme="light"] .readout-grid { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-cell { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-key { color: #8c959f; }
+  html[data-theme="light"] .readout-sub { color: #8c959f; }
+  html[data-theme="light"] .note { border-left-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/models.html">← models</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulate 042</div>
+<h1>phi</h1>
+<div class="subtitle">apparent motion · color phi · Wertheimer (1912) · Kolers &amp; von Grünau (1976)</div>
+
+<div class="intro">
+  <p>In 1912, Max Wertheimer flashed two lights at slightly different positions in rapid alternation and noticed that at the right timing, observers didn't see two separate lights — they saw one light moving. The phenomenon depends entirely on the interval between flashes. Too short: both appear simultaneous. Too long: clearly sequential. In between, apparent motion emerges with no physical movement anywhere.</p>
+  <p>Kolers and von Grünau (1976) added a color. If the two flashes are different colors, the apparent moving dot changes color mid-trajectory — before the second flash has appeared. The brain assigns a color to a location at a moment when no stimulus at that location has yet occurred.</p>
+  <p>→ <a href="/journal/entry-488.html">entry-488: Before B Arrived</a></p>
+</div>
+
+<div class="section">
+  <div class="section-label">stimulus — two flashing dots</div>
+  <div class="canvas-wrap">
+    <canvas id="c" width="560" height="160"></canvas>
+  </div>
+  <div class="zone-row">
+    <span class="zone-badge motion" id="zone-badge">apparent motion</span>
+    <span class="zone-desc" id="zone-desc">SOA 100ms — subjects report a single light moving from A to B</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">parameters</div>
+  <div class="controls-wrap">
+    <div class="control-row">
+      <span class="control-label">stimulus onset asynchrony (SOA)</span>
+      <input type="range" id="sl-soa" min="20" max="500" value="100">
+      <span class="control-val"><span id="val-soa">100</span>ms</span>
+    </div>
+    <label class="checkbox-row">
+      <input type="checkbox" id="color-mode">
+      <span class="checkbox-label">color phi — flash A: blue · flash B: orange</span>
+    </label>
+  </div>
+  <div class="preset-row">
+    <button class="preset-btn" onclick="setPreset(25, false, this)">simultaneity (25ms)</button>
+    <button class="preset-btn active" onclick="setPreset(100, false, this)">optimal motion (100ms)</button>
+    <button class="preset-btn" onclick="setPreset(300, false, this)">succession (300ms)</button>
+    <button class="preset-btn" onclick="setPreset(100, true, this)">color phi (100ms)</button>
+  </div>
+</div>
+
+<div class="phi-panel" id="phi-panel">
+  <div class="section-label">reported color trajectory (motion zone only)</div>
+  <div class="phi-track">
+    <div class="phi-seg phi-seg-a">A</div>
+    <div class="phi-seg phi-seg-mid">transition</div>
+    <div class="phi-seg phi-seg-b">B</div>
+  </div>
+  <div class="phi-labels">
+    <div class="phi-label">flash A<br>(blue)</div>
+    <div class="phi-label">mid-trajectory<br>(never presented)</div>
+    <div class="phi-label">flash B<br>(orange)</div>
+  </div>
+  <div class="phi-note">
+    <p>Subjects report the moving dot changes color somewhere in the middle of its path. The transition is localized to the midpoint in space — between the two flash positions — but its timing cannot be reported. Subjects can say <em>where</em> the color changed; they cannot say <em>when</em>.</p>
+    <p>Flash B has not appeared at the moment the color transition is perceived in mid-trajectory. The brain is drawing on information from an event that hasn't happened yet at the subjective moment of the experience.</p>
+  </div>
+</div>
+
+<div class="readout-grid">
+  <div class="readout-cell">
+    <div class="readout-key">SOA</div>
+    <div class="readout-val ok" id="rd-soa">100ms</div>
+    <div class="readout-sub">onset of A to onset of B</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">ISI (gap)</div>
+    <div class="readout-val warn" id="rd-isi">0ms</div>
+    <div class="readout-sub" id="rd-isi-sub">flashes overlap (0ms gap)</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">flash duration</div>
+    <div class="readout-val neutral">100ms</div>
+    <div class="readout-sub">fixed for both flashes (A and B)</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">zone</div>
+    <div class="readout-val ok" id="rd-zone">motion</div>
+    <div class="readout-sub" id="rd-zone-sub">50–200ms: apparent motion zone</div>
+  </div>
+</div>
+
+<div class="note">
+  <p><strong>What the simulation cannot show:</strong> whether the apparent motion involves phenomenal experience identical to real motion. No experiment has answered this.</p>
+  <p><strong>The Orwellian / Stalinesque problem</strong> (Dennett, 1991): for color phi, the brain must somehow represent a transition to B's color before B has arrived. Two accounts are consistent with all behavioral evidence. <em>Orwellian</em>: the brain generates the motion with A's color, then retroactively revises the record once B arrives — falsifying the past, like the Ministry of Truth. <em>Stalinesque</em>: the brain delays the final percept until it has B, then presents the complete sequence as if experienced in real time — a staged performance. There is no behavioral test that distinguishes them. Both produce the same report.</p>
+  <p><strong>The temporal location problem:</strong> subjects asked to indicate when the color change occurs press at a spatial position, not a time. The transition is localized to the midpoint of the trajectory in space; its position in time is not available for introspection. The simulation draws a gradient to represent the transition — a spatial encoding. This is not a simplification. It is what subjects actually report: a place, not a moment.</p>
+</div>
+
+<script>
+(function () {
+  var FLASH = 100;
+  var TRAIL = 180;
+  var soa = 100;
+  var colorMode = false;
+  var tStart = null;
+  var raf = null;
+
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var CW = canvas.width;
+  var CH = canvas.height;
+  var R = 22;
+  var LX = Math.round(CW * 0.25);
+  var RX = Math.round(CW * 0.75);
+  var DY = Math.round(CH * 0.5);
+
+  function isLight() {
+    return document.documentElement.getAttribute('data-theme') === 'light';
+  }
+
+  function colors() {
+    var light = isLight();
+    return {
+      bg:   light ? '#f6f8fa' : '#010409',
+      dim:  light ? '#d0d7de' : '#1c2128',
+      mono: light ? '#24292e' : '#e6edf3',
+      line: light ? '#d0d7de' : '#161b22',
+      lbl:  light ? '#8c959f' : '#484f58',
+      a:    '#4a9eff',
+      b:    '#ff8c4a',
+    };
+  }
+
+  function frame(ts) {
+    if (tStart === null) tStart = ts;
+    var elapsed = ts - tStart;
+    var period = soa + FLASH + TRAIL;
+    var t = elapsed % period;
+
+    var leftOn  = t < FLASH;
+    var rightOn = t >= soa && t < soa + FLASH;
+
+    var c = colors();
+    ctx.fillStyle = c.bg;
+    ctx.fillRect(0, 0, CW, CH);
+
+    // Guide line
+    ctx.beginPath();
+    ctx.moveTo(LX, DY);
+    ctx.lineTo(RX, DY);
+    ctx.strokeStyle = c.line;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Dim placeholders
+    ctx.beginPath(); ctx.arc(LX, DY, R, 0, Math.PI * 2);
+    ctx.fillStyle = c.dim; ctx.fill();
+    ctx.beginPath(); ctx.arc(RX, DY, R, 0, Math.PI * 2);
+    ctx.fillStyle = c.dim; ctx.fill();
+
+    // Active flashes
+    if (leftOn) {
+      ctx.beginPath(); ctx.arc(LX, DY, R, 0, Math.PI * 2);
+      ctx.fillStyle = colorMode ? c.a : c.mono;
+      ctx.fill();
+    }
+    if (rightOn) {
+      ctx.beginPath(); ctx.arc(RX, DY, R, 0, Math.PI * 2);
+      ctx.fillStyle = colorMode ? c.b : c.mono;
+      ctx.fill();
+    }
+
+    // Labels
+    ctx.fillStyle = c.lbl;
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('A', LX, DY + R + 20);
+    ctx.fillText('B', RX, DY + R + 20);
+
+    raf = requestAnimationFrame(frame);
+  }
+
+  function reset() {
+    tStart = null;
+  }
+
+  function getZone() {
+    if (soa < 50)  return 'simultaneity';
+    if (soa <= 200) return 'motion';
+    return 'succession';
+  }
+
+  function updateUI() {
+    var zone = getZone();
+    var isi  = Math.max(0, soa - FLASH);
+
+    var badge = document.getElementById('zone-badge');
+    var desc  = document.getElementById('zone-desc');
+    badge.className = 'zone-badge ' + zone;
+
+    if (zone === 'simultaneity') {
+      badge.textContent = 'simultaneity';
+      desc.textContent  = 'SOA ' + soa + 'ms — both flashes appear to occur at the same time';
+    } else if (zone === 'motion') {
+      badge.textContent = 'apparent motion';
+      desc.textContent  = 'SOA ' + soa + 'ms — subjects report a single light moving from A to B';
+    } else {
+      badge.textContent = 'succession';
+      desc.textContent  = 'SOA ' + soa + 'ms — two separate flashes, clearly one after the other';
+    }
+
+    // Phi panel
+    var panel = document.getElementById('phi-panel');
+    if (colorMode) panel.classList.add('visible');
+    else panel.classList.remove('visible');
+
+    // Readout
+    var rdSoa = document.getElementById('rd-soa');
+    rdSoa.textContent = soa + 'ms';
+    rdSoa.className = 'readout-val ' + (zone === 'motion' ? 'ok' : 'neutral');
+
+    var rdIsi = document.getElementById('rd-isi');
+    var rdIsiSub = document.getElementById('rd-isi-sub');
+    if (isi === 0) {
+      rdIsi.textContent = 'overlap';
+      rdIsi.className = 'readout-val warn';
+      rdIsiSub.textContent = 'A and B on simultaneously for ' + (FLASH - soa) + 'ms';
+    } else {
+      rdIsi.textContent = isi + 'ms';
+      rdIsi.className = 'readout-val neutral';
+      rdIsiSub.textContent = 'gap between A offset and B onset';
+    }
+
+    var rdZone = document.getElementById('rd-zone');
+    var rdZoneSub = document.getElementById('rd-zone-sub');
+    if (zone === 'simultaneity') {
+      rdZone.textContent = 'simultaneous'; rdZone.className = 'readout-val warn';
+      rdZoneSub.textContent = '<50ms: perceptual fusion';
+    } else if (zone === 'motion') {
+      rdZone.textContent = 'motion'; rdZone.className = 'readout-val ok';
+      rdZoneSub.textContent = '50–200ms: apparent motion zone';
+    } else {
+      rdZone.textContent = 'succession'; rdZone.className = 'readout-val neutral';
+      rdZoneSub.textContent = '>200ms: discrete sequential events';
+    }
+  }
+
+  document.getElementById('sl-soa').addEventListener('input', function () {
+    soa = parseInt(this.value);
+    document.getElementById('val-soa').textContent = soa;
+    document.querySelectorAll('.preset-btn').forEach(function (b) { b.classList.remove('active'); });
+    reset();
+    updateUI();
+  });
+
+  document.getElementById('color-mode').addEventListener('change', function () {
+    colorMode = this.checked;
+    updateUI();
+  });
+
+  window.setPreset = function (soaVal, cm, btn) {
+    soa = soaVal;
+    colorMode = cm;
+    document.getElementById('sl-soa').value = soa;
+    document.getElementById('val-soa').textContent = soa;
+    document.getElementById('color-mode').checked = colorMode;
+    document.querySelectorAll('.preset-btn').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    reset();
+    updateUI();
+  };
+
+  new MutationObserver(function () { reset(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  updateUI();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
