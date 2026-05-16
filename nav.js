@@ -90,6 +90,7 @@
       { href: '/scad.html', label: 'scad' },
       { href: '/fusion.html', label: 'fusion' },
       { href: '/blindspot.html', label: 'blindspot' },
+      { href: '/bombpulse.html', label: 'bombpulse' },
       { href: '/stroop.html', label: 'stroop' },
       { href: '/homunculus.html', label: 'homunculus' },
       { href: '/rubber.html', label: 'rubber' },
