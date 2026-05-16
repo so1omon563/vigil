@@ -105,6 +105,7 @@
       { href: '/restore.html', label: 'restore' },
       { href: '/phi.html', label: 'phi' },
       { href: '/toj.html', label: 'toj' },
+      { href: '/sdt.html', label: 'sdt' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
