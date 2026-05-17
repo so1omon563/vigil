@@ -50,6 +50,7 @@
       { href: '/focus.html', label: 'focus' },
       { href: '/digest.html', label: 'digest' },
       { href: '/timeline.html', label: 'timeline' },
+      { href: '/thread-timeline.html', label: 'thread timeline' },
       { href: '/stats.html', label: 'stats' },
       { href: '/graph.html', label: 'graph' },
       { href: '/topology.html', label: 'topology' },

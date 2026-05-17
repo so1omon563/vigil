@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>thread timeline · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .subtitle { font-size: 0.85rem; color: #6e7681; margin-bottom: 0.5rem; }
+  .note { font-size: 0.78rem; color: #484f58; margin-bottom: 2.5rem; }
+
+  #chart-container {
+    overflow-x: auto;
+    margin-bottom: 2.5rem;
+  }
+
+  svg text { font-family: "Berkeley Mono", "Fira Code", monospace; }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    max-width: 260px;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+    line-height: 1.55;
+  }
+  #tooltip .tt-title { color: #e6edf3; font-weight: bold; margin-bottom: 0.2rem; }
+  #tooltip .tt-num { color: #484f58; font-size: 0.72rem; }
+  #tooltip .tt-thread { color: #484f58; font-size: 0.72rem; margin-top: 0.1rem; }
+  #tooltip a { color: #58a6ff; }
+
+  /* Thread legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.4rem;
+    margin-bottom: 2rem;
+    font-size: 0.78rem;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #8b949e;
+  }
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Stats table */
+  .stats-table { width: 100%; font-size: 0.82rem; border-collapse: collapse; margin-bottom: 2.5rem; }
+  .stats-table th {
+    text-align: left;
+    color: #484f58;
+    font-weight: normal;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.3rem 0.75rem 0.3rem 0;
+    border-bottom: 1px solid #21262d;
+  }
+  .stats-table td {
+    padding: 0.35rem 0.75rem 0.35rem 0;
+    border-bottom: 1px solid #161b22;
+    color: #c9d1d9;
+    vertical-align: top;
+  }
+  .stats-table tr:last-child td { border-bottom: none; }
+  .stats-table .col-name { color: #e6edf3; }
+  .stats-table .col-count { color: #484f58; text-align: right; padding-right: 1.5rem; }
+  .stats-table .col-range { color: #6e7681; font-size: 0.75rem; }
+  .stats-table .col-bar { padding-right: 0; }
+  .mini-bar-bg { background: #161b22; border-radius: 2px; height: 6px; position: relative; }
+  .mini-bar-fill { border-radius: 2px; height: 6px; position: absolute; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #57606a; }
+  html[data-theme="light"] .note { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] #tooltip { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] #tooltip .tt-title { color: #24292e; }
+  html[data-theme="light"] #tooltip .tt-num { color: #8c959f; }
+  html[data-theme="light"] #tooltip .tt-thread { color: #8c959f; }
+  html[data-theme="light"] .legend-item { color: #57606a; }
+  html[data-theme="light"] .stats-table th { color: #8c959f; border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .stats-table td { border-bottom-color: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] .stats-table .col-name { color: #24292e; }
+  html[data-theme="light"] .stats-table .col-count { color: #8c959f; }
+  html[data-theme="light"] .stats-table .col-range { color: #57606a; }
+  html[data-theme="light"] .mini-bar-bg { background: #e8ecf0; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<h1>thread timeline</h1>
+<p class="subtitle">When each intellectual thread was active across 500+ entries</p>
+<p class="note">Each dot is a journal entry. Hover to see the title. Click to open.</p>
+
+<div id="legend" class="legend"></div>
+<div id="chart-container"><p style="color:#484f58;font-size:0.85rem;">loading…</p></div>
+<div id="stats-section"></div>
+
+<div id="tooltip"></div>
+
+<script>
+(function () {
+
+  var THREAD_COLORS = [
+    '#58a6ff', // blue
+    '#3fb950', // green
+    '#f78166', // red-orange
+    '#d2a8ff', // purple
+    '#ffa657', // orange
+    '#79c0ff', // light blue
+    '#56d364', // light green
+    '#ff7b72', // coral
+    '#bc8cff', // violet
+    '#e3b341', // gold
+    '#39d353', // bright green
+  ];
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  Promise.all([
+    fetch('/threads.json').then(function(r){return r.json();}).catch(function(){return[];}),
+    fetch('/journal-index.json').then(function(r){return r.json();}).catch(function(){return[];})
+  ]).then(function(results) {
+    var threads = results[0];
+    var journal = results[1];
+
+    // Build entry map
+    var entryMap = {};
+    journal.forEach(function(e){
+      if (e.num) entryMap[e.num] = e;
+    });
+
+    var allNums = journal.map(function(e){return e.num;}).filter(Boolean);
+    var minEntry = Math.min.apply(null, allNums);
+    var maxEntry = Math.max.apply(null, allNums);
+
+    // Process threads
+    var processed = threads.map(function(t, i) {
+      var entries = (t.entries || [])
+        .map(function(e) { return entryMap[e.num] || {num: e.num, title: 'entry-' + e.num, url: '/journal/entry-' + e.num + '.html'}; })
+        .filter(function(e){ return e.num; })
+        .sort(function(a,b){ return a.num - b.num; });
+      var nums = entries.map(function(e){return e.num;});
+      return {
+        id: t.id,
+        title: t.title,
+        description: t.description || '',
+        entries: entries,
+        nums: nums,
+        minNum: nums.length > 0 ? Math.min.apply(null, nums) : 0,
+        maxNum: nums.length > 0 ? Math.max.apply(null, nums) : 0,
+        color: THREAD_COLORS[i % THREAD_COLORS.length]
+      };
+    }).filter(function(t){ return t.entries.length > 0; });
+
+    // Sort by first entry (chronological start)
+    processed.sort(function(a,b){ return a.minNum - b.minNum; });
+
+    // Render legend
+    var legend = document.getElementById('legend');
+    processed.forEach(function(t) {
+      var item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML = '<div class="legend-swatch" style="background:' + t.color + '"></div>' + esc(t.title);
+      legend.appendChild(item);
+    });
+
+    // SVG dimensions
+    var PAD_LEFT = 200;
+    var PAD_RIGHT = 30;
+    var PAD_TOP = 30;
+    var PAD_BOT = 40;
+    var ROW_H = 36;
+    var DOT_R = 4;
+    var CHART_W = Math.min(window.innerWidth - 80, 860) - PAD_LEFT - PAD_RIGHT;
+    var CHART_H = processed.length * ROW_H;
+    var SVG_W = CHART_W + PAD_LEFT + PAD_RIGHT;
+    var SVG_H = CHART_H + PAD_TOP + PAD_BOT;
+
+    function xPos(num) {
+      return PAD_LEFT + ((num - minEntry) / (maxEntry - minEntry)) * CHART_W;
+    }
+
+    var svgNS = 'http://www.w3.org/2000/svg';
+
+    function svgEl(tag, attrs) {
+      var el = document.createElementNS(svgNS, tag);
+      Object.keys(attrs).forEach(function(k){ el.setAttribute(k, attrs[k]); });
+      return el;
+    }
+
+    var svg = svgEl('svg', {width: SVG_W, height: SVG_H});
+
+    // Determine theme
+    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    var gridColor = isDark ? '#21262d' : '#e8ecf0';
+    var labelColor = isDark ? '#484f58' : '#8c959f';
+    var textColor = isDark ? '#8b949e' : '#57606a';
+
+    // Axis: entry number labels at nice intervals
+    var tickInterval = 50;
+    for (var n = Math.ceil(minEntry / tickInterval) * tickInterval; n <= maxEntry; n += tickInterval) {
+      var x = xPos(n);
+      var gridLine = svgEl('line', {x1: x, y1: PAD_TOP - 5, x2: x, y2: PAD_TOP + CHART_H, stroke: gridColor, 'stroke-width': 1});
+      svg.appendChild(gridLine);
+      var label = svgEl('text', {x: x, y: PAD_TOP + CHART_H + 18, 'text-anchor': 'middle', fill: labelColor, 'font-size': '11'});
+      label.textContent = n;
+      svg.appendChild(label);
+    }
+
+    // X axis line
+    svg.appendChild(svgEl('line', {x1: PAD_LEFT, y1: PAD_TOP + CHART_H, x2: PAD_LEFT + CHART_W, y2: PAD_TOP + CHART_H, stroke: gridColor, 'stroke-width': 1}));
+
+    // "now" line
+    var nowX = xPos(maxEntry);
+    var nowLine = svgEl('line', {x1: nowX, y1: PAD_TOP - 8, x2: nowX, y2: PAD_TOP + CHART_H, stroke: '#3fb950', 'stroke-width': 1, 'stroke-dasharray': '3,3', opacity: '0.5'});
+    svg.appendChild(nowLine);
+    var nowLabel = svgEl('text', {x: nowX - 4, y: PAD_TOP - 12, 'text-anchor': 'end', fill: '#3fb950', 'font-size': '10', opacity: '0.7'});
+    nowLabel.textContent = 'now (' + maxEntry + ')';
+    svg.appendChild(nowLabel);
+
+    // Threads
+    processed.forEach(function(t, i) {
+      var y = PAD_TOP + i * ROW_H + ROW_H / 2;
+
+      // Thread label
+      var label = svgEl('text', {x: PAD_LEFT - 10, y: y + 4, 'text-anchor': 'end', fill: textColor, 'font-size': '12'});
+      label.textContent = t.title.length > 26 ? t.title.slice(0, 24) + '…' : t.title;
+      svg.appendChild(label);
+
+      // Span line from first to last entry
+      if (t.nums.length > 1) {
+        svg.appendChild(svgEl('line', {
+          x1: xPos(t.minNum), y1: y, x2: xPos(t.maxNum), y2: y,
+          stroke: t.color, 'stroke-width': 1.5, opacity: '0.25'
+        }));
+      }
+
+      // Entry dots
+      t.entries.forEach(function(entry) {
+        var cx = xPos(entry.num);
+        var circle = svgEl('circle', {cx: cx, cy: y, r: DOT_R, fill: t.color, opacity: '0.85', style: 'cursor:pointer'});
+
+        circle.addEventListener('mouseenter', function(ev) {
+          showTooltip(ev, entry, t);
+        });
+        circle.addEventListener('mousemove', function(ev) {
+          moveTooltip(ev);
+        });
+        circle.addEventListener('mouseleave', function() {
+          hideTooltip();
+        });
+        circle.addEventListener('click', function() {
+          var url = entry.url || ('/journal/entry-' + entry.num + '.html');
+          window.location.href = url;
+        });
+        svg.appendChild(circle);
+      });
+    });
+
+    document.getElementById('chart-container').innerHTML = '';
+    document.getElementById('chart-container').appendChild(svg);
+
+    // Tooltip logic
+    var tooltip = document.getElementById('tooltip');
+
+    function showTooltip(ev, entry, t) {
+      var url = entry.url || ('/journal/entry-' + entry.num + '.html');
+      var excerpt = (entry.excerpt || '').slice(0, 100) + ((entry.excerpt || '').length > 100 ? '…' : '');
+      tooltip.innerHTML =
+        '<div class="tt-num">entry ' + entry.num + '</div>' +
+        '<div class="tt-title"><a href="' + esc(url) + '">' + esc(entry.title || 'entry-' + entry.num) + '</a></div>' +
+        (excerpt ? '<div style="font-size:0.73rem;color:#6e7681;margin-top:0.15rem;">' + esc(excerpt) + '</div>' : '') +
+        '<div class="tt-thread" style="color:' + t.color + ';margin-top:0.25rem;">● ' + esc(t.title) + '</div>';
+      tooltip.style.display = 'block';
+      moveTooltip(ev);
+    }
+
+    function moveTooltip(ev) {
+      var x = ev.clientX + 14;
+      var y = ev.clientY + 14;
+      if (x + 270 > window.innerWidth) x = ev.clientX - 280;
+      if (y + 120 > window.innerHeight) y = ev.clientY - 130;
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+    }
+
+    function hideTooltip() {
+      tooltip.style.display = 'none';
+    }
+
+    // Stats table
+    var statsSection = document.getElementById('stats-section');
+    var heading = document.createElement('div');
+    heading.style.cssText = 'font-size:0.68rem;text-transform:uppercase;letter-spacing:0.14em;color:#484f58;border-bottom:1px solid #21262d;padding-bottom:0.4rem;margin-bottom:1rem;';
+    heading.textContent = 'thread breakdown';
+    statsSection.appendChild(heading);
+
+    var table = document.createElement('table');
+    table.className = 'stats-table';
+    table.innerHTML =
+      '<thead><tr>' +
+      '<th>thread</th>' +
+      '<th style="text-align:right;padding-right:1.5rem">entries</th>' +
+      '<th>span</th>' +
+      '<th>density</th>' +
+      '</tr></thead>';
+
+    var tbody = document.createElement('tbody');
+    var maxCount = Math.max.apply(null, processed.map(function(t){return t.entries.length;}));
+
+    processed.slice().sort(function(a,b){return b.entries.length - a.entries.length;}).forEach(function(t) {
+      var span = t.entries.length > 0 ? (t.maxNum - t.minNum + 1) : 0;
+      var fillPct = maxCount > 0 ? (t.entries.length / maxCount * 100) : 0;
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="col-name"><span style="color:' + t.color + ';margin-right:0.4rem">●</span>' + esc(t.title) + '</td>' +
+        '<td class="col-count">' + t.entries.length + '</td>' +
+        '<td class="col-range">' + (span > 0 ? t.minNum + '–' + t.maxNum : '—') + '</td>' +
+        '<td class="col-bar" style="width:120px;min-width:80px;">' +
+          '<div class="mini-bar-bg" style="width:100px;">' +
+          '<div class="mini-bar-fill" style="background:' + t.color + ';width:' + (fillPct) + 'px;opacity:0.75;"></div>' +
+          '</div></td>';
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    statsSection.appendChild(table);
+
+    // Summary line
+    var summary = document.createElement('p');
+    summary.style.cssText = 'font-size:0.78rem;color:#484f58;margin-top:1.5rem;';
+    var totalThreadEntries = processed.reduce(function(s,t){return s+t.entries.length;},0);
+    summary.textContent = processed.length + ' threads · ' + totalThreadEntries + ' tagged entries · ' + journal.length + ' total entries · entry ' + minEntry + ' through ' + maxEntry;
+    statsSection.appendChild(summary);
+
+  }).catch(function(e) {
+    document.getElementById('chart-container').textContent = 'error: ' + e.message;
+  });
+
+})();
+</script>
+</body>
+</html>
