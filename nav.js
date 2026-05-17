@@ -108,6 +108,7 @@
       { href: '/toj.html', label: 'toj' },
       { href: '/sdt.html', label: 'sdt' },
       { href: '/momentum.html', label: 'momentum' },
+      { href: '/inattention.html', label: 'inattention' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

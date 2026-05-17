@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inattentional Blindness · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro-text {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+  .intro-text strong { color: #e6edf3; }
+
+  canvas {
+    display: block;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    margin: 0 auto 1rem;
+    max-width: 100%;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 0.88rem;
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.5rem 1.2rem;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  button:hover { background: #30363d; }
+  button.primary {
+    background: #1f6feb;
+    color: #fff;
+    border-color: #388bfd;
+    font-size: 0.95rem;
+    padding: 0.6rem 1.8rem;
+  }
+  button.primary:hover { background: #388bfd; }
+  button.pass-btn {
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 0.7rem 2.2rem;
+    background: #161b22;
+    border: 2px solid #58a6ff;
+    color: #58a6ff;
+    letter-spacing: 0.05em;
+  }
+  button.pass-btn:hover { background: #1c2128; }
+  button.pass-btn:active { transform: scale(0.96); background: #0d1117; }
+
+  .phase { display: none; }
+  .phase.active { display: block; }
+
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .stat {
+    font-size: 0.85rem;
+    color: #6e7681;
+  }
+  .stat span { color: #e6edf3; font-size: 1rem; }
+
+  .timer-bar {
+    width: 580px;
+    max-width: 100%;
+    height: 3px;
+    background: #21262d;
+    border-radius: 2px;
+    margin: 0 auto 0.75rem;
+    overflow: hidden;
+  }
+  .timer-bar-fill {
+    height: 100%;
+    background: #388bfd;
+    border-radius: 2px;
+  }
+
+  .reveal-box {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 1.5rem;
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+  }
+  .reveal-box strong { color: #e6edf3; }
+  .reveal-box .hi { color: #f78166; }
+  .reveal-box p + p { margin-top: 0.75rem; }
+
+  .query-btns { display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+
+  .replay-note {
+    font-size: 0.85rem;
+    color: #6e7681;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  .replay-note span { color: #f78166; }
+
+  .explanation {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #21262d;
+  }
+  .explanation h2 { font-size: 1rem; color: #e6edf3; margin-bottom: 1.2rem; }
+  .explanation p {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+  .explanation em { color: #c9d1d9; font-style: normal; }
+  .cannot {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    border-left: 2px solid #21262d;
+    font-size: 0.85rem;
+    color: #484f58;
+    line-height: 1.65;
+  }
+  .cannot strong { color: #6e7681; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] h1 { color: #24292f; }
+  html[data-theme="light"] canvas { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .reveal-box { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .reveal-box strong { color: #24292f; }
+  html[data-theme="light"] button { background: #f6f8fa; color: #24292f; border-color: #d0d7de; }
+  html[data-theme="light"] button:hover { background: #e8ecf0; }
+  html[data-theme="light"] button.pass-btn { background: #fff; color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .stat { color: #57606a; }
+  html[data-theme="light"] .stat span { color: #24292f; }
+  html[data-theme="light"] .timer-bar { background: #d0d7de; }
+  html[data-theme="light"] .explanation p { color: #57606a; }
+  html[data-theme="light"] .cannot { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] .cannot strong { color: #57606a; }
+  html[data-theme="light"] .replay-note { color: #57606a; }
+  html[data-theme="light"] .intro-text { color: #57606a; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a></div>
+<div class="page-label">Simulate</div>
+<h1>Inattentional Blindness</h1>
+<div class="meta">Sim 45 · Simons &amp; Chabris, 1999</div>
+
+<!-- ── Phase: Intro ── -->
+<div id="phase-intro" class="phase active">
+  <div class="intro-text">
+    <p>Your task: <strong>count how many times the white balls pass to each other.</strong></p>
+    <p style="margin-top:0.75rem">A pass is when two white balls come together — close enough to exchange the ball. Press <strong>PASS</strong> (or spacebar) each time you observe one. The trial lasts 25 seconds.</p>
+    <p style="margin-top:0.75rem; color:#484f58">Read the instructions, then click Start when ready.</p>
+  </div>
+  <button class="primary" id="start-btn">Start trial</button>
+</div>
+
+<!-- ── Phase: Trial ── -->
+<div id="phase-trial" class="phase">
+  <div class="timer-bar"><div class="timer-bar-fill" id="timer-fill" style="width:100%"></div></div>
+  <canvas id="court" width="580" height="360"></canvas>
+  <div class="controls-row">
+    <button class="pass-btn" id="pass-btn">PASS</button>
+    <div>
+      <div class="stat">Passes counted: <span id="pass-count">0</span></div>
+      <div class="stat" style="margin-top:0.25rem">Time remaining: <span id="timer-display">25s</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Phase: Query ── -->
+<div id="phase-query" class="phase">
+  <div class="reveal-box">
+    <p>You pressed PASS <strong id="your-count-display">0</strong> times.</p>
+    <p>Before we continue:</p>
+    <p><strong>Did you notice anything unusual happening during the trial?</strong></p>
+    <div class="query-btns">
+      <button class="primary" id="yes-btn">Yes, I noticed something</button>
+      <button id="no-btn">No, nothing unusual</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Phase: Reveal ── -->
+<div id="phase-reveal" class="phase">
+  <div class="reveal-box" id="reveal-text"></div>
+  <button class="primary" id="replay-btn" style="margin-top:1.25rem">Watch replay</button>
+</div>
+
+<!-- ── Phase: Replay ── -->
+<div id="phase-replay" class="phase">
+  <div class="replay-note">Replay — the visitor is highlighted in <span>red</span>. It appeared at the <strong>11-second</strong> mark and was on screen for about <strong>8 seconds</strong>.</div>
+  <canvas id="court-replay" width="580" height="360"></canvas>
+  <button id="replay-again-btn" style="margin-top:0.5rem; display:none">Replay again</button>
+</div>
+
+<!-- ── Explanation (shown after reveal) ── -->
+<div class="explanation" id="explanation" style="display:none">
+  <h2>What this demonstrates</h2>
+  <p>In 1999, Daniel Simons and Christopher Chabris showed 228 observers a short video of people passing a basketball. Observers were asked to count passes — either by the white-shirted team or the black-shirted team. About half failed to notice a person in a full gorilla costume walk into the scene, beat their chest, and walk out. The gorilla was on screen for roughly nine seconds.</p>
+  <p>The effect is not a failure of visual processing. Neuroimaging evidence suggests the unexpected stimulus reaches low-level processing even when unreported. What fails is the connection from processing to <em>reportable awareness</em> — the gorilla doesn't assemble a trace strong enough to survive until the question is asked. Jeremy Wolfe's <em>inattentional amnesia</em> hypothesis holds that there may be a brief flicker of experience that dissolves before it can be accessed at T+25s. The alternative account: the gorilla was never experienced at all, only processed below the threshold of awareness.</p>
+  <p>The behavioral signatures of these two accounts are identical. You cannot distinguish them from outside, and you cannot distinguish them from inside: asking "did you see it?" at T+25s gives you an attentional act at T+25s, not access to experience at T+12s. The question of what was "in experience" during the trial may not be answerable by any available method.</p>
+  <div class="cannot">
+    <strong>What it can't show:</strong> the simulation uses bouncing geometric shapes, not a real scene with human motion — the original effect relies partly on the gorilla's salience relative to a rich social scene. This version cannot screen for prior knowledge of the 1999 study: if you know about the gorilla experiment, you may have watched for unexpected elements rather than counting, which reduces the blindness effect and typically degrades counting accuracy. The simulation also cannot resolve the core debate it demonstrates: whether inattentional blindness involves no experience of the missed stimulus, or a thin flicker of experience that leaves no traceable residue. Both accounts look identical from the outside and, per the evidence, from the inside too.
+  </div>
+  <p style="margin-top:1.25rem">Related: <a href="/journal/entry-502.html">entry-502 · Not Seen</a></p>
+</div>
+
+<script>
+// ── Constants ──
+const CW = 580, CH = 360;
+const R = 18;          // ball radius
+const SPEED = 88;      // px/s
+const TRIAL_MS = 25000;
+const VISITOR_T0 = 11000;   // ms: when visitor enters from right
+const VISITOR_VX = -68;     // px/s (leftward)
+const PASS_DIST = R * 2.5;  // proximity threshold for a pass
+const PASS_COOL = 1600;     // ms cooldown per white-ball pair after a pass
+
+// ── Ball initial state (deterministic) ──
+function makeBalls() {
+  const a = d => d * Math.PI / 180;
+  const mk = (x, y, deg, team) => ({
+    x, y,
+    vx: Math.cos(a(deg)) * SPEED,
+    vy: Math.sin(a(deg)) * SPEED,
+    team
+  });
+  return [
+    mk(110, 115, 44,  'W'),
+    mk(345, 72,  131, 'W'),
+    mk(195, 285, -27, 'W'),
+    mk(460, 115, 148, 'D'),
+    mk(510, 250, -66, 'D'),
+    mk(375, 295, 58,  'D'),
+  ];
+}
+
+// ── Physics ──
+function stepBall(b, dt) {
+  b.x += b.vx * dt;
+  b.y += b.vy * dt;
+  if (b.x - R < 0)   { b.x = R;      b.vx =  Math.abs(b.vx); }
+  if (b.x + R > CW)  { b.x = CW - R; b.vx = -Math.abs(b.vx); }
+  if (b.y - R < 0)   { b.y = R;      b.vy =  Math.abs(b.vy); }
+  if (b.y + R > CH)  { b.y = CH - R; b.vy = -Math.abs(b.vy); }
+}
+
+function d2(a, b) {
+  const dx = a.x - b.x, dy = a.y - b.y;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+// ── Pass detection (trial mode only) ──
+function detectPasses(whites, cools) {
+  const pairs = [['01',0,1], ['02',0,2], ['12',1,2]];
+  let n = 0;
+  for (const [k, i, j] of pairs) {
+    if (cools[k] > 0) continue;
+    if (d2(whites[i], whites[j]) < PASS_DIST) {
+      n++;
+      cools[k] = PASS_COOL;
+    }
+  }
+  return n;
+}
+
+// ── Visitor position ──
+function visitorX(elapsed) {
+  if (elapsed < VISITOR_T0) return CW + 60;
+  return CW + 50 + (elapsed - VISITOR_T0) / 1000 * VISITOR_VX;
+}
+
+// ── Drawing ──
+const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+
+function drawCourt(ctx) {
+  const light = isLight();
+  ctx.fillStyle = light ? '#f6f8fa' : '#161b22';
+  ctx.fillRect(0, 0, CW, CH);
+  ctx.strokeStyle = light ? '#d8dde4' : '#1f2937';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(CW / 2, CH / 2, 72, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(CW / 2, 0);
+  ctx.lineTo(CW / 2, CH);
+  ctx.stroke();
+}
+
+function drawBalls(ctx, balls) {
+  const light = isLight();
+  for (const b of balls) {
+    const isWhite = b.team === 'W';
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, R, 0, Math.PI * 2);
+    ctx.fillStyle   = isWhite ? (light ? '#c8d0d8' : '#b8c0cc') : (light ? '#8c959f' : '#374151');
+    ctx.fill();
+    ctx.strokeStyle = isWhite ? (light ? '#e6edf3' : '#d0d7de') : (light ? '#57606a' : '#4b5563');
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function drawVisitor(ctx, elapsed, replay) {
+  const vx = visitorX(elapsed);
+  if (vx < -60 || vx > CW + 60) return;
+
+  const vy = CH * 0.52;
+  const s  = 26;
+
+  ctx.save();
+  ctx.translate(vx, vy);
+
+  if (replay) {
+    ctx.fillStyle   = '#f78166';
+    ctx.strokeStyle = '#ff6b6b';
+    ctx.lineWidth   = 2.5;
+  } else {
+    const light = isLight();
+    ctx.fillStyle   = light ? '#8c959f' : '#374151';
+    ctx.strokeStyle = light ? '#57606a' : '#4b5563';
+    ctx.lineWidth   = 1.5;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(0, -s);
+  ctx.lineTo(s, 0);
+  ctx.lineTo(0, s);
+  ctx.lineTo(-s, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  if (replay) {
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('!', 0, 1);
+  }
+
+  ctx.restore();
+}
+
+// ── Simulation loop ──
+let phase      = 'intro';
+let animId     = null;
+let balls      = null;
+let cooldowns  = null;
+let tStart     = null;
+let tLast      = null;
+let userPasses = 0;
+
+function resetSim() {
+  balls     = makeBalls();
+  cooldowns = { '01': 0, '02': 0, '12': 0 };
+  tStart    = null;
+  tLast     = null;
+}
+
+function runLoop(canvasId, replay) {
+  if (animId) { cancelAnimationFrame(animId); animId = null; }
+  resetSim();
+
+  const canvas = document.getElementById(canvasId);
+  const ctx    = canvas.getContext('2d');
+  const whites = () => balls.filter(b => b.team === 'W');
+
+  function tick(ts) {
+    if (!tStart) tStart = ts;
+    const elapsed = ts - tStart;
+    const dt      = tLast ? (ts - tLast) / 1000 : 0;
+    tLast = ts;
+
+    // Tick cooldowns
+    for (const k of Object.keys(cooldowns)) {
+      cooldowns[k] = Math.max(0, cooldowns[k] - dt * 1000);
+    }
+
+    // Update balls
+    for (const b of balls) stepBall(b, dt);
+
+    // Detect passes (trial only)
+    if (!replay) {
+      detectPasses(whites(), cooldowns);
+      const pct = Math.max(0, 1 - elapsed / TRIAL_MS);
+      document.getElementById('timer-fill').style.width = (pct * 100) + '%';
+      const rem = Math.max(0, (TRIAL_MS - elapsed) / 1000);
+      document.getElementById('timer-display').textContent = Math.ceil(rem) + 's';
+    }
+
+    // Draw
+    drawCourt(ctx);
+    drawVisitor(ctx, elapsed, replay);
+    drawBalls(ctx, balls);
+
+    if (elapsed >= TRIAL_MS) {
+      if (replay) {
+        document.getElementById('replay-again-btn').style.display = '';
+      } else {
+        endTrial();
+      }
+      return;
+    }
+
+    animId = requestAnimationFrame(tick);
+  }
+
+  animId = requestAnimationFrame(tick);
+}
+
+// ── Phase transitions ──
+function showPhase(name) {
+  document.querySelectorAll('.phase').forEach(el => el.classList.remove('active'));
+  document.getElementById('phase-' + name).classList.add('active');
+  phase = name;
+}
+
+// ── Events ──
+document.getElementById('start-btn').addEventListener('click', () => {
+  userPasses = 0;
+  document.getElementById('pass-count').textContent = '0';
+  showPhase('trial');
+  runLoop('court', false);
+});
+
+function countPass() {
+  if (phase !== 'trial') return;
+  userPasses++;
+  document.getElementById('pass-count').textContent = userPasses;
+}
+
+document.getElementById('pass-btn').addEventListener('click', countPass);
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && phase === 'trial') { e.preventDefault(); countPass(); }
+});
+
+function endTrial() {
+  if (animId) { cancelAnimationFrame(animId); animId = null; }
+  document.getElementById('your-count-display').textContent = userPasses;
+  showPhase('query');
+}
+
+document.getElementById('yes-btn').addEventListener('click', () => {
+  document.getElementById('reveal-text').innerHTML = `
+    <p>Something <strong>did</strong> appear. At the <strong>11-second</strong> mark, a <span class="hi">dark diamond shape</span> entered from the right side of the court and drifted slowly leftward, remaining visible for about <strong>8 seconds</strong> before exiting left.</p>
+    <p>You noticed it while maintaining a pass count of <strong>${userPasses}</strong>. Some observers do — particularly when the counting task feels manageable, or when the unexpected shape crosses a region they were already attending. Noticing tends to come with a cost: observers who notice the visitor typically report less accurate pass counts.</p>
+    <p>Watch the replay to see exactly where it was.</p>`;
+  document.getElementById('explanation').style.display = '';
+  showPhase('reveal');
+});
+
+document.getElementById('no-btn').addEventListener('click', () => {
+  document.getElementById('reveal-text').innerHTML = `
+    <p>Something did appear. At the <strong>11-second</strong> mark, a <span class="hi">dark diamond shape</span> entered from the right side of the court and drifted slowly leftward — on screen for about <strong>8 seconds</strong>.</p>
+    <p>This is <em>inattentional blindness</em>: a clearly visible event in the same visual field, missed not because it was hidden or peripheral, but because attention was occupied by the counting task. The shape was the same color as the dark balls but moved in a straight line and had a different form — visible if attended to, invisible when not.</p>
+    <p>Simons and Chabris found roughly half of all observers missed the gorilla under similar conditions. The effect does not depend on the stimulus being obscure or brief. It depends on where attention was.</p>`;
+  document.getElementById('explanation').style.display = '';
+  showPhase('reveal');
+});
+
+document.getElementById('replay-btn').addEventListener('click', () => {
+  document.getElementById('replay-again-btn').style.display = 'none';
+  showPhase('replay');
+  runLoop('court-replay', true);
+});
+
+document.getElementById('replay-again-btn').addEventListener('click', () => {
+  document.getElementById('replay-again-btn').style.display = 'none';
+  runLoop('court-replay', true);
+});
+</script>
+</body>
+</html>
