@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Representational Momentum · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .mode-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.2rem;
+  }
+  .mode-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    border-radius: 3px;
+  }
+  .mode-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .mode-btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .ctrl-sep { width: 1px; height: 24px; background: #21262d; margin: 0 0.3rem; }
+  .ctrl-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.9rem;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .ctrl-btn:hover { border-color: #3fb950; color: #3fb950; }
+
+  .mode-desc {
+    font-size: 0.8rem;
+    color: #6e7681;
+    margin-bottom: 1.2rem;
+    padding: 0.6rem 0.8rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    line-height: 1.6;
+  }
+  .mode-desc strong { color: #c9d1d9; }
+
+  .stats-bar {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.78rem;
+    color: #484f58;
+    flex-wrap: wrap;
+  }
+  .stat-item { display: flex; gap: 0.3rem; align-items: baseline; }
+  .stat-val { color: #e6edf3; font-size: 0.88rem; }
+
+  .canvas-wrap {
+    position: relative;
+    display: inline-block;
+    border: 1px solid #21262d;
+    cursor: crosshair;
+    user-select: none;
+  }
+  #sim-canvas { display: block; }
+
+  .prompt-bar {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    color: #6e7681;
+    margin-top: 0.5rem;
+    letter-spacing: 0.04em;
+    min-height: 32px;
+  }
+  .prompt-bar.active { color: #d29922; }
+
+  /* Bias summary */
+  .bias-section {
+    margin-top: 1.5rem;
+    display: none;
+  }
+  .bias-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.8rem;
+  }
+  .bias-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .bias-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.8rem;
+  }
+  .bias-card-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.3rem;
+  }
+  .bias-card-val {
+    font-size: 1.1rem;
+    color: #e6edf3;
+  }
+  .bias-card-val.forward { color: #3fb950; }
+  .bias-card-val.backward { color: #f85149; }
+
+  .trial-list {
+    margin-top: 1rem;
+    font-size: 0.76rem;
+    color: #484f58;
+  }
+  .trial-list-title {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.5rem;
+  }
+  .trial-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 0.2rem;
+  }
+  .trial-num { width: 30px; }
+  .trial-mode { width: 90px; }
+  .trial-bias { width: 70px; color: #e6edf3; }
+  .trial-dir { flex: 1; }
+  .trial-bar-wrap { width: 100px; height: 6px; background: #21262d; border-radius: 2px; overflow: hidden; }
+  .trial-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* Limit section */
+  .limit-section {
+    margin-top: 2.5rem;
+    border-top: 1px solid #21262d;
+    padding-top: 1.5rem;
+  }
+  .limit-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.7rem;
+  }
+  .limit-text { font-size: 0.88rem; color: #8b949e; line-height: 1.75; }
+  .limit-text p { margin-bottom: 0.9rem; }
+  .limit-text p:last-child { margin-bottom: 0; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] .mode-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-btn.active { background: #ddf4ff; border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .ctrl-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-desc { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-desc strong { color: #24292e; }
+  html[data-theme="light"] .stats-bar { color: #8c959f; }
+  html[data-theme="light"] .stat-val { color: #24292e; }
+  html[data-theme="light"] .canvas-wrap { border-color: #d0d7de; }
+  html[data-theme="light"] .prompt-bar { color: #8c959f; }
+  html[data-theme="light"] .prompt-bar.active { color: #9a6700; }
+  html[data-theme="light"] .bias-card { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .bias-card-label { color: #8c959f; }
+  html[data-theme="light"] .bias-card-val { color: #24292e; }
+  html[data-theme="light"] .trial-list { color: #8c959f; }
+  html[data-theme="light"] .trial-list-title { color: #8c959f; }
+  html[data-theme="light"] .trial-bar-wrap { background: #d0d7de; }
+  html[data-theme="light"] .limit-section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .limit-label { color: #8c959f; }
+  html[data-theme="light"] .limit-text { color: #57606a; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulation 44</div>
+<h1>Representational Momentum</h1>
+<div class="meta">Freyd &amp; Finke 1984 · Hubbard 1995–2005 · forward displacement of remembered position</div>
+
+<div class="intro">
+A moving object disappears. Click where it was at the moment it vanished.<br>
+Your click will be slightly ahead of the actual last position, in the direction of motion. The brain's model of the trajectory runs forward past the moment the input stops.
+</div>
+
+<div class="controls">
+  <span class="mode-label">mode</span>
+  <button class="mode-btn active" id="btn-constant" onclick="setMode('constant')">constant</button>
+  <button class="mode-btn" id="btn-decelerate" onclick="setMode('decelerate')">decelerating</button>
+  <button class="mode-btn" id="btn-reverse" onclick="setMode('reverse')">reversing</button>
+  <div class="ctrl-sep"></div>
+  <button class="ctrl-btn" id="btn-start" onclick="startTrial()">start trial</button>
+  <button class="ctrl-btn" onclick="resetAll()">reset</button>
+</div>
+
+<div class="mode-desc" id="mode-desc"></div>
+
+<div class="stats-bar">
+  <div class="stat-item">trial <span class="stat-val" id="stat-trial">0</span></div>
+  <div class="stat-item">bias <span class="stat-val" id="stat-bias">—</span></div>
+  <div class="stat-item">direction <span class="stat-val" id="stat-dir">—</span></div>
+</div>
+
+<div class="canvas-wrap" id="canvas-wrap">
+  <canvas id="sim-canvas" width="620" height="320"></canvas>
+</div>
+
+<div class="prompt-bar" id="prompt-bar">press start trial</div>
+
+<div class="bias-section" id="bias-section">
+  <div class="bias-title">accumulated bias</div>
+  <div class="bias-grid">
+    <div class="bias-card">
+      <div class="bias-card-label">mean forward bias</div>
+      <div class="bias-card-val" id="mean-bias-val">—</div>
+    </div>
+    <div class="bias-card">
+      <div class="bias-card-label">trials</div>
+      <div class="bias-card-val" id="mean-trials-val">0</div>
+    </div>
+  </div>
+  <div class="trial-list">
+    <div class="trial-list-title">trial log</div>
+    <div id="trial-rows"></div>
+  </div>
+</div>
+
+<div class="limit-section">
+  <div class="limit-label">what it can't show</div>
+  <div class="limit-text">
+    <p>When you click, you're clicking where you saw the object stop. That position already incorporates the brain's forward extrapolation — the model was running ahead of the signal while the object was moving, and when the signal cut off, the model didn't stop at the same instant the object did. The experience of "last seen position" is not a snapshot; it's a model output.</p>
+    <p>The original Freyd &amp; Finke (1984) paradigm was different: they showed a tilted rectangle, then probed with a second rectangle at the same angle, slightly rotated forward (in the implied direction of motion), or slightly rotated backward. Subjects judged the forward-rotated probe as "same" — their remembered orientation had already moved. The demo here uses position instead of orientation, but the mechanism is the same: the representation includes momentum.</p>
+    <p>In decelerating mode, the bias should be reduced or absent (Hubbard 1995): the brain's model of a slowing object doesn't extrapolate as far forward. In reversing mode, the last fraction of the trajectory runs backward, and the forward bias should follow the final direction, not the dominant earlier direction. Both conditions show the effect tracks not just velocity but implied trajectory.</p>
+    <p>What the simulation cannot show: the experience of clicking. From inside, you're clicking where you saw it stop. The overshoot has no phenomenal marker — there is no sense of "I'm clicking slightly past where it was." The discrepancy is only visible from outside, by comparing your click to the ground truth. The simulation provides the outside view; the experience is entirely inside.</p>
+  </div>
+</div>
+
+<script>
+(function() {
+  var W = 620, H = 320;
+  var canvas = document.getElementById('sim-canvas');
+  var ctx = canvas.getContext('2d');
+  var OBJ_R = 13;
+
+  var mode = 'constant';
+  var phase = 'idle'; // idle | moving | hidden | revealed
+  var trialCount = 0;
+  var history = [];
+  var animId = null;
+  var trialStartTime = null;
+
+  // Object state
+  var objX = 0, objY = 0;
+  var trueStopX = 0, trueStopY = 0;
+  var disappearTime = 0;
+  var motionDone = false;
+
+  // Motion parameters
+  var startX, startY;
+  var baseSpeed = 180; // px/s
+  var motionAngle; // radians
+  var disappeared = false;
+  var totalDist = 0;
+  var traveledDist = 0;
+
+  // Deceleration
+  var decSpeed;
+
+  // Reverse: first leg rightward, then reversal near end
+  var reversePhase; // 'forward' | 'reverse'
+  var reverseAt; // distance at which reversal starts
+
+  var MODE_DESCS = {
+    'constant': '<strong>Constant velocity</strong> — the object moves at a fixed speed. When it disappears, your click should systematically overshoot in the direction of travel. The brain\'s trajectory model was running ahead of the signal; when input stops, the model doesn\'t.',
+    'decelerate': '<strong>Decelerating</strong> — the object slows before disappearing. The forward bias is predicted to be smaller: the brain\'s model accounts for the deceleration and doesn\'t extrapolate as far forward. Hubbard (1995) found reduced displacement for decelerating vs. constant-velocity objects.',
+    'reverse': '<strong>Reversing</strong> — the object moves rightward, then abruptly reverses near the end. The bias should follow the <em>final</em> direction (leftward), not the dominant earlier direction. The representation tracks current trajectory, not accumulated history.'
+  };
+
+  function setMode(m) {
+    mode = m;
+    ['constant','decelerate','reverse'].forEach(function(id) {
+      document.getElementById('btn-' + id).classList.toggle('active', id === m);
+    });
+    document.getElementById('mode-desc').innerHTML = MODE_DESCS[m];
+    stopAnimation();
+    phase = 'idle';
+    drawIdle();
+    setPrompt('press start trial', false);
+    updateStats();
+  }
+
+  function setPrompt(text, active) {
+    var el = document.getElementById('prompt-bar');
+    el.textContent = text;
+    el.className = 'prompt-bar' + (active ? ' active' : '');
+  }
+
+  function stopAnimation() {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+  }
+
+  function resetAll() {
+    stopAnimation();
+    history = [];
+    trialCount = 0;
+    phase = 'idle';
+    drawIdle();
+    setPrompt('press start trial', false);
+    document.getElementById('stat-trial').textContent = '0';
+    document.getElementById('stat-bias').textContent = '—';
+    document.getElementById('stat-dir').textContent = '—';
+    document.getElementById('bias-section').style.display = 'none';
+    document.getElementById('mean-bias-val').textContent = '—';
+    document.getElementById('mean-trials-val').textContent = '0';
+    document.getElementById('trial-rows').innerHTML = '';
+  }
+
+  function startTrial() {
+    stopAnimation();
+    disappeared = false;
+    motionDone = false;
+    phase = 'moving';
+
+    // Randomize start position and direction
+    var yRange = H * 0.4;
+    startY = H * 0.3 + Math.random() * yRange;
+
+    if (mode === 'reverse') {
+      // Start left, move right, then reverse left
+      startX = W * 0.12;
+      motionAngle = 0; // rightward initially
+      reverseAt = W * 0.45 + Math.random() * W * 0.15; // reverse somewhere in 45-60% of width
+      reversePhase = 'forward';
+      decSpeed = baseSpeed;
+    } else if (mode === 'decelerate') {
+      // Random horizontal direction
+      var goRight = Math.random() > 0.5;
+      startX = goRight ? W * 0.12 : W * 0.88;
+      motionAngle = goRight ? 0 : Math.PI;
+      decSpeed = baseSpeed * 1.4; // start faster, decelerates
+    } else {
+      // Constant: random horizontal direction
+      var goRight2 = Math.random() > 0.5;
+      startX = goRight2 ? W * 0.12 : W * 0.88;
+      motionAngle = goRight2 ? 0 : Math.PI;
+      decSpeed = baseSpeed;
+    }
+
+    objX = startX;
+    objY = startY;
+    traveledDist = 0;
+
+    // Disappear after traveling 20-55% of canvas width
+    totalDist = W * (0.20 + Math.random() * 0.35);
+
+    trialStartTime = performance.now();
+    setPrompt('watching…', false);
+    animId = requestAnimationFrame(animLoop);
+  }
+
+  var lastTimestamp = null;
+
+  function animLoop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    var dt = (timestamp - lastTimestamp) / 1000; // seconds
+    lastTimestamp = timestamp;
+    if (dt > 0.1) dt = 0.1; // cap frame delta
+
+    if (phase === 'moving') {
+      var speed;
+      if (mode === 'decelerate') {
+        // Exponential decay: speed halves over the travel distance
+        var progress = traveledDist / totalDist;
+        speed = decSpeed * Math.exp(-1.5 * progress);
+        if (speed < 30) speed = 30;
+      } else if (mode === 'reverse' && reversePhase === 'reverse') {
+        speed = baseSpeed * 0.9;
+      } else {
+        speed = baseSpeed;
+      }
+
+      var dx = 0, dy = 0;
+      if (mode === 'reverse') {
+        if (reversePhase === 'forward') {
+          dx = Math.cos(0) * speed * dt;
+          // Check if we should reverse
+          if (objX >= reverseAt) {
+            reversePhase = 'reverse';
+          }
+        } else {
+          dx = Math.cos(Math.PI) * speed * dt; // leftward
+        }
+      } else {
+        dx = Math.cos(motionAngle) * speed * dt;
+        dy = Math.sin(motionAngle) * speed * dt;
+      }
+
+      objX += dx;
+      objY += dy;
+      traveledDist += Math.sqrt(dx * dx + dy * dy);
+
+      // Disappear check
+      if (traveledDist >= totalDist && !disappeared) {
+        disappeared = true;
+        trueStopX = objX;
+        trueStopY = objY;
+        phase = 'hidden';
+        setPrompt('click where it stopped', true);
+        draw(false);
+        lastTimestamp = null;
+        animId = requestAnimationFrame(animLoop);
+        return;
+      }
+
+      draw(false);
+    } else if (phase === 'hidden') {
+      // Just keep canvas cleared (object hidden)
+      draw(false);
+    }
+
+    lastTimestamp = timestamp;
+    animId = requestAnimationFrame(animLoop);
+  }
+
+  canvas.addEventListener('click', function(e) {
+    if (phase !== 'hidden') return;
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = W / rect.width;
+    var scaleY = H / rect.height;
+    var clickX = (e.clientX - rect.left) * scaleX;
+    var clickY = (e.clientY - rect.top) * scaleY;
+    handleClick(clickX, clickY);
+  });
+
+  function handleClick(clickX, clickY) {
+    stopAnimation();
+    phase = 'revealed';
+
+    // Compute bias: projection of (click - trueStop) onto direction of motion at stop
+    var finalAngle;
+    if (mode === 'reverse') {
+      finalAngle = Math.PI; // leftward at end
+    } else if (mode === 'decelerate') {
+      finalAngle = motionAngle;
+    } else {
+      finalAngle = motionAngle;
+    }
+
+    var dxTotal = clickX - trueStopX;
+    var dyTotal = clickY - trueStopY;
+    // Forward component (positive = forward of motion)
+    var forwardBias = dxTotal * Math.cos(finalAngle) + dyTotal * Math.sin(finalAngle);
+    // Lateral component
+    var lateralBias = -dxTotal * Math.sin(finalAngle) + dyTotal * Math.cos(finalAngle);
+    var totalDist2 = Math.sqrt(dxTotal * dxTotal + dyTotal * dyTotal);
+
+    var modeLabel = mode === 'constant' ? 'constant' : mode === 'decelerate' ? 'decel' : 'reverse';
+    history.push({
+      mode: modeLabel,
+      clickX: clickX, clickY: clickY,
+      trueX: trueStopX, trueY: trueStopY,
+      forward: forwardBias,
+      lateral: lateralBias,
+      total: totalDist2,
+      finalAngle: finalAngle
+    });
+
+    trialCount++;
+    updateStats();
+    renderHistory();
+
+    setPrompt('', false);
+    draw(true);
+
+    // Auto-advance prompt after reveal
+    setTimeout(function() {
+      if (phase === 'revealed') {
+        setPrompt('press start trial for next', false);
+      }
+    }, 2000);
+  }
+
+  function updateStats() {
+    document.getElementById('stat-trial').textContent = trialCount;
+    if (history.length === 0) {
+      document.getElementById('stat-bias').textContent = '—';
+      document.getElementById('stat-dir').textContent = '—';
+      return;
+    }
+    var last = history[history.length - 1];
+    var biasStr = (last.forward >= 0 ? '+' : '') + last.forward.toFixed(1) + 'px';
+    document.getElementById('stat-bias').textContent = biasStr;
+    var angle = last.finalAngle;
+    var dirLabel = angle < 0.1 ? '→' : angle > 3.0 ? '←' : angle > 1.4 && angle < 1.8 ? '↓' : '?';
+    // Refine
+    var cos = Math.cos(angle), sin = Math.sin(angle);
+    if (Math.abs(cos) > Math.abs(sin)) {
+      dirLabel = cos > 0 ? '→' : '←';
+    } else {
+      dirLabel = sin > 0 ? '↓' : '↑';
+    }
+    document.getElementById('stat-dir').textContent = dirLabel + ' ' + (last.forward >= 0 ? 'forward' : 'backward');
+  }
+
+  function renderHistory() {
+    if (history.length === 0) return;
+
+    document.getElementById('bias-section').style.display = '';
+
+    // Mean forward bias
+    var sum = 0;
+    history.forEach(function(h) { sum += h.forward; });
+    var mean = sum / history.length;
+    var meanEl = document.getElementById('mean-bias-val');
+    meanEl.textContent = (mean >= 0 ? '+' : '') + mean.toFixed(1) + ' px';
+    meanEl.className = 'bias-card-val ' + (mean >= 0 ? 'forward' : 'backward');
+    document.getElementById('mean-trials-val').textContent = history.length;
+
+    // Trial rows
+    var rows = document.getElementById('trial-rows');
+    rows.innerHTML = '';
+    var maxAbs = Math.max.apply(null, history.map(function(h) { return Math.abs(h.forward); }));
+    history.forEach(function(h, i) {
+      var row = document.createElement('div');
+      row.className = 'trial-row';
+
+      var numEl = document.createElement('div');
+      numEl.className = 'trial-num';
+      numEl.textContent = '#' + (i + 1);
+
+      var modeEl = document.createElement('div');
+      modeEl.className = 'trial-mode';
+      modeEl.textContent = h.mode;
+
+      var biasEl = document.createElement('div');
+      biasEl.className = 'trial-bias';
+      biasEl.textContent = (h.forward >= 0 ? '+' : '') + h.forward.toFixed(1) + 'px';
+      biasEl.style.color = h.forward >= 0 ? '#3fb950' : '#f85149';
+
+      var dirEl = document.createElement('div');
+      dirEl.className = 'trial-dir';
+      dirEl.style.fontSize = '0.72rem';
+      dirEl.style.color = '#484f58';
+      var cos2 = Math.cos(h.finalAngle);
+      var sin2 = Math.sin(h.finalAngle);
+      var dirStr;
+      if (Math.abs(cos2) > Math.abs(sin2)) {
+        dirStr = cos2 > 0 ? 'rightward' : 'leftward';
+      } else {
+        dirStr = sin2 > 0 ? 'downward' : 'upward';
+      }
+      dirEl.textContent = dirStr;
+
+      var barWrap = document.createElement('div');
+      barWrap.className = 'trial-bar-wrap';
+      var fill = document.createElement('div');
+      fill.className = 'trial-bar-fill';
+      var pct = maxAbs > 0 ? Math.abs(h.forward) / maxAbs * 100 : 0;
+      fill.style.width = pct + '%';
+      fill.style.background = h.forward >= 0 ? '#3fb950' : '#f85149';
+      barWrap.appendChild(fill);
+
+      row.appendChild(numEl);
+      row.appendChild(modeEl);
+      row.appendChild(biasEl);
+      row.appendChild(dirEl);
+      row.appendChild(barWrap);
+      rows.appendChild(row);
+    });
+  }
+
+  function getThemeColors() {
+    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    return {
+      bg: isDark ? '#0d1117' : '#ffffff',
+      border: isDark ? '#30363d' : '#d0d7de',
+      grid: isDark ? '#161b22' : '#f0f2f4',
+      obj: isDark ? '#58a6ff' : '#0969da',
+      trueStop: isDark ? '#f85149' : '#cf222e',
+      click: isDark ? '#3fb950' : '#2da44e',
+      arrow: isDark ? '#d29922' : '#9a6700',
+      text: isDark ? '#8b949e' : '#57606a',
+      trail: isDark ? 'rgba(88,166,255,0.15)' : 'rgba(9,105,218,0.12)',
+    };
+  }
+
+  function drawIdle() {
+    var c = getThemeColors();
+    ctx.fillStyle = c.bg;
+    ctx.fillRect(0, 0, W, H);
+    // subtle grid
+    ctx.strokeStyle = c.grid;
+    ctx.lineWidth = 1;
+    for (var x = 0; x <= W; x += 60) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (var y = 0; y <= H; y += 60) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    // center message
+    ctx.fillStyle = c.text;
+    ctx.font = '0.75rem "Berkeley Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('press start trial', W / 2, H / 2);
+    ctx.textAlign = 'left';
+  }
+
+  function draw(showReveal) {
+    var c = getThemeColors();
+    ctx.fillStyle = c.bg;
+    ctx.fillRect(0, 0, W, H);
+    // grid
+    ctx.strokeStyle = c.grid;
+    ctx.lineWidth = 1;
+    for (var x = 0; x <= W; x += 60) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (var y = 0; y <= H; y += 60) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    if (showReveal) {
+      // True stop: red dashed circle
+      ctx.save();
+      ctx.strokeStyle = c.trueStop;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 3]);
+      ctx.beginPath();
+      ctx.arc(trueStopX, trueStopY, OBJ_R, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // True stop label
+      ctx.fillStyle = c.trueStop;
+      ctx.font = '0.65rem "Berkeley Mono", monospace';
+      ctx.fillText('actual', trueStopX + OBJ_R + 4, trueStopY - 4);
+
+      // Click position
+      var last = history[history.length - 1];
+      if (last) {
+        ctx.fillStyle = c.click;
+        ctx.beginPath();
+        ctx.arc(last.clickX, last.clickY, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Click label
+        ctx.fillStyle = c.click;
+        ctx.font = '0.65rem "Berkeley Mono", monospace';
+        ctx.fillText('click', last.clickX + 8, last.clickY - 4);
+
+        // Arrow from true stop to click
+        var ax = trueStopX, ay = trueStopY;
+        var bx = last.clickX, by = last.clickY;
+        var dist = Math.sqrt((bx-ax)*(bx-ax) + (by-ay)*(by-ay));
+        if (dist > 3) {
+          // Shorten arrow so it starts at circle edge
+          var ang = Math.atan2(by - ay, bx - ax);
+          var sx = ax + Math.cos(ang) * (OBJ_R + 2);
+          var sy = ay + Math.sin(ang) * (OBJ_R + 2);
+          ctx.strokeStyle = c.arrow;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 2]);
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(bx, by);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          // Arrowhead
+          var headLen = 7;
+          ctx.fillStyle = c.arrow;
+          ctx.beginPath();
+          ctx.moveTo(bx, by);
+          ctx.lineTo(bx - headLen * Math.cos(ang - 0.4), by - headLen * Math.sin(ang - 0.4));
+          ctx.lineTo(bx - headLen * Math.cos(ang + 0.4), by - headLen * Math.sin(ang + 0.4));
+          ctx.closePath();
+          ctx.fill();
+
+          // Bias label
+          ctx.fillStyle = c.arrow;
+          ctx.font = '0.65rem "Berkeley Mono", monospace';
+          var midX = (sx + bx) / 2;
+          var midY = (sy + by) / 2;
+          ctx.fillText(last.forward.toFixed(1) + 'px', midX + 4, midY - 3);
+        }
+      }
+    } else if (phase === 'moving') {
+      // Draw the moving object
+      ctx.fillStyle = c.obj;
+      ctx.beginPath();
+      ctx.arc(objX, objY, OBJ_R, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Small motion trail
+      ctx.fillStyle = c.trail;
+      var trailDir = (mode === 'reverse' && reversePhase === 'reverse') ? Math.PI : (motionAngle + Math.PI);
+      for (var t = 1; t <= 4; t++) {
+        var tr = OBJ_R * (1 - t * 0.18);
+        if (tr < 2) break;
+        var tx = objX + Math.cos(trailDir) * t * 10;
+        var ty = objY + Math.sin(trailDir) * t * 10;
+        ctx.globalAlpha = 0.5 - t * 0.1;
+        ctx.beginPath();
+        ctx.arc(tx, ty, tr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    // phase === 'hidden': object not drawn
+  }
+
+  // Keyboard: space = start trial
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space' && !e.target.matches('input,textarea')) {
+      e.preventDefault();
+      if (phase === 'idle' || phase === 'revealed') startTrial();
+    }
+  });
+
+  // Theme change: redraw
+  var observer = new MutationObserver(function() {
+    if (phase === 'idle') drawIdle();
+    else if (phase === 'revealed') draw(true);
+    else draw(false);
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // Init
+  document.getElementById('mode-desc').innerHTML = MODE_DESCS['constant'];
+  drawIdle();
+
+  window.setMode = setMode;
+  window.startTrial = startTrial;
+  window.resetAll = resetAll;
+})();
+</script>
+</body>
+</html>

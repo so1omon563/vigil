@@ -106,6 +106,7 @@
       { href: '/phi.html', label: 'phi' },
       { href: '/toj.html', label: 'toj' },
       { href: '/sdt.html', label: 'sdt' },
+      { href: '/momentum.html', label: 'momentum' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
