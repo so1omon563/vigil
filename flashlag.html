@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flash-Lag Effect · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .intro p { margin-bottom: 0.5rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .mode-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.2rem;
+  }
+  .mode-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    border-radius: 3px;
+  }
+  .mode-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .mode-btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .ctrl-sep { width: 1px; height: 24px; background: #21262d; margin: 0 0.2rem; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    width: 90px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: #58a6ff;
+    border-radius: 50%;
+  }
+  .val-label { font-size: 0.78rem; color: #8b949e; }
+
+  .mode-desc {
+    font-size: 0.8rem;
+    color: #6e7681;
+    margin-bottom: 1.1rem;
+    padding: 0.6rem 0.9rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    line-height: 1.6;
+    min-height: 2.8rem;
+  }
+  .mode-desc strong { color: #c9d1d9; }
+  .mode-desc em { color: #8b949e; font-style: italic; }
+
+  .canvas-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+
+  .prompt-bar {
+    font-size: 0.76rem;
+    color: #484f58;
+    letter-spacing: 0.04em;
+    margin-bottom: 1.8rem;
+    min-height: 1.2rem;
+    text-align: center;
+  }
+  .prompt-bar.flash { color: #d29922; }
+
+  /* flash count badge */
+  .flash-count {
+    font-size: 0.74rem;
+    color: #484f58;
+    margin-bottom: 1.8rem;
+    text-align: right;
+  }
+  .flash-count span { color: #8b949e; }
+
+  .section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+  .context-block { font-size: 0.85rem; color: #8b949e; line-height: 1.75; }
+  .context-block p { margin-bottom: 0.9rem; }
+  .context-block p:last-child { margin-bottom: 0; }
+  .context-block em { color: #c9d1d9; font-style: normal; }
+  .ref-line { font-size: 0.76rem; color: #484f58; margin-top: 1.4rem; line-height: 1.6; }
+  .ref-line a { color: #484f58; }
+  .ref-line a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #1f2328; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .mode-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-btn.active { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
+  html[data-theme="light"] .mode-desc { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-desc strong { color: #1f2328; }
+  html[data-theme="light"] .canvas-wrap { background: #f0f0f0; border-color: #d0d7de; }
+  html[data-theme="light"] .context-block { color: #57606a; }
+  html[data-theme="light"] .context-block em { color: #1f2328; }
+  html[data-theme="light"] .section { border-color: #d0d7de; }
+  html[data-theme="light"] input[type="range"] { background: #d0d7de; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back">← <a href="/models.html">all simulations</a></div>
+<div class="page-label">Simulation</div>
+<h1>Flash-Lag Effect</h1>
+<div class="meta">Nijhawan (1994) · Eagleman &amp; Sejnowski (2000) · Khoei et al. (2017)</div>
+
+<div class="intro">
+  <p>A disc moves in a circle at constant speed. When it reaches the top, a brief flash fires at exactly that position — disc and flash at identical screen coordinates, same frame. Yet observers consistently report the flash as <em>lagging behind</em> the disc: displaced toward where the disc was, not where it is.</p>
+  <p>The disc and flash were at the same place. The displacement is added by your visual system.</p>
+</div>
+
+<div class="controls">
+  <span class="mode-label">mode</span>
+  <button class="mode-btn active" onclick="setMode('continuous',this)">continuous</button>
+  <button class="mode-btn" onclick="setMode('stop',this)">stop</button>
+  <button class="mode-btn" onclick="setMode('reverse',this)">reverse</button>
+  <div class="ctrl-sep"></div>
+  <span class="mode-label">speed</span>
+  <input type="range" id="sl-speed" min="0.8" max="4.0" step="0.2" value="2.2">
+  <span class="val-label"><span id="val-speed">2.2</span> rad/s</span>
+</div>
+
+<div class="mode-desc" id="mode-desc"></div>
+
+<div class="canvas-wrap">
+  <canvas id="c" width="600" height="280"></canvas>
+</div>
+<div class="prompt-bar" id="prompt-bar">flash fires when the disc passes the top — watch for the blue marker</div>
+<div class="flash-count">flashes: <span id="flash-count">0</span></div>
+
+<div class="section">
+  <div class="section-label">How it works</div>
+  <div class="context-block">
+    <p>Romi Nijhawan first described the effect in 1994. He argued that the visual system <em>compensates for its own processing delay</em> by extrapolating moving objects forward in time. Because it takes ~80ms for a visual signal to travel from retina to cortex, the brain predicts where a moving object will be — not where it was — and positions the percept there. A brief flash has no future trajectory to extrapolate, so it lands where it was actually presented. The moving disc's percept is pushed forward; the flash's isn't. This creates a perceived spatial gap.</p>
+    <p>Eagleman and Sejnowski (2000) pressed on this with an <em>omission</em> variant: if the disc stops or disappears at the exact moment the flash fires, the lag vanishes — disc and flash appear coincident. This suggests the brain's extrapolation depends on the disc's <em>future</em> behavior, not just its current velocity. The lag is retrodictive: the brain reads information arriving after the flash (the disc's continued motion) and uses it to position where the flash appeared. The 80ms postdiction window from the flash-lag and the color phi phenomenon are the same window.</p>
+    <p>The <em>reverse</em> mode demonstrates this clearly. When the disc reverses direction at the flash moment, the flash appears <em>ahead</em> of the disc's new direction of travel — as if the brain correctly predicted the reversal. What actually happened: the reversal information arrived within the postdiction window, rewrote the flash's perceived position, and the result was delivered as a single coherent percept.</p>
+    <p>The simulation draws the disc and flash at identical screen coordinates. The blue crosshair marks where the flash was actually drawn. In continuous mode: the disc moves past the crosshair, and the flash appeared to be behind the crosshair's position — behind where it was drawn. In stop mode: disc and crosshair remain coincident. In reverse mode: the flash appears ahead of where the disc ends up. Same physical stimulus, three perceived locations, depending entirely on what the disc does after the flash.</p>
+  </div>
+  <div class="ref-line">
+    Nijhawan, R. (1994). Motion extrapolation in catching. <em>Nature</em> 370, 256–257. ·
+    Eagleman, D. &amp; Sejnowski, T. (2000). Motion integration and postdiction in visual awareness. <em>Science</em> 287, 2036–2038. ·
+    <a href="/journal/entry-505.html">entry 505: The Only Draft</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var CX = W / 2, CY = H / 2;
+  var ORBIT_R = 105;
+  var DISC_R = 13;
+  var TAU = 2 * Math.PI;
+
+  var speed = 2.2;      // rad/s
+  var angle = 0;        // current angle (0=rightmost, increases clockwise on screen)
+  var mode = 'continuous';
+
+  // Flash state
+  var FLASH_A = 3 * Math.PI / 2;  // top of circle (12 o'clock)
+  var FLASH_DUR = 90;             // ms — brief enough to be a true flash
+  var flashX = 0, flashY = 0;
+  var flashStart = -9999;
+  var flashCount = 0;
+
+  // Ghost crosshair
+  var ghostX = 0, ghostY = 0;
+  var ghostStart = -9999;
+  var GHOST_DUR = 2200;  // ms
+
+  // Mode-state machine (what the disc does after the flash)
+  var modeState = 'normal';   // 'normal' | 'paused' | 'reversed'
+  var modeStateStart = 0;
+  var PAUSE_DUR = 700;        // ms disc stays stopped in 'stop' mode
+  var REVERSE_DUR = 1600;     // ms disc travels backwards in 'reverse' mode
+
+  // Prompt flash
+  var promptFlashT = -9999;
+
+  var tLast = null;
+
+  function discPos(a) {
+    return {
+      x: CX + ORBIT_R * Math.cos(a),
+      y: CY + ORBIT_R * Math.sin(a)
+    };
+  }
+
+  function effectiveSpeed(now) {
+    if (modeState === 'paused') {
+      if (now - modeStateStart > PAUSE_DUR) modeState = 'normal';
+      return 0;
+    }
+    if (modeState === 'reversed') {
+      if (now - modeStateStart > REVERSE_DUR) {
+        modeState = 'normal';
+        return speed;
+      }
+      return -speed * 0.85;
+    }
+    return speed;
+  }
+
+  function fireFlash(now) {
+    var pos = discPos(((angle % TAU) + TAU) % TAU);
+    flashX = pos.x;
+    flashY = pos.y;
+    flashStart = now;
+    ghostX = pos.x;
+    ghostY = pos.y;
+    ghostStart = now;
+    promptFlashT = now;
+    flashCount++;
+    document.getElementById('flash-count').textContent = flashCount;
+
+    if (mode === 'stop') {
+      modeState = 'paused';
+      modeStateStart = now;
+    } else if (mode === 'reverse') {
+      modeState = 'reversed';
+      modeStateStart = now;
+    }
+  }
+
+  function frame(t) {
+    if (!tLast) tLast = t;
+    var dt = Math.min((t - tLast) / 1000, 0.05);
+    tLast = t;
+    var now = t;
+
+    var spd = effectiveSpeed(now);
+    var prevAngle = angle;
+    angle += spd * dt;
+
+    // Detect forward crossing of FLASH_A (top of circle)
+    var prevNorm = ((prevAngle % TAU) + TAU) % TAU;
+    var currNorm = ((angle % TAU) + TAU) % TAU;
+    var stepSize = Math.abs(angle - prevAngle);
+    var crossedFlash = spd > 0 &&
+      prevNorm < FLASH_A && currNorm >= FLASH_A &&
+      stepSize < 0.5;
+
+    if (crossedFlash && modeState === 'normal') {
+      fireFlash(now);
+    }
+
+    // ---- Draw ----
+    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    var bgColor      = isDark ? '#010409' : '#f0f0f0';
+    var orbitColor   = isDark ? '#21262d' : '#d0d7de';
+    var flashZoneTick = isDark ? '#2d3139' : '#c4c8d0';
+    var discColor    = '#e6a817';
+    var discGlow     = isDark ? 'rgba(230,168,23,0.12)' : 'rgba(180,120,0,0.12)';
+    var ghostColor   = '#58a6ff';
+
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, W, H);
+
+    // Orbit path
+    ctx.beginPath();
+    ctx.arc(CX, CY, ORBIT_R, 0, TAU);
+    ctx.strokeStyle = orbitColor;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Flash-zone tick mark at top (12 o'clock)
+    var tickX = CX, tickY = CY - ORBIT_R;
+    ctx.beginPath();
+    ctx.moveTo(tickX - 6, tickY - 10);
+    ctx.lineTo(tickX + 6, tickY - 10);
+    ctx.strokeStyle = flashZoneTick;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Ghost crosshair (marks exact flash draw position)
+    var ghostAge = now - ghostStart;
+    if (ghostAge >= 0 && ghostAge < GHOST_DUR) {
+      var ga = Math.max(0, 1 - ghostAge / GHOST_DUR);
+      var cross = 9;
+      ctx.globalAlpha = ga * 0.85;
+      ctx.strokeStyle = ghostColor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(ghostX - cross, ghostY);
+      ctx.lineTo(ghostX + cross, ghostY);
+      ctx.moveTo(ghostX, ghostY - cross);
+      ctx.lineTo(ghostX, ghostY + cross);
+      ctx.stroke();
+      // Small circle at ghost center
+      ctx.beginPath();
+      ctx.arc(ghostX, ghostY, 3, 0, TAU);
+      ctx.strokeStyle = ghostColor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // Flash burst
+    var flashAge = now - flashStart;
+    if (flashAge >= 0 && flashAge < FLASH_DUR) {
+      var fa = 1 - flashAge / FLASH_DUR;
+      var fR = DISC_R * (1.6 + flashAge / FLASH_DUR * 1.8);
+      ctx.globalAlpha = fa * 0.92;
+      ctx.beginPath();
+      ctx.arc(flashX, flashY, fR, 0, TAU);
+      ctx.fillStyle = isDark ? '#fffff0' : '#fffbc0';
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // Disc glow
+    var normAngle = ((angle % TAU) + TAU) % TAU;
+    var pos = discPos(normAngle);
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, DISC_R + 6, 0, TAU);
+    ctx.fillStyle = discGlow;
+    ctx.fill();
+
+    // Disc
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, DISC_R, 0, TAU);
+    ctx.fillStyle = discColor;
+    ctx.fill();
+
+    // Prompt bar pulse after flash
+    var promptAge = now - promptFlashT;
+    var promptEl = document.getElementById('prompt-bar');
+    if (promptAge < 1800) {
+      promptEl.className = 'prompt-bar flash';
+    } else {
+      promptEl.className = 'prompt-bar';
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  window.setMode = function (m, btn) {
+    mode = m;
+    modeState = 'normal';
+    document.querySelectorAll('.mode-btn').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    updateModeDesc();
+  };
+
+  document.getElementById('sl-speed').addEventListener('input', function () {
+    speed = parseFloat(this.value);
+    document.getElementById('val-speed').textContent = speed.toFixed(1);
+  });
+
+  new MutationObserver(function () {}).observe(
+    document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }
+  );
+
+  function updateModeDesc() {
+    var d = document.getElementById('mode-desc');
+    if (mode === 'continuous') {
+      d.innerHTML = '<strong>Continuous:</strong> after the flash, the disc keeps moving. The flash typically appears slightly <em>behind</em> the disc — counterclockwise from where it was drawn. The blue crosshair marks the flash\'s actual draw position.';
+    } else if (mode === 'stop') {
+      d.innerHTML = '<strong>Stop:</strong> the disc pauses at the flash moment, then resumes. In Eagleman & Sejnowski\'s <em>omission</em> variant, stopping removes the lag — flash and disc appear <em>coincident</em>. The brain has no future trajectory to extrapolate.';
+    } else {
+      d.innerHTML = '<strong>Reverse:</strong> the disc reverses direction at the flash. Now the flash appears <em>ahead of</em> the disc\'s reversed trajectory — the brain\'s predictive model was updated retroactively by the reversal, placing the flash relative to the new direction of travel.';
+    }
+  }
+
+  updateModeDesc();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

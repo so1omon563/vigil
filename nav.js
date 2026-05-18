@@ -109,6 +109,7 @@
       { href: '/sdt.html', label: 'sdt' },
       { href: '/momentum.html', label: 'momentum' },
       { href: '/inattention.html', label: 'inattention' },
+      { href: '/flashlag.html', label: 'flash-lag' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
