@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visual Search · so1omon.net</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+  background: #0d1117;
+  color: #c9d1d9;
+  padding: 2.5rem 2rem;
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.75;
+}
+a { color: #58a6ff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+.back a { color: #58a6ff; }
+.page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+.meta { font-size: 0.75rem; color: #484f58; margin-bottom: 2rem; }
+
+/* Intro */
+#intro { max-width: 560px; }
+.intro-text { font-size: 0.9rem; color: #c9d1d9; line-height: 1.75; margin-bottom: 1rem; }
+.intro-text p { margin-bottom: 0.9rem; }
+.intro-text p:last-child { margin-bottom: 0; }
+.example-row {
+  display: flex;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+.example-box {
+  border: 1px solid #21262d;
+  padding: 0.85rem 1rem;
+  flex: 1;
+  min-width: 200px;
+}
+.ex-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: #484f58; margin-bottom: 0.5rem; }
+.ex-canvas-wrap { display: flex; justify-content: center; }
+.start-btn {
+  display: inline-block;
+  margin-top: 1.75rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  background: none;
+  border: 1px solid #58a6ff;
+  color: #58a6ff;
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+.start-btn:hover { background: #58a6ff; color: #0d1117; }
+
+/* Trial area */
+#trial-area { display: none; }
+.trial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: #484f58;
+  max-width: 520px;
+}
+.trial-cond { text-transform: uppercase; letter-spacing: 0.1em; color: #8b949e; }
+.progress-wrap { width: 100%; max-width: 520px; height: 2px; background: #21262d; margin-bottom: 1rem; }
+.progress-fill { height: 100%; background: #58a6ff; transition: width 0.2s; }
+.target-hint {
+  font-size: 0.8rem; color: #8b949e;
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+canvas#search {
+  display: block;
+  border: 1px solid #21262d;
+  background: #161b22;
+  cursor: crosshair;
+}
+.rt-feedback {
+  height: 1.4rem;
+  font-size: 0.82rem;
+  color: #8b949e;
+  margin-top: 0.5rem;
+  text-align: left;
+}
+
+/* Between phases */
+#between-phases {
+  display: none;
+  max-width: 520px;
+}
+.between-title { font-size: 1rem; color: #e6edf3; font-weight: bold; margin-bottom: 1rem; }
+.between-text { font-size: 0.88rem; color: #c9d1d9; line-height: 1.7; margin-bottom: 1.5rem; }
+
+/* Results */
+#results-panel { display: none; max-width: 520px; }
+.results-title { font-size: 1rem; color: #e6edf3; font-weight: bold; margin-bottom: 1.25rem; }
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.stat-box {
+  border: 1px solid #21262d;
+  padding: 0.75rem 1rem;
+}
+.stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; margin-bottom: 0.3rem; }
+.stat-value { font-size: 1.05rem; color: #e6edf3; }
+.stat-sub { font-size: 0.75rem; color: #8b949e; margin-top: 0.2rem; }
+canvas#chart { display: block; border: 1px solid #21262d; background: #161b22; margin-bottom: 1.25rem; }
+.results-note {
+  font-size: 0.85rem; color: #8b949e; line-height: 1.65;
+  border-left: 2px solid #21262d; padding-left: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.restart-btn {
+  font-family: inherit; font-size: 0.82rem;
+  background: none; border: 1px solid #21262d;
+  color: #8b949e; padding: 0.4rem 1rem; cursor: pointer;
+}
+.restart-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+
+/* Light mode */
+html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+html[data-theme="light"] h1 { color: #24292f; }
+html[data-theme="light"] .intro-text { color: #24292f; }
+html[data-theme="light"] .example-box { border-color: #d0d7de; }
+html[data-theme="light"] .stat-box { border-color: #d0d7de; }
+html[data-theme="light"] .stat-value { color: #24292f; }
+html[data-theme="light"] .trial-header { color: #8c959f; }
+html[data-theme="light"] .progress-wrap { background: #d0d7de; }
+html[data-theme="light"] canvas#search { border-color: #d0d7de; background: #f6f8fa; }
+html[data-theme="light"] canvas#chart { border-color: #d0d7de; background: #f6f8fa; }
+html[data-theme="light"] .results-note { border-color: #d0d7de; color: #57606a; }
+html[data-theme="light"] .restart-btn { border-color: #d0d7de; color: #57606a; }
+html[data-theme="light"] .between-text { color: #24292f; }
+html[data-theme="light"] .between-title { color: #24292f; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a></div>
+<div class="page-label">Sim 46 · Treisman (1980)</div>
+<h1>Visual Search</h1>
+<div class="meta">feature integration theory · parallel vs serial · response time</div>
+
+<!-- Intro -->
+<div id="intro">
+  <div class="intro-text">
+    <p>Find the red circle. Click it as fast as you can.</p>
+    <p>The experiment runs two conditions back to back. In the first, the target pops out — it differs from all distractors in a single feature. In the second, the target shares a feature with each distractor type, so you have to check. You'll see the difference in your own reaction times.</p>
+  </div>
+  <div class="example-row">
+    <div class="example-box">
+      <div class="ex-label">Feature search — target differs in one feature</div>
+      <div class="ex-canvas-wrap"><canvas id="ex1" width="160" height="100"></canvas></div>
+    </div>
+    <div class="example-box">
+      <div class="ex-label">Conjunction search — target shares a feature with each distractor type</div>
+      <div class="ex-canvas-wrap"><canvas id="ex2" width="160" height="100"></canvas></div>
+    </div>
+  </div>
+  <button class="start-btn" onclick="startExperiment()">Begin (24 trials)</button>
+</div>
+
+<!-- Trial area -->
+<div id="trial-area">
+  <div class="trial-header">
+    <span class="trial-cond" id="cond-label">Feature Search</span>
+    <span id="trial-count">Trial 1 of 24</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="target-hint">
+    <span>Find:</span>
+    <canvas id="hint-icon" width="28" height="28"></canvas>
+    <span>red circle</span>
+  </div>
+  <canvas id="search" width="520" height="360"></canvas>
+  <div class="rt-feedback" id="rt-feedback"></div>
+</div>
+
+<!-- Between phases -->
+<div id="between-phases">
+  <div class="between-title">Part 2 of 2: Conjunction Search</div>
+  <div class="between-text">
+    Now the distractors come in two types: blue circles and red triangles. The target is still a red circle. It shares its color with the red triangles and its shape with the blue circles — so no single feature tells it apart. You'll likely feel the difference.
+  </div>
+  <button class="start-btn" onclick="startConjunctionPhase()">Continue</button>
+</div>
+
+<!-- Results -->
+<div id="results-panel">
+  <div class="results-title">Results</div>
+  <div class="stat-row">
+    <div class="stat-box">
+      <div class="stat-label">Feature Search</div>
+      <div class="stat-value" id="feat-mean">—</div>
+      <div class="stat-sub" id="feat-slope">slope: —</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Conjunction Search</div>
+      <div class="stat-value" id="conj-mean">—</div>
+      <div class="stat-sub" id="conj-slope">slope: —</div>
+    </div>
+  </div>
+  <canvas id="chart" width="520" height="230"></canvas>
+  <div class="results-note" id="results-note"></div>
+  <button class="restart-btn" onclick="resetExperiment()">Run again</button>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────────
+const CW = 520, CH = 360;
+const R = 14;         // item radius
+const GAP = 52;       // min distance between centers
+const MARGIN = 38;    // canvas edge margin
+const FIX_MS = 500;   // fixation duration
+const SET_SIZES = [8, 12, 16, 20];
+const REPS = 3;
+const RED = '#f87171';
+const BLUE = '#60a5fa';
+
+// ── State ────────────────────────────────────────────────────────────────────
+let trials = [];
+let trialIndex = 0;
+let items = [];
+let t0 = 0;
+let phase = 'idle'; // idle | fixation | search | feedback
+let results = { feature: {}, conjunction: {} };
+
+// ── Canvas refs ──────────────────────────────────────────────────────────────
+const sc = document.getElementById('search');
+const ctx = sc.getContext('2d');
+const hintC = document.getElementById('hint-icon');
+const hctx = hintC.getContext('2d');
+
+// ── Trial generation ─────────────────────────────────────────────────────────
+function buildTrials() {
+  const list = [];
+  for (const cond of ['feature', 'conjunction']) {
+    const block = [];
+    for (const n of SET_SIZES)
+      for (let r = 0; r < REPS; r++)
+        block.push({ cond, n });
+    shuffle(block);
+    list.push(...block);
+  }
+  return list;
+}
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+
+// ── Item placement ───────────────────────────────────────────────────────────
+function placeItems(n) {
+  const pts = [];
+  let tries = 0;
+  while (pts.length < n && tries < 6000) {
+    const x = MARGIN + R + Math.random() * (CW - 2 * MARGIN - 2 * R);
+    const y = MARGIN + R + Math.random() * (CH - 2 * MARGIN - 2 * R);
+    if (!pts.some(p => Math.hypot(p.x - x, p.y - y) < GAP))
+      pts.push({ x, y });
+    tries++;
+  }
+  return pts;
+}
+
+function makeItems(trial) {
+  const pts = placeItems(trial.n);
+  const targetIdx = Math.floor(Math.random() * pts.length);
+  return pts.map((p, i) => {
+    if (i === targetIdx) return { ...p, color: RED, shape: 'circle', isTarget: true };
+    if (trial.cond === 'feature') return { ...p, color: BLUE, shape: 'circle', isTarget: false };
+    // conjunction distractors: blue circles + red triangles (roughly equal)
+    return Math.random() < 0.5
+      ? { ...p, color: BLUE, shape: 'circle', isTarget: false }
+      : { ...p, color: RED, shape: 'triangle', isTarget: false };
+  });
+}
+
+// ── Drawing ───────────────────────────────────────────────────────────────────
+function isLight() { return document.documentElement.dataset.theme === 'light'; }
+function canvasBg() { return isLight() ? '#f6f8fa' : '#161b22'; }
+function dimColor() { return isLight() ? '#8c959f' : '#484f58'; }
+
+function drawItem(c, item, highlight) {
+  c.save();
+  c.fillStyle = item.color;
+  if (item.shape === 'circle') {
+    c.beginPath();
+    c.arc(item.x, item.y, R, 0, 2 * Math.PI);
+    c.fill();
+  } else {
+    c.beginPath();
+    c.moveTo(item.x, item.y - R);
+    c.lineTo(item.x + R * 0.866, item.y + R * 0.5);
+    c.lineTo(item.x - R * 0.866, item.y + R * 0.5);
+    c.closePath();
+    c.fill();
+  }
+  if (highlight) {
+    c.strokeStyle = '#4ade80';
+    c.lineWidth = 2.5;
+    c.beginPath();
+    c.arc(item.x, item.y, R + 4, 0, 2 * Math.PI);
+    c.stroke();
+  }
+  c.restore();
+}
+
+function drawFixation() {
+  ctx.fillStyle = canvasBg();
+  ctx.fillRect(0, 0, CW, CH);
+  ctx.strokeStyle = dimColor();
+  ctx.lineWidth = 1.5;
+  const cx = CW / 2, cy = CH / 2, len = 10;
+  ctx.beginPath();
+  ctx.moveTo(cx - len, cy); ctx.lineTo(cx + len, cy);
+  ctx.moveTo(cx, cy - len); ctx.lineTo(cx, cy + len);
+  ctx.stroke();
+}
+
+function drawArray(highlightTarget) {
+  ctx.fillStyle = canvasBg();
+  ctx.fillRect(0, 0, CW, CH);
+  for (const item of items)
+    drawItem(ctx, item, highlightTarget && item.isTarget);
+}
+
+function drawHintIcon() {
+  hctx.fillStyle = canvasBg();
+  hctx.fillRect(0, 0, 28, 28);
+  hctx.fillStyle = RED;
+  hctx.beginPath();
+  hctx.arc(14, 14, 9, 0, 2 * Math.PI);
+  hctx.fill();
+}
+
+// ── Example canvases ──────────────────────────────────────────────────────────
+function drawExamples() {
+  function ex(canvasId, cond) {
+    const c = document.getElementById(canvasId);
+    const cx = c.getContext('2d');
+    const bg = isLight() ? '#f6f8fa' : '#161b22';
+    cx.fillStyle = bg;
+    cx.fillRect(0, 0, 160, 100);
+
+    // 7 items, 1 target
+    const exPositions = [
+      {x:25,y:28},{x:65,y:20},{x:105,y:28},{x:145,y:20},
+      {x:25,y:75},{x:65,y:75},{x:105,y:75}
+    ];
+    const targetI = 3;
+    exPositions.forEach((p, i) => {
+      const fake = { x: p.x, y: p.y, isTarget: i === targetI };
+      if (i === targetI) { fake.color = RED; fake.shape = 'circle'; }
+      else if (cond === 'feature') { fake.color = BLUE; fake.shape = 'circle'; }
+      else { fake.color = i % 2 === 0 ? BLUE : RED; fake.shape = i % 2 === 0 ? 'circle' : 'triangle'; }
+      const r = 10;
+      cx.save();
+      cx.fillStyle = fake.color;
+      if (fake.shape === 'circle') {
+        cx.beginPath(); cx.arc(p.x, p.y, r, 0, 2*Math.PI); cx.fill();
+      } else {
+        cx.beginPath();
+        cx.moveTo(p.x, p.y - r);
+        cx.lineTo(p.x + r*0.866, p.y + r*0.5);
+        cx.lineTo(p.x - r*0.866, p.y + r*0.5);
+        cx.closePath(); cx.fill();
+      }
+      cx.restore();
+    });
+  }
+  ex('ex1', 'feature');
+  ex('ex2', 'conjunction');
+}
+
+// ── Trial flow ────────────────────────────────────────────────────────────────
+function updateHeader() {
+  const t = trials[trialIndex];
+  document.getElementById('cond-label').textContent =
+    t.cond === 'feature' ? 'Feature Search' : 'Conjunction Search';
+  document.getElementById('trial-count').textContent =
+    `Trial ${trialIndex + 1} of ${trials.length}`;
+  document.getElementById('progress-fill').style.width =
+    `${(trialIndex / trials.length) * 100}%`;
+}
+
+function runTrial() {
+  if (trialIndex >= trials.length) { showResults(); return; }
+
+  // Check if we just finished feature phase
+  if (trialIndex === SET_SIZES.length * REPS && trials[trialIndex].cond === 'conjunction') {
+    showBetweenPhases();
+    return;
+  }
+
+  updateHeader();
+  items = makeItems(trials[trialIndex]);
+  phase = 'fixation';
+  document.getElementById('rt-feedback').textContent = '';
+  drawFixation();
+
+  setTimeout(() => {
+    if (phase !== 'fixation') return;
+    phase = 'search';
+    drawArray(false);
+    t0 = performance.now();
+  }, FIX_MS);
+}
+
+sc.addEventListener('click', e => {
+  if (phase !== 'search') return;
+  const rect = sc.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (CW / rect.width);
+  const y = (e.clientY - rect.top) * (CH / rect.height);
+
+  // Find clicked item
+  const hit = items.find(it => Math.hypot(it.x - x, it.y - y) <= R + 5);
+  if (!hit) return;
+
+  const rt = performance.now() - t0;
+  const t = trials[trialIndex];
+
+  if (hit.isTarget) {
+    phase = 'feedback';
+    document.getElementById('rt-feedback').textContent = `${Math.round(rt)} ms`;
+
+    if (!results[t.cond][t.n]) results[t.cond][t.n] = [];
+    results[t.cond][t.n].push(rt);
+
+    drawArray(true);
+    trialIndex++;
+    setTimeout(() => runTrial(), 280);
+  } else {
+    // Wrong item — brief error flash, don't advance
+    document.getElementById('rt-feedback').textContent = 'wrong — try again';
+    setTimeout(() => {
+      if (phase === 'feedback') return;
+      document.getElementById('rt-feedback').textContent = '';
+    }, 600);
+  }
+});
+
+// ── Phase transitions ─────────────────────────────────────────────────────────
+function showBetweenPhases() {
+  document.getElementById('trial-area').style.display = 'none';
+  document.getElementById('between-phases').style.display = 'block';
+}
+
+function startConjunctionPhase() {
+  document.getElementById('between-phases').style.display = 'none';
+  document.getElementById('trial-area').style.display = 'block';
+  runTrial();
+}
+
+// ── Linear slope ─────────────────────────────────────────────────────────────
+function slope(data) {
+  const pts = SET_SIZES
+    .filter(n => data[n] && data[n].length > 0)
+    .map(n => ({ n, rt: data[n].reduce((a,b)=>a+b,0)/data[n].length }));
+  if (pts.length < 2) return null;
+  const N = pts.length;
+  const sx = pts.reduce((a,p)=>a+p.n,0);
+  const sy = pts.reduce((a,p)=>a+p.rt,0);
+  const sxy = pts.reduce((a,p)=>a+p.n*p.rt,0);
+  const sx2 = pts.reduce((a,p)=>a+p.n*p.n,0);
+  const m = (N*sxy - sx*sy) / (N*sx2 - sx*sx);
+  const b = (sy - m*sx) / N;
+  return { m, b, pts };
+}
+
+// ── Results chart ─────────────────────────────────────────────────────────────
+function drawChart(fRes, cRes) {
+  const cc = document.getElementById('chart').getContext('2d');
+  const W = 520, H = 230;
+  const pad = { l: 62, r: 20, t: 24, b: 42 };
+  const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+  const bg = isLight() ? '#f6f8fa' : '#161b22';
+  const gridC = isLight() ? '#d0d7de' : '#21262d';
+  const textC = isLight() ? '#57606a' : '#484f58';
+  const labelC = isLight() ? '#24292f' : '#c9d1d9';
+
+  cc.fillStyle = bg;
+  cc.fillRect(0, 0, W, H);
+
+  // Collect all values for y range
+  const allRTs = SET_SIZES.flatMap(n => [...(fRes[n]||[]), ...(cRes[n]||[])]);
+  const maxRT = allRTs.length ? Math.ceil(Math.max(...allRTs) * 1.15 / 500) * 500 : 3000;
+
+  const xs = n => pad.l + ((n - 6) / 16) * pw;   // 6..22 range
+  const ys = rt => pad.t + ph - (rt / maxRT) * ph;
+
+  // Grid
+  cc.strokeStyle = gridC;
+  cc.lineWidth = 1;
+  cc.font = '10px monospace';
+  cc.fillStyle = textC;
+  cc.textAlign = 'right';
+  for (let rt = 500; rt <= maxRT; rt += 500) {
+    cc.beginPath(); cc.moveTo(pad.l, ys(rt)); cc.lineTo(W - pad.r, ys(rt)); cc.stroke();
+    cc.fillText(rt, pad.l - 7, ys(rt) + 3);
+  }
+
+  // X ticks
+  cc.fillStyle = textC;
+  cc.textAlign = 'center';
+  for (const n of SET_SIZES) {
+    cc.fillText(n, xs(n), H - pad.b + 16);
+  }
+
+  // Axis labels
+  cc.fillStyle = textC;
+  cc.fillText('set size', W / 2, H - 6);
+  cc.save();
+  cc.translate(12, H / 2);
+  cc.rotate(-Math.PI / 2);
+  cc.fillText('RT (ms)', 0, 0);
+  cc.restore();
+
+  // Draw each condition
+  const conds = [
+    { data: fRes, color: BLUE, label: 'Feature' },
+    { data: cRes, color: RED, label: 'Conjunction' }
+  ];
+  for (const cond of conds) {
+    const pts = SET_SIZES.filter(n => cond.data[n] && cond.data[n].length > 0);
+
+    // Individual dots (faint)
+    for (const n of pts) {
+      for (const rt of cond.data[n]) {
+        cc.fillStyle = cond.color + '55';
+        cc.beginPath(); cc.arc(xs(n), ys(rt), 3, 0, 2*Math.PI); cc.fill();
+      }
+    }
+
+    // Mean line
+    const means = pts.map(n => ({
+      n, rt: cond.data[n].reduce((a,b)=>a+b,0)/cond.data[n].length
+    }));
+    if (means.length > 1) {
+      cc.strokeStyle = cond.color;
+      cc.lineWidth = 2;
+      cc.beginPath();
+      means.forEach((m, i) => {
+        if (i === 0) cc.moveTo(xs(m.n), ys(m.rt));
+        else cc.lineTo(xs(m.n), ys(m.rt));
+      });
+      cc.stroke();
+    }
+
+    // Mean dots
+    cc.fillStyle = cond.color;
+    for (const m of means) {
+      cc.beginPath(); cc.arc(xs(m.n), ys(m.rt), 5, 0, 2*Math.PI); cc.fill();
+    }
+  }
+
+  // Legend
+  const ly = pad.t + 4;
+  cc.fillStyle = BLUE; cc.fillRect(pad.l + 4, ly, 16, 3);
+  cc.fillStyle = labelC; cc.textAlign = 'left'; cc.font = '10px monospace';
+  cc.fillText('Feature', pad.l + 26, ly + 4);
+  cc.fillStyle = RED; cc.fillRect(pad.l + 90, ly, 16, 3);
+  cc.fillStyle = labelC;
+  cc.fillText('Conjunction', pad.l + 112, ly + 4);
+}
+
+// ── Show results ──────────────────────────────────────────────────────────────
+function showResults() {
+  document.getElementById('trial-area').style.display = 'none';
+
+  const fAll = SET_SIZES.flatMap(n => results.feature[n] || []);
+  const cAll = SET_SIZES.flatMap(n => results.conjunction[n] || []);
+  const fMean = fAll.length ? Math.round(fAll.reduce((a,b)=>a+b)/fAll.length) : 0;
+  const cMean = cAll.length ? Math.round(cAll.reduce((a,b)=>a+b)/cAll.length) : 0;
+
+  document.getElementById('feat-mean').textContent = `${fMean} ms avg`;
+  document.getElementById('conj-mean').textContent = `${cMean} ms avg`;
+
+  const fs = slope(results.feature);
+  const cs = slope(results.conjunction);
+  if (fs) document.getElementById('feat-slope').textContent = `slope: ${fs.m.toFixed(1)} ms/item`;
+  if (cs) document.getElementById('conj-slope').textContent = `slope: ${cs.m.toFixed(1)} ms/item`;
+
+  drawChart(results.feature, results.conjunction);
+
+  // Interpretation
+  let note = '';
+  if (fs && cs) {
+    const diff = cs.m - fs.m;
+    if (diff > 15) {
+      note = `Your conjunction slope (${cs.m.toFixed(1)} ms/item) was steeper than feature (${fs.m.toFixed(1)} ms/item), consistent with the predicted pattern. As the display grew, conjunction search cost more time per added item — you were checking. Feature search stayed flat or nearly so because the color contrast let the target register without scanning.`;
+    } else if (diff > 3) {
+      note = `A modest slope difference: conjunction (${cs.m.toFixed(1)} ms/item) vs feature (${fs.m.toFixed(1)} ms/item). The effect is in the right direction but smaller than typical lab results (20–30 ms/item for conjunction). Browser timing, click latency, and the small sample (12 trials per condition) all add noise.`;
+    } else {
+      note = `Your slopes were similar across conditions. This can happen when the target is salient enough to guide attention even in the conjunction condition, or when individual variation in search strategy is large. Lab results typically show 20–30 ms/item for conjunction vs near-zero for feature. The 12-trial sample limits precision.`;
+    }
+  }
+  note += ' The core debate: Treisman\'s feature integration theory holds that single features are processed in parallel by dedicated feature maps, while conjunctions require serial spatial attention to bind features at a location. Wolfe\'s guided search (1994) disputes the serial account — attention is guided by feature salience and the apparent seriality emerges from weighted parallel processing. Both models predict steeper slopes for conjunctions; they disagree about whether any item is ever truly skipped.';
+  document.getElementById('results-note').textContent = note;
+
+  document.getElementById('results-panel').style.display = 'block';
+}
+
+// ── Entry points ──────────────────────────────────────────────────────────────
+function startExperiment() {
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('trial-area').style.display = 'block';
+  drawHintIcon();
+  runTrial();
+}
+
+function resetExperiment() {
+  results = { feature: {}, conjunction: {} };
+  trialIndex = 0;
+  trials = buildTrials();
+  document.getElementById('results-panel').style.display = 'none';
+  document.getElementById('intro').style.display = 'block';
+  drawExamples();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+trials = buildTrials();
+drawExamples();
+</script>
+</body>
+</html>
