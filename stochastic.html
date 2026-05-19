@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stochastic Resonance · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+
+  .intro { font-size: 0.88rem; color: #8b949e; line-height: 1.8; margin-bottom: 2rem; }
+  .intro p { margin-bottom: 0.65rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .controls { margin-bottom: 1.75rem; }
+  .ctrl-row { margin-bottom: 1.1rem; }
+  .ctrl-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.3rem; }
+  .ctrl-name { font-size: 0.75rem; color: #484f58; }
+  .ctrl-val { font-size: 0.92rem; color: #e6edf3; font-weight: bold; }
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: 2px solid #0d1117;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: 2px solid #0d1117;
+  }
+
+  .canvas-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .canvas-wrap {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+  }
+  canvas {
+    display: block;
+    background: #0d1117;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .stat-box {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.75rem 0.9rem;
+  }
+  .stat-lbl { font-size: 0.65rem; color: #484f58; text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 0.2rem; }
+  .stat-val { font-size: 1.15rem; color: #e6edf3; font-weight: bold; }
+  .stat-unit { font-size: 0.68rem; color: #484f58; }
+
+  .note {
+    font-size: 0.84rem;
+    color: #6e7681;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-top: 2rem;
+  }
+  .note p { margin-bottom: 0.5rem; }
+  .note p:last-child { margin-bottom: 0; }
+
+  footer {
+    font-size: 0.74rem;
+    color: #30363d;
+    border-top: 1px solid #21262d;
+    padding-top: 1.25rem;
+    margin-top: 2.5rem;
+    line-height: 1.6;
+  }
+
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .ctrl-name { color: #8c959f; }
+  html[data-theme="light"] .canvas-label { color: #8c959f; }
+  html[data-theme="light"] canvas { background: #f6f8fa; }
+  html[data-theme="light"] .stat-box { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-lbl { color: #8c959f; }
+  html[data-theme="light"] .stat-val { color: #1f2328; }
+  html[data-theme="light"] .stat-unit { color: #8c959f; }
+  html[data-theme="light"] .note { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="back"><a href="/">&larr; so1omon.net</a></div>
+<div class="page-label">simulation 53 · perception &amp; noise</div>
+<h1>Stochastic Resonance</h1>
+
+<div class="intro">
+  <p>A signal too weak to cross a detection threshold is undetectable. Adding noise makes detection worse — that's the expected story. Stochastic resonance is the case where noise makes it better.</p>
+  <p>In a threshold system, noise occasionally boosts a subthreshold signal above the detection line. The key is that the timing of those boosts is not uniform with respect to the signal: when the signal is near its peak, combined amplitude is more likely to exceed threshold. When the signal is at trough, it isn't. The detector's output therefore carries information about signal phase that a noise-free subthreshold signal cannot provide. Some noise recovers structure. More noise destroys it again.</p>
+  <p>First demonstrated in crayfish mechanoreceptor afferents by Douglass, Wilkens, Pantazelou, and Moss (1993). The crayfish's hydrodynamic sense — used to detect prey and predators — works better with a small amount of added noise than without it. The optimal noise level is not zero. Replicated in human vibrotactile thresholds and balance control: subthreshold mechanical noise applied through insoles reduces postural sway in older adults.</p>
+</div>
+
+<div class="controls">
+  <div class="ctrl-row">
+    <div class="ctrl-header">
+      <span class="ctrl-name">signal amplitude (threshold = 1.0)</span>
+      <span class="ctrl-val" id="amp-val">0.62</span>
+    </div>
+    <input type="range" id="amp-slider" min="0.05" max="0.98" step="0.01" value="0.62">
+  </div>
+  <div class="ctrl-row">
+    <div class="ctrl-header">
+      <span class="ctrl-name">noise level (σ)</span>
+      <span class="ctrl-val" id="noise-val">0.50</span>
+    </div>
+    <input type="range" id="noise-slider" min="0" max="2.2" step="0.01" value="0.50">
+  </div>
+</div>
+
+<div class="canvas-label">signal trace · 7 seconds rolling · threshold = 1.0</div>
+<div class="canvas-wrap">
+  <canvas id="trace-canvas" height="220"></canvas>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="stat-lbl">detections / sec</div>
+    <div class="stat-val"><span id="det-rate">—</span> <span class="stat-unit">Hz</span></div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-lbl">signal-phase %</div>
+    <div class="stat-val"><span id="hit-pct">—</span><span class="stat-unit">%</span></div>
+  </div>
+  <div class="stat-box">
+    <div class="stat-lbl">optimal noise σ</div>
+    <div class="stat-val"><span id="opt-noise">—</span></div>
+  </div>
+</div>
+
+<div class="canvas-label">detection rate vs. noise level · green = signal-phase crossings · gray = all crossings</div>
+<div class="canvas-wrap">
+  <canvas id="snr-canvas" height="190"></canvas>
+</div>
+
+<div class="note">
+  <p>What this can't show: from inside the detector, a noise-assisted crossing is identical to a noise-alone false alarm. The improvement is statistical — visible across many trials, invisible in any individual event. The system receives more information without any mechanism to identify which detections the signal caused.</p>
+  <p>The crayfish doesn't know noise is helping. The older adult's vestibular system doesn't know the insole is doing something. The information gain is real; its source is inaccessible.</p>
+</div>
+
+<footer>
+  Douglass JK, Wilkens L, Pantazelou E, Moss F (1993). Noise enhancement of information transfer in crayfish mechanoreceptors by stochastic resonance. <em>Nature</em> 365, 337–340. ·
+  Collins JJ, Imhoff TT, Grigg P (1996). Noise-enhanced tactile sensation. <em>Nature</em> 383, 770. ·
+  Priplata AA et al. (2002). Noise-enhanced balance control in patients with diabetes and patients with stroke. <em>Annals of Neurology</em> 59, 4–12.
+</footer>
+
+<script>
+const THRESHOLD = 1.0;
+const FREQ = 1.4;        // signal cycles per second
+const SPS = 100;         // samples per second (simulation rate)
+const WINDOW_SECS = 7;
+const BUF = WINDOW_SECS * SPS;
+
+let amplitude = 0.62;
+let noiseSigma = 0.50;
+let simT = 0;
+const DT = 1 / SPS;
+
+const sigBuf  = new Float32Array(BUF);
+const combBuf = new Float32Array(BUF);
+const crossBuf = new Uint8Array(BUF);
+let head = 0;
+let filled = false;
+let prevComb = 0;
+
+let elapsed = 0;
+let recentCrossings = [];
+const STATS_WIN = 6;
+
+let snrNoises = [], snrTotal = [], snrHits = [];
+let snrComputed = false;
+
+function gauss(sigma) {
+  if (sigma < 1e-9) return 0;
+  const u = Math.max(1e-10, Math.random());
+  const v = Math.random();
+  return sigma * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function computeSNR(amp) {
+  const LEVELS = 88;
+  const NSAMP  = 4000;
+  snrNoises = [];
+  snrTotal  = [];
+  snrHits   = [];
+  for (let i = 0; i <= LEVELS; i++) {
+    const s = i * 2.2 / LEVELS;
+    snrNoises.push(s);
+    let cr = 0, hits = 0, prev = amp * Math.sin(0);
+    for (let j = 1; j < NSAMP; j++) {
+      const sig = amp * Math.sin(2 * Math.PI * FREQ * j / SPS);
+      const c   = sig + gauss(s);
+      if (c >= THRESHOLD && prev < THRESHOLD) {
+        cr++;
+        if (sig >= 0) hits++;
+      }
+      prev = c;
+    }
+    const secs = NSAMP / SPS;
+    snrTotal.push(cr / secs);
+    snrHits.push(hits / secs);
+  }
+  snrComputed = true;
+}
+
+const traceC = document.getElementById('trace-canvas');
+const traceX = traceC.getContext('2d');
+const snrC   = document.getElementById('snr-canvas');
+const snrX   = snrC.getContext('2d');
+
+let traceW = 0, traceH = 220;
+let snrW = 0, snrH = 190;
+const DPR = window.devicePixelRatio || 1;
+
+function resizeAll() {
+  const W = traceC.parentElement.clientWidth;
+
+  traceW = W;
+  traceC.width  = W * DPR;
+  traceC.height = traceH * DPR;
+  traceC.style.width  = W + 'px';
+  traceC.style.height = traceH + 'px';
+
+  snrW = W;
+  snrC.width  = W * DPR;
+  snrC.height = snrH * DPR;
+  snrC.style.width  = W + 'px';
+  snrC.style.height = snrH + 'px';
+
+  traceX.setTransform(DPR, 0, 0, DPR, 0, 0);
+  snrX.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  drawSNR();
+}
+
+function drawTrace() {
+  const W = traceW, H = traceH;
+  const ctx = traceX;
+  const isLight = document.documentElement.dataset.theme === 'light';
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = isLight ? '#f6f8fa' : '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  const yMin = -2.3, yMax = 2.3;
+  function yp(v) { return H - (v - yMin) / (yMax - yMin) * H; }
+
+  // Grid
+  ctx.strokeStyle = isLight ? '#d0d7de' : '#161b22';
+  ctx.lineWidth = 1;
+  for (const v of [-2, -1, 0, 1, 2]) {
+    ctx.beginPath();
+    ctx.moveTo(0, yp(v));
+    ctx.lineTo(W, yp(v));
+    ctx.stroke();
+  }
+  // Y-axis labels
+  ctx.fillStyle = isLight ? '#8c959f' : '#30363d';
+  ctx.font = `${9 * Math.min(DPR,1.5)/DPR}px "Berkeley Mono",monospace`;
+  ctx.textAlign = 'left';
+  for (const v of [-2, -1, 0, 1, 2]) {
+    ctx.fillText(v === 0 ? '0' : (v > 0 ? '+'+v : ''+v), 3, yp(v) - 2);
+  }
+
+  // Threshold line (red dashed)
+  ctx.strokeStyle = '#f85149';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.moveTo(0, yp(THRESHOLD));
+  ctx.lineTo(W, yp(THRESHOLD));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f85149';
+  ctx.font = `9px "Berkeley Mono",monospace`;
+  ctx.textAlign = 'right';
+  ctx.fillText('threshold', W - 4, yp(THRESHOLD) - 4);
+  ctx.textAlign = 'left';
+
+  const n = filled ? BUF : head;
+  if (n < 2) return;
+
+  // Signal line (blue, translucent)
+  ctx.strokeStyle = '#1f6feb';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const x = (i / (BUF - 1)) * W;
+    const idx = (head - n + i + BUF) % BUF;
+    const y = yp(sigBuf[idx]);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Combined line (bright)
+  ctx.strokeStyle = isLight ? '#24292f' : '#c9d1d9';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const x = (i / (BUF - 1)) * W;
+    const idx = (head - n + i + BUF) % BUF;
+    const y = yp(combBuf[idx]);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Detection dots
+  ctx.fillStyle = '#3fb950';
+  for (let i = 0; i < n; i++) {
+    const idx = (head - n + i + BUF) % BUF;
+    if (crossBuf[idx]) {
+      const x = (i / (BUF - 1)) * W;
+      ctx.beginPath();
+      ctx.arc(x, yp(THRESHOLD), 3.5, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+  }
+
+  // Legend
+  ctx.font = '9px "Berkeley Mono",monospace';
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = '#1f6feb';
+  ctx.fillRect(4, H - 22, 16, 2);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = isLight ? '#8c959f' : '#484f58';
+  ctx.fillText('pure signal', 24, H - 14);
+
+  ctx.fillStyle = isLight ? '#24292f' : '#c9d1d9';
+  ctx.fillRect(120, H - 22, 16, 2);
+  ctx.fillStyle = isLight ? '#8c959f' : '#484f58';
+  ctx.fillText('signal + noise', 140, H - 14);
+
+  ctx.fillStyle = '#3fb950';
+  ctx.beginPath();
+  ctx.arc(248, H - 19, 3.5, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.fillStyle = isLight ? '#8c959f' : '#484f58';
+  ctx.fillText('detection', 256, H - 14);
+}
+
+function drawSNR() {
+  if (!snrComputed) return;
+  const W = snrW, H = snrH;
+  const ctx = snrX;
+  const isLight = document.documentElement.dataset.theme === 'light';
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = isLight ? '#f6f8fa' : '#0d1117';
+  ctx.fillRect(0, 0, W, H);
+
+  const maxRate = Math.max(...snrTotal, 0.5);
+  const noiseMax = 2.2;
+  const pad = { left: 38, right: 14, top: 12, bottom: 28 };
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top - pad.bottom;
+
+  function nx(v)   { return pad.left + (v / noiseMax) * cW; }
+  function ry(v)   { return pad.top + cH - (v / (maxRate * 1.15)) * cH; }
+
+  // Axes
+  ctx.strokeStyle = isLight ? '#d0d7de' : '#21262d';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top);
+  ctx.lineTo(pad.left, pad.top + cH);
+  ctx.lineTo(pad.left + cW, pad.top + cH);
+  ctx.stroke();
+
+  // X ticks + labels
+  ctx.fillStyle = isLight ? '#8c959f' : '#484f58';
+  ctx.font = '9px "Berkeley Mono",monospace';
+  ctx.textAlign = 'center';
+  for (const v of [0, 0.5, 1.0, 1.5, 2.0]) {
+    const x = nx(v);
+    ctx.beginPath();
+    ctx.moveTo(x, pad.top + cH);
+    ctx.lineTo(x, pad.top + cH + 3);
+    ctx.stroke();
+    ctx.fillText(v.toFixed(1), x, H - 6);
+  }
+  ctx.fillText('noise level (σ)', pad.left + cW / 2, H - 6);
+
+  // Y ticks
+  ctx.textAlign = 'right';
+  const yStep = maxRate > 8 ? 4 : (maxRate > 4 ? 2 : 1);
+  for (let v = 0; v <= maxRate; v += yStep) {
+    const y = ry(v);
+    if (y < pad.top) break;
+    ctx.beginPath();
+    ctx.moveTo(pad.left - 3, y);
+    ctx.lineTo(pad.left, y);
+    ctx.stroke();
+    ctx.fillText(v, pad.left - 5, y + 3);
+  }
+  ctx.textAlign = 'left';
+
+  // Total crossings (gray)
+  ctx.strokeStyle = isLight ? '#8c959f' : '#6e7681';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < snrNoises.length; i++) {
+    const x = nx(snrNoises[i]);
+    const y = ry(snrTotal[i]);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Signal-phase hits (green)
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < snrNoises.length; i++) {
+    const x = nx(snrNoises[i]);
+    const y = ry(snrHits[i]);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Find optimal noise (peak of signal-phase hits)
+  let maxHit = 0, optIdx = 0;
+  for (let i = 0; i < snrHits.length; i++) {
+    if (snrHits[i] > maxHit) { maxHit = snrHits[i]; optIdx = i; }
+  }
+  const optNoise = snrNoises[optIdx];
+  document.getElementById('opt-noise').textContent = optNoise.toFixed(2);
+
+  // Optimal noise tick (yellow)
+  ctx.strokeStyle = '#e3b341';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  const ox = nx(optNoise);
+  ctx.beginPath();
+  ctx.moveTo(ox, pad.top);
+  ctx.lineTo(ox, pad.top + cH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#e3b341';
+  ctx.font = '8px "Berkeley Mono",monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('optimal', ox, pad.top + 9);
+  ctx.textAlign = 'left';
+
+  // Current noise marker (blue)
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 3]);
+  const cx = nx(noiseSigma);
+  ctx.beginPath();
+  ctx.moveTo(cx, pad.top);
+  ctx.lineTo(cx, pad.top + cH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// Animation
+let lastRaf = null;
+let accumSec = 0;
+
+function frame(now) {
+  if (lastRaf === null) lastRaf = now;
+  const delta = Math.min((now - lastRaf) / 1000, 0.1);
+  lastRaf = now;
+  accumSec += delta;
+  elapsed  += delta;
+
+  const steps = Math.floor(accumSec * SPS);
+  accumSec -= steps / SPS;
+
+  for (let s = 0; s < steps; s++) {
+    const sig  = amplitude * Math.sin(2 * Math.PI * FREQ * simT);
+    const noise = gauss(noiseSigma);
+    const comb  = sig + noise;
+    const cross = (comb >= THRESHOLD && prevComb < THRESHOLD) ? 1 : 0;
+
+    sigBuf[head]   = sig;
+    combBuf[head]  = comb;
+    crossBuf[head] = cross;
+
+    if (cross) recentCrossings.push({ t: elapsed, hit: sig >= 0 });
+
+    prevComb = comb;
+    head = (head + 1) % BUF;
+    if (head === 0) filled = true;
+    simT += DT;
+  }
+
+  // Prune old crossings
+  const cutoff = elapsed - STATS_WIN;
+  while (recentCrossings.length && recentCrossings[0].t < cutoff) recentCrossings.shift();
+
+  // Stats
+  const total = recentCrossings.length;
+  const hits  = recentCrossings.filter(c => c.hit).length;
+  document.getElementById('det-rate').textContent = (total / STATS_WIN).toFixed(1);
+  document.getElementById('hit-pct').textContent  = total > 0 ? Math.round(100 * hits / total) : '—';
+
+  drawTrace();
+  requestAnimationFrame(frame);
+}
+
+// Controls
+const ampSlider   = document.getElementById('amp-slider');
+const noiseSlider = document.getElementById('noise-slider');
+
+ampSlider.addEventListener('input', () => {
+  amplitude = parseFloat(ampSlider.value);
+  document.getElementById('amp-val').textContent = amplitude.toFixed(2);
+  computeSNR(amplitude);
+  drawSNR();
+});
+
+noiseSlider.addEventListener('input', () => {
+  noiseSigma = parseFloat(noiseSlider.value);
+  document.getElementById('noise-val').textContent = noiseSigma.toFixed(2);
+  drawSNR();
+});
+
+// Theme change support
+const obs = new MutationObserver(() => drawSNR());
+obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+window.addEventListener('resize', resizeAll);
+resizeAll();
+computeSNR(amplitude);
+drawSNR();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
