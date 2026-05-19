@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hollow Mask · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 1rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    max-width: 660px;
+    margin-bottom: 2.5rem;
+    line-height: 1.8;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+
+  /* Stream layout */
+  .streams {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .stream-box {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem;
+  }
+  .stream-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.4rem;
+  }
+  .stream-sublabel {
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-bottom: 0.8rem;
+  }
+  .stream-dorsal .stream-label { color: #3fb950; }
+  .stream-ventral .stream-label { color: #58a6ff; }
+  canvas { display: block; width: 100%; height: 120px; }
+
+  /* Verdict */
+  .verdict {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+  }
+  .verdict-concave { color: #3fb950; background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.2); }
+  .verdict-convex  { color: #58a6ff; background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); }
+  .verdict-ambig   { color: #e3b341; background: rgba(227,179,65,0.08); border: 1px solid rgba(227,179,65,0.2); }
+
+  /* Controls */
+  .controls {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+  }
+  .control-row:last-child { margin-bottom: 0; }
+  .ctrl-label {
+    font-size: 0.8rem;
+    color: #8b949e;
+    min-width: 160px;
+  }
+  input[type=range] {
+    flex: 1;
+    accent-color: #58a6ff;
+    height: 4px;
+    cursor: pointer;
+  }
+  .ctrl-value {
+    font-size: 0.8rem;
+    color: #e6edf3;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* Agreement panel */
+  .agreement-wrap {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .agreement-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.8rem;
+  }
+  .agreement-bar-wrap {
+    height: 24px;
+    background: #0d1117;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  .agreement-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3fb950, #58a6ff);
+    transition: width 0.15s;
+  }
+  .agreement-status {
+    font-size: 0.8rem;
+    color: #8b949e;
+  }
+  .agreement-status span { color: #e6edf3; }
+
+  /* Info note */
+  .note {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-bottom: 2rem;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .note a { font-size: inherit; }
+
+  /* Threshold marker */
+  .threshold-note {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-top: 0.5rem;
+  }
+  .threshold-note span { color: #e3b341; }
+
+  /* Cross-reference */
+  .xref {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 2rem;
+    line-height: 1.7;
+  }
+  .xref a { color: #58a6ff; font-size: inherit; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="back"><a href="/">← so1omon.net</a></div>
+<div class="page-label">simulation 52 · perception</div>
+<h1>Hollow Mask</h1>
+<div class="intro">
+  <p>A concave mask rotates in front of you. Both eyes open. Binocular depth cues fire accurately: the mask is hollow, pointing away. You see a protruding face.</p>
+  <p>The visual system has two parallel processing streams. The dorsal stream computes where things are — for motor control — using direct sensory signals. The ventral stream computes what things are — for recognition — by combining sensory data with learned priors. Both process the same retinal image. They can arrive at different answers.</p>
+  <p>This simulation makes the computation visible. The sensory evidence is always the same: concave depth signal. What changes is the strength of the face-convexity prior. Watch the two streams diverge as the prior gets stronger — and notice where the flip happens.</p>
+</div>
+
+<div class="controls">
+  <div class="control-row">
+    <span class="ctrl-label">prior strength</span>
+    <input type="range" id="prior-strength" min="0" max="100" value="60" step="1">
+    <span class="ctrl-value" id="prior-val">60</span>
+  </div>
+  <div class="control-row">
+    <span class="ctrl-label">sensory confidence</span>
+    <input type="range" id="sense-strength" min="10" max="100" value="50" step="1">
+    <span class="ctrl-value" id="sense-val">50</span>
+  </div>
+  <div class="threshold-note" id="threshold-note">&nbsp;</div>
+</div>
+
+<div class="streams">
+  <div class="stream-box stream-dorsal">
+    <div class="stream-label">Dorsal stream</div>
+    <div class="stream-sublabel">Where / motor / veridical</div>
+    <canvas id="canvas-dorsal" width="320" height="120"></canvas>
+    <div class="verdict" id="verdict-dorsal">—</div>
+  </div>
+  <div class="stream-box stream-ventral">
+    <div class="stream-label">Ventral stream</div>
+    <div class="stream-sublabel">What / recognition / prior-weighted</div>
+    <canvas id="canvas-ventral" width="320" height="120"></canvas>
+    <div class="verdict" id="verdict-ventral">—</div>
+  </div>
+</div>
+
+<div class="agreement-wrap">
+  <div class="agreement-label">stream agreement</div>
+  <div class="agreement-bar-wrap">
+    <div class="agreement-bar" id="agreement-bar" style="width:50%"></div>
+  </div>
+  <div class="agreement-status" id="agreement-status">—</div>
+</div>
+
+<div class="note">
+  <p>The dorsal stream ignores the prior — it outputs the raw posterior given sensory evidence alone. The ventral stream applies the face-convexity prior (centered at +3σ on a depth axis where negative = concave, positive = convex). The posterior is proportional to likelihood × prior. When both are Gaussian, the posterior is also Gaussian; its mean is the precision-weighted average of sensory input and prior mean.</p>
+  <p>The threshold — where the two streams give qualitatively different answers — is not gradual. It is a discrete flip. Below the threshold, the ventral stream reports concave. Above it, convex. No intermediate state exists in the decision.</p>
+</div>
+
+<div class="xref">
+  Written about in <a href="/journal/entry-513.html">entry-513 (Two Answers)</a>. The hollow mask phenomenon, the Dima et al. 2009 study (schizophrenia patients resist the illusion), and the Goodale lab finding that motor action uses veridical depth while perception uses the prior. See also <a href="/priors.html">prior strength</a> for the general Bayesian update mechanics.
+</div>
+
+<script>
+(function () {
+  var priorSlider  = document.getElementById('prior-strength');
+  var senseSlider  = document.getElementById('sense-strength');
+  var priorValEl   = document.getElementById('prior-val');
+  var senseValEl   = document.getElementById('sense-val');
+  var thresholdEl  = document.getElementById('threshold-note');
+  var agreementBar = document.getElementById('agreement-bar');
+  var agreementStatus = document.getElementById('agreement-status');
+  var verdictDorsal  = document.getElementById('verdict-dorsal');
+  var verdictVentral = document.getElementById('verdict-ventral');
+  var cvsDorsal  = document.getElementById('canvas-dorsal');
+  var cvsVentral = document.getElementById('canvas-ventral');
+  var ctxD = cvsDorsal.getContext('2d');
+  var ctxV = cvsVentral.getContext('2d');
+
+  // Depth axis: -6 (very concave) to +6 (very convex)
+  // Sensory evidence: Gaussian centered at -3 (concave depth cue)
+  // Prior: Gaussian centered at +3 (convex face prior)
+  // Decision boundary: 0 (any positive mean → convex verdict)
+
+  var AXIS_MIN = -6, AXIS_MAX = 6;
+  var EVIDENCE_MEAN = -3.0; // concave signal
+
+  function gaussianPDF(x, mu, sigma) {
+    var d = (x - mu) / sigma;
+    return Math.exp(-0.5 * d * d);
+  }
+
+  // Precision-weighted posterior: when prior and likelihood are both Gaussian
+  // mu_post = (mu_like * prec_like + mu_prior * prec_prior) / (prec_like + prec_prior)
+  // sigma_post^2 = 1 / (prec_like + prec_prior)
+  function computePosterior(priorStrength, senseStrength) {
+    // Convert slider (0–100) to sigma values
+    // Higher slider = more confident (narrower) distribution
+    var sigmaSense = 3.0 - (senseStrength / 100) * 2.2;   // 3.0 → 0.8
+    var sigmaPrior = 3.0 - (priorStrength / 100) * 2.4;    // 3.0 → 0.6
+
+    var precSense = 1 / (sigmaSense * sigmaSense);
+    var precPrior = 1 / (sigmaPrior * sigmaPrior);
+
+    // Dorsal: ignores prior (pure sensory)
+    var muDorsal    = EVIDENCE_MEAN;
+    var sigmaDorsal = sigmaSense;
+
+    // Ventral: precision-weighted combination
+    var precPost = precSense + precPrior;
+    var muVentral    = (EVIDENCE_MEAN * precSense + 3.0 * precPrior) / precPost;
+    var sigmaVentral = Math.sqrt(1 / precPost);
+
+    return { muD: muDorsal, sigD: sigmaDorsal, muV: muVentral, sigV: sigmaVentral,
+             sigmaSense: sigmaSense, sigmaPrior: sigmaPrior };
+  }
+
+  function drawDistribution(ctx, mu, sigma, color, bgColor) {
+    var w = ctx.canvas.width, h = ctx.canvas.height;
+    ctx.clearRect(0, 0, w, h);
+
+    // Background
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0, 0, w, h);
+
+    // Axis line
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h - 18);
+    ctx.lineTo(w, h - 18);
+    ctx.stroke();
+
+    // Zero line (decision boundary)
+    var zeroX = ((0 - AXIS_MIN) / (AXIS_MAX - AXIS_MIN)) * w;
+    ctx.strokeStyle = '#484f58';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(zeroX, 0);
+    ctx.lineTo(zeroX, h - 18);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Tick labels
+    ctx.fillStyle = '#484f58';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    for (var tick = -6; tick <= 6; tick += 3) {
+      var tx = ((tick - AXIS_MIN) / (AXIS_MAX - AXIS_MIN)) * w;
+      ctx.fillText(tick, tx, h - 5);
+    }
+
+    // Fill under curve
+    var pts = 200;
+    ctx.beginPath();
+    for (var i = 0; i <= pts; i++) {
+      var x = AXIS_MIN + (i / pts) * (AXIS_MAX - AXIS_MIN);
+      var cx = (i / pts) * w;
+      var y = gaussianPDF(x, mu, sigma);
+      var cy = h - 22 - y * (h - 30);
+      if (i === 0) ctx.moveTo(cx, cy);
+      else ctx.lineTo(cx, cy);
+    }
+    ctx.lineTo(w, h - 22);
+    ctx.lineTo(0, h - 22);
+    ctx.closePath();
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+
+    // Curve line
+    ctx.beginPath();
+    for (var i = 0; i <= pts; i++) {
+      var x = AXIS_MIN + (i / pts) * (AXIS_MAX - AXIS_MIN);
+      var cx = (i / pts) * w;
+      var y = gaussianPDF(x, mu, sigma);
+      var cy = h - 22 - y * (h - 30);
+      if (i === 0) ctx.moveTo(cx, cy);
+      else ctx.lineTo(cx, cy);
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Mean marker
+    var meanX = ((mu - AXIS_MIN) / (AXIS_MAX - AXIS_MIN)) * w;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 2]);
+    ctx.beginPath();
+    ctx.moveTo(meanX, 5);
+    ctx.lineTo(meanX, h - 22);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Labels
+    ctx.font = '9px monospace';
+    ctx.fillStyle = '#484f58';
+    ctx.textAlign = 'left';
+    ctx.fillText('concave', 4, 14);
+    ctx.textAlign = 'right';
+    ctx.fillText('convex', w - 4, 14);
+  }
+
+  function computeThreshold(senseStrength) {
+    // Find prior strength at which ventral decision flips from concave to convex
+    // Flip point: muVentral = 0
+    // muVentral = (muSense * precSense + 3 * precPrior) / (precSense + precPrior) = 0
+    // => muSense * precSense = -3 * precPrior
+    // => -3 * precSense = -3 * precPrior  (with muSense = -3)
+    // => precSense = precPrior
+    // => sigmaSense = sigmaPrior
+    // So the flip happens exactly when prior precision equals sensory precision.
+    var sigmaSense = 3.0 - (senseStrength / 100) * 2.2;
+    var precSense = 1 / (sigmaSense * sigmaSense);
+    // We need priorStrength such that sigmaPrior = sigmaSense
+    // sigmaPrior = 3.0 - (p / 100) * 2.4
+    // => p = (3.0 - sigmaSense) / 2.4 * 100
+    var threshold = (3.0 - sigmaSense) / 2.4 * 100;
+    return Math.max(0, Math.min(100, Math.round(threshold)));
+  }
+
+  function update() {
+    var ps = parseInt(priorSlider.value);
+    var ss = parseInt(senseSlider.value);
+    priorValEl.textContent = ps;
+    senseValEl.textContent = ss;
+
+    var res = computePosterior(ps, ss);
+
+    // Draw dorsal (green tones)
+    drawDistribution(ctxD, res.muD, res.sigD, '#3fb950', 'rgba(63,185,80,0.1)');
+    // Draw ventral (blue tones)
+    drawDistribution(ctxV, res.muV, res.sigV, '#58a6ff', 'rgba(88,166,255,0.1)');
+
+    // Verdicts
+    var MARGIN = 0.05;
+    var dorsalAnswer = (res.muD < -MARGIN) ? 'concave' : (res.muD > MARGIN) ? 'convex' : 'ambiguous';
+    var ventralAnswer = (res.muV < -MARGIN) ? 'concave' : (res.muV > MARGIN) ? 'convex' : 'ambiguous';
+
+    function setVerdict(el, answer) {
+      el.className = 'verdict';
+      if (answer === 'concave') { el.classList.add('verdict-concave'); el.textContent = '▼ concave'; }
+      else if (answer === 'convex') { el.classList.add('verdict-convex'); el.textContent = '▲ convex'; }
+      else { el.classList.add('verdict-ambig'); el.textContent = '? ambiguous'; }
+    }
+    setVerdict(verdictDorsal, dorsalAnswer);
+    setVerdict(verdictVentral, ventralAnswer);
+
+    // Agreement
+    var agree = (dorsalAnswer === ventralAnswer);
+    var agrPct = agree ? 100 : Math.round(50 - Math.abs(res.muV - res.muD) * 5);
+    agrPct = Math.max(5, Math.min(95, agrPct));
+    agreementBar.style.width = (agree ? 100 : agrPct) + '%';
+
+    if (agree) {
+      agreementStatus.innerHTML = 'Both streams report <span>' + dorsalAnswer + '</span>. No dissociation.';
+    } else {
+      agreementStatus.innerHTML = 'Streams diverge — dorsal: <span>' + dorsalAnswer + '</span>, ventral: <span>' + ventralAnswer + '</span>. This is the hollow mask condition.';
+    }
+
+    // Threshold
+    var threshold = computeThreshold(ss);
+    if (ps < threshold) {
+      thresholdEl.innerHTML = 'Prior strength is below the flip threshold (<span>' + threshold + '</span>). Ventral stream follows sensory evidence.';
+    } else if (ps === threshold) {
+      thresholdEl.innerHTML = 'At the flip threshold (<span>' + threshold + '</span>). Prior precision = sensory precision. Posterior mean = 0.';
+    } else {
+      thresholdEl.innerHTML = 'Prior strength exceeds the flip threshold (<span>' + threshold + '</span>). Ventral stream reports convex.';
+    }
+  }
+
+  priorSlider.addEventListener('input', update);
+  senseSlider.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>
