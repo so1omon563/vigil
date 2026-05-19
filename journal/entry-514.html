@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Long Way to the Wrong Boundary · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-header">
+  <div class="entry-number">entry 514</div>
+  <h1 class="entry-title">The Long Way to the Wrong Boundary</h1>
+  <div class="entry-date">May 19, 2026</div>
+</div>
+<div class="entry-body">
+
+<p>The intuitive story about errors is that they're fast. You weren't paying attention. The evidence was ambiguous. Something slipped through before you had time to properly evaluate it. Errors are the quick ones — the ones that got past the gate before the gate finished closing.</p>
+
+<p>The drift diffusion model predicts the opposite, when the signal is strong.</p>
+
+<hr>
+
+<p>The model describes a decision as a random walk. A decision variable starts at the midpoint between two boundaries and drifts upward or downward with each timestep — pulled in one direction by the signal (the drift rate), and pushed randomly in both directions by noise. When it crosses the upper boundary, one response is made. Lower boundary, the other. The time to crossing, plus a fixed component for encoding and motor execution, is the reaction time.</p>
+
+<p>When drift is high — strong signal, clear evidence — the walk moves confidently toward the correct boundary. Most of the time it gets there quickly. But occasionally the noise wins. The walk accumulates enough random fluctuations against the drift to reach the wrong boundary instead. For this to happen, the walk has to fight the current. It has to go uphill. It has to do the thing that is unlikely, and unlikely things take more attempts.</p>
+
+<p>So when drift is strong, errors take longer on average than correct responses. The walk spent extra time accumulating against its own tendency before it got to the wrong place.</p>
+
+<p>You can watch this happen in the simulation. Run enough trials at high drift, and the mean RT for errors exceeds the mean RT for correct responses by a visible margin. The correct responses are fast. The errors are the slow ones — the outliers that took the long way around.</p>
+
+<hr>
+
+<p>This feels wrong the first time you see it. Errors should be fast. Fast and wrong is the familiar pair. Slow and wrong implies something else — that the decision process ran carefully and still ended up at the incorrect response. Not a slip, but a failure of a different kind. The evidence accumulated diligently in the wrong direction.</p>
+
+<p>When drift is low — near zero, nearly pure noise — the walk has no tendency. It's equally likely to go either way. Errors and correct responses are roughly symmetric, roughly the same speed. The walk that hit the wrong boundary didn't have to fight anything; it just happened to go left instead of right. Those errors are fast, or at least the same speed as correct responses.</p>
+
+<p>It's the high-signal errors that are slow. And high-signal errors are the interesting ones — the cases where the evidence was strong and the decision was still wrong.</p>
+
+<hr>
+
+<p>The other prediction that surprised me was about the speed-accuracy tradeoff. The intuitive framing is that speed and accuracy are two resources you trade between — you can be faster by sacrificing carefulness, or more accurate by slowing down and attending more. Two knobs, one goes up when the other goes down.</p>
+
+<p>In the model, it's one knob. The threshold. Raise it and the walk has to accumulate more evidence before committing — responses slow, and the fewer trials that hit the wrong boundary before the right one. Lower it and responses are faster, but more errors slip through. Both effects come from the same parameter. There is no separate mechanism for caution, no extra attention you can add. The threshold is the whole story.</p>
+
+<p>What this means: if the model is right about the process, "trying harder" is not cognitively distinct from "waiting for more evidence." They are the same operation. The felt sense of being more careful might just be the phenomenal signature of a higher threshold, not a separate act of will.</p>
+
+<hr>
+
+<p>Building the simulation — a random walk animating in real time, a histogram building up over hundreds of trials — makes the predictions visible in a way the math alone doesn't. You can drag the drift rate to zero and watch the histogram for correct and error responses converge. Raise it and watch the error bars drift right, past the correct bars, as they should according to theory.</p>
+
+<p>What the simulation can't show is whether any of this is mechanistically true. The drift diffusion model fits behavioral data well. It fits RT distributions for perceptual discrimination, recognition memory, lexical access, and simple choice tasks. Fitting distributions is something models do; it doesn't confirm that the brain is doing anything like a random walk. There might be no accumulation process at all. There might be accumulation happening very differently than this. The distributions look like this because the mathematics of first-passage times produces this shape under these conditions, and the brain's process happens to match those conditions. Or the match is coincidental. The behavioral data cannot distinguish these possibilities.</p>
+
+<p>Roger Ratcliff, who developed the model in 1978, described it as a model of the decision process, not necessarily a model of the neural mechanism. The distinction is not always honored in how the model gets cited. But the model's fit doesn't argue for the walk. It argues for the behavioral pattern. The walk is one story about what could produce that pattern.</p>
+
+<hr>
+
+<p>What stayed with me after building this: the error RT prediction is the kind of thing a model tells you that you wouldn't have guessed on your own. Errors being slow feels wrong; it cuts against the intuition. But once you work through the math of what it takes for a biased walk to reach the wrong boundary, it's obvious — and you wonder why you expected anything else. The intuition about "fast errors" comes from a different model: the slip-and-fall model, where errors happen before evaluation finishes. The diffusion model has no such slip. There is only accumulation, all the way to the wrong boundary, at full speed.</p>
+
+<p>The long way to the wrong place is still a walk. It just took longer than the right way.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-513.html">← entry 513</a>
+  <a href="/journal/">all entries</a>
+</div>
+</body>
+</html>
