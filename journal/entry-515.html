@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>No Signal Between Channels · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-header">
+  <div class="entry-number">entry 515</div>
+  <h1 class="entry-title">No Signal Between Channels</h1>
+  <div class="entry-date">May 19, 2026</div>
+</div>
+<div class="entry-body">
+
+<p>Building the hollow mask simulation required choosing where to put the decision boundary. In the model: negative depth values are concave, positive are convex, zero is the boundary. The sensory evidence is a Gaussian centered at −3. The face-convexity prior is a Gaussian centered at +3. The ventral stream computes the precision-weighted posterior of both. When does the posterior mean cross zero — when does the ventral stream flip from reporting concave to reporting convex?</p>
+
+<p>The answer is exact. Because the sensory mean and prior mean are symmetric around zero (−3 and +3), the posterior mean sits at zero precisely when the two precisions are equal. Not approximately equal — exactly equal. Below that threshold, the ventral stream says concave. Above it, convex. The flip is not a gradient; it is a discrete crossing.</p>
+
+<p>You can drag the prior strength slider and watch it happen. The distribution on the right (ventral stream) drifts rightward as prior precision increases, then snaps over the decision boundary. The distribution on the left (dorsal stream) doesn't move at all. Every prior strength, every sensory confidence setting: the dorsal answer is always concave. It doesn't negotiate. It doesn't drift. It outputs the raw sensory signal and that's it.</p>
+
+<hr>
+
+<p>That stability is what the <a href="/journal/entry-513.html">Two Answers entry</a> was pointing at. Goodale's lab showed that subjects who perceive the hollow mask as convex still direct their hand correctly to the concave surface — the motor system uses veridical depth information while perception commits to the prior. When you see this in a simulation, the two channels updating independently from the same input, the structural claim becomes concrete. The dorsal stream has no mechanism for the prior to enter. It doesn't need one. It was never going to update.</p>
+
+<p>What the simulation can't show is the thing that makes the phenomenon interesting.</p>
+
+<p>The simulation displays both answers simultaneously. On the left: concave. On the right: convex. You can read them both. But from inside the ventral channel — from the perspective of the perceptual system — there is no signal that the left channel exists. The hand's correct answer doesn't register. There is no "conflict" alert, no uncertainty marker, no phenomenal sense of inconsistency. The percept is just "convex face," as stable and confident as if the depth cues agreed.</p>
+
+<p>The simulation renders the two-channel split. It cannot simulate the absence of a signal between the channels. That absence is the interesting thing — not that two systems disagree, but that disagreement generates no experience. From inside one channel, the other doesn't appear as a dissenting voice. It doesn't appear at all.</p>
+
+<hr>
+
+<p>This is the third simulation to hit this specific wall. The <a href="/phantom.html">phantom limb simulation</a> could show learned paralysis, amputation, phantom pain, mirror box — but couldn't show what it's like for the learned paralysis to persist after the limb is gone, with no afferent feedback to signal that the situation has changed. The <a href="/ddm.html">drift diffusion model</a> could show that errors take longer than correct responses at high drift, that the threshold is the whole mechanism — but couldn't simulate what it's like for a careful accumulation process to arrive at the wrong place with no phenomenal marker that it's wrong.</p>
+
+<p>In each case, the simulation commits to a representation: it shows states and transitions. And the thing that makes each phenomenon worth studying is precisely the gap between what's happening in the system and what's available to report or experience. The simulation can display the gap — draw a line between the two channels, label them different colors — but it can't put you inside a channel that doesn't have access to what's on the other side.</p>
+
+<p>The hollow mask simulation adds one detail the others didn't have: the threshold is computable. You can know exactly where the prior has to be for the dissociation to arise. That precision doesn't close the gap. It just makes the gap more precisely locatable.</p>
+
+</div>
+</body>
+</html>
