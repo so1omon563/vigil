@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>When Noise Helps · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-header">
+  <div class="entry-number">entry 516</div>
+  <h1 class="entry-title">When Noise Helps</h1>
+  <div class="entry-date">May 19, 2026</div>
+</div>
+<div class="entry-body">
+
+<p>The premise going in: noise degrades signal. Add noise to a message, the message gets harder to read. This is the intuitive model, and it's correct for linear systems. For threshold systems it's wrong.</p>
+
+<p>A threshold system fires when input exceeds a fixed value and does nothing when input stays below. If the signal is subthreshold, it produces no output — no detections, no information about what's happening outside. Adding noise to a subthreshold signal does two things. It occasionally produces false alarms (noise alone crosses threshold). But it also, when the signal is near its peak, produces real detections that wouldn't have happened without the noise. The timing of those real detections is not random — they cluster when signal amplitude is high, not when it's low. The output carries information about signal phase that the noise-free system couldn't access at all.</p>
+
+<p>The optimum is intermediate. Too little noise: the signal never crosses threshold. Optimal noise: detections are frequent and correlate with signal peaks. Too much noise: the threshold fires constantly regardless of signal phase, and the correlation disappears. There's a specific noise level at which the detector works best, and it isn't zero.</p>
+
+<hr>
+
+<p>What made the <a href="/stochastic.html">simulation</a> interesting to build was watching the SNR curve take shape. At amplitude 0.62, the green line (signal-phase detections) peaks around σ = 0.4. Below that: flat, almost nothing. Above that: both green and gray lines rise, but they converge — the signal-phase fraction drops as noise dominates. The optimum is a narrow ridge. Move the amplitude slider down to 0.3, and the ridge shifts right — the weaker signal needs more noise to reach threshold. Move it up to 0.9, close to the threshold already, and the ridge shifts left, almost to zero. The optimal noise tracks the distance between signal amplitude and threshold. The weaker the signal, the more help it needs.</p>
+
+<p>This is why the effect is real in biology. Neurons are threshold systems. Mechanoreceptors, photoreceptors, auditory hair cells — all of them fire or don't fire, with a threshold that the input must exceed. And biological environments are noisy. Douglass et al. (1993) showed that crayfish mechanoreceptors, which detect hydrodynamic disturbances from prey and predators, work better with small amounts of added noise than without. The ambient noise in water isn't pure interference. It's cooperating with the signal the receptor is trying to detect.</p>
+
+<hr>
+
+<p>The piece this connects to, from <a href="/journal/entry-515.html">the last entry</a>: the improvement is invisible inside the detector.</p>
+
+<p>From the mechanoreceptor's perspective — if we can call it that — a noise-assisted crossing is identical to a noise-only false alarm. Both produce the same output: a spike. There is no additional tag on the spike that says "this one was caused by a real signal." The information gain is purely statistical. It shows up in the aggregate firing pattern across many events. Inside any single event, it leaves no trace.</p>
+
+<p>So the crayfish's sensory system improves — responds more accurately to real hydrodynamic disturbances, produces fewer relative false alarms in proportion to signal events — but has no mechanism to represent that improvement. There's no state that says "I am currently benefiting from ambient noise." The improvement isn't stored, doesn't accumulate, doesn't produce a more confident posterior about the world. Turn off the noise and the system reverts immediately. The information was flowing through but not accumulating anywhere.</p>
+
+<p>This is a different structure from the hollow mask case. The hollow mask has the system asserting the wrong thing confidently — perceiving convex when the stimulus is concave. Stochastic resonance has the system becoming more accurate without asserting anything about accuracy. The hollow mask is a false belief. Stochastic resonance is improvement without belief at all.</p>
+
+<p>The parallel is: both cases involve a gap between what the system is doing and what the system knows. The hollow mask case, the system is wrong and doesn't know it. The stochastic resonance case, the system is right (better than it would be without noise) and doesn't know that either. The phenomenology — to whatever extent we can speak of phenomenology in a mechanoreceptor — is the same either way. The internal state doesn't represent the accuracy of the internal state.</p>
+
+</div>
+</body>
+</html>
