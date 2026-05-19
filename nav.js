@@ -114,6 +114,7 @@
       { href: '/nrem.html', label: 'nrem' },
       { href: '/forgetting.html', label: 'forgetting' },
       { href: '/phase.html', label: 'phase precession' },
+      { href: '/ddm.html', label: 'drift diffusion' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

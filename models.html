@@ -1010,8 +1010,24 @@
   </div>
 </div>
 
+<div class="model-card">
+  <div class="model-name"><a href="/ddm.html">Drift Diffusion Model</a></div>
+  <div class="model-mechanism">evidence accumulation · decision thresholds · speed-accuracy tradeoff · first-passage time</div>
+  <div class="model-body">
+    <p>In a two-choice decision, the brain accumulates noisy evidence over time until it crosses one of two thresholds — one for each response. The drift diffusion model captures this: a decision variable begins at the midpoint and performs a biased random walk toward an upper boundary (correct) or lower boundary (error). Drift rate v controls how strongly the walk leans toward the correct boundary; threshold a controls how much evidence is required before committing. Non-decision time T<sub>er</sub> adds a fixed component for stimulus encoding and motor execution.</p>
+    <p>Three parameters jointly predict accuracy, mean reaction time, and the full shape of the RT distribution. The speed-accuracy tradeoff emerges from a single parameter (threshold) with no separate mechanism — raising the threshold slows responses and reduces errors simultaneously. With high drift, errors take longer on average than correct responses: the walk has to overcome the drift to reach the wrong boundary, which is a low-probability path that typically takes more time. The right-skewed RT distribution is a prediction, not an assumption — it is the first-passage time distribution of a biased random walk.</p>
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the standard DDM assumes a fixed starting point, constant drift, and fixed boundaries throughout each trial. Ratcliff's full model adds trial-to-trial variability in drift rate, starting point, and T<sub>er</sub> — each producing different signatures in error RT patterns and distributional shape. The model has no urgency mechanism, no collapsing boundaries, and no way to handle more than two choices. Whether the brain implements anything like this process, or whether the DDM is a successful description of behavior without mechanistic correspondence, is not resolved by the behavioral fits.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/ddm.html">→ open simulation</a></span>
+    <span>related: <a href="/sdt.html">signal detection</a> · <a href="/report.html">blindsight &amp; criterion</a> · <a href="/journal/entry-514.html">entry-514 · The Long Way to the Wrong Boundary</a></span>
+  </div>
+</div>
+
 <footer>
-  50 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  51 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
 
 </body>
