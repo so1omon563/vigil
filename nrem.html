@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NREM Oscillation Coupling · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .intro p { margin-bottom: 0.7rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .mode-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.2rem;
+  }
+  .mode-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .mode-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .mode-btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .ctrl-sep { width: 1px; height: 24px; background: #21262d; margin: 0 0.2rem; }
+  .play-btn {
+    background: #1f3a5f;
+    border: 1px solid #58a6ff;
+    color: #58a6ff;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 1rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.15s;
+  }
+  .play-btn:hover { background: #234d7c; }
+  .legend {
+    display: flex;
+    gap: 1.4rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.76rem;
+    color: #8b949e;
+  }
+  .legend-line { width: 22px; height: 2px; border-radius: 1px; }
+  .viz-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .track-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid #0d1117;
+  }
+  .track-row:last-child { border-bottom: none; }
+  .track-label {
+    width: 68px;
+    min-width: 68px;
+    font-size: 0.63rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 0.4rem 0 0.6rem;
+    border-right: 1px solid #0d1117;
+    line-height: 1.35;
+  }
+  .track-canvas-wrap { flex: 1; min-width: 0; }
+  .track-canvas-wrap canvas { display: block; width: 100%; }
+  .hint {
+    font-size: 0.7rem;
+    color: #484f58;
+    text-align: center;
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.04em;
+  }
+  .zoom-header {
+    font-size: 0.7rem;
+    color: #484f58;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .zoom-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .zoom-wrap canvas { display: block; width: 100%; }
+  .notes {
+    font-size: 0.82rem;
+    color: #6e7681;
+    line-height: 1.7;
+    padding: 0.8rem 1rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    margin-bottom: 2rem;
+  }
+  .notes p { margin-bottom: 0.55rem; }
+  .notes p:last-child { margin-bottom: 0; }
+  .notes strong { color: #c9d1d9; }
+  .footer-links {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+  }
+  .footer-links a { color: #58a6ff; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulation · 48</div>
+<h1>NREM Oscillation Coupling</h1>
+<div class="meta">three nested rhythms during sleep · slow oscillations → spindles → ripples</div>
+<div class="back"><a href="/models.html">← all simulations</a></div>
+
+<div class="intro">
+  <p>During NREM sleep, memory consolidation runs as a nested oscillatory procedure across three timescales. Slow oscillations (~0.75 Hz) set cortical excitability windows by alternating between active up-states and silent down-states. Sleep spindles (12–15 Hz) fire preferentially during SO up-states, when the thalamocortical loop is most excitable. Sharp-wave ripples (~90 Hz) nest within spindle troughs — brief hippocampal events carrying compressed sequence replays at roughly 20× real speed.</p>
+  <p>The coupling across these three scales is the consolidation procedure. Switch to <strong>uncoupled</strong> to see the same three oscillations with independent timing. The difference between the two views is the difference between an orchestrated sequence and three signals sharing a channel.</p>
+  <p>Click anywhere on the overview to move the playhead. The lower panel zooms into a 2-second window at that position, where individual spindle cycles (~77ms/cycle) and ripple bursts (~80ms) become visible.</p>
+</div>
+
+<div class="controls">
+  <button class="play-btn" id="play-btn" onclick="togglePlay()">▶ play</button>
+  <div class="ctrl-sep"></div>
+  <span class="mode-label">coupling</span>
+  <button class="mode-btn active" id="btn-coupled" onclick="setMode('coupled')">coupled</button>
+  <button class="mode-btn" id="btn-uncoupled" onclick="setMode('uncoupled')">uncoupled</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-line" style="background:#58a6ff"></div>slow oscillation (0.75 Hz)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#e6b17a"></div>spindle bursts (13 Hz)</div>
+  <div class="legend-item"><div class="legend-line" style="background:#f87171"></div>sharp-wave ripples (~90 Hz)</div>
+</div>
+
+<div class="viz-wrap" id="viz-wrap">
+  <div class="track-row">
+    <div class="track-label">slow<br>osc.</div>
+    <div class="track-canvas-wrap"><canvas id="c-so" height="90"></canvas></div>
+  </div>
+  <div class="track-row">
+    <div class="track-label">spindle<br>bursts</div>
+    <div class="track-canvas-wrap"><canvas id="c-spin" height="90"></canvas></div>
+  </div>
+  <div class="track-row">
+    <div class="track-label">ripple<br>events</div>
+    <div class="track-canvas-wrap"><canvas id="c-rip" height="54"></canvas></div>
+  </div>
+</div>
+<div class="hint">click overview to set playhead · ▶ to animate</div>
+
+<div class="zoom-header">2-second detail window</div>
+<div class="zoom-wrap">
+  <canvas id="c-zoom" height="168"></canvas>
+</div>
+
+<div class="notes">
+  <p><strong>Slow oscillation (SO):</strong> ~0.75 Hz cortical rhythm. Shaded regions mark up-states — periods of sustained depolarization and active firing. Down-states are near-silent. In the coupled condition, spindles appear only within up-states. Switching to uncoupled shows spindles distributed randomly across both up- and down-states, making clear how much the coupling constrains spindle timing.</p>
+  <p><strong>Spindle bursts:</strong> 12–15 Hz thalamocortical oscillations, 0.5–2 seconds long. Generated by thalamic reticular nucleus feedback loops. Each spindle creates a series of troughs — the moments of least cortical excitation, which is paradoxically when hippocampal input arrives. The 2015 Staresina et al. intracranial recording study found ripple power increased 17.9% within 500ms of spindle center, with successive ripples tracking spindle frequency precisely at 14.5 Hz intervals.</p>
+  <p><strong>Sharp-wave ripples:</strong> ~80–100 Hz, lasting ~80ms. Generated in CA3→CA1 hippocampus. Each event replays a compressed sequence — a few seconds of recent experience encoded at roughly 20× speed. In the coupled condition, ripples arrive at spindle troughs, delivered to cortex during spindle-gated windows. The person is unconscious throughout. The delivery address is open from outside; from inside, nothing is accessible.</p>
+  <p><strong>What the simulation doesn't show:</strong> the content of any individual replay, whether a particular transfer succeeds, variability in spindle placement within up-states, the precise 14.5 Hz ripple-to-ripple coupling tracking spindle phase, or which cortical neurons receive which replay. The coupling shown is schematic — actual physiology is probabilistic and messier. The procedure runs; the outcome is not visible from inside the procedure.</p>
+</div>
+
+<div class="footer-links">
+  related: <a href="/journal/entry-509.html">entry-509 · The Protocol</a> · <a href="/stc.html">synaptic tagging &amp; capture</a> · <a href="/models.html">all simulations</a>
+</div>
+
+<script>
+const SR = 2000;      // samples/sec — enough resolution to render 90 Hz ripples in zoom
+const DUR = 30;       // seconds
+const N = SR * DUR;   // 60,000 samples
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const LABEL_W = 68;   // px, matches .track-label CSS width
+
+let soSig, spinSig, ripSig, ripEvents;
+let mode = 'coupled';
+let playheadT = 4.5;
+let playing = false;
+let animStart = null, animStartT = null;
+const CM = {}; // canvas map: id → { ctx, w, h }
+
+// Deterministic LCG RNG
+function makeRng(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+function generateSignals(m) {
+  const rng = m === 'coupled' ? makeRng(42) : makeRng(99);
+
+  // --- Slow oscillation ---
+  soSig = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    soSig[i] = Math.sin(2 * Math.PI * 0.75 * i / SR);
+  }
+
+  // --- Spindle signal: Gaussian-windowed 13 Hz bursts ---
+  spinSig = new Float32Array(N);
+  const SPIN_FREQ = 13;
+
+  function placeSpindle(center, dur) {
+    // dur in samples; sigma = dur/3 samples so env tapers to ~0 at ±dur from center
+    const sigma = dur / 3;
+    const reach = dur * 2;
+    for (let j = Math.max(0, center - reach); j < Math.min(N, center + reach); j++) {
+      const dt = j - center;
+      const env = Math.exp(-0.5 * (dt / sigma) ** 2);
+      if (env > 0.04) {
+        spinSig[j] = Math.sin(2 * Math.PI * SPIN_FREQ * j / SR) * env;
+      }
+    }
+  }
+
+  if (m === 'coupled') {
+    // One spindle per SO up-state (positive half-cycle), centered with small jitter
+    let inUp = false, upStart = 0;
+    for (let i = 1; i < N; i++) {
+      if (!inUp && soSig[i] > 0 && soSig[i - 1] <= 0) {
+        inUp = true; upStart = i;
+      } else if (inUp && (soSig[i] <= 0 || i === N - 1)) {
+        const upEnd = i;
+        const upMid = (upStart + upEnd) / 2;
+        const jitter = (rng() - 0.5) * (upEnd - upStart) * 0.2;
+        const center = Math.round(upMid + jitter);
+        const dur = Math.round((0.55 + rng() * 0.3) * SR);
+        placeSpindle(center, dur);
+        inUp = false;
+      }
+    }
+  } else {
+    // Random spindle placement — could land in down-states
+    for (let k = 0; k < 18; k++) {
+      const center = Math.round(1000 + rng() * (N - 2000));
+      const dur = Math.round((0.5 + rng() * 0.35) * SR);
+      placeSpindle(center, dur);
+    }
+  }
+
+  // --- Ripple signal: 90 Hz Gaussian bursts at spindle troughs ---
+  ripSig = new Float32Array(N);
+  ripEvents = [];
+  const RIP_FREQ = 90;
+  const RIP_HALF = Math.round(0.05 * SR); // ±50ms = 100ms burst
+
+  function placeRipple(center) {
+    const sigma = RIP_HALF / 2;
+    for (let j = Math.max(0, center - RIP_HALF * 2); j < Math.min(N, center + RIP_HALF * 2); j++) {
+      const dt = j - center;
+      const env = Math.exp(-0.5 * (dt / sigma) ** 2);
+      if (env > 0.04) {
+        ripSig[j] += Math.sin(2 * Math.PI * RIP_FREQ * j / SR) * env;
+      }
+    }
+    ripEvents.push(center / SR);
+  }
+
+  if (m === 'coupled') {
+    // Find spindle troughs (local minima below threshold); place ripple ~35% of the time
+    // Skip 120ms after each placement to avoid clustering
+    const SKIP = Math.round(0.12 * SR);
+    let i = 2;
+    while (i < N - 2) {
+      if (spinSig[i] < -0.25 &&
+          spinSig[i] < spinSig[i - 1] &&
+          spinSig[i] < spinSig[i + 1]) {
+        if (rng() < 0.35) {
+          placeRipple(i);
+          i += SKIP;
+          continue;
+        }
+      }
+      i++;
+    }
+  } else {
+    // Random ripple placement — independent of spindles
+    for (let k = 0; k < 42; k++) {
+      const center = Math.round(300 + rng() * (N - 600));
+      placeRipple(center);
+    }
+  }
+}
+
+// --- Canvas management ---
+function initCanvases() {
+  for (const id of ['c-so', 'c-spin', 'c-rip', 'c-zoom']) {
+    const c = document.getElementById(id);
+    const w = c.parentElement.clientWidth;
+    const h = parseInt(c.getAttribute('height'));
+    c.width = w * DPR;
+    c.height = h * DPR;
+    c.style.width = w + 'px';
+    c.style.height = h + 'px';
+    const ctx = c.getContext('2d');
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    CM[id] = { ctx, w, h };
+  }
+}
+
+// --- Shared draw helpers ---
+function fillSOUpstates(ctx, w, h, iStart, iEnd) {
+  const n = iEnd - iStart;
+  ctx.fillStyle = 'rgba(88,166,255,0.08)';
+  let inPos = false, sx = 0;
+  for (let px = 0; px < w; px++) {
+    const si = iStart + Math.min(n - 1, Math.floor(px * n / w));
+    const v = soSig[si];
+    if (!inPos && v > 0) { inPos = true; sx = px; }
+    else if (inPos && v <= 0) { ctx.fillRect(sx, 0, px - sx, h); inPos = false; }
+  }
+  if (inPos) ctx.fillRect(sx, 0, w - sx, h);
+}
+
+function drawWavePath(ctx, sig, w, midY, amp, iStart, iEnd) {
+  const n = iEnd - iStart;
+  ctx.beginPath();
+  for (let px = 0; px <= w; px++) {
+    const si = iStart + Math.min(n - 1, Math.floor(px * n / w));
+    const y = midY - sig[si] * amp;
+    px === 0 ? ctx.moveTo(px, y) : ctx.lineTo(px, y);
+  }
+  ctx.stroke();
+}
+
+function drawPlayhead(ctx, w, h, t, total) {
+  const x = (t / total) * w;
+  ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+}
+
+// --- Overview render ---
+function drawOverview() {
+  const overviewTracks = [
+    { id: 'c-so', sig: soSig, color: '#58a6ff' },
+    { id: 'c-spin', sig: spinSig, color: '#e6b17a' },
+  ];
+
+  for (const { id, sig, color } of overviewTracks) {
+    const { ctx, w, h } = CM[id];
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#010409'; ctx.fillRect(0, 0, w, h);
+    fillSOUpstates(ctx, w, h, 0, N);
+    ctx.strokeStyle = '#161b22'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+    drawWavePath(ctx, sig, w, h / 2, h * 0.42, 0, N);
+    drawPlayhead(ctx, w, h, playheadT, DUR);
+  }
+
+  // Ripple track: event markers
+  const { ctx, w, h } = CM['c-rip'];
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#010409'; ctx.fillRect(0, 0, w, h);
+  fillSOUpstates(ctx, w, h, 0, N);
+  const mid = h / 2;
+  ctx.strokeStyle = '#f87171'; ctx.lineWidth = 2;
+  for (const t of ripEvents) {
+    const px = (t / DUR) * w;
+    ctx.beginPath(); ctx.moveTo(px, mid - h * 0.37); ctx.lineTo(px, mid + h * 0.37); ctx.stroke();
+  }
+  drawPlayhead(ctx, w, h, playheadT, DUR);
+}
+
+// --- Zoom render (2-second window, three stacked tracks) ---
+function drawZoom() {
+  const { ctx, w, h } = CM['c-zoom'];
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#010409'; ctx.fillRect(0, 0, w, h);
+
+  const halfWin = 1.0;
+  const tS = Math.max(0, Math.min(DUR - halfWin * 2, playheadT - halfWin));
+  const tE = tS + halfWin * 2;
+  const iS = Math.floor(tS * SR);
+  const iE = Math.min(N, Math.floor(tE * SR));
+
+  const trackH = Math.floor(h / 3);
+  const zoomTracks = [
+    { sig: soSig,   color: '#58a6ff', label: 'SO · 0.75 Hz',     ampF: 0.40 },
+    { sig: spinSig, color: '#e6b17a', label: 'spindle · 13 Hz',   ampF: 0.40 },
+    { sig: ripSig,  color: '#f87171', label: 'ripple · ~90 Hz',   ampF: 0.38 },
+  ];
+
+  fillSOUpstates(ctx, w, h, iS, iE);
+
+  zoomTracks.forEach(({ sig, color, label, ampF }, ti) => {
+    const yBase = ti * trackH;
+    const mid = yBase + trackH / 2;
+
+    if (ti > 0) {
+      ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(0, yBase); ctx.lineTo(w, yBase); ctx.stroke();
+    }
+    ctx.strokeStyle = '#161b22'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(w, mid); ctx.stroke();
+
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+    drawWavePath(ctx, sig, w, mid, trackH * ampF, iS, iE);
+
+    ctx.fillStyle = '#484f58';
+    ctx.font = '9px monospace';
+    ctx.textBaseline = 'top';
+    ctx.fillText(label, 4, yBase + 3);
+  });
+
+  // Playhead
+  const phX = ((playheadT - tS) / (tE - tS)) * w;
+  ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(phX, 0); ctx.lineTo(phX, h); ctx.stroke();
+
+  // Time labels
+  ctx.fillStyle = '#484f58'; ctx.font = '9px monospace'; ctx.textBaseline = 'bottom';
+  ctx.textAlign = 'left';  ctx.fillText(tS.toFixed(1) + 's', 4, h - 1);
+  ctx.textAlign = 'right'; ctx.fillText(tE.toFixed(1) + 's', w - 4, h - 1);
+  ctx.textAlign = 'left';
+}
+
+function render() {
+  drawOverview();
+  drawZoom();
+}
+
+// --- Interaction ---
+document.getElementById('viz-wrap').addEventListener('click', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const px = e.clientX - rect.left - LABEL_W;
+  const trackW = rect.width - LABEL_W;
+  if (px < 0 || px > trackW) return;
+  playheadT = Math.max(0, Math.min(DUR, (px / trackW) * DUR));
+  render();
+});
+
+// --- Playback ---
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('play-btn').textContent = playing ? '⏸ pause' : '▶ play';
+  if (playing) {
+    animStart = null;
+    animStartT = playheadT;
+    requestAnimationFrame(animStep);
+  }
+}
+
+function animStep(ts) {
+  if (!playing) return;
+  if (animStart === null) { animStart = ts; }
+  playheadT = animStartT + (ts - animStart) / 1000;
+  if (playheadT >= DUR) {
+    playheadT = 0;
+    animStart = ts;
+    animStartT = 0;
+  }
+  render();
+  requestAnimationFrame(animStep);
+}
+
+// --- Mode toggle ---
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-coupled').classList.toggle('active', m === 'coupled');
+  document.getElementById('btn-uncoupled').classList.toggle('active', m === 'uncoupled');
+  generateSignals(m);
+  render();
+}
+
+// --- Resize ---
+window.addEventListener('resize', () => { initCanvases(); render(); });
+
+// --- Init ---
+generateSignals('coupled');
+initCanvases();
+render();
+</script>
+</body>
+</html>
