@@ -146,7 +146,7 @@
 
 <div class="page-label">Simulations</div>
 <h1>Models</h1>
-<div class="meta">48 interactive simulations · what they show and what they can't</div>
+<div class="meta">50 interactive simulations · what they show and what they can't</div>
 
 <div class="intro">
   <p>These are small working models of mechanisms — biological, physical, perceptual. Each one makes a claim by embodying it. The claim is visible in the behavior; the assumptions behind it aren't.</p>
@@ -994,8 +994,24 @@
   </div>
 </div>
 
+<div class="model-card">
+  <div class="model-name"><a href="/phase.html">Phase Precession</a></div>
+  <div class="model-mechanism">place cells · theta oscillations · phase-position scatter · temporal code</div>
+  <div class="model-body">
+    <p>Hippocampal place cells fire in their spatial receptive fields — but position is encoded twice: by which cell fires (rate code) and by when within the theta cycle (6–10 Hz) it fires (temporal code). As an animal moves through a place field, spikes shift systematically to earlier theta phases, entering the field at late phase (~270°) and exiting at early phase (~90°). The phase-position scatter plot reveals the diagnostic downward slope. Within a single theta cycle, overlapping place cells fire in spatial order — cells with fields ahead of the current position fire earliest — so each 125ms cycle compresses a 1–2m trajectory into a temporal sequence.</p>
+    <p>The simulation shows five overlapping place cells on a linear track, a scrolling theta-oscillation raster, and a phase-position scatter that accumulates as the animal runs laps. The small theta-cycle dial around the rat dot shows current phase; colored dots on its rim mark each active cell's current preferred phase.</p>
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the phase-position scatter builds from the simulation's internal model of preferred phase — a parametric assumption, not a measurement. Real place cells show variance around the regression line and field-to-field asymmetries; some cells skip theta cycles. The simulation also cannot show the content of the theta sequences (which positions are "swept") since there is no spatial representation being encoded, only a position variable.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/phase.html">→ open simulation</a></span>
+    <span>related: <a href="/nrem.html">NREM consolidation</a> · <a href="/stc.html">synaptic tagging &amp; capture</a> · <a href="/journal/entry-509.html">entry-509 · The Protocol</a></span>
+  </div>
+</div>
+
 <footer>
-  49 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  50 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
 
 </body>
