@@ -112,6 +112,7 @@
       { href: '/flashlag.html', label: 'flash-lag' },
       { href: '/stc.html', label: 'stc' },
       { href: '/nrem.html', label: 'nrem' },
+      { href: '/forgetting.html', label: 'forgetting' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

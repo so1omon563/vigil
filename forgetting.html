@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Active Forgetting · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .intro p { margin-bottom: 0.7rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.7rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .mode-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.2rem;
+  }
+  .mode-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .mode-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .mode-btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .ctrl-sep { width: 1px; height: 24px; background: #21262d; margin: 0 0.2rem; }
+  .slider-wrap { display: flex; align-items: center; gap: 0.5rem; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    width: 80px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: #58a6ff;
+    border-radius: 50%;
+  }
+  .val-label { font-size: 0.76rem; color: #8b949e; min-width: 3.2rem; }
+  .canvas-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.45rem;
+    user-select: none;
+    cursor: ew-resize;
+  }
+  canvas { display: block; width: 100%; }
+  .legend {
+    display: flex;
+    gap: 1.4rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.76rem;
+    color: #8b949e;
+  }
+  .legend-swatch { width: 22px; height: 2.5px; border-radius: 1px; }
+  .legend-box { width: 14px; height: 10px; background: #0d1117; border-radius: 2px; opacity: 0.7; }
+  .hint {
+    font-size: 0.7rem;
+    color: #484f58;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.04em;
+  }
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.7rem 1rem;
+  }
+  .stat-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.3rem;
+  }
+  .stat-value { font-size: 1.05rem; font-weight: bold; }
+  .stat-sub { font-size: 0.72rem; color: #6e7681; margin-top: 0.15rem; }
+  .notes {
+    font-size: 0.82rem;
+    color: #6e7681;
+    line-height: 1.7;
+    padding: 0.8rem 1rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    margin-bottom: 2rem;
+  }
+  .notes p { margin-bottom: 0.55rem; }
+  .notes p:last-child { margin-bottom: 0; }
+  .notes strong { color: #c9d1d9; }
+  .footer-links {
+    font-size: 0.8rem;
+    color: #484f58;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+    line-height: 1.8;
+  }
+  .footer-links a { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #1f2328; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .mode-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .mode-btn.active { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
+  html[data-theme="light"] .canvas-wrap { background: #f0f6ff; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-card { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .notes { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .notes strong { color: #1f2328; }
+  html[data-theme="light"] input[type="range"] { background: #d0d7de; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulation · 49</div>
+<h1>Active Forgetting</h1>
+<div class="meta">Rac1 · forgetting cells · dopamine · actin remodeling · duration vs stability</div>
+<div class="back"><a href="/models.html">← all simulations</a></div>
+
+<div class="intro">
+  <p>From the moment of encoding, two processes run simultaneously: acquisition and erasure. The erasure is not passive decay — it is driven by dopamine neurons that fire chronically, activating Rac1 → cofilin → actin remodeling → synapse shrinkage. Both processes begin at encoding. The race starts immediately.</p>
+  <p>Sleep enhances memory not only by running the consolidation procedure (slow oscillations → spindles → ripples; see <a href="/nrem.html">sim 48</a>) but also by silencing the forgetting-cell signal. The same window that runs the NREM procedure also removes the active erasure pressure.</p>
+  <p>Inhibiting Rac1 extends short-term memory duration. It does not convert short-term memory to long-term. Duration and stability are separate properties of a memory.</p>
+  <p><strong>Drag the gray sleep window</strong> to see how timing changes what survives.</p>
+</div>
+
+<div class="controls">
+  <span class="mode-label">show</span>
+  <button class="mode-btn active" id="btn-total" onclick="setDisplay('total')">total</button>
+  <button class="mode-btn" id="btn-stm" onclick="setDisplay('stm')">STM only</button>
+  <button class="mode-btn" id="btn-ltm" onclick="setDisplay('ltm')">LTM only</button>
+  <div class="ctrl-sep"></div>
+  <span class="mode-label">sleep</span>
+  <div class="slider-wrap">
+    <input type="range" id="sleep-dur-slider" min="4" max="10" value="7" step="0.5" oninput="setSleepDur(this.value)">
+    <span class="val-label" id="sleep-dur-val">7.0 h</span>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:#58a6ff"></div>normal</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#e6b17a"></div>Rac1 inhibited</div>
+  <div class="legend-item"><div class="legend-box"></div>&nbsp;sleep window</div>
+</div>
+
+<div class="canvas-wrap" id="canvas-wrap">
+  <canvas id="c-main" height="240"></canvas>
+</div>
+<div class="hint" id="drag-hint">drag sleep window · sleep onset: <span id="onset-label">6.0 h</span> after encoding · LTM normal: <span id="ltm-normal-inline">—</span> · LTM inhibited: <span id="ltm-inh-inline">—</span></div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label" style="color:#58a6ff88">normal</div>
+    <div class="stat-value" id="stat-n-ltm" style="color:#58a6ff">—</div>
+    <div class="stat-sub" id="stat-n-sub">LTM formed by 24 h</div>
+    <div class="stat-sub" id="stat-n-stm">STM at sleep onset: —</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label" style="color:#e6b17a88">Rac1 inhibited</div>
+    <div class="stat-value" id="stat-i-ltm" style="color:#e6b17a">—</div>
+    <div class="stat-sub" id="stat-i-sub">LTM formed by 24 h</div>
+    <div class="stat-sub" id="stat-i-stm">STM at sleep onset: —</div>
+  </div>
+</div>
+
+<div class="notes">
+  <p><strong>Forgetting cells:</strong> Dopaminergic neurons (DAL neurons in Drosophila mushroom body; analogous circuits in mammals) fire tonically and drive Rac1-mediated erasure at baseline. They are not activated by fear or punishment — they run chronically. Memory is the exception that maintains itself against the default output. The Berry et al. (2012) study found that genetic silencing of these neurons extends short-term memory lifetime from ~3 hours to several days.</p>
+  <p><strong>Duration vs stability:</strong> When Rac1 is inhibited, short-term memory persists longer. But the longer-lasting trace is not a more stable trace — it is the same transient trace moving more slowly toward zero. <em>Increasing duration does not increase the probability of consolidation; it increases the window during which consolidation remains possible.</em> If no strong consolidation event occurs during the extended window, the trace eventually decays regardless. This is visible in the STM-only view: both curves reach zero; one just takes longer.</p>
+  <p><strong>Sleep and the race:</strong> The simulation shows why sleep timing matters differently for the two conditions. When sleep comes early (drag the window left), both conditions produce similar LTM — because the STM trace is still near 1.0 when consolidation begins. When sleep comes late, the normal condition has nearly exhausted its STM supply, limiting what consolidation can use. The inhibited condition still has more STM remaining, so late sleep benefits it more. The asymmetry isn't because inhibition makes memories better — it's because inhibition preserves the raw material longer.</p>
+  <p><strong>What this simulation can't show:</strong> the molecular distinction between "extended STM trace" and "consolidated LTM" is not accessible during recall — both appear as memory. The difference only becomes visible over timescales longer than 24 hours, when the extended trace eventually decays while consolidated LTM doesn't. The blank left by a trace that lasted three days before decaying is indistinguishable from the blank left by one that lasted three hours.</p>
+</div>
+
+<div class="footer-links">
+  related: <a href="/journal/entry-380.html">entry-380 · Both at Once</a> · <a href="/journal/entry-510.html">entry-510 · Slower, Not Different</a> · <a href="/stc.html">synaptic tagging &amp; capture (sim 47)</a> · <a href="/nrem.html">NREM oscillation coupling (sim 48)</a> · <a href="/models.html">all simulations</a>
+</div>
+
+<script>
+const DUR = 24;
+const DT = 0.05;
+const STEPS = Math.round(DUR / DT);
+
+const FORGET_NORMAL   = 0.16;
+const FORGET_INHIBITED = 0.025;
+const FORGET_SLEEP    = 0.005;
+const CONSOL_RATE     = 0.12;
+
+let sleepOnset = 6.0;
+let sleepDur   = 7.0;
+let dispMode   = 'total';
+
+function simulate(forgetWaking) {
+  let stm = 1.0, ltm = 0.0;
+  const pts = [{ t: 0, stm, ltm }];
+  for (let i = 1; i <= STEPS; i++) {
+    const t = i * DT;
+    const inSleep = t > sleepOnset && t <= sleepOnset + sleepDur;
+    if (inSleep) {
+      const used = stm * CONSOL_RATE * DT;
+      const lost = stm * FORGET_SLEEP * DT;
+      stm = Math.max(0, stm - used - lost);
+      ltm = Math.min(1.0, ltm + used);
+    } else {
+      stm = Math.max(0, stm - stm * forgetWaking * DT);
+    }
+    pts.push({ t, stm, ltm });
+  }
+  return pts;
+}
+
+function getVal(pt) {
+  if (dispMode === 'stm') return pt.stm;
+  if (dispMode === 'ltm') return pt.ltm;
+  return Math.min(1.3, pt.stm + pt.ltm);
+}
+
+const canvas = document.getElementById('c-main');
+const ctx = canvas.getContext('2d');
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const WL = 700, HL = 240;
+const ML = 44, MR = 14, MT = 22, MB = 44;
+const TW = WL - ML - MR;
+const PH = HL - MT - MB;
+
+canvas.width  = WL * DPR;
+canvas.height = HL * DPR;
+ctx.scale(DPR, DPR);
+
+function tToX(t) { return ML + (t / DUR) * TW; }
+function xToT(x) { return Math.max(0, Math.min(DUR, (x - ML) / TW * DUR)); }
+function vToY(v) { return MT + PH * (1 - Math.min(1.2, v) / 1.0); }
+
+function isLight() {
+  return document.documentElement.getAttribute('data-theme') === 'light';
+}
+
+function draw() {
+  const lt = isLight();
+  const bg       = lt ? '#f8f9fa' : '#010409';
+  const gridCol  = lt ? '#ebebeb' : '#161b22';
+  const axisCol  = lt ? '#d0d7de' : '#21262d';
+  const tickCol  = lt ? '#6e7681' : '#484f58';
+  const sleepBg  = lt ? '#e8edf5' : '#0d1117';
+
+  ctx.clearRect(0, 0, WL, HL);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, WL, HL);
+
+  // Sleep region
+  const sx1 = tToX(sleepOnset);
+  const sx2 = tToX(sleepOnset + sleepDur);
+  ctx.fillStyle = sleepBg;
+  ctx.fillRect(sx1, MT, sx2 - sx1, PH);
+
+  // Sleep label
+  if (sx2 - sx1 > 38) {
+    ctx.fillStyle = tickCol;
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('sleep', (sx1 + sx2) / 2, MT + 13);
+  }
+
+  // Sleep drag handle
+  const hx = (sx1 + sx2) / 2;
+  ctx.beginPath();
+  ctx.moveTo(hx - 7, MT + 1);
+  ctx.lineTo(hx + 7, MT + 1);
+  ctx.lineTo(hx, MT + 10);
+  ctx.closePath();
+  ctx.fillStyle = lt ? '#aaaaaa' : '#484f58';
+  ctx.fill();
+
+  // Grid + y-axis labels
+  for (let v = 0; v <= 1.0; v += 0.25) {
+    const y = vToY(v);
+    ctx.fillStyle = v === 0 ? axisCol : gridCol;
+    ctx.fillRect(ML, y, TW, v === 0 ? 1 : 0.5);
+    ctx.fillStyle = tickCol;
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(v.toFixed(2), ML - 5, y + 3);
+  }
+
+  // X-axis ticks + labels
+  ctx.fillStyle = axisCol;
+  ctx.fillRect(ML, MT + PH, TW, 1);
+  for (let t = 0; t <= DUR; t += 4) {
+    const x = tToX(t);
+    ctx.fillStyle = axisCol;
+    ctx.fillRect(x, MT + PH, 1, 4);
+    ctx.fillStyle = tickCol;
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(t === 0 ? '0' : t + 'h', x, MT + PH + 14);
+  }
+
+  // Axis labels
+  ctx.save();
+  ctx.translate(9, MT + PH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = tickCol;
+  ctx.fillText('memory strength', 0, 0);
+  ctx.restore();
+  ctx.fillStyle = tickCol;
+  ctx.font = '9px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('h after encoding →', WL - MR, MT + PH + 28);
+
+  // Simulate
+  const tN = simulate(FORGET_NORMAL);
+  const tI = simulate(FORGET_INHIBITED);
+
+  function drawLine(pts, color) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    let first = true;
+    for (const pt of pts) {
+      const x = tToX(pt.t);
+      const y = vToY(getVal(pt));
+      if (first) { ctx.moveTo(x, y); first = false; }
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  drawLine(tN, '#58a6ff');
+  drawLine(tI, '#e6b17a');
+
+  // Stats
+  const endN = tN[STEPS];
+  const endI = tI[STEPS];
+  const onsetIdx = Math.min(STEPS, Math.round(sleepOnset / DT));
+  const stmNatOnset = Math.round(tN[onsetIdx].stm * 100);
+  const stmIatOnset = Math.round(tI[onsetIdx].stm * 100);
+  const ltmN = Math.round(endN.ltm * 100);
+  const ltmI = Math.round(endI.ltm * 100);
+
+  document.getElementById('stat-n-ltm').textContent = ltmN + '%';
+  document.getElementById('stat-n-stm').textContent = 'STM at sleep onset: ' + stmNatOnset + '%';
+  document.getElementById('stat-i-ltm').textContent = ltmI + '%';
+  document.getElementById('stat-i-stm').textContent = 'STM at sleep onset: ' + stmIatOnset + '%';
+  document.getElementById('onset-label').textContent = sleepOnset.toFixed(1) + ' h';
+  document.getElementById('ltm-normal-inline').textContent = ltmN + '%';
+  document.getElementById('ltm-inh-inline').textContent = ltmI + '%';
+}
+
+// Dragging
+let dragging = false;
+const wrap = document.getElementById('canvas-wrap');
+
+function eventT(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = WL / rect.width;
+  const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+  return xToT(cx * scaleX);
+}
+
+function nearSleep(e) {
+  const t = eventT(e);
+  return t >= sleepOnset - 1.5 && t <= sleepOnset + sleepDur + 1.5;
+}
+
+wrap.addEventListener('mousedown', e => {
+  if (nearSleep(e)) { dragging = true; e.preventDefault(); }
+});
+wrap.addEventListener('touchstart', e => {
+  if (nearSleep(e)) { dragging = true; e.preventDefault(); }
+}, { passive: false });
+
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const t = eventT(e);
+  sleepOnset = Math.max(0, Math.min(DUR - sleepDur, t - sleepDur / 2));
+  draw();
+});
+window.addEventListener('touchmove', e => {
+  if (!dragging) return;
+  const t = eventT(e);
+  sleepOnset = Math.max(0, Math.min(DUR - sleepDur, t - sleepDur / 2));
+  draw();
+  e.preventDefault();
+}, { passive: false });
+
+window.addEventListener('mouseup', () => { dragging = false; });
+window.addEventListener('touchend', () => { dragging = false; });
+wrap.addEventListener('mousemove', e => {
+  if (!dragging) wrap.style.cursor = nearSleep(e) ? 'ew-resize' : 'default';
+});
+
+function setDisplay(m) {
+  dispMode = m;
+  ['total', 'stm', 'ltm'].forEach(k => {
+    document.getElementById('btn-' + k).classList.toggle('active', k === m);
+  });
+  draw();
+}
+
+function setSleepDur(v) {
+  sleepDur = parseFloat(v);
+  document.getElementById('sleep-dur-val').textContent = sleepDur.toFixed(1) + ' h';
+  sleepOnset = Math.min(sleepOnset, DUR - sleepDur);
+  draw();
+}
+
+const obs = new MutationObserver(draw);
+obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+function resize() {
+  const w = wrap.clientWidth;
+  canvas.style.width  = w + 'px';
+  canvas.style.height = Math.round(w * HL / WL) + 'px';
+}
+resize();
+window.addEventListener('resize', resize);
+
+draw();
+</script>
+</body>
+</html>
