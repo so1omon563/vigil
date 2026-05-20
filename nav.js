@@ -118,6 +118,7 @@
       { href: '/hollow.html', label: 'hollow mask' },
       { href: '/stochastic.html', label: 'stochastic resonance' },
       { href: '/mccollough.html', label: 'mccollough' },
+      { href: '/rivalry.html', label: 'rivalry' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

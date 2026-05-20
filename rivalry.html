@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binocular Rivalry · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .sim-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; }
+
+  .controls {
+    padding: 1.2rem 1.4rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .control-label {
+    font-size: 0.75rem;
+    min-width: 12rem;
+  }
+  .control-val {
+    font-size: 0.75rem;
+    color: #58a6ff;
+    min-width: 3.5rem;
+    text-align: right;
+  }
+  input[type=range] {
+    flex: 1;
+    min-width: 120px;
+    accent-color: #58a6ff;
+    cursor: pointer;
+  }
+
+  .readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    border-top: 1px solid #21262d;
+  }
+  .readout-cell {
+    padding: 0.9rem 1.1rem;
+    border-right: 1px solid #21262d;
+  }
+  .readout-cell:last-child { border-right: none; }
+  .readout-key {
+    font-size: 0.65rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    margin-bottom: 0.25rem;
+  }
+  .readout-val {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #e6edf3;
+  }
+
+  .btn-row {
+    padding: 0.75rem 1.4rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+  .reset-btn {
+    font-family: inherit;
+    font-size: 0.72rem;
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+  }
+  .reset-btn:hover {
+    background: #388bfd22;
+    color: #58a6ff;
+    border-color: #58a6ff;
+  }
+  .btn-hint {
+    font-size: 0.7rem;
+    color: #484f58;
+  }
+
+  .limit {
+    margin-top: 2.5rem;
+    font-size: 0.82rem;
+    color: #484f58;
+    border-left: 2px solid #21262d;
+    padding-left: 0.9rem;
+    line-height: 1.75;
+  }
+  .limit p { margin-bottom: 0.55rem; }
+  .limit p:last-child { margin-bottom: 0; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .sim-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .controls { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-cell { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-grid { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-val { color: #1f2328; }
+  html[data-theme="light"] .btn-row { border-color: #d0d7de; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="back"><a href="/models.html">← models</a></div>
+<div class="page-label">Simulation 55</div>
+<h1>Binocular Rivalry</h1>
+<div class="subtitle">Wilson half-center oscillator · mutual inhibition · perceptual alternation</div>
+
+<div class="intro">
+  <p>Present one image to your left eye and a different image to your right eye simultaneously. The brain doesn't blend them — it suppresses one while the other dominates, then switches. You cannot hold both in view at once. You cannot decide when to switch. You cannot stop it.</p>
+  <p>The Wilson model captures this: two neural populations inhibit each other, and each slowly fatigues under sustained activation. When the dominant population has fatigued enough, the suppressed one breaks through. The switch is driven by dynamics, not decision.</p>
+  <p>Levelt's revised second proposition: increasing one eye's input strength primarily shortens the OTHER eye's suppression — it speeds up the rate at which you return, not the rate at which you leave. Try moving one slider up and watching what happens to the competing color's return time.</p>
+</div>
+
+<div class="sim-wrap">
+  <canvas id="percept" width="700" height="210"></canvas>
+  <canvas id="trace" width="700" height="88"></canvas>
+  <div class="readout-grid">
+    <div class="readout-cell">
+      <div class="readout-key">Dominant</div>
+      <div class="readout-val" id="domEye">—</div>
+    </div>
+    <div class="readout-cell">
+      <div class="readout-key">Switches</div>
+      <div class="readout-val" id="switchCount">0</div>
+    </div>
+    <div class="readout-cell">
+      <div class="readout-key">Avg blue</div>
+      <div class="readout-val" id="avgDur1">—</div>
+    </div>
+    <div class="readout-cell">
+      <div class="readout-key">Avg orange</div>
+      <div class="readout-val" id="avgDur2">—</div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="control-row">
+      <span class="control-label" style="color:#4a9eff">blue (eye 1) strength</span>
+      <input type="range" id="sl1" min="30" max="150" value="80">
+      <span class="control-val" id="v1">1.00</span>
+    </div>
+    <div class="control-row">
+      <span class="control-label" style="color:#ff8c42">orange (eye 2) strength</span>
+      <input type="range" id="sl2" min="30" max="150" value="80">
+      <span class="control-val" id="v2">1.00</span>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="reset-btn" id="resetBtn">reset</button>
+    <span class="btn-hint">hold equal → balanced alternation · raise one → speeds return of the other</span>
+  </div>
+</div>
+
+<div class="limit">
+  <p>This simulation cannot create actual binocular rivalry — that requires separate images presented to each eye (stereoscope, mirror stereoscope, or red-green anaglyph). What the Wilson model shows is the switching mechanism: mutual inhibition plus slow fatigue produces oscillatory alternation without any external pacemaker.</p>
+  <p>The suppressed image in real rivalry is not absent. It is still being processed: semantically (primed words appear faster), affectively (emotional and meaningful stimuli break through suppression sooner — the continuous flash suppression paradigm). The signal is present and active; only the access route is blocked. The image you are not seeing is doing something.</p>
+</div>
+
+<script>
+// Wilson half-center oscillator
+// Two populations H1 (blue, eye 1) and H2 (orange, eye 2)
+// τ dH/dt = -H + [I - g*H_other - b*β]+
+// τ_a dβ/dt = -β + H
+
+const DT = 5;           // simulation step (ms)
+const SPF = 8;          // simulation steps per animation frame
+const TAU = 10;         // neural time constant (ms)
+const TAU_A = 3200;     // adaptation time constant (ms)
+const G = 2.0;          // mutual inhibition strength
+const B = 0.88;         // adaptation strength
+const NOISE = 0.022;    // fractional noise on input
+
+const TRACE_LEN = 700;
+
+let H1, H2, beta1, beta2, I1, I2;
+let simTime, prevDom, domStart;
+let switchCount, dur1Sum, dur1N, dur2Sum, dur2N;
+const h1Hist = new Float32Array(TRACE_LEN);
+const h2Hist = new Float32Array(TRACE_LEN);
+let histIdx, histFill, stepAccum;
+
+function initState() {
+  H1 = 0.72; H2 = 0.02;
+  beta1 = 0; beta2 = 0;
+  simTime = 0;
+  prevDom = 1; domStart = 0;
+  switchCount = 0;
+  dur1Sum = 0; dur1N = 0;
+  dur2Sum = 0; dur2N = 0;
+  h1Hist.fill(0); h2Hist.fill(0);
+  histIdx = 0; histFill = 0;
+  stepAccum = 0;
+}
+initState();
+I1 = 0.8; I2 = 0.8;
+
+function randn() {
+  const u = Math.max(1e-10, Math.random());
+  const v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function rect(x) { return x > 0 ? x : 0; }
+
+function step() {
+  const i1eff = I1 * (1 + NOISE * randn());
+  const i2eff = I2 * (1 + NOISE * randn());
+
+  const dH1 = (-H1 + rect(i1eff - G * H2 - B * beta1)) * DT / TAU;
+  const dH2 = (-H2 + rect(i2eff - G * H1 - B * beta2)) * DT / TAU;
+  const db1  = (-beta1 + H1) * DT / TAU_A;
+  const db2  = (-beta2 + H2) * DT / TAU_A;
+
+  H1 = Math.max(0, H1 + dH1);
+  H2 = Math.max(0, H2 + dH2);
+  beta1 = Math.max(0, beta1 + db1);
+  beta2 = Math.max(0, beta2 + db2);
+  simTime += DT;
+
+  // record history every SPF steps
+  stepAccum++;
+  if (stepAccum >= SPF) {
+    stepAccum = 0;
+    h1Hist[histIdx] = H1;
+    h2Hist[histIdx] = H2;
+    histIdx = (histIdx + 1) % TRACE_LEN;
+    if (histFill < TRACE_LEN) histFill++;
+  }
+
+  // dominance tracking
+  const dom = H1 >= H2 ? 1 : 2;
+  if (dom !== prevDom) {
+    const dur = simTime - domStart;
+    if (prevDom === 1) { dur1Sum += dur; dur1N++; }
+    else               { dur2Sum += dur; dur2N++; }
+    switchCount++;
+    prevDom = dom;
+    domStart = simTime;
+  }
+}
+
+// Draw filled stripes on ctx
+function stripes(ctx, W, H, horiz, color, alpha, period) {
+  if (alpha < 0.004) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  if (horiz) {
+    for (let y = 0; y < H; y += period * 2) ctx.fillRect(0, y, W, period);
+  } else {
+    for (let x = 0; x < W; x += period * 2) ctx.fillRect(x, 0, period, H);
+  }
+  ctx.restore();
+}
+
+const MAX_RATE = 0.72;
+
+function render() {
+  const pc = document.getElementById('percept');
+  const tc = document.getElementById('trace');
+  const W = 700, PH = 210, TH = 88;
+  const pctx = pc.getContext('2d');
+  const tctx = tc.getContext('2d');
+
+  // --- percept canvas ---
+  pctx.fillStyle = '#0d1117';
+  pctx.fillRect(0, 0, W, PH);
+
+  // Sigmoid-sharpened dominance
+  const diff = H1 - H2;
+  const sig = 1 / (1 + Math.exp(-14 * diff));
+  const a1 = 0.06 + 0.88 * sig;
+  const a2 = 0.06 + 0.88 * (1 - sig);
+
+  const PERIOD = 22;
+  // draw suppressed pattern first (behind), dominant on top
+  if (a1 >= a2) {
+    stripes(pctx, W, PH, true,  '#7a4010', a2 * 0.65, PERIOD); // eye2 suppressed
+    stripes(pctx, W, PH, false, '#4a9eff', a1,         PERIOD); // eye1 dominant
+  } else {
+    stripes(pctx, W, PH, false, '#1a3d6e', a1 * 0.65, PERIOD); // eye1 suppressed
+    stripes(pctx, W, PH, true,  '#ff8c42', a2,         PERIOD); // eye2 dominant
+  }
+
+  // Corner labels
+  pctx.font = '11px "Berkeley Mono", monospace';
+  pctx.globalAlpha = Math.max(0.25, a1);
+  pctx.fillStyle = '#4a9eff';
+  pctx.fillText('eye 1 (blue, vertical)', 12, 22);
+  pctx.globalAlpha = Math.max(0.25, a2);
+  pctx.fillStyle = '#ff8c42';
+  const txt2 = 'eye 2 (orange, horizontal)';
+  pctx.fillText(txt2, W - pctx.measureText(txt2).width - 12, 22);
+  pctx.globalAlpha = 1;
+
+  // --- trace canvas ---
+  tctx.fillStyle = '#010409';
+  tctx.fillRect(0, 0, W, TH);
+
+  const mg = 8;
+  const dh = TH - mg * 2;
+
+  // Baseline
+  tctx.strokeStyle = '#1a2030';
+  tctx.lineWidth = 1;
+  tctx.beginPath();
+  tctx.moveTo(0, TH - mg);
+  tctx.lineTo(W, TH - mg);
+  tctx.stroke();
+
+  function drawLine(hist, color) {
+    if (histFill < 2) return;
+    tctx.beginPath();
+    tctx.strokeStyle = color;
+    tctx.lineWidth = 1.5;
+    let first = true;
+    for (let i = 0; i < histFill; i++) {
+      const pos = (histIdx - histFill + i + TRACE_LEN) % TRACE_LEN;
+      const x = (i / (TRACE_LEN - 1)) * W;
+      const y = mg + dh * (1 - Math.min(1, hist[pos] / MAX_RATE));
+      if (first) { tctx.moveTo(x, y); first = false; }
+      else tctx.lineTo(x, y);
+    }
+    tctx.stroke();
+  }
+
+  drawLine(h1Hist, '#4a9effaa');
+  drawLine(h2Hist, '#ff8c42aa');
+
+  // Dominance bar at top of trace
+  const dom = H1 >= H2 ? 1 : 2;
+  tctx.globalAlpha = 0.3;
+  tctx.fillStyle = dom === 1 ? '#4a9eff' : '#ff8c42';
+  tctx.fillRect(0, 0, W, 5);
+  tctx.globalAlpha = 1;
+
+  // --- readouts ---
+  const domEl = document.getElementById('domEye');
+  domEl.textContent = dom === 1 ? 'blue' : 'orange';
+  domEl.style.color  = dom === 1 ? '#4a9eff' : '#ff8c42';
+
+  document.getElementById('switchCount').textContent = switchCount;
+  document.getElementById('avgDur1').textContent =
+    dur1N > 0 ? (dur1Sum / dur1N / 1000).toFixed(1) + 's' : '—';
+  document.getElementById('avgDur2').textContent =
+    dur2N > 0 ? (dur2Sum / dur2N / 1000).toFixed(1) + 's' : '—';
+}
+
+function loop() {
+  for (let i = 0; i < SPF; i++) step();
+  render();
+  requestAnimationFrame(loop);
+}
+
+// Controls
+const sl1 = document.getElementById('sl1');
+const sl2 = document.getElementById('sl2');
+const v1El = document.getElementById('v1');
+const v2El = document.getElementById('v2');
+
+sl1.addEventListener('input', () => { I1 = sl1.value / 80; v1El.textContent = I1.toFixed(2); });
+sl2.addEventListener('input', () => { I2 = sl2.value / 80; v2El.textContent = I2.toFixed(2); });
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  initState();
+  I1 = sl1.value / 80;
+  I2 = sl2.value / 80;
+});
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
