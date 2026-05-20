@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perruchet Effect · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .intro p { margin-bottom: 0.5rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.7rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .mode-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.2rem;
+  }
+  .ctrl-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    border-radius: 3px;
+    min-width: 5.5rem;
+    text-align: center;
+  }
+  .ctrl-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .ctrl-btn.playing { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .step-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .step-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .reset-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #6e7681;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  .reset-btn:hover { border-color: #f85149; color: #f85149; }
+  .ctrl-sep { width: 1px; height: 24px; background: #21262d; margin: 0 0.2rem; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    width: 80px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: #58a6ff;
+    border-radius: 50%;
+  }
+  .val-label { font-size: 0.78rem; color: #8b949e; }
+
+  .legend-bar {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.76rem;
+    color: #6e7681;
+  }
+  .leg-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 0.35rem;
+    vertical-align: middle;
+    margin-top: -1px;
+  }
+
+  .canvas-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+
+  .status-bar {
+    font-size: 0.76rem;
+    color: #484f58;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+    min-height: 1.1rem;
+  }
+  .narrative {
+    font-size: 0.79rem;
+    color: #6e7681;
+    min-height: 1.2rem;
+    margin-bottom: 1.8rem;
+    font-style: italic;
+  }
+  .narrative.cross { color: #bc8cff; }
+  .narrative.run-e { color: #58a6ff; }
+  .narrative.run-c { color: #f0883e; }
+
+  .section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+  .context-block { font-size: 0.85rem; color: #8b949e; line-height: 1.75; }
+  .context-block p { margin-bottom: 0.9rem; }
+  .context-block p:last-child { margin-bottom: 0; }
+  .context-block em { color: #c9d1d9; font-style: normal; }
+  .ref-line { font-size: 0.76rem; color: #484f58; margin-top: 1.4rem; line-height: 1.6; }
+  .ref-line a { color: #484f58; }
+  .ref-line a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #1f2328; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .ctrl-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .ctrl-btn.playing { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
+  html[data-theme="light"] .step-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .reset-btn { background: #f6f8fa; border-color: #d0d7de; color: #6e7781; }
+  html[data-theme="light"] .canvas-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .context-block { color: #57606a; }
+  html[data-theme="light"] .context-block em { color: #1f2328; }
+  html[data-theme="light"] .section { border-color: #d0d7de; }
+  html[data-theme="light"] input[type="range"] { background: #d0d7de; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back">← <a href="/models.html">all simulations</a></div>
+<div class="page-label">Simulation</div>
+<h1>Perruchet Effect</h1>
+<div class="meta">Perruchet (1985) · partial reinforcement conditioning</div>
+
+<div class="intro">
+  <p>A tone plays. Sometimes it's followed by an air puff to the eye; sometimes it isn't. Fifty-fifty. After a long run of unreinforced trials — four consecutive misses — what happens to explicit expectancy and the conditioned blink response?</p>
+  <p>Explicit expectancy climbs. The gambler's fallacy: four misses, the puff must be due. Meanwhile the conditioned blink weakens. Standard extinction: each unreinforced trial thins the association. The graphs cross. At the end of a long miss run, the person is maximally convinced the puff is coming — and minimally likely to blink when it does.</p>
+  <p>Two systems, same evidence, opposite conclusions.</p>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" id="btn-play" onclick="togglePlay()">▶ play</button>
+  <button class="step-btn" onclick="doStep()">step</button>
+  <button class="reset-btn" onclick="doReset()">reset</button>
+  <div class="ctrl-sep"></div>
+  <span class="mode-label">speed</span>
+  <input type="range" id="sl-speed" min="1" max="12" step="1" value="4">
+  <span class="val-label"><span id="val-speed">4</span>/s</span>
+  <div class="ctrl-sep"></div>
+  <span class="mode-label">puff %</span>
+  <input type="range" id="sl-prob" min="0.1" max="0.9" step="0.1" value="0.5">
+  <span class="val-label"><span id="val-prob">50</span>%</span>
+</div>
+
+<div class="legend-bar">
+  <span><span class="leg-dot" style="background:#58a6ff"></span>explicit expectancy</span>
+  <span><span class="leg-dot" style="background:#f0883e"></span>conditioned response</span>
+  <span><span class="leg-dot" style="background:#bc8cff; width:6px; height:6px; border-radius:50%"></span>crossing</span>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="c" width="720" height="320"></canvas>
+</div>
+
+<div class="status-bar" id="status-bar">press play or step to begin</div>
+<div class="narrative" id="narrative">&nbsp;</div>
+
+<div class="section">
+  <div class="section-label">How it works</div>
+  <div class="context-block">
+    <p>Pierre Perruchet ran the eyeblink experiment in 1985 with a 50% partial reinforcement schedule. Participants knew the schedule. His innovation was to analyze by <em>run length</em>: after N consecutive reinforced trials, or N consecutive unreinforced trials, where are both measures?</p>
+    <p>The conditioned response follows <em>Rescorla-Wagner</em> learning: each reinforced trial strengthens the association by a fraction of the remaining gap to maximum; each unreinforced trial weakens it by a fraction of the current strength. The association is tracking cumulative prediction error.</p>
+    <p>Explicit expectancy follows the <em>gambler's fallacy</em>: random sequences look streaky, and streaks feel like they should end. After four consecutive misses, subjects reported strong belief the puff was coming. After four consecutive hits, they expected a miss. The explicit system is reasoning about the run, not the base rate.</p>
+    <p>Neither reasoning strategy is simply wrong. The explicit system asks: <em>given this run, what does the next trial look like?</em> (It answers incorrectly — the trials are independent.) The conditioned system asks: <em>across all trials, how often has tone predicted puff?</em> (It answers correctly on average, but slowly.) They don't communicate. The crossing is structural, not a mistake.</p>
+    <p>In the simulation: the <em>puff %</em> slider changes the reinforcement probability. At 50%, crossings are frequent — the two curves constantly diverge and reconverge as runs develop and reverse. At higher or lower probabilities, one system dominates more persistently. The dots mark where the curves crossed.</p>
+  </div>
+  <div class="ref-line">
+    Perruchet, P. (1985). A pitfall for the expectancy theory of human eyelid conditioning. <em>Pavlovian Journal of Biological Science</em>, 20, 163–170. ·
+    <a href="/journal/entry-522.html">entry 522: Crossed</a>
+  </div>
+</div>
+
+<script>
+(function () {
+
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+
+  var PAD_L = 46, PAD_R = 14, PAD_T = 16;
+  var STRIP_H = 38;
+  var STRIP_GAP = 8;
+  var CHART_B = H - STRIP_H - STRIP_GAP - 8;
+  var CHART_T = PAD_T;
+  var CHART_H = CHART_B - CHART_T;
+  var CHART_L = PAD_L;
+  var CHART_W = W - PAD_L - PAD_R;
+  var WINDOW = 80;
+
+  var trials = [];
+  var cr = 0.5, expectancy = 0.5;
+  var runLen = 0, runType = null;
+  var prob = 0.5;
+  var playing = false, timerId = null, speed = 4;
+
+  function doTrial() {
+    var r = Math.random() < prob;
+
+    if (runType === r) {
+      runLen++;
+    } else {
+      runLen = 1;
+      runType = r;
+    }
+
+    if (r) {
+      cr = cr + 0.12 * (1.0 - cr);
+    } else {
+      cr = cr - 0.08 * cr;
+    }
+    cr = Math.max(0.02, Math.min(0.98, cr));
+
+    if (runType === false) {
+      expectancy = Math.min(0.95, 0.5 + runLen * 0.08);
+    } else {
+      expectancy = Math.max(0.05, 0.5 - runLen * 0.08);
+    }
+
+    trials.push({ r: r, e: expectancy, cr: cr });
+    draw();
+    updateStatus();
+  }
+
+  function valToY(v) {
+    return CHART_T + (1 - v) * CHART_H;
+  }
+
+  function trialX(i, visLen) {
+    var ni = (visLen < WINDOW) ? (i + WINDOW - visLen) : i;
+    return CHART_L + (ni / (WINDOW - 1)) * CHART_W;
+  }
+
+  function isLight() {
+    return document.documentElement.dataset.theme === 'light';
+  }
+
+  function draw() {
+    var light = isLight();
+    ctx.clearRect(0, 0, W, H);
+
+    var bg       = light ? '#ffffff' : '#010409';
+    var gridC    = light ? '#e8ecf0' : '#161b22';
+    var axisC    = light ? '#d0d7de' : '#30363d';
+    var labelC   = light ? '#6e7781' : '#484f58';
+    var midC     = light ? '#d0d7de' : '#21262d';
+    var stripBg  = light ? '#f0f3f6' : '#0d1117';
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.setLineDash([2, 4]);
+    ctx.strokeStyle = gridC;
+    ctx.lineWidth = 1;
+    [0.0, 0.25, 0.5, 0.75, 1.0].forEach(function (v) {
+      var y = valToY(v);
+      ctx.beginPath();
+      ctx.moveTo(CHART_L, y);
+      ctx.lineTo(CHART_L + CHART_W, y);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = labelC;
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ['1.0', '0.75', '0.5', '0.25', '0.0'].forEach(function (label) {
+      var v = parseFloat(label);
+      var y = valToY(v);
+      ctx.fillText(label, CHART_L - 5, y);
+    });
+
+    ctx.strokeStyle = axisC;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(CHART_L, CHART_T);
+    ctx.lineTo(CHART_L, CHART_B);
+    ctx.stroke();
+
+    var stripTop = CHART_B + STRIP_GAP;
+    ctx.fillStyle = stripBg;
+    ctx.fillRect(CHART_L, stripTop, CHART_W, STRIP_H);
+
+    ctx.fillStyle = labelC;
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('trials', CHART_L + 3, stripTop + 3);
+
+    if (trials.length < 2) {
+      ctx.fillStyle = labelC;
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('press play or step to begin', CHART_L + CHART_W / 2, CHART_T + CHART_H / 2);
+      return;
+    }
+
+    var total = trials.length;
+    var start = Math.max(0, total - WINDOW);
+    var visible = trials.slice(start);
+    var visLen = visible.length;
+
+    var bw = Math.max(3, (CHART_W / WINDOW) - 1);
+
+    visible.forEach(function (t, i) {
+      var x = trialX(i, visLen);
+      ctx.fillStyle = t.r
+        ? (light ? '#e8661a' : '#f0883e')
+        : (light ? '#c8d0d8' : '#1c2128');
+      ctx.fillRect(x - bw / 2, stripTop + 14, bw, STRIP_H - 18);
+    });
+
+    ctx.strokeStyle = light ? '#3b82f6' : '#58a6ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    visible.forEach(function (t, i) {
+      var x = trialX(i, visLen);
+      var y = valToY(t.e);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    ctx.strokeStyle = light ? '#c2560c' : '#f0883e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    visible.forEach(function (t, i) {
+      var x = trialX(i, visLen);
+      var y = valToY(t.cr);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle = light ? '#8250df' : '#bc8cff';
+    for (var i = 1; i < visible.length; i++) {
+      var prev = visible[i - 1], cur = visible[i];
+      var ps = prev.e - prev.cr, cs = cur.e - cur.cr;
+      if (ps * cs < 0) {
+        var t2 = Math.abs(ps) / (Math.abs(ps) + Math.abs(cs));
+        var cx2 = trialX(i - 1 + t2, visLen);
+        var cy2 = valToY(prev.e + t2 * (cur.e - prev.e));
+        ctx.beginPath();
+        ctx.arc(cx2, cy2, 3.5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+
+    var last = visible[visLen - 1];
+    var ey = valToY(last.e), cry = valToY(last.cr);
+    var lastX = trialX(visLen - 1, visLen);
+
+    ctx.fillStyle = light ? '#3b82f6' : '#58a6ff';
+    ctx.beginPath();
+    ctx.arc(lastX, ey, 4, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = light ? '#c2560c' : '#f0883e';
+    ctx.beginPath();
+    ctx.arc(lastX, cry, 4, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = labelC;
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('n=' + total, CHART_L + CHART_W, CHART_T + CHART_H + 2);
+  }
+
+  function countCrossings() {
+    var n = 0;
+    for (var i = 1; i < trials.length; i++) {
+      if ((trials[i-1].e - trials[i-1].cr) * (trials[i].e - trials[i].cr) < 0) n++;
+    }
+    return n;
+  }
+
+  function updateStatus() {
+    var n = trials.length;
+    if (n === 0) {
+      document.getElementById('status-bar').textContent = 'press play or step to begin';
+      document.getElementById('narrative').textContent = ' ';
+      document.getElementById('narrative').className = 'narrative';
+      return;
+    }
+    var last = trials[n - 1];
+    var crossings = countCrossings();
+    document.getElementById('status-bar').textContent =
+      'trial ' + n + ' · expectancy ' + Math.round(last.e * 100) + '% · CR ' +
+      Math.round(last.cr * 100) + '% · ' + crossings + ' crossing' + (crossings !== 1 ? 's' : '');
+
+    var runDesc = runLen + ' consecutive ' + (runType ? 'hit' : 'miss') + (runLen !== 1 ? 'es' : '');
+    var narr = document.getElementById('narrative');
+    var gap = last.e - last.cr;
+    if (Math.abs(gap) < 0.06) {
+      narr.textContent = runDesc + ' — curves nearly equal, crossing imminent';
+      narr.className = 'narrative cross';
+    } else if (!runType) {
+      narr.textContent = runDesc + ' — expectancy rising (due soon), CR falling (extinction)';
+      narr.className = 'narrative run-e';
+    } else {
+      narr.textContent = runDesc + ' — CR rising (acquisition), expectancy falling (can\'t keep going)';
+      narr.className = 'narrative run-c';
+    }
+  }
+
+  function togglePlay() {
+    playing = !playing;
+    var btn = document.getElementById('btn-play');
+    btn.textContent = playing ? '■ pause' : '▶ play';
+    if (playing) btn.classList.add('playing'); else btn.classList.remove('playing');
+    if (playing) {
+      timerId = setInterval(doTrial, 1000 / speed);
+    } else {
+      clearInterval(timerId);
+    }
+  }
+
+  function doStep() {
+    if (playing) togglePlay();
+    doTrial();
+  }
+
+  function doReset() {
+    if (playing) togglePlay();
+    trials = [];
+    cr = 0.5; expectancy = 0.5;
+    runLen = 0; runType = null;
+    draw();
+    updateStatus();
+  }
+
+  document.getElementById('sl-speed').addEventListener('input', function () {
+    speed = +this.value;
+    document.getElementById('val-speed').textContent = speed;
+    if (playing) { clearInterval(timerId); timerId = setInterval(doTrial, 1000 / speed); }
+  });
+
+  document.getElementById('sl-prob').addEventListener('input', function () {
+    prob = +this.value;
+    document.getElementById('val-prob').textContent = Math.round(prob * 100);
+  });
+
+  var themeObs = new MutationObserver(function () { draw(); });
+  themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  window.togglePlay = togglePlay;
+  window.doStep = doStep;
+  window.doReset = doReset;
+
+  draw();
+  updateStatus();
+
+})();
+</script>
+</body>
+</html>

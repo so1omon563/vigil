@@ -119,6 +119,7 @@
       { href: '/stochastic.html', label: 'stochastic resonance' },
       { href: '/mccollough.html', label: 'mccollough' },
       { href: '/rivalry.html', label: 'rivalry' },
+      { href: '/perruchet.html', label: 'perruchet' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
