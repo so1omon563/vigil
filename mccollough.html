@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>McCollough Effect · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .intro p { margin-bottom: 0.5rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .ctrl-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-right: 0.1rem;
+  }
+  .btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    border-radius: 3px;
+  }
+  .btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .btn.primary { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+  .btn.primary:hover { background: #2d4a6f; }
+  .btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+  .ctrl-sep { width: 1px; height: 24px; background: #21262d; margin: 0 0.2rem; }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    width: 80px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: #58a6ff;
+    border-radius: 50%;
+  }
+  .val-label { font-size: 0.78rem; color: #8b949e; }
+
+  .phase-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .phase-tag { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; }
+  .phase-tag .name { color: #58a6ff; }
+  .grating-tag { font-size: 0.7rem; letter-spacing: 0.06em; color: #484f58; }
+
+  .canvas-wrap {
+    background: #000;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+  }
+  canvas { display: block; width: 100%; height: auto; }
+
+  .timer-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.78rem;
+    color: #6e7681;
+  }
+  .timer-bar-wrap { flex: 1; height: 4px; background: #21262d; border-radius: 2px; overflow: hidden; }
+  .timer-bar-fill { height: 100%; background: #58a6ff; border-radius: 2px; width: 0%; }
+  .timer-text { min-width: 2.8rem; text-align: right; color: #8b949e; }
+
+  .btn-row { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+
+  .test-header { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: #58a6ff; margin-bottom: 0.7rem; }
+  .test-row { display: flex; gap: 1.2rem; margin-bottom: 0.8rem; }
+  .test-block { flex: 1; min-width: 0; }
+  .test-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: #484f58; margin-bottom: 0.35rem; text-align: center; }
+  .test-canvas-wrap { background: #000; border: 1px solid #21262d; border-radius: 3px; overflow: hidden; }
+  .test-hint { font-size: 0.8rem; color: #6e7681; line-height: 1.65; margin-top: 0.5rem; }
+  .test-hint strong { color: #c9d1d9; }
+
+  .section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+  .context-block { font-size: 0.85rem; color: #8b949e; line-height: 1.75; }
+  .context-block p { margin-bottom: 0.9rem; }
+  .context-block p:last-child { margin-bottom: 0; }
+  .context-block em { color: #c9d1d9; font-style: normal; }
+  .ref-line { font-size: 0.76rem; color: #484f58; margin-top: 1.4rem; line-height: 1.6; }
+  .ref-line a { color: #484f58; }
+  .ref-line a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #1f2328; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .btn.active,
+  html[data-theme="light"] .btn.primary { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
+  html[data-theme="light"] .canvas-wrap,
+  html[data-theme="light"] .test-canvas-wrap { background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .context-block { color: #57606a; }
+  html[data-theme="light"] .context-block em { color: #1f2328; }
+  html[data-theme="light"] .section { border-color: #d0d7de; }
+  html[data-theme="light"] input[type="range"] { background: #d0d7de; }
+  html[data-theme="light"] h1 { color: #1f2328; }
+  html[data-theme="light"] .timer-bar-wrap { background: #d0d7de; }
+  html[data-theme="light"] .test-hint { color: #57606a; }
+  html[data-theme="light"] .test-hint strong { color: #1f2328; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back">← <a href="/models.html">all simulations</a></div>
+<div class="page-label">Simulation · Perceptual Aftereffect</div>
+<h1>McCollough Effect</h1>
+<div class="meta">McCollough (1965) · Jones &amp; Holding (1975) · Stromeyer (1969)</div>
+
+<div class="intro">
+  <p>Stare at alternating green horizontal and magenta vertical gratings, keeping your eyes on the center cross. Then look at the black-and-white gratings below. Horizontal bars will appear faintly pinkish; vertical bars faintly greenish. The effect can persist for weeks.</p>
+  <p>This is not a simulation of a phenomenon occurring elsewhere. The mechanism runs in whoever is watching.</p>
+</div>
+
+<div class="controls">
+  <span class="ctrl-label">duration</span>
+  <button class="btn active" onclick="MC.setDuration(30,this)">30s</button>
+  <button class="btn" onclick="MC.setDuration(60,this)">60s</button>
+  <button class="btn" onclick="MC.setDuration(120,this)">2 min</button>
+  <div class="ctrl-sep"></div>
+  <span class="ctrl-label">rate</span>
+  <input type="range" id="sl-rate" min="1" max="4" step="0.5" value="2"
+    oninput="MC.setRate(parseFloat(this.value)); document.getElementById('val-rate').textContent=parseFloat(this.value).toFixed(1)">
+  <span class="val-label"><span id="val-rate">2.0</span>s / grating</span>
+</div>
+
+<div class="phase-row">
+  <div class="phase-tag">phase: <span class="name" id="mc-phase">ready</span></div>
+  <div class="grating-tag" id="mc-grating"></div>
+</div>
+
+<div class="canvas-wrap">
+  <canvas id="c-ind" width="600" height="300"></canvas>
+</div>
+
+<div class="timer-row">
+  <div class="timer-bar-wrap"><div class="timer-bar-fill" id="mc-timer-fill"></div></div>
+  <div class="timer-text" id="mc-timer-text">—</div>
+</div>
+
+<div class="btn-row">
+  <button class="btn primary" id="mc-start" onclick="MC.start()">start induction</button>
+  <button class="btn" id="mc-reset" onclick="MC.reset()" style="display:none">reset</button>
+</div>
+
+<div id="mc-test" style="display:none">
+  <div class="test-header">test — look for color tinting:</div>
+  <div class="test-row">
+    <div class="test-block">
+      <div class="test-label">horizontal</div>
+      <div class="test-canvas-wrap"><canvas id="c-horiz" width="280" height="280"></canvas></div>
+    </div>
+    <div class="test-block">
+      <div class="test-label">vertical</div>
+      <div class="test-canvas-wrap"><canvas id="c-vert" width="280" height="280"></canvas></div>
+    </div>
+  </div>
+  <div class="test-hint">
+    Horizontal bars → faint <strong>pink / magenta</strong>? &nbsp; Vertical bars → faint <strong>green</strong>?<br>
+    Tilt your head 90° and the assignments should reverse.
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">What's happening</div>
+  <div class="context-block">
+    <p>Celeste McCollough reported the effect in 1965. It is an <em>orientation-contingent color aftereffect</em>: perceived color is linked to orientation, not to a spatial location. Conventional color aftereffects — stare at green, see a magenta afterimage — fade in seconds. After 15 minutes of McCollough induction, Jones &amp; Holding (1975) measured the effect still above half-strength 85 days later. Induction duration scales the persistence. Repeated testing partially counterconditions the effect — each test exposure degrades it.</p>
+    <p>The effect is <em>retinotopic</em>: stored in retinal coordinates, before head-position integration. Tilt your head 90° and the color assignments reverse, because the bars that were horizontal on your retina during induction are now vertical-on-retina. The tag lives in early visual cortex, not in any world-centered representation of orientation.</p>
+    <p>The leading hypothesis (Stromeyer, 1969) is that the effect reveals a real chromatic calibration system. The eye's lens produces orientation-dependent chromatic aberration: different wavelengths focus at slightly different depths, and the fringing is orientation-specific at edges. V1 neurons are thought to maintain a slow calibration that adds a compensatory color signal based on edge orientation, flattening what should be achromatic boundaries. Inducing the McCollough effect sets a false calibration — orientation mismatched to color — and the test gratings reveal that correction running without the signal it was tuned against. The pink tinge on horizontal bars is the system compensating for a green signal it expects but no longer receives.</p>
+    <p>A 2008 fMRI adaptation study found two timescales in V1: a fast component (~30s decay constant) and a slow integrator with no measurable decay over the study period. The slow integrator is what makes the effect last weeks. The calibration hypothesis provides a reason: the sources of chromatic aberration — lens aging, adaptation to indoor vs. outdoor light — change on timescales of months, not seconds. A calibration system tuned to correct them would need to integrate over a matching timescale. Fast recalibration would chase noise. The duration of the effect would be, on this account, a signature of the designed bandwidth of the correction system.</p>
+  </div>
+  <div class="ref-line">
+    McCollough, C. (1965). Color adaptation of edge-detectors in the human visual system. <em>Science</em> 149, 1115–1116. ·
+    Jones, P.D. &amp; Holding, D.H. (1975). Extremely long-term persistence of the McCollough effect. <em>Journal of Experimental Psychology: Human Perception and Performance</em> 1, 323–327. ·
+    Stromeyer, C.F. (1969). Further studies of the McCollough effect. <em>Perception &amp; Psychophysics</em> 6, 105–110. ·
+    <a href="/journal/entry-518.html">entry-518 · Months</a> ·
+    <a href="/journal/entry-519.html">entry-519 · The Calibration Made Visible</a>
+  </div>
+</div>
+
+<script>
+var MC = (function () {
+  var cfg = { duration: 30, rate: 2.0 };
+  var state = 'ready';
+  var t0 = null, tSwitch = null, current = 0, raf = null;
+  var BAR = 12, GREEN = '#00cc44', MAGENTA = '#ff0088';
+
+  var cI = document.getElementById('c-ind'),   ctxI = cI.getContext('2d');
+  var cH = document.getElementById('c-horiz'), ctxH = cH.getContext('2d');
+  var cV = document.getElementById('c-vert'),  ctxV = cV.getContext('2d');
+
+  function drawGrating(ctx, w, h, horiz, color) {
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = color;
+    var i;
+    if (horiz) { for (i = 0; i < h; i += BAR * 2) ctx.fillRect(0, i, w, BAR); }
+    else        { for (i = 0; i < w; i += BAR * 2) ctx.fillRect(i, 0, BAR, h); }
+    fixCross(ctx, w, h, 'rgba(255,255,255,0.75)');
+  }
+
+  function drawTest(ctx, w, h, horiz) {
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#fff';
+    var i;
+    if (horiz) { for (i = 0; i < h; i += BAR * 2) ctx.fillRect(0, i, w, BAR); }
+    else        { for (i = 0; i < w; i += BAR * 2) ctx.fillRect(i, 0, BAR, h); }
+    fixCross(ctx, w, h, 'rgba(128,128,128,0.6)');
+  }
+
+  function fixCross(ctx, w, h, color) {
+    var cx = w >> 1, cy = h >> 1;
+    ctx.fillStyle = color;
+    ctx.fillRect(cx - 10, cy - 1, 20, 2);
+    ctx.fillRect(cx - 1, cy - 10, 2, 20);
+  }
+
+  function idle() {
+    ctxI.fillStyle = '#080c12'; ctxI.fillRect(0, 0, cI.width, cI.height);
+    ctxI.fillStyle = '#2d333b'; ctxI.font = '13px monospace'; ctxI.textAlign = 'center';
+    ctxI.fillText('press start induction', cI.width / 2, cI.height / 2 - 9);
+    ctxI.fillStyle = '#1e2530';
+    ctxI.fillText('keep your gaze on the center cross throughout', cI.width / 2, cI.height / 2 + 11);
+    ctxI.textAlign = 'left';
+  }
+
+  function done_screen() {
+    ctxI.fillStyle = '#080c12'; ctxI.fillRect(0, 0, cI.width, cI.height);
+    ctxI.fillStyle = '#21262d'; ctxI.font = '13px monospace'; ctxI.textAlign = 'center';
+    ctxI.fillText('induction complete — test gratings below', cI.width / 2, cI.height / 2);
+    ctxI.textAlign = 'left';
+  }
+
+  function tick(t) {
+    if (state !== 'inducing') return;
+    if (t0 === null) { t0 = t; tSwitch = t; }
+    var elapsed = (t - t0) / 1000;
+    if ((t - tSwitch) / 1000 >= cfg.rate) { current = 1 - current; tSwitch = t; }
+
+    if (current === 0) {
+      drawGrating(ctxI, cI.width, cI.height, true, GREEN);
+      document.getElementById('mc-grating').textContent = 'green horizontal';
+    } else {
+      drawGrating(ctxI, cI.width, cI.height, false, MAGENTA);
+      document.getElementById('mc-grating').textContent = 'magenta vertical';
+    }
+
+    var pct = Math.min(elapsed / cfg.duration * 100, 100);
+    document.getElementById('mc-timer-fill').style.width = pct + '%';
+    document.getElementById('mc-timer-text').textContent = Math.max(0, cfg.duration - elapsed).toFixed(0) + 's';
+
+    if (elapsed >= cfg.duration) { finish(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function finish() {
+    state = 'done';
+    document.getElementById('mc-phase').textContent = 'done';
+    document.getElementById('mc-grating').textContent = '';
+    document.getElementById('mc-timer-fill').style.width = '100%';
+    document.getElementById('mc-timer-text').textContent = '0s';
+    document.getElementById('mc-reset').style.display = '';
+    drawTest(ctxH, cH.width, cH.height, true);
+    drawTest(ctxV, cV.width, cV.height, false);
+    document.getElementById('mc-test').style.display = '';
+    done_screen();
+  }
+
+  idle();
+
+  return {
+    start: function () {
+      if (state !== 'ready') return;
+      state = 'inducing'; t0 = null; tSwitch = null; current = 0;
+      document.getElementById('mc-start').disabled = true;
+      document.getElementById('mc-phase').textContent = 'inducing';
+      document.getElementById('mc-test').style.display = 'none';
+      raf = requestAnimationFrame(tick);
+    },
+    reset: function () {
+      if (raf) cancelAnimationFrame(raf);
+      state = 'ready'; t0 = null;
+      document.getElementById('mc-start').disabled = false;
+      document.getElementById('mc-reset').style.display = 'none';
+      document.getElementById('mc-timer-fill').style.width = '0%';
+      document.getElementById('mc-timer-text').textContent = '—';
+      document.getElementById('mc-phase').textContent = 'ready';
+      document.getElementById('mc-grating').textContent = '';
+      document.getElementById('mc-test').style.display = 'none';
+      idle();
+    },
+    setDuration: function (d, btn) {
+      cfg.duration = d;
+      document.querySelectorAll('.btn[onclick*="setDuration"]').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    },
+    setRate: function (r) { cfg.rate = r; }
+  };
+})();
+</script>
+</body>
+</html>

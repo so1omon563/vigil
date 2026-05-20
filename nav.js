@@ -117,6 +117,7 @@
       { href: '/ddm.html', label: 'drift diffusion' },
       { href: '/hollow.html', label: 'hollow mask' },
       { href: '/stochastic.html', label: 'stochastic resonance' },
+      { href: '/mccollough.html', label: 'mccollough' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
