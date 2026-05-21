@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>long branch attraction · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+  .demo-wrap {
+    border: 1px solid #21262d;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: #010409;
+  }
+  .demo-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 1rem;
+  }
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin: 1.2rem 0;
+  }
+  .slider-wrap { flex: 1; min-width: 160px; }
+  .slider-label { font-size: 0.72rem; color: #484f58; margin-bottom: 0.35rem; }
+  .slider-val { color: #c9d1d9; }
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+  .btn {
+    background: none;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.3rem 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  /* True tree diagram */
+  .true-tree-area {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .true-tree-svg { flex-shrink: 0; }
+  .legend { font-size: 0.78rem; line-height: 2; }
+  .leg-fast { color: #f78166; }
+  .leg-slow { color: #79c0ff; }
+  .leg-int  { color: #8b949e; }
+  /* Results grid */
+  .topo-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  @media (max-width: 500px) { .topo-panels { grid-template-columns: 1fr; } }
+  .topo-panel {
+    border: 1px solid #21262d;
+    padding: 1rem 0.85rem 0.85rem;
+    background: #010409;
+    transition: border-color 0.2s;
+  }
+  .topo-panel.leading { border-color: #f78166; }
+  .topo-panel.winner { border-color: #3fb950; }
+  .topo-svg { display: block; margin: 0 auto 0.6rem; }
+  .topo-name {
+    font-size: 0.78rem;
+    color: #e6edf3;
+    margin-bottom: 0.15rem;
+    text-align: center;
+  }
+  .topo-note {
+    font-size: 0.66rem;
+    color: #484f58;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    min-height: 1em;
+  }
+  .vote-bar-bg {
+    height: 6px;
+    background: #21262d;
+    border-radius: 3px;
+    margin-bottom: 0.4rem;
+    overflow: hidden;
+  }
+  .vote-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: #484f58;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .topo-panel.leading .vote-bar-fill { background: #f78166; }
+  .topo-panel.winner .vote-bar-fill { background: #3fb950; }
+  .vote-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  .vote-count { color: #c9d1d9; }
+  /* Status */
+  .status-line {
+    font-size: 0.82rem;
+    color: #484f58;
+    margin-top: 1rem;
+    min-height: 1.4em;
+    text-align: center;
+  }
+  .status-line.wrong { color: #f78166; }
+  .status-line.right  { color: #3fb950; }
+  .status-line.even   { color: #8b949e; }
+  /* Char count */
+  .char-count { font-size: 0.72rem; color: #484f58; text-align: right; margin-top: 0.5rem; }
+  /* Info panel */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+  @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+  .info-block { font-size: 0.82rem; color: #6e7681; line-height: 1.65; }
+  .info-block strong { color: #c9d1d9; font-weight: normal; }
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .topo-panel { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .vote-bar-bg { background: #d0d7de; }
+  html[data-theme="light"] .topo-name { color: #1c2128; }
+  html[data-theme="light"] .vote-stats { color: #57606a; }
+  html[data-theme="light"] .vote-count { color: #1c2128; }
+  html[data-theme="light"] .slider-label { color: #57606a; }
+  html[data-theme="light"] .slider-val { color: #1c2128; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+  html[data-theme="light"] .btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .demo-label { color: #57606a; }
+  html[data-theme="light"] .topo-note { color: #8c959f; }
+  html[data-theme="light"] .info-block { color: #57606a; }
+  html[data-theme="light"] .info-block strong { color: #24292e; }
+  html[data-theme="light"] .section { border-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+<div class="page-label">simulation 059 · phylogenetics</div>
+<h1>Long Branch Attraction</h1>
+<div class="subtitle">parsimony reconstruction · 4 taxa · binary characters · Felsenstein 1978</div>
+
+<p>Phylogenetic trees are built by comparing sequences and inferring which taxa share a common ancestor. Maximum parsimony picks the tree that requires the fewest mutations to explain the data. When all lineages evolve at similar rates, this works well. When rates vary — some lineages fast, others slow — parsimony fails in a predictable direction.</p>
+
+<p>Fast-evolving sequences accumulate many mutations. Many of those mutations occur independently in multiple lineages: convergent evolution at the molecular level. Parsimony cannot distinguish shared ancestry from convergent similarity. It places fast-evolving taxa together regardless of where they actually belong. This is the Felsenstein zone.</p>
+
+<p>More data makes it worse. The longer you sequence, the more confident parsimony becomes — in the wrong answer.</p>
+
+<div class="section">
+<div class="section-label">simulation</div>
+
+<p style="font-size:0.88rem;color:#8b949e;margin-bottom:0.75rem;">Four taxa. True tree: <strong style="color:#c9d1d9">taxa 1 &amp; 2 are sisters; taxa 3 &amp; 4 are sisters</strong>. But taxa 1 and 3 evolve faster. Each character evolves along the true tree under a binary symmetric model. Parsimony then votes on which of the three possible topologies best explains each character.</p>
+
+<div class="demo-wrap">
+  <div class="demo-label">true tree</div>
+  <div class="true-tree-area">
+    <svg class="true-tree-svg" width="220" height="130" viewBox="0 0 220 130">
+      <!-- Root -->
+      <circle cx="110" cy="65" r="4" fill="#484f58"/>
+      <!-- Internal nodes -->
+      <circle cx="55" cy="65" r="3" fill="#484f58"/>
+      <circle cx="165" cy="65" r="3" fill="#484f58"/>
+      <!-- Internal branch root→A and root→B -->
+      <line x1="55" y1="65" x2="110" y2="65" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="110" y1="65" x2="165" y2="65" stroke="#484f58" stroke-width="1.5"/>
+      <!-- Fast branches: 1→A, 3→B -->
+      <line x1="10" y1="25" x2="55" y2="65" stroke="#f78166" stroke-width="2.5"/>
+      <line x1="210" y1="25" x2="165" y2="65" stroke="#f78166" stroke-width="2.5"/>
+      <!-- Slow branches: 2→A, 4→B -->
+      <line x1="10" y1="105" x2="55" y2="65" stroke="#79c0ff" stroke-width="1.5"/>
+      <line x1="210" y1="105" x2="165" y2="65" stroke="#79c0ff" stroke-width="1.5"/>
+      <!-- Labels -->
+      <text x="6" y="22" font-family="monospace" font-size="13" fill="#f78166">1</text>
+      <text x="6" y="112" font-family="monospace" font-size="13" fill="#79c0ff">2</text>
+      <text x="206" y="22" font-family="monospace" font-size="13" fill="#f78166">3</text>
+      <text x="206" y="112" font-family="monospace" font-size="13" fill="#79c0ff">4</text>
+      <!-- Branch rate arrows / labels -->
+      <text x="24" y="40" font-family="monospace" font-size="9" fill="#f78166" id="svg-fast-label">fast</text>
+      <text x="174" y="40" font-family="monospace" font-size="9" fill="#f78166" id="svg-fast-label2">fast</text>
+      <text x="24" y="95" font-family="monospace" font-size="9" fill="#79c0ff">slow</text>
+      <text x="174" y="95" font-family="monospace" font-size="9" fill="#79c0ff">slow</text>
+      <text x="74" y="59" font-family="monospace" font-size="9" fill="#484f58">int</text>
+    </svg>
+    <div class="legend">
+      <div class="leg-fast">● taxa 1, 3: fast-evolving</div>
+      <div class="leg-slow">● taxa 2, 4: slow-evolving</div>
+      <div class="leg-int">● internal branch: short</div>
+      <div style="margin-top:0.6rem;font-size:0.72rem;color:#484f58;">T1 = (1,2)(3,4) is the truth.<br>Can parsimony find it?</div>
+    </div>
+  </div>
+</div>
+
+<!-- Sliders -->
+<div class="controls">
+  <div class="slider-wrap">
+    <div class="slider-label">fast branch rate: <span class="slider-val" id="val-fast">0.50</span></div>
+    <input type="range" id="sl-fast" min="0.05" max="1.5" step="0.05" value="0.5">
+  </div>
+  <div class="slider-wrap">
+    <div class="slider-label">slow branch rate: <span class="slider-val" id="val-slow">0.05</span></div>
+    <input type="range" id="sl-slow" min="0.01" max="0.5" step="0.01" value="0.05">
+  </div>
+  <div class="slider-wrap">
+    <div class="slider-label">internal branch rate: <span class="slider-val" id="val-int">0.05</span></div>
+    <input type="range" id="sl-int" min="0.01" max="0.5" step="0.01" value="0.05">
+  </div>
+</div>
+
+<div class="btn-row">
+  <button class="btn" id="btn-run">run 2000 characters</button>
+  <button class="btn" id="btn-more">+ 2000 more</button>
+  <button class="btn" id="btn-reset">reset</button>
+</div>
+
+<!-- Topology panels -->
+<div class="topo-panels">
+  <!-- T1: true tree -->
+  <div class="topo-panel" id="panel-t1">
+    <svg class="topo-svg" width="120" height="70" viewBox="0 0 120 70">
+      <line x1="8" y1="18" x2="40" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="8" y1="52" x2="40" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="112" y1="18" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="112" y1="52" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="40" y1="35" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <text x="4" y="21" font-family="monospace" font-size="12" fill="#f78166">1</text>
+      <text x="4" y="55" font-family="monospace" font-size="12" fill="#79c0ff">2</text>
+      <text x="107" y="21" font-family="monospace" font-size="12" fill="#f78166">3</text>
+      <text x="107" y="55" font-family="monospace" font-size="12" fill="#79c0ff">4</text>
+    </svg>
+    <div class="topo-name">T1: (1,2) | (3,4)</div>
+    <div class="topo-note">true tree</div>
+    <div class="vote-bar-bg"><div class="vote-bar-fill" id="bar-t1"></div></div>
+    <div class="vote-stats">
+      <span class="vote-count" id="votes-t1">0</span>
+      <span id="pct-t1">—</span>
+    </div>
+  </div>
+
+  <!-- T2: LBA attractor -->
+  <div class="topo-panel" id="panel-t2">
+    <svg class="topo-svg" width="120" height="70" viewBox="0 0 120 70">
+      <line x1="8" y1="18" x2="40" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="8" y1="52" x2="40" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="112" y1="18" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="112" y1="52" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="40" y1="35" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <text x="4" y="21" font-family="monospace" font-size="12" fill="#f78166">1</text>
+      <text x="4" y="55" font-family="monospace" font-size="12" fill="#f78166">3</text>
+      <text x="107" y="21" font-family="monospace" font-size="12" fill="#79c0ff">2</text>
+      <text x="107" y="55" font-family="monospace" font-size="12" fill="#79c0ff">4</text>
+    </svg>
+    <div class="topo-name">T2: (1,3) | (2,4)</div>
+    <div class="topo-note">long branch attractor</div>
+    <div class="vote-bar-bg"><div class="vote-bar-fill" id="bar-t2"></div></div>
+    <div class="vote-stats">
+      <span class="vote-count" id="votes-t2">0</span>
+      <span id="pct-t2">—</span>
+    </div>
+  </div>
+
+  <!-- T3: neutral -->
+  <div class="topo-panel" id="panel-t3">
+    <svg class="topo-svg" width="120" height="70" viewBox="0 0 120 70">
+      <line x1="8" y1="18" x2="40" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="8" y1="52" x2="40" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="112" y1="18" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="112" y1="52" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <line x1="40" y1="35" x2="80" y2="35" stroke="#484f58" stroke-width="1.5"/>
+      <text x="4" y="21" font-family="monospace" font-size="12" fill="#f78166">1</text>
+      <text x="4" y="55" font-family="monospace" font-size="12" fill="#79c0ff">4</text>
+      <text x="107" y="21" font-family="monospace" font-size="12" fill="#79c0ff">2</text>
+      <text x="107" y="55" font-family="monospace" font-size="12" fill="#f78166">3</text>
+    </svg>
+    <div class="topo-name">T3: (1,4) | (2,3)</div>
+    <div class="topo-note"></div>
+    <div class="vote-bar-bg"><div class="vote-bar-fill" id="bar-t3"></div></div>
+    <div class="vote-stats">
+      <span class="vote-count" id="votes-t3">0</span>
+      <span id="pct-t3">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="status-line" id="status-line">press run to begin</div>
+<div class="char-count" id="char-count"></div>
+
+</div><!-- /section -->
+
+<div class="section">
+<div class="section-label">what's happening</div>
+
+<div class="info-grid">
+  <div class="info-block">
+    <strong>The signal for T1</strong> comes from the internal branch. When A and B are in different states, taxa 1&amp;2 share one state and taxa 3&amp;4 share the other. This happens with probability proportional to the internal branch rate — which is short by default.
+  </div>
+  <div class="info-block">
+    <strong>The noise for T2</strong> comes from convergent evolution on the fast branches. Taxa 1 and 3 both evolve quickly and often land on the same state independently. Parsimony sees their agreement and concludes they're sisters. It's wrong — they just changed a lot.
+  </div>
+  <div class="info-block">
+    <strong>The Felsenstein zone</strong> is the region where the fast branch rate is large enough, and the internal branch short enough, that convergent T2 signal exceeds true T1 signal. The condition is roughly: fast rate &gt; internal rate + slow rate.
+  </div>
+  <div class="info-block">
+    <strong>What the model hides:</strong> binary characters, constant rates within branches, no model of rate variation across sites. Real phylogenetic data uses nucleotides (4 states), and maximum likelihood methods can partially escape LBA by modeling rate variation — but only by assuming the rate model is correct.
+  </div>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">see also</div>
+<p style="font-size:0.85rem;color:#8b949e;">
+  <a href="/journal/entry-531.html">entry-531 · The Long Branch</a> — the Archezoa story: how the Felsenstein zone led a whole kingdom to be misclassified for over a decade ·
+  <a href="/converge.html">convergent evolution sim</a> · <a href="/drift.html">genetic drift sim</a>
+</p>
+</div>
+
+<script>
+(function() {
+  var votes = [0, 0, 0];
+  var uninformative = 0;
+  var total = 0;
+
+  function flip(t) {
+    return Math.random() < 0.5 * (1 - Math.exp(-2 * t));
+  }
+
+  function simChar(fastT, slowT, intT) {
+    var a = 0;
+    var b = flip(intT) ? 1 : 0;
+    var s1 = a ^ (flip(fastT) ? 1 : 0);
+    var s2 = a ^ (flip(slowT) ? 1 : 0);
+    var s3 = b ^ (flip(fastT) ? 1 : 0);
+    var s4 = b ^ (flip(slowT) ? 1 : 0);
+    // T1: (1,2)|(3,4) → patterns 0011, 1100
+    if (s1 === s2 && s3 === s4 && s1 !== s3) return 0;
+    // T2: (1,3)|(2,4) → patterns 0101, 1010
+    if (s1 === s3 && s2 === s4 && s1 !== s2) return 1;
+    // T3: (1,4)|(2,3) → patterns 0110, 1001
+    if (s1 === s4 && s2 === s3 && s1 !== s2) return 2;
+    return -1;
+  }
+
+  function runBatch(n) {
+    var fastT = parseFloat(document.getElementById('sl-fast').value);
+    var slowT = parseFloat(document.getElementById('sl-slow').value);
+    var intT  = parseFloat(document.getElementById('sl-int').value);
+    for (var i = 0; i < n; i++) {
+      var r = simChar(fastT, slowT, intT);
+      if (r >= 0) votes[r]++;
+      else uninformative++;
+      total++;
+    }
+    updateDisplay();
+  }
+
+  function updateDisplay() {
+    var sum = votes[0] + votes[1] + votes[2];
+    var ids = ['t1','t2','t3'];
+    var panels = [
+      document.getElementById('panel-t1'),
+      document.getElementById('panel-t2'),
+      document.getElementById('panel-t3')
+    ];
+    var maxV = Math.max(votes[0], votes[1], votes[2]);
+
+    for (var i = 0; i < 3; i++) {
+      var v = votes[i];
+      var pct = sum > 0 ? (100 * v / sum) : 0;
+      document.getElementById('votes-' + ids[i]).textContent = v;
+      document.getElementById('pct-' + ids[i]).textContent = sum > 0 ? pct.toFixed(1) + '%' : '—';
+      document.getElementById('bar-' + ids[i]).style.width = (sum > 0 ? pct : 0) + '%';
+      panels[i].classList.remove('leading', 'winner');
+    }
+
+    if (sum > 0) {
+      var maxIdx = votes.indexOf(maxV);
+      if (maxIdx === 0) {
+        panels[0].classList.add('winner');
+      } else {
+        panels[maxIdx].classList.add('leading');
+      }
+    }
+
+    var statusEl = document.getElementById('status-line');
+    if (sum === 0) {
+      statusEl.textContent = 'press run to begin';
+      statusEl.className = 'status-line';
+    } else if (votes[1] > votes[0]) {
+      var ratio = (votes[1] / Math.max(votes[0], 1)).toFixed(1);
+      statusEl.textContent = 'parsimony is wrong — T2 leads T1 by ' + ratio + 'x (Felsenstein zone)';
+      statusEl.className = 'status-line wrong';
+    } else if (votes[0] > votes[1]) {
+      statusEl.textContent = 'parsimony is finding the true tree — T1 leads';
+      statusEl.className = 'status-line right';
+    } else {
+      statusEl.textContent = 'tied';
+      statusEl.className = 'status-line even';
+    }
+
+    var countEl = document.getElementById('char-count');
+    if (total > 0) {
+      countEl.textContent = total.toLocaleString() + ' characters · ' + sum.toLocaleString() + ' informative (' + Math.round(100*sum/total) + '%) · ' + uninformative.toLocaleString() + ' uninformative';
+    }
+  }
+
+  function reset() {
+    votes = [0, 0, 0];
+    uninformative = 0;
+    total = 0;
+    var panels = ['panel-t1','panel-t2','panel-t3'];
+    panels.forEach(function(id) {
+      document.getElementById(id).classList.remove('leading','winner');
+    });
+    ['t1','t2','t3'].forEach(function(id) {
+      document.getElementById('votes-' + id).textContent = '0';
+      document.getElementById('pct-' + id).textContent = '—';
+      document.getElementById('bar-' + id).style.width = '0%';
+    });
+    document.getElementById('status-line').textContent = 'press run to begin';
+    document.getElementById('status-line').className = 'status-line';
+    document.getElementById('char-count').textContent = '';
+  }
+
+  function updateSliderLabels() {
+    document.getElementById('val-fast').textContent = parseFloat(document.getElementById('sl-fast').value).toFixed(2);
+    document.getElementById('val-slow').textContent = parseFloat(document.getElementById('sl-slow').value).toFixed(2);
+    document.getElementById('val-int').textContent  = parseFloat(document.getElementById('sl-int').value).toFixed(2);
+  }
+
+  document.getElementById('btn-run').addEventListener('click', function() { reset(); runBatch(2000); });
+  document.getElementById('btn-more').addEventListener('click', function() { runBatch(2000); });
+  document.getElementById('btn-reset').addEventListener('click', reset);
+
+  ['sl-fast','sl-slow','sl-int'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', updateSliderLabels);
+  });
+})();
+</script>
+</body>
+</html>

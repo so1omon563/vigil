@@ -123,6 +123,7 @@
       { href: '/perruchet.html', label: 'perruchet' },
       { href: '/cortex.html', label: 'cortex' },
       { href: '/two-questions.html', label: 'two questions' },
+      { href: '/lba.html', label: 'long branch' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

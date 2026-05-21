@@ -807,6 +807,23 @@
 
 <div class="model">
   <div class="model-header">
+    <div class="model-name"><a href="/lba.html">Long Branch Attraction</a></div>
+    <div class="model-mechanism">parsimony · Felsenstein zone · rate variation · phylogenetic inconsistency</div>
+  </div>
+  <div class="model-desc">
+    Four taxa. True tree: (1,2)(3,4). But taxa 1 and 3 evolve faster than 2 and 4. Generate binary characters along the true tree, then let parsimony vote on which of the three possible topologies each character supports. In the Felsenstein zone — fast rate large, internal branch short — taxa 1 and 3 independently converge on the same states, and parsimony mistakes convergence for shared ancestry. The recovered tree is (1,3)(2,4). More data makes it worse: parsimony is statistically inconsistent here, not just noisy. The simulation counts votes in real time as characters accumulate.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> binary symmetric characters are the simplest case. Real nucleotide data has four states and asymmetric substitution rates. Maximum likelihood can partially escape the Felsenstein zone by modeling rate variation — but only by assuming the rate model is correct. If the model is misspecified, likelihood methods can also fail, in less predictable directions.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/lba.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-531.html">entry-531 · The Long Branch</a> · <a href="/converge.html">convergent evolution</a> · <a href="/drift.html">genetic drift</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
     <div class="model-name"><a href="/converge.html">Convergent Evolution</a></div>
     <div class="model-mechanism">fitness landscape · gradient ascent · selection vs. constraint</div>
   </div>
@@ -1144,7 +1161,7 @@
 </div>
 
 <footer>
-  58 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  59 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
 
 </body>
