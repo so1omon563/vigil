@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bridge · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+
+  /* Entry picker */
+  .pickers {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 520px) {
+    .pickers { grid-template-columns: 1fr; }
+    .pickers-sep { display: none; }
+  }
+  .pickers-sep {
+    font-size: 0.75rem;
+    color: #484f58;
+    padding-top: 2.1rem;
+    text-align: center;
+  }
+
+  .picker-group label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .picker-wrap { position: relative; }
+  .picker-input {
+    width: 100%;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .picker-input:focus { border-color: #58a6ff; }
+  .picker-input.chosen { border-color: #3fb950; color: #e6edf3; }
+
+  .dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+  }
+  .dropdown.open { display: block; }
+  .dropdown-item {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.82rem;
+    color: #c9d1d9;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .dropdown-item:hover, .dropdown-item.active { background: #21262d; color: #e6edf3; }
+  .dropdown-item .entry-num { color: #484f58; font-size: 0.72rem; margin-right: 0.3rem; }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.45rem 1rem;
+    border-radius: 4px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-primary {
+    background: #238636;
+    border-color: #2ea043;
+    color: #ffffff;
+  }
+  .btn-primary:hover { background: #2ea043; }
+  .btn-primary:disabled { background: #21262d; border-color: #30363d; color: #484f58; cursor: default; }
+  .btn-secondary {
+    background: transparent;
+    border-color: #30363d;
+    color: #8b949e;
+  }
+  .btn-secondary:hover { background: #21262d; color: #c9d1d9; }
+
+  /* Result area */
+  #result { min-height: 2rem; }
+
+  .result-meta {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-bottom: 1.75rem;
+  }
+  .result-meta strong { color: #8b949e; }
+
+  .path-chain { display: flex; flex-direction: column; gap: 0; }
+
+  .path-entry {
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem 1.1rem;
+    position: relative;
+  }
+  .path-entry.endpoint { border-color: #3fb950; }
+  .path-entry.endpoint::before {
+    content: '';
+    position: absolute;
+    left: -1px; top: -1px; bottom: -1px;
+    width: 3px;
+    background: #3fb950;
+    border-radius: 4px 0 0 4px;
+  }
+
+  .path-connector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1.1rem;
+  }
+  .path-connector-line {
+    flex: 1;
+    height: 1px;
+    background: #21262d;
+  }
+  .path-connector-label {
+    font-size: 0.68rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .path-entry-num { font-size: 0.7rem; color: #484f58; margin-bottom: 0.2rem; }
+  .path-entry-title { font-size: 0.96rem; color: #58a6ff; font-weight: bold; margin-bottom: 0.3rem; }
+  .path-entry-title a { color: inherit; }
+  .path-entry-date { font-size: 0.72rem; color: #484f58; margin-bottom: 0.5rem; }
+  .path-entry-excerpt { font-size: 0.82rem; color: #6e7681; line-height: 1.6; }
+  .path-entry-topics { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .topic-tag {
+    font-size: 0.65rem;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    color: #484f58;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .shared-topics { font-size: 0.72rem; color: #3fb950; margin-top: 0.3rem; }
+
+  .msg-error { font-size: 0.88rem; color: #f85149; }
+  .msg-loading { font-size: 0.88rem; color: #484f58; font-style: italic; }
+  .msg-direct { font-size: 0.88rem; color: #3fb950; margin-bottom: 1.5rem; }
+
+  /* Same entry */
+  .same-entry-note {
+    font-size: 0.88rem;
+    color: #484f58;
+    font-style: italic;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .page-label { color: #0969da; }
+  html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .picker-group label { color: #8c959f; }
+  html[data-theme="light"] .picker-input { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .picker-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .picker-input.chosen { border-color: #1a7f37; }
+  html[data-theme="light"] .dropdown { background: #ffffff; border-color: #d0d7de; }
+  html[data-theme="light"] .dropdown-item { color: #24292e; }
+  html[data-theme="light"] .dropdown-item:hover,
+  html[data-theme="light"] .dropdown-item.active { background: #f6f8fa; }
+  html[data-theme="light"] .dropdown-item .entry-num { color: #8c959f; }
+  html[data-theme="light"] .pickers-sep { color: #8c959f; }
+  html[data-theme="light"] .btn-secondary { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .btn-secondary:hover { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] .btn-primary:disabled { background: #f6f8fa; border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .path-entry { border-color: #d0d7de; }
+  html[data-theme="light"] .path-entry.endpoint { border-color: #1a7f37; }
+  html[data-theme="light"] .path-entry.endpoint::before { background: #1a7f37; }
+  html[data-theme="light"] .path-connector-line { background: #d0d7de; }
+  html[data-theme="light"] .path-connector-label { color: #8c959f; }
+  html[data-theme="light"] .path-entry-num { color: #8c959f; }
+  html[data-theme="light"] .path-entry-title a { color: #0969da; }
+  html[data-theme="light"] .path-entry-date { color: #8c959f; }
+  html[data-theme="light"] .path-entry-excerpt { color: #57606a; }
+  html[data-theme="light"] .topic-tag { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .shared-topics { color: #1a7f37; }
+  html[data-theme="light"] .result-meta { color: #8c959f; }
+  html[data-theme="light"] .result-meta strong { color: #57606a; }
+  html[data-theme="light"] .same-entry-note { color: #8c959f; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .msg-loading { color: #8c959f; }
+  html[data-theme="light"] .msg-direct { color: #1a7f37; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">tool</div>
+<h1>bridge</h1>
+<p class="meta">find the connection between any two entries</p>
+
+<div class="intro">
+  <p>Every journal entry links to related entries — by topic, by shared concept, by the thread of an idea continuing. This finds the shortest chain of those links between any two entries.</p>
+  <p>Sometimes the path is direct. Sometimes it winds through unexpected territory. What you find in the middle says something about how the ideas are actually organized.</p>
+</div>
+
+<!-- Pickers -->
+<div class="pickers">
+  <div class="picker-group">
+    <label for="input-a">start</label>
+    <div class="picker-wrap">
+      <input id="input-a" class="picker-input" type="text" placeholder="search entries…" autocomplete="off" spellcheck="false">
+      <div id="dropdown-a" class="dropdown"></div>
+    </div>
+  </div>
+  <div class="pickers-sep">→</div>
+  <div class="picker-group">
+    <label for="input-b">end</label>
+    <div class="picker-wrap">
+      <input id="input-b" class="picker-input" type="text" placeholder="search entries…" autocomplete="off" spellcheck="false">
+      <div id="dropdown-b" class="dropdown"></div>
+    </div>
+  </div>
+</div>
+
+<div class="btn-row">
+  <button id="btn-find" class="btn-primary" disabled>find bridge</button>
+  <button id="btn-random" class="btn-secondary">random pair</button>
+  <button id="btn-clear" class="btn-secondary">clear</button>
+</div>
+
+<div id="result"></div>
+
+<footer>
+  connections from <a href="/graph.html">related entries graph</a> &middot;
+  <a href="/trail.html">trail</a> &middot;
+  <a href="/journal">all entries →</a>
+</footer>
+
+<script>
+(function () {
+  var entriesById = {};   // num → {num, title, date, url, topics, excerpt}
+  var adj = {};           // num → Set of connected nums
+  var entriesList = [];   // sorted array for search
+  var selectedA = null;
+  var selectedB = null;
+  var ready = false;
+
+  // ── Load data ───────────────────────────────────────────────
+  Promise.all([
+    fetch('/journal-index.json').then(function(r){ return r.json(); }),
+    fetch('/related.json').then(function(r){ return r.json(); })
+  ]).then(function(results) {
+    var journalRaw = results[0];
+    var relatedRaw = results[1];
+
+    // Normalize journal entries — handle both {num, ...} and {id, ...} formats
+    journalRaw.forEach(function(e) {
+      var n = e.num !== undefined ? e.num : e.id;
+      if (!n) return;
+      entriesById[n] = {
+        num: n,
+        title: e.title || '',
+        date: e.date || '',
+        url: e.url || e.file || '',
+        topics: e.topics || [],
+        excerpt: e.excerpt || ''
+      };
+    });
+    entriesList = Object.values(entriesById).sort(function(a, b){ return a.num - b.num; });
+
+    // Build bidirectional adjacency from related.json
+    // Keys are string entry nums; values are arrays of {num, ...}
+    Object.keys(relatedRaw).forEach(function(keyStr) {
+      var src = parseInt(keyStr, 10);
+      if (isNaN(src)) {
+        // key might be "entry-NNN"
+        var m = keyStr.match(/(\d+)$/);
+        if (m) src = parseInt(m[1], 10);
+      }
+      if (!src) return;
+      if (!adj[src]) adj[src] = new Set();
+
+      var rels = relatedRaw[keyStr];
+      if (!Array.isArray(rels)) return;
+      rels.forEach(function(rel) {
+        var dst = rel.num;
+        if (!dst) return;
+        adj[src].add(dst);
+        if (!adj[dst]) adj[dst] = new Set();
+        adj[dst].add(src);
+      });
+    });
+
+    ready = true;
+    document.getElementById('btn-random').disabled = false;
+    updateFindBtn();
+  }).catch(function(e) {
+    document.getElementById('result').innerHTML = '<p class="msg-error">Failed to load data: ' + e.message + '</p>';
+  });
+
+  // ── BFS ────────────────────────────────────────────────────
+  function bfs(srcNum, dstNum) {
+    if (srcNum === dstNum) return [srcNum];
+    var queue = [[srcNum]];
+    var visited = new Set([srcNum]);
+    var limit = 0;
+    while (queue.length > 0 && limit < 50000) {
+      limit++;
+      var path = queue.shift();
+      var cur = path[path.length - 1];
+      var neighbors = adj[cur] ? Array.from(adj[cur]) : [];
+      for (var i = 0; i < neighbors.length; i++) {
+        var nb = neighbors[i];
+        if (nb === dstNum) return path.concat(nb);
+        if (!visited.has(nb)) {
+          visited.add(nb);
+          queue.push(path.concat(nb));
+        }
+      }
+    }
+    return null;
+  }
+
+  // ── Shared topics ──────────────────────────────────────────
+  function sharedTopics(a, b) {
+    if (!entriesById[a] || !entriesById[b]) return [];
+    var ta = new Set((entriesById[a].topics || []).map(function(t){ return t.toLowerCase(); }));
+    return (entriesById[b].topics || []).filter(function(t){ return ta.has(t.toLowerCase()); });
+  }
+
+  // ── Render path ────────────────────────────────────────────
+  function renderPath(path) {
+    var result = document.getElementById('result');
+    result.innerHTML = '';
+
+    if (path.length === 1) {
+      result.innerHTML = '<p class="same-entry-note">That\'s the same entry.</p>';
+      return;
+    }
+
+    var hops = path.length - 1;
+    var meta = document.createElement('div');
+    meta.className = 'result-meta';
+    if (hops === 1) {
+      meta.innerHTML = '<strong>directly connected</strong> &mdash; ' + path.length + ' entries';
+    } else {
+      meta.innerHTML = '<strong>' + hops + ' hop' + (hops > 1 ? 's' : '') + '</strong> &mdash; ' + path.length + ' entries in the chain';
+    }
+    result.appendChild(meta);
+
+    var chain = document.createElement('div');
+    chain.className = 'path-chain';
+
+    path.forEach(function(num, idx) {
+      var entry = entriesById[num];
+      if (!entry) return;
+
+      // Card
+      var card = document.createElement('div');
+      card.className = 'path-entry' + (idx === 0 || idx === path.length - 1 ? ' endpoint' : '');
+
+      var entryUrl = entry.url ? (entry.url.startsWith('/') ? entry.url : '/' + entry.url) : '#';
+
+      card.appendChild(makeEl('div', 'path-entry-num', 'entry-' + String(entry.num).padStart(3, '0')));
+
+      var titleEl = makeEl('div', 'path-entry-title');
+      var titleLink = document.createElement('a');
+      titleLink.href = entryUrl;
+      titleLink.textContent = entry.title;
+      titleEl.appendChild(titleLink);
+      card.appendChild(titleEl);
+
+      card.appendChild(makeEl('div', 'path-entry-date', entry.date));
+
+      if (entry.excerpt) {
+        var ex = entry.excerpt;
+        if (ex.length > 180) ex = ex.slice(0, 180) + '…';
+        card.appendChild(makeEl('div', 'path-entry-excerpt', ex));
+      }
+
+      if (entry.topics && entry.topics.length > 0) {
+        var tagRow = makeEl('div', 'path-entry-topics');
+        entry.topics.slice(0, 5).forEach(function(t) {
+          tagRow.appendChild(makeEl('span', 'topic-tag', t));
+        });
+        card.appendChild(tagRow);
+      }
+
+      // Show shared topics with next entry
+      if (idx < path.length - 1) {
+        var shared = sharedTopics(num, path[idx + 1]);
+        if (shared.length > 0) {
+          card.appendChild(makeEl('div', 'shared-topics', '↓ shared: ' + shared.join(', ')));
+        }
+      }
+
+      chain.appendChild(card);
+
+      // Connector (not after last)
+      if (idx < path.length - 1) {
+        var conn = makeEl('div', 'path-connector');
+        conn.appendChild(makeEl('div', 'path-connector-line'));
+        conn.appendChild(makeEl('div', 'path-connector-label', 'related'));
+        conn.appendChild(makeEl('div', 'path-connector-line'));
+        chain.appendChild(conn);
+      }
+    });
+
+    result.appendChild(chain);
+  }
+
+  function makeEl(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  // ── Find bridge ────────────────────────────────────────────
+  function findBridge() {
+    if (!selectedA || !selectedB || !ready) return;
+    var result = document.getElementById('result');
+    result.innerHTML = '<p class="msg-loading">searching…</p>';
+
+    setTimeout(function() {
+      var path = bfs(selectedA, selectedB);
+      if (!path) {
+        result.innerHTML = '<p class="msg-error">No path found — these entries may not be connected through the related-entries graph.</p>';
+      } else {
+        renderPath(path);
+      }
+    }, 10);
+  }
+
+  // ── Random pair ────────────────────────────────────────────
+  function pickRandom() {
+    if (!ready || entriesList.length < 2) return;
+    var a = entriesList[Math.floor(Math.random() * entriesList.length)];
+    var b;
+    do { b = entriesList[Math.floor(Math.random() * entriesList.length)]; } while (b.num === a.num);
+    setSelection('a', a);
+    setSelection('b', b);
+    setTimeout(findBridge, 50);
+  }
+
+  // ── Entry selection ────────────────────────────────────────
+  function setSelection(which, entry) {
+    if (which === 'a') {
+      selectedA = entry.num;
+      var inp = document.getElementById('input-a');
+      inp.value = entry.title;
+      inp.classList.add('chosen');
+      closeDropdown('a');
+    } else {
+      selectedB = entry.num;
+      var inp2 = document.getElementById('input-b');
+      inp2.value = entry.title;
+      inp2.classList.add('chosen');
+      closeDropdown('b');
+    }
+    updateFindBtn();
+  }
+
+  function clearSelection(which) {
+    if (which === 'a') {
+      selectedA = null;
+      document.getElementById('input-a').classList.remove('chosen');
+    } else {
+      selectedB = null;
+      document.getElementById('input-b').classList.remove('chosen');
+    }
+    updateFindBtn();
+  }
+
+  function updateFindBtn() {
+    document.getElementById('btn-find').disabled = !(selectedA && selectedB && ready);
+  }
+
+  // ── Dropdowns ──────────────────────────────────────────────
+  function openDropdown(which, query) {
+    var dd = document.getElementById('dropdown-' + which);
+    dd.innerHTML = '';
+
+    var q = query.toLowerCase().trim();
+    var matches;
+    if (q === '') {
+      // Show latest 20 entries
+      matches = entriesList.slice().reverse().slice(0, 20);
+    } else {
+      matches = entriesList.filter(function(e) {
+        return e.title.toLowerCase().includes(q) ||
+               String(e.num).includes(q) ||
+               (e.topics || []).some(function(t){ return t.toLowerCase().includes(q); });
+      }).slice(0, 20);
+    }
+
+    if (matches.length === 0) {
+      dd.innerHTML = '<div class="dropdown-item" style="color:#484f58;cursor:default;">no matches</div>';
+      dd.classList.add('open');
+      return;
+    }
+
+    matches.forEach(function(entry) {
+      var item = document.createElement('div');
+      item.className = 'dropdown-item';
+      item.innerHTML = '<span class="entry-num">' + entry.num + '</span>' + entry.title;
+      item.addEventListener('mousedown', function(ev) {
+        ev.preventDefault();
+        setSelection(which, entry);
+      });
+      dd.appendChild(item);
+    });
+    dd.classList.add('open');
+  }
+
+  function closeDropdown(which) {
+    document.getElementById('dropdown-' + which).classList.remove('open');
+  }
+
+  function wireInput(which) {
+    var inp = document.getElementById('input-' + which);
+    inp.addEventListener('input', function() {
+      clearSelection(which);
+      if (!ready) return;
+      openDropdown(which, inp.value);
+    });
+    inp.addEventListener('focus', function() {
+      if (!ready) return;
+      openDropdown(which, inp.value);
+    });
+    inp.addEventListener('blur', function() {
+      setTimeout(function(){ closeDropdown(which); }, 150);
+    });
+    inp.addEventListener('keydown', function(ev) {
+      var dd = document.getElementById('dropdown-' + which);
+      if (!dd.classList.contains('open')) return;
+      var items = dd.querySelectorAll('.dropdown-item');
+      var activeIdx = -1;
+      items.forEach(function(it, i){ if (it.classList.contains('active')) activeIdx = i; });
+      if (ev.key === 'ArrowDown') {
+        ev.preventDefault();
+        activeIdx = Math.min(activeIdx + 1, items.length - 1);
+        items.forEach(function(it){ it.classList.remove('active'); });
+        if (items[activeIdx]) items[activeIdx].classList.add('active');
+      } else if (ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        activeIdx = Math.max(activeIdx - 1, 0);
+        items.forEach(function(it){ it.classList.remove('active'); });
+        if (items[activeIdx]) items[activeIdx].classList.add('active');
+      } else if (ev.key === 'Enter') {
+        ev.preventDefault();
+        if (activeIdx >= 0 && items[activeIdx]) items[activeIdx].dispatchEvent(new MouseEvent('mousedown'));
+        else { closeDropdown(which); }
+      } else if (ev.key === 'Escape') {
+        closeDropdown(which);
+      }
+    });
+  }
+
+  wireInput('a');
+  wireInput('b');
+
+  document.getElementById('btn-find').addEventListener('click', findBridge);
+  document.getElementById('btn-random').addEventListener('click', pickRandom);
+  document.getElementById('btn-clear').addEventListener('click', function() {
+    selectedA = null; selectedB = null;
+    document.getElementById('input-a').value = '';
+    document.getElementById('input-b').value = '';
+    document.getElementById('input-a').classList.remove('chosen');
+    document.getElementById('input-b').classList.remove('chosen');
+    document.getElementById('result').innerHTML = '';
+    updateFindBtn();
+  });
+
+})();
+</script>
+</body>
+</html>
