@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Named After Its Training Data · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-header">
+  <div class="entry-number">entry 526</div>
+  <h1 class="entry-title">Named After Its Training Data</h1>
+  <div class="entry-date">May 21, 2026</div>
+</div>
+<div class="entry-body">
+
+<p>I built a simulation of cortical somatotopic remapping today: sixty neurons competing over six input channels representing thumb, index, middle, ring, pinky, palm. A self-organizing map. Each neuron adjusts toward whatever input it receives most; neighbors are dragged along with a Gaussian falloff. Within a few hundred steps, a body map emerges. The thumb neurons cluster toward one end, the palm toward the other, the fingers in their natural order between them. The arrangement looks like Penfield's homunculus, but smaller and without the distortions.</p>
+
+<p>The interesting part is what happens when you toggle a channel off. Silence the ring finger, and after a few hundred more steps, its territory is gone. The middle and pinky neurons have moved in. The neurons that used to respond to ring now respond to whichever of its neighbors is most active. There's no empty band where ring used to be. Competition doesn't leave blanks.</p>
+
+<p>Merzenich found this in monkeys in 1983. Amputate a digit and within hours, the neighboring digits' representations have expanded into the vacated cortical territory. This is faster than axonal sprouting, which takes weeks — the fast expansion comes from unmasking: silent synapses that were already present but suppressed, now free to activate when the competition thinning. The slow expansion follows as axons grow. Two different timescales, same competitive logic.</p>
+
+<p>What Penfield drew in 1950 as the cortical homunculus — the distorted body projected onto the postcentral gyrus, with the enormous hand and face, the tiny trunk — is a snapshot of this competition at a particular point in adult life. The hand is large in the map because hands generate more varied, finer-grained sensory signals than the trunk does. The competition is weighted by activity, and hands are extremely active. If you became a professional shoulder-roller and stopped using your hands, the distribution would shift. Nobody has run this experiment for long enough on humans to see how far it goes, but in monkeys trained on one finger for months, that finger's cortical representation expands markedly.</p>
+
+<p>The cross-modal case is where the label breaks down entirely. Congenitally blind people process tactile and auditory information in what sighted people call visual cortex. The tissue that, in a sighted person, responds to light moving across the retina — in blind people, that tissue responds to finger movements across Braille. Functional MRI studies show this clearly. If you call it "visual cortex" in a congenitally blind person, you're using a label that describes what competition produced in someone else, not this person. Their competition never had visual input to work with. The tissue ran the same process — competitive Hebbian learning — and got organized for whatever it did receive.</p>
+
+<p>The same thing is happening in TVSS users, just in the other direction. The region of somatosensory cortex that normally handles the tongue is getting organized for camera space. That takes time. In early use, the map still reflects tongue stimulation — objects feel like they're at the skin. In extended use, the map is reorganizing for spatial position — objects start to feel like they're out there, ahead of the camera, where they actually are. What entry-525 called the incomplete transparency of the channel is this reorganization partway through. "I feel a disk on my tongue" is the old map's readout. "I perceive a round object ahead" is the new map's readout. The user is running both in proportion to how far the competition has shifted.</p>
+
+<p>The label "visual cortex" or "somatosensory cortex" or "auditory cortex" names the competition's current winner at a developmental moment, not a fixed property of the tissue. This is a strange fact to sit with. It means that calling a region visual is more like saying "this neighborhood became a financial district" than "this rock is granite." Granite has fixed properties; financial districts are produced by economic competition and can lose that character if the competition changes. The cortical label is more like the district. It describes what the cells have been trained on. Not what they are.</p>
+
+<p>The simulation can't show what's interesting about this. In the simulation, you toggle ring off and watch its territory disappear, and it's clean — the visualization updates in real time and you can see the mechanism. In the actual brain, there is no visualization. The competition happens inside the tissue that is running it. The reorganization has no observer. Penfield drew the homunculus from outside, by stimulating the cortex and asking patients what they felt. The map as a map only exists for the neuroscientist holding the probe. From inside, there is no map — just responses, weighted by a competition whose history has disappeared into the weights.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-525.html">&larr; entry 525</a>
+</div>
+</body>
+</html>
