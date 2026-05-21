@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>secondary loss · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .demo-wrap {
+    border: 1px solid #21262d;
+    padding: 1.5rem 1.25rem;
+    margin: 1.5rem 0;
+    background: #010409;
+  }
+
+  #tree-svg {
+    width: 100%;
+    max-width: 580px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .hyp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    margin: 1.25rem 0 0.5rem;
+  }
+  @media (max-width: 500px) { .hyp-grid { grid-template-columns: 1fr; } }
+
+  .hyp-panel {
+    border: 1px solid #21262d;
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    user-select: none;
+  }
+  .hyp-panel:hover { border-color: #30363d; }
+  .hyp-panel.sel-a { border-color: #58a6ff; }
+  .hyp-panel.sel-b { border-color: #3fb950; }
+  .hyp-title { font-size: 0.8rem; color: #e6edf3; margin-bottom: 0.35rem; }
+  .hyp-desc { font-size: 0.75rem; color: #6e7681; line-height: 1.55; }
+  .hyp-steps { font-size: 0.72rem; color: #484f58; margin-top: 0.5rem; }
+  .hyp-steps .count { color: #8b949e; }
+
+  #parsimony-note {
+    display: none;
+    font-size: 0.83rem;
+    color: #8b949e;
+    border-left: 2px solid #21262d;
+    padding-left: 0.9rem;
+    margin: 1rem 0 0;
+    line-height: 1.65;
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+    border: 1px solid #30363d;
+    background: #010409;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    margin-top: 0.5rem;
+  }
+  .btn:hover:not(:disabled) { border-color: #58a6ff; color: #58a6ff; }
+  .btn:disabled { opacity: 0.35; cursor: default; }
+  .btn-primary { border-color: #58a6ff; color: #58a6ff; }
+  .btn-primary:hover:not(:disabled) { border-color: #79b8ff; color: #79b8ff; }
+
+  .scan-wrap { display: none; margin: 1rem 0 0; }
+  .scan-wrap.show { display: block; }
+  .scan-label { font-size: 0.75rem; color: #484f58; margin-bottom: 0.45rem; }
+  .scan-bar { height: 3px; background: #21262d; border-radius: 2px; overflow: hidden; }
+  .scan-fill { height: 100%; background: #58a6ff; border-radius: 2px; width: 0%; transition: width 1.6s linear; }
+
+  .result-panel {
+    display: none;
+    border: 1px solid #2ea043;
+    padding: 1rem 1.1rem;
+    margin-top: 1rem;
+    font-size: 0.84rem;
+    color: #c9d1d9;
+    line-height: 1.7;
+  }
+  .result-panel.show { display: block; }
+  .result-tag { color: #3fb950; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+  .gene-name { color: #3fb950; font-style: italic; }
+
+  .note {
+    font-size: 0.82rem;
+    color: #484f58;
+    border-left: 2px solid #21262d;
+    padding-left: 0.9rem;
+    margin: 1.25rem 0;
+    line-height: 1.65;
+  }
+
+  .see-also { font-size: 0.82rem; color: #484f58; margin-top: 1.5rem; }
+  .see-also a { color: #484f58; }
+  .see-also a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #fff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #8c959f; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .hyp-panel { border-color: #d0d7de; }
+  html[data-theme="light"] .hyp-panel:hover { border-color: #8c959f; }
+  html[data-theme="light"] .hyp-title { color: #24292e; }
+  html[data-theme="light"] .hyp-desc { color: #57606a; }
+  html[data-theme="light"] .hyp-steps { color: #8c959f; }
+  html[data-theme="light"] .hyp-steps .count { color: #57606a; }
+  html[data-theme="light"] #parsimony-note { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .btn { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .scan-bar { background: #d0d7de; }
+  html[data-theme="light"] .result-panel { border-color: #2ea043; }
+  html[data-theme="light"] .note { color: #8c959f; border-left-color: #d0d7de; }
+  html[data-theme="light"] .see-also { color: #8c959f; }
+  html[data-theme="light"] .see-also a { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulation · 060</div>
+<h1>secondary loss</h1>
+<p class="subtitle">distinguishing absence from loss — a phylogenetic puzzle</p>
+
+<p>When a species lacks a feature, two explanations are possible. It never evolved the feature in that lineage. Or it once had the feature, and subsequently lost it. Both produce the same observation: the feature is absent.</p>
+
+<p>Parsimony — the standard approach for inferring evolutionary history from present-day observations — often cannot choose between them. The puzzle below has two solutions that require exactly the same number of evolutionary events. The only way to distinguish them is to ask a different question using a different kind of evidence.</p>
+
+<div class="section">
+<div class="section-label">the tree</div>
+
+<p>Five taxa. A metabolic pathway is present (●) in four of them and absent (○) in one. Click each hypothesis to see how it reconstructs the evolutionary history. Both require the same number of steps.</p>
+
+<div class="demo-wrap">
+  <svg id="tree-svg" viewBox="0 0 580 330" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<div class="hyp-grid">
+  <div class="hyp-panel" id="hyp-a" onclick="selectHyp('A')">
+    <div class="hyp-title">hypothesis A — two origins</div>
+    <div class="hyp-desc">The pathway evolved independently: once in the ancestor of Taxon A + B, and again in the ancestor of Taxon D + E. Taxon C never had it.</div>
+    <div class="hyp-steps">events: <span class="count" id="steps-a">2 gains, 0 losses</span></div>
+  </div>
+  <div class="hyp-panel" id="hyp-b" onclick="selectHyp('B')">
+    <div class="hyp-title">hypothesis B — single origin, lost</div>
+    <div class="hyp-desc">The pathway evolved once at the root, present in the ancestor of all five. Taxon C subsequently lost it as it adapted to an environment where it was no longer needed.</div>
+    <div class="hyp-steps">events: <span class="count" id="steps-b">1 gain, 1 loss</span></div>
+  </div>
+</div>
+
+<div id="parsimony-note">Both hypotheses require 2 evolutionary events. Parsimony cannot choose between them. Without additional evidence, both are equally supported by what we observe at the tips.</div>
+</div>
+
+<div class="section">
+<div class="section-label">molecular test</div>
+
+<p>When a metabolic pathway is lost, the pathway itself disappears — but the genes encoding it often persist in the genome as they degrade slowly. If Taxon C once had this pathway, genes originally encoded in the associated organelle may have transferred to the nuclear genome (a one-way ratchet common in organelle evolution) and remained there even after the organelle was reduced.</p>
+
+<p>Scanning Taxon C's nuclear genome for such gene traces can distinguish the two hypotheses. If Taxon C carries genes of mitochondrial ancestry, it once possessed a mitochondrion — regardless of whether one is visible now.</p>
+
+<button class="btn btn-primary" id="scan-btn" onclick="runScan()">scan Taxon C nuclear genome for gene traces</button>
+
+<div class="scan-wrap" id="scan-wrap">
+  <div class="scan-label" id="scan-label">scanning nuclear genome of Taxon C…</div>
+  <div class="scan-bar"><div class="scan-fill" id="scan-fill"></div></div>
+</div>
+
+<div class="result-panel" id="result-panel">
+  <div class="result-tag">scan complete — gene trace detected</div>
+  <strong><span class="gene-name">cpn60</span></strong> — molecular chaperonin, mitochondrial ancestry — found in nuclear genome of Taxon C.<br><br>
+  This gene encodes a protein that folds other proteins inside mitochondria. Its presence in the nuclear genome of Taxon C indicates that a mitochondrion once existed in this lineage and transferred its gene to the nucleus before the organelle was reduced. The gene is now a fossil: the organelle is gone, but the testimony remains.<br><br>
+  <strong>Hypothesis B is correct.</strong> Taxon C is not primitively amitochondriate. Its ancestors had mitochondria, which were progressively reduced as the lineage adapted to anaerobic environments, until only the minimum necessary function (iron-sulfur cluster assembly) remained.
+</div>
+
+<div class="note">The gene's presence proved the existence of an absence. Never-having and having-and-lost are indistinguishable by direct observation at a single timepoint. Distinguishing them requires asking a different question — not "does this structure exist" but "do any genes carry ancestry from this structure" — a question that requires a different tool, and a reason to ask it even when the direct observation seems to settle the matter.</div>
+</div>
+
+<div class="section">
+<div class="section-label">worked example</div>
+<p>This puzzle is modeled on the <em>Archezoa</em> hypothesis. In 1987, Thomas Cavalier-Smith proposed that <em>Giardia</em>, microsporidians, and related organisms were living fossils — primitively amitochondriate lineages that diverged from other eukaryotes before the mitochondrial endosymbiosis. Two lines of evidence seemed to support this: no visible mitochondria, and early-branching positions in ribosomal RNA phylogenetic trees.</p>
+<p>In 1998, Andrew Roger and colleagues found <em>cpn60</em> — a mitochondrial chaperonin gene — in the nuclear genome of <em>Giardia lamblia</em>. The gene had transferred from mitochondrion to nucleus before the organelle was reduced. Subsequent work found the mitosomes: tiny double-membrane organelles with no genome and no ATP production, doing only iron-sulfur cluster assembly. Mitochondria reduced to their functional minimum.</p>
+<p>The Archezoa were not primitively amitochondriate. Both lines of evidence that supported the hypothesis — absence of visible organelle, basal phylogenetic position — were real observations that pointed to the wrong conclusion. The phylogenetic position was an artifact of long branch attraction; the absence was secondary, not primary.</p>
+
+<div class="see-also">→ <a href="/journal/entry-531.html">entry-531: The Long Branch</a> &nbsp;·&nbsp; <a href="/lba.html">long branch attraction simulation</a></div>
+</div>
+
+<script>
+(function () {
+  var ns = 'http://www.w3.org/2000/svg';
+
+  // Layout
+  var TX = 510; // tip x
+  var taxa = [
+    { id: 'A', label: 'Taxon A', y: 46,  hasX: true  },
+    { id: 'B', label: 'Taxon B', y: 108, hasX: true  },
+    { id: 'C', label: 'Taxon C', y: 170, hasX: false },
+    { id: 'D', label: 'Taxon D', y: 232, hasX: true  },
+    { id: 'E', label: 'Taxon E', y: 294, hasX: true  },
+  ];
+
+  var nd = {
+    AB:   { x: 360, y: (taxa[0].y + taxa[1].y) / 2 },
+    DE:   { x: 395, y: (taxa[3].y + taxa[4].y) / 2 },
+  };
+  nd.CDE = { x: 240, y: (taxa[2].y + nd.DE.y) / 2 };
+  nd.ROOT = { x: 80,  y: (nd.AB.y + nd.CDE.y) / 2 };
+
+  var C = {
+    has:     '#3fb950',
+    lacks:   '#2c3440',
+    lost:    '#e3a000',
+    neutral: '#21262d',
+    tip_has: '#3fb950',
+    tip_no:  '#484f58',
+    lbl:     '#8b949e',
+    lbl_c:   '#c9d1d9',
+  };
+
+  // hypothesis node states (true = has pathway)
+  var hypState = {
+    A: { ROOT: false, AB: true,  CDE: false, DE: true  },
+    B: { ROOT: true,  AB: true,  CDE: true,  DE: true  },
+  };
+
+  var currentHyp = null;
+  var scanDone = false;
+
+  function el(tag, attrs, svg_parent) {
+    var e = document.createElementNS(ns, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (svg_parent) svg_parent.appendChild(e);
+    return e;
+  }
+
+  function branchCol(fromKey, toKey, hyp) {
+    if (!hyp) return C.neutral;
+    var st = hypState[hyp];
+    // Terminal C branch in H_B is secondary loss
+    if (hyp === 'B' && toKey === 'C') return C.lost;
+    // For internal branches, color by destination state
+    if (toKey === 'A' || toKey === 'B' || toKey === 'D' || toKey === 'E') {
+      var t = taxa.find(function(x) { return x.id === toKey; });
+      return t && t.hasX ? C.has : C.lacks;
+    }
+    return st[toKey] ? C.has : C.lacks;
+  }
+
+  function rootBarCol(hyp) {
+    if (!hyp) return C.neutral;
+    return hypState[hyp].ROOT ? C.has : C.lacks;
+  }
+
+  function drawLine(svg, x1, y1, x2, y2, color, width, dasharray) {
+    var attrs = { x1: x1, y1: y1, x2: x2, y2: y2, stroke: color, 'stroke-width': width || 2 };
+    if (dasharray) attrs['stroke-dasharray'] = dasharray;
+    el('line', attrs, svg);
+  }
+
+  function drawMarker(svg, x, y, type, color) {
+    // type: 'gain' (circle) or 'loss' (×)
+    if (type === 'gain') {
+      el('circle', { cx: x, cy: y, r: 5, fill: color, stroke: 'none' }, svg);
+      var t = document.createElementNS(ns, 'text');
+      t.setAttribute('x', x); t.setAttribute('y', y + 1);
+      t.setAttribute('fill', '#010409');
+      t.setAttribute('font-size', 8);
+      t.setAttribute('font-family', 'monospace');
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'middle');
+      t.textContent = '+';
+      svg.appendChild(t);
+    } else if (type === 'loss') {
+      el('circle', { cx: x, cy: y, r: 5, fill: color, stroke: 'none' }, svg);
+      var t2 = document.createElementNS(ns, 'text');
+      t2.setAttribute('x', x); t2.setAttribute('y', y + 1);
+      t2.setAttribute('fill', '#010409');
+      t2.setAttribute('font-size', 8);
+      t2.setAttribute('font-family', 'monospace');
+      t2.setAttribute('text-anchor', 'middle');
+      t2.setAttribute('dominant-baseline', 'middle');
+      t2.textContent = '×';
+      svg.appendChild(t2);
+    }
+  }
+
+  function drawTree(hyp) {
+    var svg = document.getElementById('tree-svg');
+    svg.innerHTML = '';
+
+    var rc = rootBarCol(hyp);
+    var abC  = branchCol('ROOT', 'AB', hyp);
+    var cdeC = branchCol('ROOT', 'CDE', hyp);
+    var deC  = branchCol('CDE',  'DE', hyp);
+    var aC   = branchCol('AB', 'A', hyp);
+    var bC   = branchCol('AB', 'B', hyp);
+    var cC   = branchCol('CDE', 'C', hyp);
+    var dC   = branchCol('DE', 'D', hyp);
+    var eC   = branchCol('DE', 'E', hyp);
+
+    var lw = 2;
+
+    // Root stub
+    drawLine(svg, nd.ROOT.x - 28, nd.ROOT.y, nd.ROOT.x, nd.ROOT.y, rc, lw);
+
+    // Root vertical bar
+    drawLine(svg, nd.ROOT.x, nd.AB.y, nd.ROOT.x, nd.CDE.y, rc, lw);
+
+    // Root → nodeAB (horizontal at nodeAB.y)
+    drawLine(svg, nd.ROOT.x, nd.AB.y, nd.AB.x, nd.AB.y, abC, lw);
+
+    // Root → nodeCDE (horizontal at nodeCDE.y)
+    drawLine(svg, nd.ROOT.x, nd.CDE.y, nd.CDE.x, nd.CDE.y, cdeC, lw);
+
+    // nodeAB vertical bar
+    drawLine(svg, nd.AB.x, taxa[0].y, nd.AB.x, taxa[1].y, abC, lw);
+
+    // nodeAB → A
+    drawLine(svg, nd.AB.x, taxa[0].y, TX, taxa[0].y, aC, lw);
+
+    // nodeAB → B
+    drawLine(svg, nd.AB.x, taxa[1].y, TX, taxa[1].y, bC, lw);
+
+    // nodeCDE vertical bar (from C level to DE level)
+    drawLine(svg, nd.CDE.x, taxa[2].y, nd.CDE.x, nd.DE.y, cdeC, lw);
+
+    // nodeCDE → C (this branch may be secondary loss)
+    var cLw = (hyp === 'B') ? 2.5 : lw;
+    drawLine(svg, nd.CDE.x, taxa[2].y, TX, taxa[2].y, cC, cLw);
+
+    // nodeCDE → nodeDE
+    drawLine(svg, nd.CDE.x, nd.DE.y, nd.DE.x, nd.DE.y, deC, lw);
+
+    // nodeDE vertical bar
+    drawLine(svg, nd.DE.x, taxa[3].y, nd.DE.x, taxa[4].y, deC, lw);
+
+    // nodeDE → D
+    drawLine(svg, nd.DE.x, taxa[3].y, TX, taxa[3].y, dC, lw);
+
+    // nodeDE → E
+    drawLine(svg, nd.DE.x, taxa[4].y, TX, taxa[4].y, eC, lw);
+
+    // Gain/loss event markers
+    if (hyp === 'A') {
+      // Gain in ancestor of A+B: marker at midpoint of root→nodeAB
+      var mx1 = (nd.ROOT.x + nd.AB.x) / 2;
+      drawMarker(svg, mx1, nd.AB.y, 'gain', C.has);
+      // Gain in ancestor of D+E: marker at midpoint of nodeCDE→nodeDE
+      var mx2 = (nd.CDE.x + nd.DE.x) / 2;
+      drawMarker(svg, mx2, nd.DE.y, 'gain', C.has);
+    } else if (hyp === 'B') {
+      // Gain at root: marker on root stub midpoint
+      drawMarker(svg, nd.ROOT.x - 14, nd.ROOT.y, 'gain', C.has);
+      // Loss on branch to C: marker at midpoint of nodeCDE→C
+      var mx3 = (nd.CDE.x + TX) / 2;
+      drawMarker(svg, mx3, taxa[2].y, 'loss', C.lost);
+    }
+
+    // Internal node circles
+    var inodes = [
+      { n: nd.AB,   key: 'AB'   },
+      { n: nd.CDE,  key: 'CDE'  },
+      { n: nd.DE,   key: 'DE'   },
+      { n: nd.ROOT, key: 'ROOT' },
+    ];
+    inodes.forEach(function (item) {
+      var st = hypState[hyp];
+      var col = hyp ? (st[item.key] ? C.has : C.lacks) : C.neutral;
+      el('circle', { cx: item.n.x, cy: item.n.y, r: 4, fill: col, stroke: 'none' }, svg);
+    });
+
+    // Tip circles + labels
+    taxa.forEach(function (t) {
+      var cirFill = t.hasX ? C.tip_has : 'none';
+      var cirStroke = t.hasX ? C.tip_has : C.tip_no;
+      // In H_B after scan, Taxon C gets a distinct appearance
+      if (!t.hasX && hyp === 'B' && scanDone) {
+        cirStroke = C.lost;
+      }
+      el('circle', { cx: TX + 10, cy: t.y, r: 7, fill: cirFill, stroke: cirStroke, 'stroke-width': 1.5 }, svg);
+
+      var lbl = document.createElementNS(ns, 'text');
+      lbl.setAttribute('x', TX + 24);
+      lbl.setAttribute('y', t.y + 1);
+      lbl.setAttribute('fill', t.hasX ? C.lbl_c : C.lbl);
+      lbl.setAttribute('font-size', 12);
+      lbl.setAttribute('font-family', '"Berkeley Mono","Fira Code",monospace');
+      lbl.setAttribute('dominant-baseline', 'middle');
+      if (!t.hasX && hyp === 'B' && scanDone) {
+        lbl.setAttribute('fill', C.lost);
+      }
+      lbl.textContent = t.label + ((!t.hasX && hyp === 'B' && scanDone) ? ' (lost)' : '');
+      svg.appendChild(lbl);
+    });
+
+    // Legend row
+    var ly = 318;
+    el('circle', { cx: 16, cy: ly, r: 6, fill: C.has, stroke: 'none' }, svg);
+    var lt1 = document.createElementNS(ns, 'text');
+    lt1.setAttribute('x', 28); lt1.setAttribute('y', ly + 1);
+    lt1.setAttribute('fill', '#484f58'); lt1.setAttribute('font-size', 10);
+    lt1.setAttribute('font-family', 'monospace'); lt1.setAttribute('dominant-baseline', 'middle');
+    lt1.textContent = 'present';
+    svg.appendChild(lt1);
+
+    el('circle', { cx: 90, cy: ly, r: 6, fill: 'none', stroke: C.tip_no, 'stroke-width': 1.5 }, svg);
+    var lt2 = document.createElementNS(ns, 'text');
+    lt2.setAttribute('x', 102); lt2.setAttribute('y', ly + 1);
+    lt2.setAttribute('fill', '#484f58'); lt2.setAttribute('font-size', 10);
+    lt2.setAttribute('font-family', 'monospace'); lt2.setAttribute('dominant-baseline', 'middle');
+    lt2.textContent = 'absent';
+    svg.appendChild(lt2);
+
+    if (hyp === 'A') {
+      el('circle', { cx: 164, cy: ly, r: 5, fill: C.has, stroke: 'none' }, svg);
+      var lt3 = document.createElementNS(ns, 'text');
+      lt3.setAttribute('x', 174); lt3.setAttribute('y', ly + 1);
+      lt3.setAttribute('fill', '#484f58'); lt3.setAttribute('font-size', 10);
+      lt3.setAttribute('font-family', 'monospace'); lt3.setAttribute('dominant-baseline', 'middle');
+      lt3.textContent = '+ gain event';
+      svg.appendChild(lt3);
+    } else if (hyp === 'B') {
+      el('circle', { cx: 164, cy: ly, r: 5, fill: C.has, stroke: 'none' }, svg);
+      var lt4 = document.createElementNS(ns, 'text');
+      lt4.setAttribute('x', 174); lt4.setAttribute('y', ly + 1);
+      lt4.setAttribute('fill', '#484f58'); lt4.setAttribute('font-size', 10);
+      lt4.setAttribute('font-family', 'monospace'); lt4.setAttribute('dominant-baseline', 'middle');
+      lt4.textContent = '+ gain';
+      svg.appendChild(lt4);
+
+      el('circle', { cx: 236, cy: ly, r: 5, fill: C.lost, stroke: 'none' }, svg);
+      var lt5 = document.createElementNS(ns, 'text');
+      lt5.setAttribute('x', 246); lt5.setAttribute('y', ly + 1);
+      lt5.setAttribute('fill', '#484f58'); lt5.setAttribute('font-size', 10);
+      lt5.setAttribute('font-family', 'monospace'); lt5.setAttribute('dominant-baseline', 'middle');
+      lt5.textContent = '× loss event';
+      svg.appendChild(lt5);
+    }
+  }
+
+  window.selectHyp = function (hyp) {
+    currentHyp = hyp;
+    document.getElementById('hyp-a').className = 'hyp-panel' + (hyp === 'A' ? ' sel-a' : '');
+    document.getElementById('hyp-b').className = 'hyp-panel' + (hyp === 'B' ? ' sel-b' : '');
+    document.getElementById('parsimony-note').style.display = 'block';
+    drawTree(hyp);
+  };
+
+  window.runScan = function () {
+    var btn = document.getElementById('scan-btn');
+    btn.disabled = true;
+
+    var wrap = document.getElementById('scan-wrap');
+    wrap.classList.add('show');
+
+    // Kick off progress bar
+    requestAnimationFrame(function () {
+      setTimeout(function () {
+        document.getElementById('scan-fill').style.width = '100%';
+      }, 30);
+    });
+
+    setTimeout(function () {
+      document.getElementById('scan-label').textContent = 'scan complete — gene trace detected';
+      document.getElementById('result-panel').classList.add('show');
+
+      // Lock in hypothesis B
+      scanDone = true;
+      currentHyp = 'B';
+      document.getElementById('hyp-a').className = 'hyp-panel';
+      document.getElementById('hyp-b').className = 'hyp-panel sel-b';
+      document.getElementById('parsimony-note').style.display = 'block';
+      drawTree('B');
+    }, 1800);
+  };
+
+  // Initial draw (no hypothesis selected)
+  drawTree(null);
+})();
+</script>
+</body>
+</html>

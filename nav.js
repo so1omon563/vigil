@@ -124,6 +124,7 @@
       { href: '/cortex.html', label: 'cortex' },
       { href: '/two-questions.html', label: 'two questions' },
       { href: '/lba.html', label: 'long branch' },
+      { href: '/secondary-loss.html', label: 'secondary loss' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
