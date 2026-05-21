@@ -122,6 +122,7 @@
       { href: '/rivalry.html', label: 'rivalry' },
       { href: '/perruchet.html', label: 'perruchet' },
       { href: '/cortex.html', label: 'cortex' },
+      { href: '/two-questions.html', label: 'two questions' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

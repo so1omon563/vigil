@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Questions · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .exp-wrap {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 2px;
+    background: #21262d;
+    border-radius: 1px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #58a6ff;
+    border-radius: 1px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+
+  .canvas-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+  }
+  canvas#stim {
+    display: block;
+    border-radius: 3px;
+    max-width: 100%;
+  }
+
+  .question-area {
+    min-height: 2rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #e6edf3;
+    margin-bottom: 0.9rem;
+  }
+
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    min-height: 2.4rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .exp-btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 0.45rem 1.4rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+    min-width: 72px;
+  }
+  .exp-btn:hover:not(:disabled) { background: #2d333b; border-color: #58a6ff; color: #e6edf3; }
+  .exp-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .trial-status {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #484f58;
+    min-height: 1rem;
+  }
+
+  .start-btn {
+    display: block;
+    margin: 0.5rem auto 0;
+    background: #1f3d2f;
+    border: 1px solid #3fb950;
+    color: #3fb950;
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 0.6rem 2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .start-btn:hover { background: #2d5a40; }
+
+  /* Results */
+  #results { display: none; }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 480px) { .results-grid { grid-template-columns: 1fr; } }
+
+  .result-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  .result-card h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.8rem;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    padding: 0.2rem 0;
+    border-bottom: 1px solid #21262d;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .val { color: #e6edf3; }
+  .val.green { color: #3fb950; }
+  .val.amber { color: #d29922; }
+
+  .ctable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  .ctable th, .ctable td {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid #30363d;
+    text-align: center;
+  }
+  .ctable th { color: #484f58; background: #0d1117; }
+  .ctable td.highlight { color: #3fb950; font-weight: bold; }
+
+  .chart-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .chart-card h3 {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.8rem;
+  }
+  .dur-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+    margin-top: 0.8rem;
+  }
+  .dur-cell {
+    font-size: 0.7rem;
+    text-align: center;
+    color: #484f58;
+    line-height: 1.5;
+  }
+  .dur-cell .aware { color: #58a6ff; }
+  .dur-cell .disc { color: #3fb950; }
+
+  .annotation {
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-top: 1rem;
+  }
+  .annotation p { margin-bottom: 0.5rem; }
+  .annotation p:last-child { margin-bottom: 0; }
+
+  .model-limit {
+    font-size: 0.8rem;
+    color: #484f58;
+    border-left: 2px solid #1c2128;
+    padding-left: 0.8rem;
+    margin-top: 0.8rem;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← home</a></div>
+<div class="page-label">experiment 058</div>
+<h1>Two Questions</h1>
+<div class="meta">forced-choice detection · ~4 minutes · sit close, dim the room</div>
+
+<div class="intro">
+  <p>Each trial flashes a small square on the left or right side of the screen — sometimes so briefly you won't see anything. After each flash, two questions: first, whether you saw anything; second, which side it was on.</p>
+  <p>Answer the second question even when you answer no to the first. That's the point. Be honest on both — the experiment depends on it. 32 trials.</p>
+  <p>Keep your eyes on the cross in the center of the canvas. Don't let them drift.</p>
+</div>
+
+<div id="start-panel" class="exp-wrap" style="text-align:center;padding:2rem">
+  <button class="start-btn" id="startBtn">Begin experiment</button>
+</div>
+
+<div id="exp-panel" class="exp-wrap" style="display:none">
+  <div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+  <div class="canvas-wrap">
+    <canvas id="stim" width="500" height="200"></canvas>
+  </div>
+  <div class="question-area" id="qtext">&nbsp;</div>
+  <div class="btn-row" id="btnrow"></div>
+  <div class="trial-status" id="tstatus">&nbsp;</div>
+</div>
+
+<div id="results"></div>
+
+<script>
+const CW = 500, CH = 200;
+const FX = CW / 2, FY = CH / 2;
+const T_OFFSET = 135; // px from center to target center
+const T_SIZE   = 26;  // target square size
+const M_SIZE   = 56;  // mask patch size
+
+// Duration conditions (ms) — actual will be rounded to display frame
+const DURS = [17, 33, 50, 83];
+const REPS = 8; // trials per duration
+
+function buildTrials() {
+  const t = [];
+  for (const d of DURS)
+    for (let i = 0; i < REPS; i++)
+      t.push({ dur: d, side: Math.random() < 0.5 ? 'left' : 'right' });
+  for (let i = t.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [t[i], t[j]] = [t[j], t[i]];
+  }
+  return t;
+}
+
+const canvas = document.getElementById('stim');
+const ctx = canvas.getContext('2d');
+
+function clearCanvas() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, CW, CH);
+}
+
+function drawFix() {
+  clearCanvas();
+  ctx.strokeStyle = '#444';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(FX - 9, FY); ctx.lineTo(FX + 9, FY);
+  ctx.moveTo(FX, FY - 9); ctx.lineTo(FX, FY + 9);
+  ctx.stroke();
+}
+
+function targetX(side) {
+  return FX + (side === 'left' ? -T_OFFSET : T_OFFSET);
+}
+
+function drawStim(side) {
+  drawFix();
+  const tx = targetX(side) - T_SIZE / 2;
+  const ty = FY - T_SIZE / 2;
+  ctx.fillStyle = '#dde5ee';
+  ctx.fillRect(tx, ty, T_SIZE, T_SIZE);
+}
+
+function drawMask(side) {
+  drawFix();
+  const cx = targetX(side);
+  const mx = cx - M_SIZE / 2, my = FY - M_SIZE / 2;
+  const img = ctx.createImageData(M_SIZE, M_SIZE);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = Math.random() < 0.5 ? 190 + Math.random() * 40 | 0 : 20 + Math.random() * 20 | 0;
+    img.data[i] = img.data[i+1] = img.data[i+2] = v;
+    img.data[i+3] = 255;
+  }
+  ctx.putImageData(img, mx, my);
+}
+
+// --- UI helpers ---
+const qEl    = document.getElementById('qtext');
+const btnRow = document.getElementById('btnrow');
+const progEl = document.getElementById('prog');
+const stEl   = document.getElementById('tstatus');
+
+function clearBtns() { btnRow.innerHTML = ''; }
+
+function mkBtn(label, cb) {
+  const b = document.createElement('button');
+  b.className = 'exp-btn';
+  b.textContent = label;
+  b.addEventListener('click', () => { disableBtns(); cb(); });
+  btnRow.appendChild(b);
+  return b;
+}
+
+function disableBtns() {
+  for (const b of btnRow.querySelectorAll('button')) b.disabled = true;
+}
+
+// --- Experiment runner ---
+let trials, responses;
+const TOTAL = DURS.length * REPS;
+
+function runTrial(idx) {
+  const trial = trials[idx];
+  const resp  = { dur: trial.dur, side: trial.side, actualMs: 0, saw: null, choice: null };
+  responses.push(resp);
+
+  progEl.style.width = `${(idx / TOTAL) * 100}%`;
+  stEl.textContent = `trial ${idx + 1} / ${TOTAL}`;
+  clearBtns();
+  qEl.innerHTML = '&nbsp;';
+
+  // fixation 500ms → stimulus → mask → blank → Q1 → Q2
+  drawFix();
+  setTimeout(() => {
+    drawStim(trial.side);
+    const t0 = performance.now();
+
+    function checkDone() {
+      const elapsed = performance.now() - t0;
+      if (elapsed >= trial.dur) {
+        resp.actualMs = elapsed;
+        drawMask(trial.side);
+        setTimeout(() => {
+          drawFix();
+          setTimeout(askQ1, 300);
+        }, 200);
+      } else {
+        requestAnimationFrame(checkDone);
+      }
+    }
+    requestAnimationFrame(checkDone);
+  }, 500);
+
+  function askQ1() {
+    qEl.textContent = 'Did you see anything?';
+    clearBtns();
+    mkBtn('Yes', () => { resp.saw = true;  setTimeout(askQ2, 150); });
+    mkBtn('No',  () => { resp.saw = false; setTimeout(askQ2, 150); });
+  }
+
+  function askQ2() {
+    qEl.textContent = resp.saw ? 'Which side?' : 'Guess — left or right?';
+    clearBtns();
+    mkBtn('Left',  () => { resp.choice = 'left';  advance(); });
+    mkBtn('Right', () => { resp.choice = 'right'; advance(); });
+  }
+
+  function advance() {
+    clearBtns();
+    qEl.innerHTML = '&nbsp;';
+    const next = idx + 1;
+    progEl.style.width = `${(next / TOTAL) * 100}%`;
+    if (next < TOTAL) setTimeout(() => runTrial(next), 400);
+    else setTimeout(showResults, 400);
+  }
+}
+
+// --- Results ---
+function showResults() {
+  document.getElementById('exp-panel').style.display = 'none';
+  const el = document.getElementById('results');
+  el.style.display = 'block';
+
+  // Group by duration
+  const byDur = {};
+  for (const d of DURS) byDur[d] = { saw: 0, correct: 0, n: 0, ms: [] };
+  for (const r of responses) {
+    byDur[r.dur].n++;
+    if (r.saw) byDur[r.dur].saw++;
+    if (r.choice === r.side) byDur[r.dur].correct++;
+    byDur[r.dur].ms.push(r.actualMs);
+  }
+
+  // 2×2 contingency
+  let awareCorrect = 0, awareWrong = 0, blindCorrect = 0, blindWrong = 0;
+  for (const r of responses) {
+    const c = r.choice === r.side;
+    if (r.saw  &&  c) awareCorrect++;
+    if (r.saw  && !c) awareWrong++;
+    if (!r.saw &&  c) blindCorrect++;
+    if (!r.saw && !c) blindWrong++;
+  }
+
+  const totalSaw = responses.filter(r => r.saw).length;
+  const totalCorrect = responses.filter(r => r.choice === r.side).length;
+  const nBlind = totalSaw < TOTAL ? TOTAL - totalSaw : 0;
+  const expectedBlindCorrect = nBlind * 0.5;
+
+  // Blindsight-like zone: discrimination above 55% while awareness below 45%
+  const bsZone = DURS.filter(d => {
+    const g = byDur[d];
+    return g.n > 0 && (g.correct / g.n) > 0.55 && (g.saw / g.n) < 0.45;
+  });
+
+  // SVG chart
+  const svgW = 340, svgH = 130;
+  const PL = 34, PR = 10, PT = 14, PB = 30;
+  const pw = svgW - PL - PR, ph = svgH - PT - PB;
+  const pctY = p => PT + ph * (1 - p);
+  const durX = d => PL + (DURS.indexOf(d) / (DURS.length - 1)) * pw;
+
+  let aLine = '', dLine = '', aDots = '', dDots = '';
+  for (const d of DURS) {
+    const g = byDur[d];
+    if (g.n === 0) continue;
+    const ar = g.saw / g.n, dr = g.correct / g.n;
+    const x = durX(d), ay = pctY(ar), dy = pctY(dr);
+    aLine += `${x},${ay} `;
+    dLine += `${x},${dy} `;
+    aDots += `<circle cx="${x}" cy="${ay}" r="4" fill="#58a6ff"/>`;
+    dDots += `<circle cx="${x}" cy="${dy}" r="4" fill="#3fb950"/>`;
+  }
+
+  let yGrid = '';
+  for (const p of [0, 0.25, 0.5, 0.75, 1]) {
+    const y = pctY(p);
+    yGrid += `<line x1="${PL}" y1="${y}" x2="${PL+pw}" y2="${y}" stroke="#21262d" stroke-width="0.6"/>`;
+    yGrid += `<text x="${PL-4}" y="${y+4}" text-anchor="end" fill="#484f58" font-size="9">${p*100|0}%</text>`;
+  }
+  const chanceY = pctY(0.5);
+  const xLabels = DURS.map(d =>
+    `<text x="${durX(d)}" y="${svgH - PB + 14}" text-anchor="middle" fill="#484f58" font-size="9">${d}ms</text>`
+  ).join('');
+
+  const svg = `<svg width="${svgW}" height="${svgH}" style="display:block;margin:0 auto">
+    ${yGrid}
+    <line x1="${PL}" y1="${chanceY}" x2="${PL+pw}" y2="${chanceY}" stroke="#d29922" stroke-width="1.2" stroke-dasharray="4,3"/>
+    ${xLabels}
+    <polyline points="${aLine.trim()}" fill="none" stroke="#58a6ff" stroke-width="2"/>
+    ${aDots}
+    <polyline points="${dLine.trim()}" fill="none" stroke="#3fb950" stroke-width="2"/>
+    ${dDots}
+    <text x="${PL+3}" y="${PT-2}" fill="#58a6ff" font-size="8">awareness</text>
+    <text x="${PL+3}" y="${PT+9}" fill="#3fb950" font-size="8">discrimination</text>
+    <text x="${PL+pw-30}" y="${chanceY-3}" fill="#d29922" font-size="8">chance</text>
+  </svg>`;
+
+  const durCells = DURS.map(d => {
+    const g = byDur[d];
+    const avgMs = g.ms.length ? (g.ms.reduce((s,v) => s+v, 0) / g.ms.length).toFixed(0) : '--';
+    return `<div class="dur-cell">
+      <div>${d}ms target</div>
+      <div style="color:#484f58">${avgMs}ms actual</div>
+      <div class="aware">${g.n ? Math.round(g.saw/g.n*100) : '--'}% saw</div>
+      <div class="disc">${g.n ? Math.round(g.correct/g.n*100) : '--'}% correct</div>
+    </div>`;
+  }).join('');
+
+  let interp;
+  if (bsZone.length > 0) {
+    interp = `At ${bsZone.map(d => d + 'ms').join(' and ')}, your localization accuracy was above chance while you reported seeing nothing more than half the time. The discrimination curve separated from the awareness curve. Something processed the target's location without that processing becoming a reported experience.`;
+  } else if (blindCorrect > expectedBlindCorrect * 1.1) {
+    interp = `Your "didn't see / correct" count (${blindCorrect}) exceeded chance expectation for those trials (${expectedBlindCorrect.toFixed(1)}). You guessed the side correctly more than chance when you reported seeing nothing. The curves may not be cleanly separated across duration levels, but the aggregate pattern is there.`;
+  } else {
+    interp = `The awareness and discrimination curves track each other closely. This can mean the stimulus durations were all too short (everything was a guess) or all long enough to be visible. Eight trials per condition is a small sample — individual chance variation can flatten a real effect. The paradigm requires larger N to reliably detect the gap.`;
+  }
+
+  el.innerHTML = `
+    <div class="results-grid">
+      <div class="result-card">
+        <h3>Summary</h3>
+        <div class="result-row"><span>Total trials</span><span class="val">${TOTAL}</span></div>
+        <div class="result-row"><span>Reported seeing</span><span class="val">${totalSaw} (${Math.round(totalSaw/TOTAL*100)}%)</span></div>
+        <div class="result-row"><span>Correct localization</span><span class="val ${totalCorrect/TOTAL > 0.6 ? 'green' : ''}">${totalCorrect} (${Math.round(totalCorrect/TOTAL*100)}%)</span></div>
+        <div class="result-row"><span>Chance baseline</span><span class="val">50%</span></div>
+      </div>
+      <div class="result-card">
+        <h3>Awareness × localization</h3>
+        <table class="ctable">
+          <tr><th></th><th>Correct</th><th>Wrong</th></tr>
+          <tr><th>Saw it</th><td>${awareCorrect}</td><td>${awareWrong}</td></tr>
+          <tr><th>Didn't see</th>
+            <td class="${blindCorrect > expectedBlindCorrect * 1.1 ? 'highlight' : ''}">${blindCorrect}</td>
+            <td>${blindWrong}</td>
+          </tr>
+        </table>
+        <div style="font-size:0.7rem;color:#484f58;margin-top:0.5rem">Expected "didn't see / correct" by chance: ${expectedBlindCorrect.toFixed(1)}</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Awareness and discrimination by stimulus duration</h3>
+      ${svg}
+      <div class="dur-grid">${durCells}</div>
+    </div>
+    <div class="annotation">
+      <p>${interp}</p>
+      <p>The "didn't see / correct" cell is the one DB's forced-choice experiment found above chance in 1974. He had cortical damage. Here the stimuli are just brief — too brief to propagate through the feedback loops that produce reportable awareness. Different mechanism, same structural result: the question changed, and the answer changed with it.</p>
+      <p><a href="/journal/entry-529.html">→ entry-529: Guess Anyway</a></p>
+    </div>
+    <div class="model-limit">
+      <em>What it can't show:</em> a genuine subliminal stimulus requires laboratory control over display timing that a browser can't guarantee. The actual presentation duration depends on your display's refresh rate and background system load. Short stimuli here may not be reliably below the threshold for awareness — if everything registered, the curves will track together for the wrong reason. The 8-trial sample per condition is too small to detect a reliable gap. And the paradigm can't distinguish "processed without awareness" from "not processed at all" — correct guesses could be chance. What it can do: create the conditions for the phenomenon, give you the experience of guessing when you believe you saw nothing, and let you look at the resulting table.
+    </div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <button class="start-btn" onclick="location.reload()">Run again</button>
+    </div>`;
+}
+
+// --- Start ---
+document.getElementById('startBtn').addEventListener('click', () => {
+  document.getElementById('start-panel').style.display = 'none';
+  document.getElementById('exp-panel').style.display = 'block';
+  trials    = buildTrials();
+  responses = [];
+  drawFix();
+  setTimeout(() => runTrial(0), 600);
+});
+</script>
+</body>
+</html>
