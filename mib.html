@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motion-Induced Blindness · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.88rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+  em { color: #e6edf3; font-style: normal; }
+
+  /* canvas wrap */
+  .canvas-wrap {
+    position: relative;
+    background: #000;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0;
+    user-select: none;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: default;
+  }
+
+  /* status bar below canvas */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    background: #010409;
+    border: 1px solid #21262d;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .status-left { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  .dot-indicator {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: #ffff00;
+    display: inline-block;
+    transition: background 0.1s;
+    flex-shrink: 0;
+  }
+  .dot-indicator.gone { background: #30363d; }
+  .indicator-label { font-size: 0.72rem; color: #484f58; }
+  .indicator-label.gone { color: #6e7681; }
+  .status-right { font-size: 0.72rem; color: #484f58; text-align: right; }
+  .key-hint {
+    font-size: 0.72rem;
+    color: #484f58;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.15rem 0.4rem;
+  }
+  .key-hint.active { border-color: #f85149; color: #f85149; }
+
+  /* data panel */
+  .data-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .data-cell {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.7rem 0.9rem;
+  }
+  .data-cell-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: #484f58; margin-bottom: 0.2rem; }
+  .data-cell-value { font-size: 1.1rem; color: #e6edf3; }
+  .data-cell-unit { font-size: 0.72rem; color: #484f58; margin-left: 0.2rem; }
+
+  /* timeline strip */
+  .timeline-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  .timeline-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: #484f58; margin-bottom: 0.5rem; }
+  .timeline-track {
+    height: 10px;
+    background: #21262d;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .timeline-bar {
+    position: absolute;
+    top: 0; bottom: 0;
+    transition: none;
+  }
+  canvas.timeline-canvas {
+    display: block;
+    width: 100%;
+    height: 10px;
+    image-rendering: pixelated;
+  }
+  .timeline-legend { display: flex; gap: 1rem; margin-top: 0.4rem; font-size: 0.68rem; color: #484f58; }
+  .timeline-legend span { display: flex; align-items: center; gap: 0.3rem; }
+  .leg-dot { width: 8px; height: 8px; border-radius: 1px; display: inline-block; }
+
+  .controls-row {
+    display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .btn {
+    font-family: inherit; font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+    background: #0d1117; border: 1px solid #30363d; color: #c9d1d9;
+    cursor: pointer; border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #e6edf3; }
+  .note-box {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.9rem 1rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+  .note-box em { color: #c9d1d9; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a></div>
+<div class="page-label">simulate · perception</div>
+<h1>Motion-Induced Blindness</h1>
+<div class="subtitle">Bonneh, Cooperman & Sagi, 2001</div>
+
+<p>Fixate on the white cross at the center. Three yellow dots are placed at equal distances from the fixation point. With the rotating mask running, the dots will begin to vanish — one at a time, or in pairs, sometimes all three. They are still on screen. The canvas code never removes them.</p>
+
+<p>Press and hold <em>SPACE</em> (or the button below) whenever any dot is gone. Release when it returns. After ~30 seconds you'll have a disappearance record.</p>
+
+<div class="canvas-wrap">
+  <canvas id="mib" width="560" height="560"></canvas>
+</div>
+
+<div class="status-bar">
+  <div class="status-left">
+    <span class="dot-indicator" id="dot-ind"></span>
+    <span class="indicator-label" id="dot-label">dots visible</span>
+    <span class="key-hint" id="key-hint">SPACE</span>
+  </div>
+  <div class="status-right" id="elapsed-label">0:00</div>
+</div>
+
+<div class="controls-row">
+  <button class="btn" id="report-btn" onmousedown="reportDown()" onmouseup="reportUp()" ontouchstart="reportDown()" ontouchend="reportUp()">hold: dot gone</button>
+  <button class="btn" id="toggle-mask">hide mask</button>
+  <button class="btn" id="toggle-targets">hide targets</button>
+  <button class="btn" id="reset-btn">reset data</button>
+</div>
+
+<div class="data-panel">
+  <div class="data-cell">
+    <div class="data-cell-label">disappearances</div>
+    <div class="data-cell-value" id="stat-count">0</div>
+  </div>
+  <div class="data-cell">
+    <div class="data-cell-label">avg duration</div>
+    <div class="data-cell-value" id="stat-avg">—<span class="data-cell-unit">s</span></div>
+  </div>
+  <div class="data-cell">
+    <div class="data-cell-label">longest</div>
+    <div class="data-cell-value" id="stat-max">—<span class="data-cell-unit">s</span></div>
+  </div>
+  <div class="data-cell">
+    <div class="data-cell-label">time gone</div>
+    <div class="data-cell-value" id="stat-pct">0<span class="data-cell-unit">%</span></div>
+  </div>
+</div>
+
+<div class="timeline-wrap">
+  <div class="timeline-label">presence record (last 60s)</div>
+  <div class="timeline-track">
+    <canvas class="timeline-canvas" id="timeline" width="600" height="10"></canvas>
+  </div>
+  <div class="timeline-legend">
+    <span><span class="leg-dot" style="background:#ffff00;opacity:0.6;"></span>visible</span>
+    <span><span class="leg-dot" style="background:#f85149;opacity:0.6;"></span>gone</span>
+  </div>
+</div>
+
+<div class="note-box">
+  The dots are always drawn. The canvas renders them every frame. The "gone" state exists only in the viewer — the browser's JavaScript has no access to it. Unlike simulations that model a phenomenon occurring elsewhere, this one creates conditions for the phenomenon to occur in whoever is watching.
+</div>
+
+<div class="section">
+  <div class="section-label">mechanism</div>
+  <p>The effect was reported by Yoram Bonneh, Alexander Cooperman, and Dov Sagi in 2001. A stationary target surrounded by a global coherent motion signal periodically disappears from awareness — for 0.5–5 seconds at a time, with the rate and duration varying between observers.</p>
+  <p>Three hypotheses compete. The <em>filling-in</em> account: the visual system extrapolates the background pattern across the target location, as it does with the blind spot. The <em>attention-based suppression</em> account: the motion stimulus claims attentional resources, leaving the stationary target suppressed from competition. The <em>neural adaptation</em> account: sustained stationary input reduces the firing rate of neurons encoding the target, and they fall below threshold. All three generate predictions that partially match the data. The choice between them is not settled.</p>
+  <p>What MIB shares with blindsight and inattentional blindness: a gap between the physical state of the stimulus and the observer's report. But the gap is differently caused. In blindsight, the processing exists but doesn't reach awareness. In inattentional blindness, the target is never selected for representation. In MIB, the target was represented — and then actively suppressed. The transition is visible to the observer (something changed) but the mechanism is not.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">controls</div>
+  <p style="font-size:0.82rem; color:#8b949e;"><em>hide mask</em> removes the rotating pattern to confirm the dots are present. <em>hide targets</em> shows what the mask looks like without them. Both confirm the ground truth the canvas is maintaining while you perceive something else.</p>
+</div>
+
+<script>
+(function() {
+  var canvas = document.getElementById('mib');
+  var ctx = canvas.getContext('2d');
+  var W = 560, H = 560;
+  var cx = W / 2, cy = H / 2;
+
+  // Mask: grid of × marks arranged in circles, rotating
+  var SPEED = 80 * Math.PI / 180; // radians/sec
+  var rotation = 0;
+  var maskVisible = true;
+  var targetsVisible = true;
+
+  // Precompute × mark positions (relative to center)
+  var maskPts = [];
+  for (var gx = -260; gx <= 260; gx += 58) {
+    for (var gy = -260; gy <= 260; gy += 58) {
+      var d = Math.sqrt(gx*gx + gy*gy);
+      if (d > 20 && d < 270) { // exclude center, exclude outside radius
+        maskPts.push([gx, gy]);
+      }
+    }
+  }
+
+  // Three target dots at radius 160, 120° apart, starting at top
+  var TARGET_R = 160;
+  var targets = [0, 1, 2].map(function(i) {
+    var ang = -Math.PI / 2 + i * 2 * Math.PI / 3;
+    return { x: cx + TARGET_R * Math.cos(ang), y: cy + TARGET_R * Math.sin(ang) };
+  });
+
+  // --- Reporting state ---
+  var gone = false;
+  var goneStart = null;
+  var events = []; // {start, dur}
+  var totalGone = 0;
+  var maxDur = 0;
+  var startTime = null;
+  var elapsed = 0;
+
+  // Timeline: 60s window, sample every 250ms → 240 slots
+  var TIMELINE_SEC = 60;
+  var SAMPLE_MS = 250;
+  var timeline = new Array(TIMELINE_SEC * 1000 / SAMPLE_MS).fill(0); // 0=visible, 1=gone
+  var lastSampleTime = null;
+
+  function reportDown() {
+    if (gone) return;
+    gone = true;
+    goneStart = performance.now();
+    updateStatusUI();
+  }
+  function reportUp() {
+    if (!gone) return;
+    var dur = (performance.now() - goneStart) / 1000;
+    if (dur > 0.1) {
+      events.push({ dur: dur });
+      totalGone += dur;
+      if (dur > maxDur) maxDur = dur;
+    }
+    gone = false;
+    goneStart = null;
+    updateStatusUI();
+    updateStats();
+  }
+  window.reportDown = reportDown;
+  window.reportUp = reportUp;
+
+  // Keyboard
+  var spaceDown = false;
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space' && !spaceDown) { spaceDown = true; e.preventDefault(); reportDown(); }
+  });
+  document.addEventListener('keyup', function(e) {
+    if (e.code === 'Space') { spaceDown = false; reportUp(); }
+  });
+
+  function updateStatusUI() {
+    var ind = document.getElementById('dot-ind');
+    var label = document.getElementById('dot-label');
+    var hint = document.getElementById('key-hint');
+    if (gone) {
+      ind.classList.add('gone');
+      label.classList.add('gone');
+      label.textContent = 'dot gone';
+      hint.classList.add('active');
+    } else {
+      ind.classList.remove('gone');
+      label.classList.remove('gone');
+      label.textContent = 'dots visible';
+      hint.classList.remove('active');
+    }
+  }
+
+  function updateStats() {
+    var n = events.length;
+    document.getElementById('stat-count').textContent = n;
+    if (n > 0) {
+      document.getElementById('stat-avg').innerHTML = (totalGone / n).toFixed(1) + '<span class="data-cell-unit">s</span>';
+      document.getElementById('stat-max').innerHTML = maxDur.toFixed(1) + '<span class="data-cell-unit">s</span>';
+    }
+    if (elapsed > 0) {
+      var currentGone = (gone && goneStart) ? (performance.now() - goneStart) / 1000 : 0;
+      var pct = Math.round((totalGone + currentGone) / elapsed * 100);
+      document.getElementById('stat-pct').innerHTML = pct + '<span class="data-cell-unit">%</span>';
+    }
+  }
+
+  function updateElapsed(t) {
+    if (!startTime) startTime = t;
+    elapsed = (t - startTime) / 1000;
+    var m = Math.floor(elapsed / 60);
+    var s = Math.floor(elapsed % 60);
+    document.getElementById('elapsed-label').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  // Timeline canvas
+  var tlCanvas = document.getElementById('timeline');
+  var tlCtx = tlCanvas.getContext('2d');
+  var tlW = 600, tlH = 10;
+  tlCanvas.width = tlW;
+
+  function updateTimeline(t) {
+    if (!lastSampleTime) { lastSampleTime = t; return; }
+    if (t - lastSampleTime < SAMPLE_MS) return;
+    lastSampleTime = t;
+    // shift and add
+    timeline.shift();
+    timeline.push(gone ? 1 : 0);
+    // redraw
+    tlCtx.clearRect(0, 0, tlW, tlH);
+    var slotW = tlW / timeline.length;
+    for (var i = 0; i < timeline.length; i++) {
+      tlCtx.fillStyle = timeline[i] ? 'rgba(248,81,73,0.55)' : 'rgba(255,255,0,0.18)';
+      tlCtx.fillRect(Math.floor(i * slotW), 0, Math.ceil(slotW), tlH);
+    }
+  }
+
+  // Controls
+  document.getElementById('toggle-mask').addEventListener('click', function() {
+    maskVisible = !maskVisible;
+    this.textContent = maskVisible ? 'hide mask' : 'show mask';
+  });
+  document.getElementById('toggle-targets').addEventListener('click', function() {
+    targetsVisible = !targetsVisible;
+    this.textContent = targetsVisible ? 'hide targets' : 'show targets';
+  });
+  document.getElementById('reset-btn').addEventListener('click', function() {
+    gone = false; goneStart = null; events = [];
+    totalGone = 0; maxDur = 0; startTime = null; elapsed = 0;
+    timeline.fill(0);
+    updateStatusUI(); updateStats();
+    document.getElementById('elapsed-label').textContent = '0:00';
+    document.getElementById('stat-count').textContent = '0';
+    document.getElementById('stat-avg').innerHTML = '—<span class="data-cell-unit">s</span>';
+    document.getElementById('stat-max').innerHTML = '—<span class="data-cell-unit">s</span>';
+    document.getElementById('stat-pct').innerHTML = '0<span class="data-cell-unit">%</span>';
+    tlCtx.clearRect(0, 0, tlW, tlH);
+  });
+
+  // Draw × mark at current transform origin
+  function drawX(size, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-size, -size); ctx.lineTo(size, size);
+    ctx.moveTo(size, -size); ctx.lineTo(-size, size);
+    ctx.stroke();
+  }
+
+  var lastT = null;
+  function frame(t) {
+    if (!lastT) lastT = t;
+    var dt = Math.min((t - lastT) / 1000, 0.05);
+    lastT = t;
+
+    rotation = (rotation + SPEED * dt) % (2 * Math.PI);
+
+    // Background
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    // Mask
+    if (maskVisible) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rotation);
+      for (var i = 0; i < maskPts.length; i++) {
+        ctx.save();
+        ctx.translate(maskPts[i][0], maskPts[i][1]);
+        drawX(9, '#1a44cc');
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    // Target dots
+    if (targetsVisible) {
+      ctx.fillStyle = '#ffff00';
+      for (var j = 0; j < targets.length; j++) {
+        ctx.beginPath();
+        ctx.arc(targets[j].x, targets[j].y, 7.5, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+
+    // Fixation cross
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'butt';
+    ctx.beginPath();
+    ctx.moveTo(cx - 9, cy); ctx.lineTo(cx + 9, cy);
+    ctx.moveTo(cx, cy - 9); ctx.lineTo(cx, cy + 9);
+    ctx.stroke();
+    // center dot
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 2, 0, 2 * Math.PI);
+    ctx.fill();
+
+    updateElapsed(t);
+    updateTimeline(t);
+    updateStats();
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

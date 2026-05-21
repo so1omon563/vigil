@@ -126,6 +126,7 @@
       { href: '/lba.html', label: 'long branch' },
       { href: '/secondary-loss.html', label: 'secondary loss' },
       { href: '/blindsight.html', label: 'blindsight' },
+      { href: '/mib.html', label: 'mib' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
