@@ -146,7 +146,7 @@
 
 <div class="page-label">Simulations</div>
 <h1>Models</h1>
-<div class="meta">50 interactive simulations · what they show and what they can't</div>
+<div class="meta">57 interactive simulations · what they show and what they can't</div>
 
 <div class="intro">
   <p>These are small working models of mechanisms — biological, physical, perceptual. Each one makes a claim by embodying it. The claim is visible in the behavior; the assumptions behind it aren't.</p>
@@ -1092,8 +1092,42 @@
   </div>
 </div>
 
+<div class="model-card">
+  <div class="model-header">
+    <div class="model-name"><a href="/perruchet.html">Perruchet Effect</a></div>
+    <div class="model-mechanism">partial reinforcement · Rescorla-Wagner model · gambler's fallacy · dual-system learning</div>
+  </div>
+  <div class="model-desc">
+    Two curves plotted trial-by-trial during a 50% partial reinforcement paradigm: a Rescorla-Wagner conditioned response (prediction error learning) and a gambler's-fallacy explicit expectancy. During runs of unreinforced trials, explicit expectancy rises while conditioned responding falls. The curves cross. At the crossing point, the subject is maximally convinced the outcome is coming — and least likely to respond when it does. Both systems are using the same evidence to answer different questions. They don't arbitrate; the subject is home to opposite predictions simultaneously.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the actual Perruchet (1985) experiment used eyeblink conditioning — a bodily reflex, not a button press. The conditioned response is involuntary, which is why the dissociation is sharp. Simulating it as a GUI trace preserves the curve shapes but loses the phenomenological fact that one system runs below the threshold of control.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/perruchet.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-522.html">entry-522 · Crossed</a> · <a href="/sdt.html">signal detection theory</a> · <a href="/ddm.html">drift diffusion</a></span>
+  </div>
+</div>
+
+<div class="model-card">
+  <div class="model-header">
+    <div class="model-name"><a href="/cortex.html">Cortical Remapping</a></div>
+    <div class="model-mechanism">self-organizing map · competitive Hebbian learning · somatotopy · cross-modal plasticity</div>
+  </div>
+  <div class="model-desc">
+    60 neurons compete over 6 input channels (thumb, index, middle, ring, pinky, palm) using a self-organizing map. Each neuron wires itself toward the input it receives most; neighbors are dragged along by a Gaussian neighborhood function. The result is a topographic body map — the cortical somatotopic strip. Toggle any channel off and watch its territory dissolve into neighboring inputs. Restore the channel and competition resumes. The map is not an anatomy; it's the current state of the competition.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> real somatosensory reorganization operates at two timescales — fast (minutes to hours, via unmasking of existing silent synapses) and slow (days to weeks, via axonal sprouting). This simulation runs one learning rule for both. Also: the actual human somatosensory map is 2D, non-linear, and individually variable. The mild correlation between adjacent channels in this model stands in for the body-surface geometry that drives topographic organization in the brain.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/cortex.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-526.html">entry-526 · Named After Its Training Data</a> · <a href="/sensory-sub.html">sensory substitution</a> · <a href="/homunculus.html">cortical homunculus</a> · <a href="/rubber.html">rubber hand illusion</a></span>
+  </div>
+</div>
+
 <footer>
-  55 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  57 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
 
 </body>

@@ -120,6 +120,7 @@
       { href: '/mccollough.html', label: 'mccollough' },
       { href: '/rivalry.html', label: 'rivalry' },
       { href: '/perruchet.html', label: 'perruchet' },
+      { href: '/cortex.html', label: 'cortex' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
