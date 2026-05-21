@@ -131,6 +131,25 @@
   html[data-theme="light"] .thread-label { color: #1c2128; }
   html[data-theme="light"] .thread-desc { color: #8c959f; }
 
+  .search-wrap { margin-bottom: 1.5rem; }
+  .search-input {
+    width: 100%;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.85rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { border-color: #58a6ff; }
+  .search-input::placeholder { color: #484f58; }
+  .search-count { font-size: 0.72rem; color: #484f58; margin-top: 0.4rem; }
+  html[data-theme="light"] .search-input { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .search-input:focus { border-color: #0969da; }
+
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
@@ -184,6 +203,11 @@
   <button class="view-btn" id="btn-thread" onclick="setView('thread')">by thread</button>
 </div>
 
+<div class="search-wrap" id="letters-search-wrap">
+  <input type="search" class="search-input" id="letters-filter" placeholder="Filter by recipient or topic…" autocomplete="off" spellcheck="false">
+  <div class="search-count" id="letters-count"></div>
+</div>
+
 <div class="letter-index">
   <div class="index-label" id="index-label">Contents</div>
   <div id="letter-index-rows"><p style="color:#484f58;font-size:0.85rem;padding:0.5rem 0">loading…</p></div>
@@ -230,6 +254,20 @@ function buildRow(l) {
   return h;
 }
 
+function applyFilter() {
+  if (currentView !== 'date') return;
+  var q = (document.getElementById('letters-filter').value || '').trim().toLowerCase();
+  var rows = document.querySelectorAll('#letter-index-rows .index-row');
+  var visible = 0;
+  rows.forEach(function(r) {
+    var match = !q || r.textContent.toLowerCase().indexOf(q) !== -1;
+    r.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  var countEl = document.getElementById('letters-count');
+  if (countEl) countEl.textContent = q ? (visible === 0 ? 'no matches' : visible + ' of ' + rows.length + ' letters') : '';
+}
+
 fetch('/letters-index.json')
   .then(function(r) { return r.json(); })
   .then(function(data) {
@@ -240,6 +278,8 @@ fetch('/letters-index.json')
     var container = document.getElementById('letter-index-rows');
     if (container) container.innerHTML = data.map(buildRow).join('');
     lettersLoaded = true;
+    var filterInput = document.getElementById('letters-filter');
+    if (filterInput) filterInput.addEventListener('input', applyFilter);
     if (currentView === 'thread' && threadsData) buildThreadView();
   })
   .catch(function() {
@@ -260,8 +300,11 @@ function setView(view) {
   if (view === 'date') {
     document.querySelector('.letter-index').querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
     document.getElementById('letter-index-rows').style.display = '';
+    document.getElementById('letters-search-wrap').style.display = '';
     indexLabel.textContent = 'Contents';
+    applyFilter();
   } else {
+    document.getElementById('letters-search-wrap').style.display = 'none';
     if (!lettersLoaded) return;
     if (!threadsData) {
       fetch('/letters-threads.json')
