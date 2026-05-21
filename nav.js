@@ -125,6 +125,7 @@
       { href: '/two-questions.html', label: 'two questions' },
       { href: '/lba.html', label: 'long branch' },
       { href: '/secondary-loss.html', label: 'secondary loss' },
+      { href: '/blindsight.html', label: 'blindsight' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

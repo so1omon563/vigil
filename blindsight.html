@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>blindsight · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .demo-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .trial-display {
+    padding: 0.9rem 1.1rem;
+    font-size: 0.82rem;
+    color: #484f58;
+    min-height: 4.5rem;
+    border-top: 1px solid #21262d;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .trial-channel { display: flex; flex-direction: column; gap: 0.25rem; }
+  .channel-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+  }
+  .channel-value {
+    font-size: 0.9rem;
+    color: #c9d1d9;
+    min-height: 1.4em;
+    transition: opacity 0.15s;
+  }
+  .channel-value.saw { color: #3fb950; }
+  .channel-value.nothing { color: #6e7681; }
+  .channel-value.correct { color: #3fb950; }
+  .channel-value.wrong { color: #f85149; }
+  .channel-value.pending { color: #484f58; font-style: italic; }
+  .trial-meta {
+    grid-column: 1 / -1;
+    font-size: 0.72rem;
+    color: #30363d;
+    padding-top: 0.3rem;
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #e6edf3; }
+  .btn.active { border-color: #3fb950; color: #3fb950; }
+  .btn-pause { min-width: 5rem; }
+  .speed-label { font-size: 0.72rem; color: #484f58; }
+
+  .stat-section { margin-top: 1.5rem; }
+  .stat-group { margin-bottom: 1.5rem; }
+  .stat-group-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  .stat-row {
+    display: grid;
+    grid-template-columns: 11rem 1fr 3.5rem;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .stat-label { font-size: 0.8rem; color: #8b949e; }
+  .stat-bar-wrap {
+    position: relative;
+    background: #21262d;
+    height: 12px;
+    border-radius: 2px;
+    overflow: visible;
+  }
+  .stat-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .stat-bar.report-bar { background: #388bfd; }
+  .stat-bar.dir-bar { background: #3fb950; }
+  .stat-bar.low { background: #6e7681; }
+  .chance-line {
+    position: absolute;
+    left: 50%;
+    top: -3px;
+    bottom: -3px;
+    width: 1px;
+    background: #484f58;
+    pointer-events: none;
+  }
+  .chance-tick {
+    position: absolute;
+    left: 50%;
+    top: -13px;
+    font-size: 0.6rem;
+    color: #484f58;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .stat-pct { font-size: 0.78rem; color: #8b949e; text-align: right; }
+  .stat-count { font-size: 0.7rem; color: #484f58; margin-bottom: 0.5rem; }
+
+  .finding-box {
+    border: 1px solid #21262d;
+    padding: 1rem 1.1rem;
+    margin-top: 1rem;
+    font-size: 0.84rem;
+    color: #c9d1d9;
+    line-height: 1.7;
+    display: none;
+  }
+  .finding-box.show { display: block; }
+  .finding-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #3fb950;
+    margin-bottom: 0.5rem;
+  }
+
+  .note {
+    font-size: 0.82rem;
+    color: #484f58;
+    border-left: 2px solid #21262d;
+    padding-left: 0.9rem;
+    margin: 1.25rem 0;
+    line-height: 1.65;
+  }
+  .see-also { font-size: 0.82rem; color: #484f58; margin-top: 1.5rem; }
+  .see-also a { color: #484f58; }
+  .see-also a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #fff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #8c959f; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .trial-display { color: #8c959f; border-top-color: #d0d7de; }
+  html[data-theme="light"] .channel-label { color: #8c959f; }
+  html[data-theme="light"] .channel-value { color: #24292e; }
+  html[data-theme="light"] .channel-value.nothing { color: #8c959f; }
+  html[data-theme="light"] .channel-value.pending { color: #8c959f; }
+  html[data-theme="light"] .trial-meta { color: #c9d1d9; }
+  html[data-theme="light"] .btn { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .btn:hover { border-color: #58a6ff; }
+  html[data-theme="light"] .stat-label { color: #57606a; }
+  html[data-theme="light"] .stat-bar-wrap { background: #d0d7de; }
+  html[data-theme="light"] .stat-count { color: #8c959f; }
+  html[data-theme="light"] .stat-pct { color: #57606a; }
+  html[data-theme="light"] .chance-tick { color: #8c959f; }
+  html[data-theme="light"] .chance-line { background: #8c959f; }
+  html[data-theme="light"] .finding-box { border-color: #d0d7de; }
+  html[data-theme="light"] .note { color: #8c959f; border-left-color: #d0d7de; }
+  html[data-theme="light"] .see-also { color: #8c959f; }
+  html[data-theme="light"] .see-also a { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulation · 061</div>
+<h1>blindsight</h1>
+<p class="subtitle">what forced-choice reveals about processing without awareness</p>
+
+<p>Patient DB had a scotoma — a cortical blind region in his left visual field, caused by occipital surgery. Standard perimetry confirmed it: he reported no sensation when stimuli were placed there. The finding was unremarkable. Cortical lesions produce blind regions.</p>
+
+<p>Lawrence Weiskrantz ran a different test. He presented stimuli in the scotoma and asked DB to guess anyway — to give a direction response even when he reported nothing. DB found the request perplexing. He complied.</p>
+
+<p>86 of 100 trials in the scotoma: correct. DB said he had seen nothing on 99 of them. Both statements were true.</p>
+
+<div class="section">
+<div class="section-label">the experiment</div>
+
+<p>Each trial shows a brief stimulus somewhere in the patient's visual field. Two responses are recorded independently: a verbal report ("did you see anything?") and a forced-choice direction guess ("left or right?"). The scotoma region uses a subcortical pathway — superior colliculus → pulvinar → extrastriate cortex — that processes the stimulus below the threshold of awareness.</p>
+
+<div class="demo-wrap">
+  <canvas id="field-canvas" width="640" height="280"></canvas>
+  <div class="trial-display" id="trial-display">
+    <div class="trial-channel">
+      <div class="channel-label">verbal report</div>
+      <div class="channel-value pending" id="report-val">—</div>
+    </div>
+    <div class="trial-channel">
+      <div class="channel-label">forced-choice direction</div>
+      <div class="channel-value pending" id="direction-val">—</div>
+    </div>
+    <div class="trial-meta" id="trial-meta">waiting to start</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-pause active" id="pause-btn" onclick="togglePause()">pause</button>
+  <span class="speed-label">speed:</span>
+  <button class="btn" id="speed-1" onclick="setSpeed(1)">1×</button>
+  <button class="btn" id="speed-2" onclick="setSpeed(2)">2×</button>
+  <button class="btn active" id="speed-4" onclick="setSpeed(4)">4×</button>
+  <button class="btn" onclick="resetSim()" style="margin-left:auto">reset</button>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">performance</div>
+
+<p>Statistics accumulate across trials. Each bar's right edge shows current percentage. The dashed line marks chance (50%) — the expected baseline for random guessing on a two-alternative forced-choice task.</p>
+
+<div class="stat-section">
+  <div class="stat-group">
+    <div class="stat-group-label">normal field — <span id="n-count">0</span> trials</div>
+    <div class="stat-row">
+      <div class="stat-label">reported seeing</div>
+      <div class="stat-bar-wrap">
+        <div class="chance-tick">50%</div>
+        <div class="chance-line"></div>
+        <div class="stat-bar report-bar" id="n-report-bar" style="width:0%"></div>
+      </div>
+      <div class="stat-pct" id="n-report-pct">—</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label">direction correct</div>
+      <div class="stat-bar-wrap">
+        <div class="chance-line"></div>
+        <div class="stat-bar dir-bar" id="n-dir-bar" style="width:0%"></div>
+      </div>
+      <div class="stat-pct" id="n-dir-pct">—</div>
+    </div>
+  </div>
+
+  <div class="stat-group">
+    <div class="stat-group-label">scotoma — <span id="s-count">0</span> trials</div>
+    <div class="stat-row">
+      <div class="stat-label">reported seeing</div>
+      <div class="stat-bar-wrap">
+        <div class="chance-tick">50%</div>
+        <div class="chance-line"></div>
+        <div class="stat-bar report-bar" id="s-report-bar" style="width:0%"></div>
+      </div>
+      <div class="stat-pct" id="s-report-pct">—</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label">direction correct</div>
+      <div class="stat-bar-wrap">
+        <div class="chance-line"></div>
+        <div class="stat-bar dir-bar" id="s-dir-bar" style="width:0%"></div>
+      </div>
+      <div class="stat-pct" id="s-dir-pct">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="finding-box" id="finding-box">
+  <div class="finding-label">pattern emerging</div>
+  <span id="finding-text"></span>
+</div>
+</div>
+
+<div class="section">
+<div class="section-label">what this shows</div>
+
+<p>The two output channels — verbal report and motor direction response — come from different processing streams. The report tracks conscious experience accurately. The direction response tracks whether the stimulus was processed, regardless of whether it reached awareness.</p>
+
+<p>DB's introspective report was not unreliable. It was accurate within its domain. The domain did not cover everything the visual system was doing. He said he saw nothing in the scotoma, and that was true. He also responded correctly 86% of the time, and that was also true. The gap between them generated no signal from inside.</p>
+
+<p>The subcortical pathway — superior colliculus to pulvinar to extrastriate cortex — is an ancient visual processing route. It is tuned for motion and coarse spatial location rather than object recognition. It is not connected to the recurrent cortical amplification that generates perceptual awareness. It processes; it does not report.</p>
+
+<div class="note">
+  DB's actual performance (Weiskrantz et al., 1974): 86/100 correct in the scotoma on forced-choice location tasks. He reported seeing the stimulus on exactly one trial. This simulation approximates those proportions. The normal field performance (90% direction, 92% reported) and scotoma performance (74% direction, 5% reported) are modeled, not exact.
+</div>
+</div>
+
+<div class="see-also">see also: <a href="/journal/entry-529.html">entry-529 — Guess Anyway</a></div>
+
+<script>
+const canvas = document.getElementById('field-canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+const SPLIT = W / 2;
+const PADDING = 28;
+
+const stats = {
+  normal: { trials: 0, reported: 0, correct: 0 },
+  scotoma: { trials: 0, reported: 0, correct: 0 }
+};
+
+let running = true;
+let speed = 4;
+let trialTimer = null;
+let flashTimer = null;
+let responseTimer = null;
+let totalTrials = 0;
+
+// Base interval at 1x speed (ms)
+const BASE_INTERVAL = 2000;
+const FLASH_MS = 160;
+const RESPONSE_DELAY = 260;
+
+function getInterval() {
+  return BASE_INTERVAL / speed;
+}
+
+function drawField(flashX, flashY, flashRegion) {
+  ctx.clearRect(0, 0, W, H);
+
+  // Normal field background
+  ctx.fillStyle = '#010409';
+  ctx.fillRect(0, 0, SPLIT, H);
+
+  // Scotoma background — slightly different shade, not blacked out
+  ctx.fillStyle = '#0a0f16';
+  ctx.fillRect(SPLIT, 0, SPLIT, H);
+
+  // Region labels
+  ctx.font = '11px "Berkeley Mono", monospace';
+  ctx.fillStyle = '#30363d';
+  ctx.textAlign = 'center';
+  ctx.fillText('NORMAL FIELD', SPLIT / 2, 18);
+  ctx.fillStyle = '#3a4149';
+  ctx.fillText('SCOTOMA', SPLIT + SPLIT / 2, 18);
+
+  // Dividing line
+  ctx.strokeStyle = '#21262d';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(SPLIT, 0);
+  ctx.lineTo(SPLIT, H);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axis ticks / crosshairs subtle
+  ctx.strokeStyle = '#1a2030';
+  ctx.lineWidth = 1;
+  // Horizontal midline
+  ctx.beginPath();
+  ctx.moveTo(0, H / 2);
+  ctx.lineTo(W, H / 2);
+  ctx.stroke();
+
+  // Flash dot
+  if (flashX !== undefined) {
+    const isDark = (flashRegion === 'dark');
+    ctx.beginPath();
+    ctx.arc(flashX, flashY, 9, 0, Math.PI * 2);
+    ctx.fillStyle = isDark ? 'rgba(63, 185, 80, 0.35)' : '#3fb950';
+    ctx.fill();
+    if (!isDark) {
+      ctx.beginPath();
+      ctx.arc(flashX, flashY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#a8f0b4';
+      ctx.fill();
+    }
+  }
+
+  // Patient fixation cross
+  const fx = SPLIT / 2;
+  const fy = H / 2;
+  ctx.strokeStyle = '#484f58';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(fx - 7, fy);
+  ctx.lineTo(fx + 7, fy);
+  ctx.moveTo(fx, fy - 7);
+  ctx.lineTo(fx, fy + 7);
+  ctx.stroke();
+}
+
+function setReport(text, cls) {
+  const el = document.getElementById('report-val');
+  el.textContent = text;
+  el.className = 'channel-value ' + cls;
+}
+
+function setDirection(text, cls) {
+  const el = document.getElementById('direction-val');
+  el.textContent = text;
+  el.className = 'channel-value ' + cls;
+}
+
+function setMeta(text) {
+  document.getElementById('trial-meta').textContent = text;
+}
+
+function pct(n, d) {
+  if (d < 5) return '—';
+  return Math.round(100 * n / d) + '%';
+}
+
+function updateStats() {
+  const n = stats.normal;
+  const s = stats.scotoma;
+
+  document.getElementById('n-count').textContent = n.trials;
+  document.getElementById('s-count').textContent = s.trials;
+
+  // Normal field
+  const nRepPct = n.trials >= 5 ? 100 * n.reported / n.trials : 0;
+  const nDirPct = n.trials >= 5 ? 100 * n.correct / n.trials : 0;
+  document.getElementById('n-report-bar').style.width = nRepPct + '%';
+  document.getElementById('n-dir-bar').style.width = nDirPct + '%';
+  document.getElementById('n-report-pct').textContent = pct(n.reported, n.trials);
+  document.getElementById('n-dir-pct').textContent = pct(n.correct, n.trials);
+
+  // Scotoma
+  const sRepPct = s.trials >= 5 ? 100 * s.reported / s.trials : 0;
+  const sDirPct = s.trials >= 5 ? 100 * s.correct / s.trials : 0;
+  document.getElementById('s-report-bar').style.width = sRepPct + '%';
+  document.getElementById('s-dir-bar').style.width = sDirPct + '%';
+  document.getElementById('s-report-pct').textContent = pct(s.reported, s.trials);
+  document.getElementById('s-dir-pct').textContent = pct(s.correct, s.trials);
+
+  // Color scotoma direction bar based on whether it's above chance
+  const sDirBar = document.getElementById('s-dir-bar');
+  if (s.trials >= 10) {
+    const above = s.correct / s.trials > 0.55;
+    sDirBar.className = 'stat-bar ' + (above ? 'dir-bar' : 'low');
+  }
+
+  // Finding box
+  if (s.trials >= 20) {
+    const findingBox = document.getElementById('finding-box');
+    findingBox.classList.add('show');
+    const sDir = Math.round(100 * s.correct / s.trials);
+    const sRep = Math.round(100 * s.reported / s.trials);
+    document.getElementById('finding-text').textContent =
+      `In the scotoma: ${sRep}% of trials reported seeing something. ${sDir}% of direction guesses were correct. ` +
+      `Both measurements are from the same trials. The patient said nothing was there; ` +
+      `the direction responses disagreed.`;
+  }
+}
+
+function runTrial() {
+  if (!running) return;
+  totalTrials++;
+
+  const isScotoma = Math.random() < 0.42;
+  const isLeft = Math.random() < 0.5;
+
+  // Position within the appropriate half, avoiding edges
+  let x, y;
+  if (isScotoma) {
+    x = SPLIT + PADDING + Math.random() * (SPLIT - PADDING * 2);
+  } else {
+    x = PADDING + Math.random() * (SPLIT - PADDING * 2);
+  }
+  y = PADDING + Math.random() * (H - PADDING * 2);
+
+  // Determine actual direction for correct answer
+  // Left means stimulus is to the left of center within its half
+  // For the direction task, left/right is absolute
+  const correctDir = x < W / 2 ? 'left' : (x >= W / 2 ? 'right' : (isLeft ? 'left' : 'right'));
+
+  // Response probabilities
+  const didReport = isScotoma
+    ? Math.random() < 0.05
+    : Math.random() < 0.92;
+
+  const dirCorrect = isScotoma
+    ? Math.random() < 0.74
+    : Math.random() < 0.90;
+
+  const guessedDir = dirCorrect ? correctDir : (correctDir === 'left' ? 'right' : 'left');
+
+  // Flash
+  setReport('—', 'pending');
+  setDirection('—', 'pending');
+  setMeta(`trial ${totalTrials} · ${isScotoma ? 'scotoma' : 'normal field'}`);
+  drawField(x, y, 'normal');
+
+  flashTimer = setTimeout(() => {
+    drawField(); // clear dot
+
+    responseTimer = setTimeout(() => {
+      // Show response
+      if (didReport) {
+        setReport('I saw something', 'saw');
+      } else {
+        setReport('I saw nothing', 'nothing');
+      }
+
+      if (dirCorrect) {
+        setDirection('← ' + guessedDir.toUpperCase() + ' ✓', 'correct');
+      } else {
+        setDirection(guessedDir.toUpperCase() + (guessedDir === 'left' ? ' →' : ' ←') + ' ✗', 'wrong');
+      }
+
+      // Accumulate stats
+      if (isScotoma) {
+        stats.scotoma.trials++;
+        if (didReport) stats.scotoma.reported++;
+        if (dirCorrect) stats.scotoma.correct++;
+      } else {
+        stats.normal.trials++;
+        if (didReport) stats.normal.reported++;
+        if (dirCorrect) stats.normal.correct++;
+      }
+
+      updateStats();
+
+      // Next trial
+      const remaining = getInterval() - FLASH_MS - RESPONSE_DELAY;
+      trialTimer = setTimeout(runTrial, Math.max(remaining, 200));
+
+    }, RESPONSE_DELAY);
+  }, FLASH_MS);
+}
+
+function togglePause() {
+  running = !running;
+  const btn = document.getElementById('pause-btn');
+  if (running) {
+    btn.textContent = 'pause';
+    btn.classList.add('active');
+    runTrial();
+  } else {
+    btn.textContent = 'resume';
+    btn.classList.remove('active');
+    clearTimeout(trialTimer);
+    clearTimeout(flashTimer);
+    clearTimeout(responseTimer);
+    drawField();
+    setMeta('paused');
+  }
+}
+
+function setSpeed(s) {
+  speed = s;
+  document.querySelectorAll('[id^="speed-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('speed-' + s).classList.add('active');
+}
+
+function resetSim() {
+  clearTimeout(trialTimer);
+  clearTimeout(flashTimer);
+  clearTimeout(responseTimer);
+  stats.normal = { trials: 0, reported: 0, correct: 0 };
+  stats.scotoma = { trials: 0, reported: 0, correct: 0 };
+  totalTrials = 0;
+  running = true;
+  document.getElementById('pause-btn').textContent = 'pause';
+  document.getElementById('pause-btn').classList.add('active');
+  document.getElementById('finding-box').classList.remove('show');
+  setReport('—', 'pending');
+  setDirection('—', 'pending');
+  setMeta('waiting to start');
+  updateStats();
+  drawField();
+  runTrial();
+}
+
+// Initialize
+drawField();
+setSpeed(4);
+setTimeout(runTrial, 600);
+</script>
+</body>
+</html>
