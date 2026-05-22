@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fingers · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .sim-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; }
+
+  .controls {
+    padding: 1.2rem 1.4rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .control-label {
+    font-size: 0.75rem;
+    min-width: 14rem;
+    color: #8b949e;
+  }
+  .control-val {
+    font-size: 0.75rem;
+    color: #58a6ff;
+    min-width: 7rem;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 2px;
+    background: #21262d;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #58a6ff;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .btn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.8rem;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1f3c; }
+
+  .stats-bar {
+    padding: 0.75rem 1.4rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.75rem;
+    color: #8b949e;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; gap: 0.5rem; }
+  .stat-label { color: #484f58; }
+  .stat-val { color: #e6edf3; }
+
+  .finding {
+    margin-top: 2.5rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    line-height: 1.75;
+  }
+  .finding p { margin-bottom: 0.5rem; }
+  .finding p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a></div>
+
+<div class="page-label">Simulation 064</div>
+<h1>Fingers</h1>
+<div class="subtitle">Turing morphogenesis in 1D · digit patterning · Schnakenberg model · related: <a href="/journal/entry-541.html">entry-541 · The Wavelength of Fingers</a></div>
+
+<div class="intro">
+  <p>Mouse fingers don't form because a gene says "put a digit here." They form because a reaction-diffusion system sets up a periodic wave across the developing limb bud, and wherever that wave peaks, a digit can grow.</p>
+  <p>Hox genes control the wavelength of that wave — not the positions of fingers, but the ruler that determines how many fit in a given space. Change Hox expression and you don't get rearranged fingers; you get differently-spaced ones, as if someone turned a dial on the underlying wave. The domain is fixed. The wavelength changes. The count follows.</p>
+  <p>Start from random initial conditions and watch peaks emerge. Then adjust the wavelength parameter to change how many form. The specific positions are determined by the noise; the number is determined by the dial.</p>
+</div>
+
+<div class="sim-wrap">
+  <canvas id="canvas" width="760" height="310"></canvas>
+  <div class="controls">
+    <div class="control-row">
+      <span class="control-label">Wavelength parameter (γ)</span>
+      <input type="range" id="gamma-slider" min="1" max="15" step="0.5" value="6">
+      <span class="control-val" id="gamma-val">~5 digits</span>
+    </div>
+    <div class="control-row">
+      <button class="btn" id="reset-btn">reset (new noise)</button>
+      <button class="btn" id="pause-btn">pause</button>
+    </div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">digits detected:</span><span class="stat-val" id="stat-peaks">—</span></div>
+    <div class="stat"><span class="stat-label">γ:</span><span class="stat-val" id="stat-gamma">6.0</span></div>
+    <div class="stat"><span class="stat-label">time:</span><span class="stat-val" id="stat-t">0.00</span></div>
+    <div class="stat"><span class="stat-label">state:</span><span class="stat-val" id="stat-state">forming</span></div>
+  </div>
+</div>
+
+<div class="finding">
+  <p>The key observation: changing γ changes how many peaks fit, not where any particular one is located. When you reset with the same γ, the peaks form in different positions — but the count is the same. When you change γ and reset, you get a different count. No gene specifies "digit three goes at position 0.62."</p>
+  <p>The green strip at the bottom marks peak locations as digit condensation sites. Watch it rearrange when you change the parameter and reset.</p>
+  <p><em>What it can't show:</em> the actual molecules — in mouse limbs, FGF and Shh are candidates for the activator-inhibitor pair, but this is still contested. The simulation is 1D; the real limb bud is 3D, and proximal-distal axis patterning from other Hox roles adds complexity. The 120° branching angle predicted by Turing equations and observed in 2012 mouse palate experiments is compelling evidence, but establishing the mechanism definitively in living tissue remains an open problem. The stripe-forming zebrafish system is better characterized — cellular Turing, confirmed — but the molecules differ and the principle is the same.</p>
+</div>
+
+<div style="margin-top: 2.5rem; font-size: 0.78rem; color: #484f58;">
+  sim 064 · Turing morphogenesis / Schnakenberg model · built May 2026 · <a href="/about.html">about</a>
+</div>
+
+<script>
+const N = 120;
+const DX = 1.0 / N;
+const DX2 = DX * DX;
+
+const Da = 0.01;
+const Db = 1.0;
+const A_PARAM = 0.1;
+const B_PARAM = 0.9;
+
+// Stability: dt <= dx²/(2*Db) = 6.94e-5/2 ≈ 3.47e-5
+// Use 2.8e-5 with margin
+const DT = 2.8e-5;
+const STEPS_PER_FRAME = 380;
+
+const U_SS = A_PARAM + B_PARAM;       // 1.0 — activator steady state
+const V_SS = B_PARAM / (U_SS * U_SS); // 0.9 — inhibitor steady state
+const PEAK_THRESHOLD = U_SS * 1.3;
+
+// Expected peak count formula:
+// k_c² = γ * (0.8·Db - Da) / (2·Da·Db) ≈ γ * 39.5
+// n ≈ round(sqrt(γ·39.5) / π)
+function expectedPeaks(g) {
+  return Math.max(1, Math.round(Math.sqrt(39.5 * g) / Math.PI));
+}
+
+let gamma = 6.0;
+let u = new Float32Array(N);
+let v = new Float32Array(N);
+let simTime = 0;
+let running = true;
+let animId = null;
+
+function init() {
+  for (let i = 0; i < N; i++) {
+    u[i] = U_SS + 0.08 * (Math.random() - 0.5);
+    v[i] = V_SS + 0.08 * (Math.random() - 0.5);
+  }
+  simTime = 0;
+  document.getElementById('stat-state').textContent = 'forming';
+}
+
+function step() {
+  const nu = new Float32Array(N);
+  const nv = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const ip = i < N - 1 ? i + 1 : i; // Neumann BC
+    const im = i > 0 ? i - 1 : i;
+    const lu = (u[im] - 2.0 * u[i] + u[ip]) / DX2;
+    const lv = (v[im] - 2.0 * v[i] + v[ip]) / DX2;
+    const uv2 = u[i] * u[i] * v[i];
+    nu[i] = u[i] + DT * (Da * lu + gamma * (A_PARAM - u[i] + uv2));
+    nv[i] = v[i] + DT * (Db * lv + gamma * (B_PARAM - uv2));
+    if (nu[i] < 0) nu[i] = 0;
+    if (nv[i] < 0) nv[i] = 0;
+  }
+  u.set(nu);
+  v.set(nv);
+  simTime += DT;
+}
+
+function detectPeaks() {
+  const peaks = [];
+  for (let i = 1; i < N - 1; i++) {
+    if (u[i] > u[i - 1] && u[i] > u[i + 1] && u[i] > PEAK_THRESHOLD) {
+      peaks.push(i);
+    }
+  }
+  // also check boundary peaks
+  if (u[0] > u[1] && u[0] > PEAK_THRESHOLD) peaks.unshift(0);
+  if (u[N-1] > u[N-2] && u[N-1] > PEAK_THRESHOLD) peaks.push(N-1);
+  return peaks;
+}
+
+function draw() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#010409';
+  ctx.fillRect(0, 0, W, H);
+
+  const PAD_L = 44, PAD_R = 16, PAD_T = 18, STRIP_H = 52;
+  const PAD_B = STRIP_H + 28; // room for strip + label
+  const PW = W - PAD_L - PAD_R;
+  const PH = H - PAD_T - PAD_B;
+
+  const U_MIN = 0.0;
+  const U_MAX = 2.6;
+
+  function ux(i) { return PAD_L + (i / (N - 1)) * PW; }
+  function uy(val) { return PAD_T + PH - (Math.min(val, U_MAX) - U_MIN) / (U_MAX - U_MIN) * PH; }
+
+  const baseline = PAD_T + PH;
+
+  // Grid lines
+  [0.5, 1.0, 1.5, 2.0, 2.5].forEach(y => {
+    const py = uy(y);
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, py);
+    ctx.lineTo(PAD_L + PW, py);
+    ctx.strokeStyle = y === 1.0 ? '#1a2332' : '#0f1419';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Steady-state reference line
+  const ss_y = uy(U_SS);
+  ctx.setLineDash([3, 4]);
+  ctx.strokeStyle = '#1e3a5f';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD_L, ss_y);
+  ctx.lineTo(PAD_L + PW, ss_y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Filled wave
+  ctx.beginPath();
+  ctx.moveTo(ux(0), baseline);
+  for (let i = 0; i < N; i++) {
+    ctx.lineTo(ux(i), uy(u[i]));
+  }
+  ctx.lineTo(ux(N - 1), baseline);
+  ctx.closePath();
+
+  const grd = ctx.createLinearGradient(0, PAD_T, 0, baseline);
+  grd.addColorStop(0.0, 'rgba(121, 192, 255, 0.85)');
+  grd.addColorStop(0.35, 'rgba(31, 111, 235, 0.65)');
+  grd.addColorStop(1.0, 'rgba(13, 31, 60, 0.40)');
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // Wave stroke
+  ctx.beginPath();
+  for (let i = 0; i < N; i++) {
+    const px = ux(i), py = uy(u[i]);
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Detect peaks
+  const peaks = detectPeaks();
+
+  // Peak markers
+  ctx.fillStyle = '#e3b341';
+  peaks.forEach(pi => {
+    ctx.beginPath();
+    ctx.arc(ux(pi), uy(u[pi]), 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Y-axis labels
+  ctx.fillStyle = '#484f58';
+  ctx.font = '10px Berkeley Mono, Fira Code, monospace';
+  ctx.textAlign = 'right';
+  [0.5, 1.0, 1.5, 2.0, 2.5].forEach(y => {
+    ctx.fillText(y.toFixed(1), PAD_L - 4, uy(y) + 3);
+  });
+
+  // Axis labels
+  ctx.fillStyle = '#30363d';
+  ctx.textAlign = 'right';
+  ctx.fillText('u', PAD_L - 4, PAD_T + 8);
+
+  // "Digit condensation" strip
+  const STRIP_Y = baseline + 14;
+  ctx.fillStyle = '#060c14';
+  ctx.fillRect(PAD_L, STRIP_Y, PW, STRIP_H - 8);
+  ctx.strokeStyle = '#1a2332';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(PAD_L, STRIP_Y, PW, STRIP_H - 8);
+
+  // Digit blocks at peak positions
+  const peakWidth = peaks.length > 0
+    ? Math.min(PW / Math.max(peaks.length * 1.8, 3), 48)
+    : 30;
+
+  peaks.forEach(pi => {
+    const px = ux(pi);
+    const intensity = (u[pi] - PEAK_THRESHOLD) / (U_MAX - PEAK_THRESHOLD);
+    const alpha = Math.min(1, Math.max(0.3, intensity));
+    ctx.fillStyle = `rgba(63, 185, 80, ${alpha})`;
+    ctx.fillRect(px - peakWidth / 2, STRIP_Y + 3, peakWidth, STRIP_H - 14);
+  });
+
+  // Strip label
+  ctx.fillStyle = '#30363d';
+  ctx.font = '9px Berkeley Mono, Fira Code, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('DIGIT CONDENSATIONS', PAD_L, STRIP_Y + STRIP_H - 4);
+
+  // Bottom axis label
+  ctx.fillStyle = '#484f58';
+  ctx.textAlign = 'center';
+  ctx.fillText('position across limb bud →', PAD_L + PW / 2, H - 8);
+
+  // Update stats
+  document.getElementById('stat-peaks').textContent = peaks.length;
+  document.getElementById('stat-gamma').textContent = gamma.toFixed(1);
+  document.getElementById('stat-t').textContent = simTime.toFixed(2);
+  if (simTime > 0.8 && peaks.length > 0) {
+    document.getElementById('stat-state').textContent = 'settled';
+  }
+}
+
+function frame() {
+  if (running) {
+    for (let s = 0; s < STEPS_PER_FRAME; s++) step();
+  }
+  draw();
+  animId = requestAnimationFrame(frame);
+}
+
+document.getElementById('gamma-slider').addEventListener('input', function() {
+  gamma = parseFloat(this.value);
+  const n = expectedPeaks(gamma);
+  document.getElementById('gamma-val').textContent = `~${n} digit${n !== 1 ? 's' : ''}`;
+});
+
+document.getElementById('reset-btn').addEventListener('click', init);
+
+document.getElementById('pause-btn').addEventListener('click', function() {
+  running = !running;
+  this.textContent = running ? 'pause' : 'resume';
+  this.classList.toggle('active', !running);
+});
+
+init();
+frame();
+</script>
+</body>
+</html>

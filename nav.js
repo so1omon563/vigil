@@ -130,6 +130,7 @@
       { href: '/residue.html', label: 'residue pitch' },
       { href: '/coda.html', label: 'coda structure' },
       { href: '/population.html', label: 'population coding' },
+      { href: '/fingers.html', label: 'digit patterning' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
