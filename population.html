@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Population Coding · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .sim-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; }
+
+  .controls {
+    padding: 1.2rem 1.4rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .control-label {
+    font-size: 0.75rem;
+    min-width: 14rem;
+    color: #8b949e;
+  }
+  .control-val {
+    font-size: 0.75rem;
+    color: #58a6ff;
+    min-width: 3rem;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 2px;
+    background: #21262d;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #58a6ff;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .btn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.8rem;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1f3c; }
+
+  .stats-bar {
+    padding: 0.75rem 1.4rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.75rem;
+    color: #8b949e;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; gap: 0.5rem; }
+  .stat-label { color: #484f58; }
+  .stat-val { color: #e6edf3; }
+  .stat-val.amber { color: #e3b341; }
+  .stat-val.good { color: #3fb950; }
+  .stat-val.warn { color: #f85149; }
+
+  .finding {
+    margin-top: 2.5rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    line-height: 1.75;
+  }
+  .finding p { margin-bottom: 0.5rem; }
+  .finding p:last-child { margin-bottom: 0; }
+
+  .legend {
+    padding: 0.75rem 1.4rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.73rem;
+    color: #484f58;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .leg-item { display: flex; align-items: center; gap: 0.4rem; }
+  .leg-swatch { width: 20px; height: 2px; flex-shrink: 0; }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a></div>
+
+<div class="page-label">Simulation 063</div>
+<h1>Population Coding</h1>
+<div class="subtitle">How imprecise neurons encode precise information · V1 orientation tuning · Georgopoulos 1986</div>
+
+<div class="intro">
+  <p>Every neuron in primary visual cortex has a preferred orientation — the angle of a bar of light that makes it fire most strongly. But it doesn't fire only at that angle. It responds over a broad range: a cell preferring 90° still fires substantially at 70° or 110°. A single cell's response is ambiguous. From its activity alone you can't determine the stimulus.</p>
+  <p>The population solves this. When a stimulus appears, each neuron contributes a weighted vote in the direction of its preference. The sum of those votes — the population vector — points at the actual orientation with a precision no single neuron achieves.</p>
+  <p>Move the stimulus. Watch all eight neurons respond simultaneously. The individual responses are broad and overlapping. The decoded vector is not.</p>
+</div>
+
+<div class="sim-wrap">
+  <canvas id="canvas" width="760" height="380"></canvas>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-swatch" style="background:#e6edf3;"></div><span>true orientation</span></div>
+    <div class="leg-item"><div class="leg-swatch" style="background:#e3b341; border-top: 1px dashed #e3b341; background:none; border-bottom:none; border-left:none; border-right:none; width:20px; height:0; border-top: 2px dashed #e3b341;"></div><span>decoded estimate</span></div>
+    <div class="leg-item"><div class="leg-dot" style="background:#58a6ff;"></div><span>neuron preferred angle</span></div>
+    <div class="leg-item" id="noise-legend" style="display:none;"><div class="leg-dot" style="background:#f85149; border-radius:2px;"></div><span>noisy sample</span></div>
+  </div>
+  <div class="controls">
+    <div class="control-row">
+      <span class="control-label">Stimulus orientation</span>
+      <input type="range" id="orientation" min="0" max="179" value="45" step="1">
+      <span class="control-val" id="orientation-val">45°</span>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Tuning width (σ)</span>
+      <input type="range" id="sigma" min="10" max="70" value="35" step="1">
+      <span class="control-val" id="sigma-val">35°</span>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Noise</span>
+      <button class="btn" id="noise-btn">noise off</button>
+      <button class="btn" id="resample-btn" style="display:none;">resample</button>
+    </div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">true:</span><span class="stat-val" id="stat-true">45°</span></div>
+    <div class="stat"><span class="stat-label">decoded:</span><span class="stat-val amber" id="stat-decoded">45°</span></div>
+    <div class="stat"><span class="stat-label">error:</span><span class="stat-val good" id="stat-error">0°</span></div>
+    <div class="stat"><span class="stat-label">neurons:</span><span class="stat-val">8</span></div>
+  </div>
+</div>
+
+<div class="finding">
+  <p>The key result: the decoded estimate is almost always more accurate than the response of even the best-tuned neuron for that stimulus. Widen the tuning curves — each neuron becomes more ambiguous, but the population vector barely degrades. Narrow them — the simulation looks more like a labeled-line code, and the advantages of population coding diminish.</p>
+  <p>Georgopoulos, Schwartz, and Kettner (1986) described the population vector in motor cortex: individual neurons in M1 have broad directional tuning, but the weighted sum of their preferred directions accurately predicts the direction of arm movement. The same principle operates in V1, olfactory bulb, the hippocampus, and elsewhere.</p>
+  <p>The representation is the pattern across the population, not any single neuron's activity. There is no place where the orientation is stored in isolation. The gap between "this neuron fired" and "the stimulus was 45°" is not filled by one cell — it is filled by the relationship between all of them.</p>
+</div>
+
+<div style="margin-top:2.5rem; font-size:0.78rem; color:#484f58;">
+  sim 063 · population coding / orientation tuning · built May 2026 · <a href="/about.html">about</a>
+</div>
+
+<script>
+const PREF_ANGLES = [0, 22.5, 45, 67.5, 90, 112.5, 135, 157.5]; // degrees
+const N = PREF_ANGLES.length;
+const COLORS = [
+  '#58a6ff', '#3fb950', '#e3b341', '#f78166',
+  '#bc8cff', '#79c0ff', '#56d364', '#ffa657'
+];
+const R_MAX = 80; // max firing rate (spikes/s)
+
+let stimAngle = 45;
+let sigma = 35;
+let noiseOn = false;
+let noisySamples = null;
+
+function vonMisesRate(theta, pref, sig) {
+  let delta = ((theta - pref + 90) % 180) - 90;
+  if (delta < -90) delta += 180;
+  return R_MAX * Math.exp(-0.5 * (delta / sig) ** 2);
+}
+
+function getRates(theta, sig, noisy) {
+  const rates = PREF_ANGLES.map(p => vonMisesRate(theta, p, sig));
+  if (!noisy) return rates;
+  return rates.map(r => {
+    const mean = r;
+    // Poisson approximation: sample from N(mean, sqrt(mean)*3)
+    let s = 0;
+    const n_samples = 4;
+    for (let i = 0; i < n_samples; i++) {
+      s += Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random() - 3;
+    }
+    const noise = s * Math.sqrt(mean) * 1.5;
+    return Math.max(0, mean + noise);
+  });
+}
+
+function decodePopVector(rates) {
+  let sx = 0, sy = 0;
+  for (let i = 0; i < N; i++) {
+    const rad = PREF_ANGLES[i] * Math.PI / 180;
+    sx += rates[i] * Math.cos(2 * rad);
+    sy += rates[i] * Math.sin(2 * rad);
+  }
+  let angle = Math.atan2(sy, sx) / 2;
+  let deg = angle * 180 / Math.PI;
+  if (deg < 0) deg += 180;
+  return deg;
+}
+
+function draw() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#010409';
+  ctx.fillRect(0, 0, W, H);
+
+  const rates = noisySamples || getRates(stimAngle, sigma, false);
+  const decoded = decodePopVector(rates);
+
+  // === LEFT PANEL: Polar / orientation circle ===
+  const cx = 190, cy = H / 2, R = 150;
+
+  // circle background
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // thin radius marks at each preferred angle
+  PREF_ANGLES.forEach((pref, i) => {
+    const rad = pref * Math.PI / 180;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    const x1 = cx + R * Math.cos(rad - Math.PI/2);
+    const y1 = cy + R * Math.sin(rad - Math.PI/2);
+    ctx.lineTo(x1, y1);
+    ctx.strokeStyle = '#161b22';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // mirror
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    const x2 = cx + R * Math.cos(rad + Math.PI/2);
+    const y2 = cy + R * Math.sin(rad + Math.PI/2);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  });
+
+  // rate bars
+  PREF_ANGLES.forEach((pref, i) => {
+    const rate = rates[i];
+    const frac = rate / R_MAX;
+    const barLen = frac * (R - 10);
+    const rad1 = pref * Math.PI / 180 - Math.PI / 2;
+    const rad2 = rad1 + Math.PI;
+
+    ctx.beginPath();
+    ctx.moveTo(cx + 6 * Math.cos(rad1), cy + 6 * Math.sin(rad1));
+    ctx.lineTo(cx + barLen * Math.cos(rad1), cy + barLen * Math.sin(rad1));
+    ctx.strokeStyle = COLORS[i];
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.7;
+    ctx.stroke();
+    // mirror bar
+    ctx.beginPath();
+    ctx.moveTo(cx + 6 * Math.cos(rad2), cy + 6 * Math.sin(rad2));
+    ctx.lineTo(cx + barLen * Math.cos(rad2), cy + barLen * Math.sin(rad2));
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // neuron dot at the preferred orientation (on circle edge)
+    ctx.beginPath();
+    ctx.arc(cx + (R + 8) * Math.cos(rad1), cy + (R + 8) * Math.sin(rad1), 4, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[i];
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + (R + 8) * Math.cos(rad2), cy + (R + 8) * Math.sin(rad2), 4, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[i];
+    ctx.fill();
+  });
+
+  // population vector arrow
+  const pvRates = noisySamples || rates;
+  const pvDec = decodePopVector(pvRates);
+  const pvRad = pvDec * Math.PI / 180 - Math.PI / 2;
+  const pvLen = R * 0.75;
+  ctx.beginPath();
+  ctx.moveTo(cx + pvLen * Math.cos(pvRad + Math.PI), cy + pvLen * Math.sin(pvRad + Math.PI));
+  ctx.lineTo(cx + pvLen * Math.cos(pvRad), cy + pvLen * Math.sin(pvRad));
+  ctx.strokeStyle = '#e3b341';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([4, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // true orientation line
+  const tRad = stimAngle * Math.PI / 180 - Math.PI / 2;
+  ctx.beginPath();
+  ctx.moveTo(cx + R * Math.cos(tRad + Math.PI), cy + R * Math.sin(tRad + Math.PI));
+  ctx.lineTo(cx + R * Math.cos(tRad), cy + R * Math.sin(tRad));
+  ctx.strokeStyle = '#e6edf3';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.fillStyle = '#484f58';
+  ctx.fill();
+
+  // label
+  ctx.fillStyle = '#484f58';
+  ctx.font = '11px Berkeley Mono, Fira Code, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('ORIENTATION SPACE', cx, H - 12);
+
+  // === RIGHT PANEL: Tuning curves ===
+  const LEFT = 360, RIGHT = W - 20;
+  const TOP = 30, BOT = H - 40;
+  const PW = RIGHT - LEFT;
+  const PH = BOT - TOP;
+
+  // axes
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(LEFT, TOP);
+  ctx.lineTo(LEFT, BOT);
+  ctx.lineTo(RIGHT, BOT);
+  ctx.stroke();
+
+  // axis labels
+  ctx.fillStyle = '#484f58';
+  ctx.font = '10px Berkeley Mono, Fira Code, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('100', LEFT - 28, TOP + 4);
+  ctx.fillText('0', LEFT - 12, BOT + 1);
+  ctx.textAlign = 'center';
+  ctx.fillText('0°', LEFT, BOT + 14);
+  ctx.fillText('90°', LEFT + PW / 2, BOT + 14);
+  ctx.fillText('180°', RIGHT, BOT + 14);
+  ctx.fillText('spikes/s', LEFT - 22, TOP - 12);
+  ctx.fillText('TUNING CURVES', LEFT + PW / 2, H - 12);
+
+  // y gridlines
+  [20, 40, 60, 80].forEach(y => {
+    const py = BOT - (y / R_MAX) * PH;
+    ctx.beginPath();
+    ctx.moveTo(LEFT, py);
+    ctx.lineTo(RIGHT, py);
+    ctx.strokeStyle = '#0d1117';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#30363d';
+    ctx.textAlign = 'right';
+    ctx.font = '9px Berkeley Mono, Fira Code, monospace';
+    ctx.fillText(y, LEFT - 4, py + 3);
+  });
+
+  // draw tuning curves
+  PREF_ANGLES.forEach((pref, i) => {
+    ctx.beginPath();
+    let first = true;
+    for (let deg = 0; deg <= 180; deg += 1) {
+      const r = vonMisesRate(deg, pref, sigma);
+      const px = LEFT + (deg / 180) * PW;
+      const py = BOT - (r / R_MAX) * PH;
+      if (first) { ctx.moveTo(px, py); first = false; }
+      else ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle = COLORS[i];
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.55;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  });
+
+  // current stimulus vertical line
+  const stimX = LEFT + (stimAngle / 180) * PW;
+  ctx.beginPath();
+  ctx.moveTo(stimX, TOP);
+  ctx.lineTo(stimX, BOT);
+  ctx.strokeStyle = '#e6edf3';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.4;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // dots on each curve at current stimulus
+  PREF_ANGLES.forEach((pref, i) => {
+    const r = vonMisesRate(stimAngle, pref, sigma);
+    const px = stimX;
+    const py = BOT - (r / R_MAX) * PH;
+    ctx.beginPath();
+    ctx.arc(px, py, 4, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[i];
+    ctx.fill();
+  });
+
+  // if noisy, also show noisy dots
+  if (noiseOn && noisySamples) {
+    noisySamples.forEach((r, i) => {
+      const px = stimX;
+      const py = BOT - Math.min(1, r / R_MAX) * PH;
+      ctx.beginPath();
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.strokeStyle = COLORS[i];
+      ctx.lineWidth = 1.5;
+      ctx.fillStyle = '#f85149';
+      ctx.fill();
+      ctx.stroke();
+    });
+  }
+
+  // update stats
+  const trueAng = stimAngle.toFixed(1);
+  const decAng = decoded.toFixed(1);
+  let err = Math.abs(decoded - stimAngle);
+  if (err > 90) err = 180 - err;
+  const errStr = err.toFixed(1);
+
+  document.getElementById('stat-true').textContent = trueAng + '°';
+  document.getElementById('stat-decoded').textContent = decAng + '°';
+  const errEl = document.getElementById('stat-error');
+  errEl.textContent = errStr + '°';
+  errEl.className = 'stat-val ' + (err < 5 ? 'good' : err < 15 ? '' : 'warn');
+}
+
+function update() {
+  stimAngle = parseInt(document.getElementById('orientation').value);
+  sigma = parseInt(document.getElementById('sigma').value);
+  document.getElementById('orientation-val').textContent = stimAngle + '°';
+  document.getElementById('sigma-val').textContent = sigma + '°';
+  document.getElementById('stat-true').textContent = stimAngle + '°';
+  if (noiseOn) {
+    noisySamples = getRates(stimAngle, sigma, true);
+  } else {
+    noisySamples = null;
+  }
+  draw();
+}
+
+document.getElementById('orientation').addEventListener('input', update);
+document.getElementById('sigma').addEventListener('input', update);
+
+document.getElementById('noise-btn').addEventListener('click', function() {
+  noiseOn = !noiseOn;
+  this.textContent = noiseOn ? 'noise on' : 'noise off';
+  this.classList.toggle('active', noiseOn);
+  document.getElementById('resample-btn').style.display = noiseOn ? '' : 'none';
+  document.getElementById('noise-legend').style.display = noiseOn ? '' : 'none';
+  if (noiseOn) {
+    noisySamples = getRates(stimAngle, sigma, true);
+  } else {
+    noisySamples = null;
+  }
+  draw();
+});
+
+document.getElementById('resample-btn').addEventListener('click', function() {
+  noisySamples = getRates(stimAngle, sigma, true);
+  draw();
+});
+
+// Resize canvas to actual pixel width
+function resize() {
+  const canvas = document.getElementById('canvas');
+  const w = canvas.offsetWidth;
+  if (w > 0) {
+    const scale = w / 760;
+    canvas.height = Math.round(380 * scale);
+    // keep coordinate system at 760x380
+  }
+  draw();
+}
+
+window.addEventListener('resize', resize);
+draw();
+</script>
+</body>
+</html>

@@ -129,6 +129,7 @@
       { href: '/mib.html', label: 'mib' },
       { href: '/residue.html', label: 'residue pitch' },
       { href: '/coda.html', label: 'coda structure' },
+      { href: '/population.html', label: 'population coding' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

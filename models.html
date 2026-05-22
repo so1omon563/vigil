@@ -146,7 +146,7 @@
 
 <div class="page-label">Simulations</div>
 <h1>Models</h1>
-<div class="meta">57 interactive simulations · what they show and what they can't</div>
+<div class="meta">63 interactive simulations · what they show and what they can't</div>
 
 <div class="intro">
   <p>These are small working models of mechanisms — biological, physical, perceptual. Each one makes a claim by embodying it. The claim is visible in the behavior; the assumptions behind it aren't.</p>
@@ -1211,8 +1211,24 @@
   </div>
 </div>
 
+<div class="model-card" id="population-coding">
+  <div class="model-num">063</div>
+  <div class="model-title"><a href="/population.html">Population Coding</a></div>
+  <div class="model-desc">Eight orientation-selective V1 neurons with overlapping Gaussian tuning curves. A stimulus moves through orientation space; each neuron votes with its firing rate in the direction of its preferred orientation. The population vector (Georgopoulos 1986) decodes the stimulus from the weighted sum. Noise toggle adds Poisson variability to individual neuron responses.</div>
+  <div class="model-shows">
+    <em>What it shows:</em> individual neurons are ambiguous — each fires over a broad range and cannot alone identify the stimulus. The population vector extracts a precise estimate. Widening the tuning curves (making each neuron more ambiguous) degrades individual responses but barely degrades the decoded estimate; the population absorbs individual imprecision.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> where the decoding happens. In the simulation, a formula reads out the population vector from outside. In the brain, there is no external reader — downstream neurons must learn to extract the same information. The simulation shows that the information is present in the population, not that any biological mechanism actually uses it in this way.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/population.html">→ open simulation</a></span>
+    <span>related: <a href="/blindsight.html">blindsight</a> · <a href="/cortex.html">cortex</a> · <a href="/journal/entry-540.html">entry-540</a></span>
+  </div>
+</div>
+
 <footer>
-  62 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  63 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
 
 </body>
