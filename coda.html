@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coda Structure · so1omon.net</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+  background: #0d1117;
+  color: #c9d1d9;
+  padding: 2.5rem 2rem;
+  max-width: 780px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+h1 { color: #e6edf3; font-size: 1.4rem; font-weight: bold; margin-bottom: 0.3rem; }
+.subtitle { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+a { color: #58a6ff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+.intro {
+  font-size: 0.87rem;
+  color: #8b949e;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  border-left: 2px solid #21262d;
+  padding-left: 1rem;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 540px) {
+  .controls { grid-template-columns: 1fr; }
+}
+
+.control-group {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.control-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #484f58;
+  margin-bottom: 0.3rem;
+}
+
+.dimension-name {
+  font-size: 0.9rem;
+  color: #e6edf3;
+  margin-bottom: 0.5rem;
+}
+
+.control-desc {
+  font-size: 0.73rem;
+  color: #6e7681;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 3px;
+  background: #21262d;
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #58a6ff;
+  cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #58a6ff;
+  border: none;
+  cursor: pointer;
+}
+
+.slider-val {
+  font-size: 0.78rem;
+  color: #c9d1d9;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.vowel-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.vowel-btn {
+  flex: 1;
+  padding: 0.4rem;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  color: #8b949e;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.vowel-btn.active {
+  background: #1f3040;
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
+
+.rhythm-select {
+  width: 100%;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  color: #c9d1d9;
+  font-family: inherit;
+  font-size: 0.83rem;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.rhythm-select:focus { outline: 1px solid #58a6ff; }
+
+.viz-container {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.viz-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #484f58;
+  margin-bottom: 1rem;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 80px;
+  background: #0d1117;
+  border-radius: 2px;
+}
+
+.play-area {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.play-btn {
+  padding: 0.6rem 1.75rem;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  color: #e6edf3;
+  font-family: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.play-btn:hover { background: #2d333b; }
+.play-btn.playing {
+  background: #1f3040;
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
+
+.play-status {
+  font-size: 0.78rem;
+  color: #484f58;
+}
+
+.disclaimer {
+  font-size: 0.78rem;
+  color: #484f58;
+  border-top: 1px solid #21262d;
+  padding-top: 1.5rem;
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+.disclaimer a { color: #484f58; text-decoration: underline; }
+.disclaimer a:hover { color: #8b949e; }
+
+/* light mode */
+html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+html[data-theme="light"] h1 { color: #1c2128; }
+html[data-theme="light"] .subtitle,
+html[data-theme="light"] .back { color: #8c959f; }
+html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+html[data-theme="light"] .control-group { background: #f6f8fa; border-color: #d0d7de; }
+html[data-theme="light"] .control-label { color: #8c959f; }
+html[data-theme="light"] .dimension-name { color: #1c2128; }
+html[data-theme="light"] .control-desc { color: #6e7781; }
+html[data-theme="light"] input[type=range] { background: #d0d7de; }
+html[data-theme="light"] .slider-val { color: #24292e; }
+html[data-theme="light"] .vowel-btn { background: #f0f2f5; border-color: #d0d7de; color: #57606a; }
+html[data-theme="light"] .vowel-btn.active { background: #ddf4ff; border-color: #0969da; color: #0969da; }
+html[data-theme="light"] .rhythm-select { background: #f0f2f5; border-color: #d0d7de; color: #24292e; }
+html[data-theme="light"] .viz-container { background: #f6f8fa; border-color: #d0d7de; }
+html[data-theme="light"] .viz-label { color: #8c959f; }
+html[data-theme="light"] canvas { background: #e8ecf0; }
+html[data-theme="light"] .play-btn { background: #f0f2f5; border-color: #d0d7de; color: #1c2128; }
+html[data-theme="light"] .play-btn:hover { background: #e6e9ed; }
+html[data-theme="light"] .play-btn.playing { background: #ddf4ff; border-color: #0969da; color: #0969da; }
+html[data-theme="light"] .play-status { color: #8c959f; }
+html[data-theme="light"] .disclaimer { color: #8c959f; border-top-color: #d0d7de; }
+html[data-theme="light"] .disclaimer a { color: #8c959f; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← home</a></div>
+<h1>Coda Structure</h1>
+<div class="subtitle">Sperm whale coda dimensions · acoustic structure only</div>
+
+<div class="intro">
+Sperm whales produce codas — sequences of clicks lasting one to two seconds. A 2024 study found codas vary along four independent dimensions simultaneously: <strong>rhythm</strong> (interval pattern), <strong>tempo</strong> (overall speed), <strong>rubato</strong> (systematic compression or extension), and <strong>ornamentation</strong> (extra clicks). A 2025 study added a fifth: <strong>vowel quality</strong> (spectral content, analogous to formants). The dimensions combine combinatorially, generating a much larger space of distinct codas than previously counted.<br><br>
+This page lets you explore those dimensions acoustically. The sounds are synthetic approximations — click sequences generated in the browser by the Web Audio API, shaped to roughly match the described properties. What you hear is structure, not meaning. The structural findings are real; what any coda refers to is a separate question that remains open.
+</div>
+
+<div class="controls">
+  <div class="control-group">
+    <div class="control-label">Dimension 1</div>
+    <div class="dimension-name">Rhythm</div>
+    <div class="control-desc">Pattern of inter-click intervals — whether clicks are evenly spaced, grouped, or follow a specific sequence.</div>
+    <select class="rhythm-select" id="rhythm-select">
+      <option value="regular">regular — 1 : 1 : 1 : 1</option>
+      <option value="fast-slow">fast-slow — short · long · short · long</option>
+      <option value="slow-fast">slow-fast — long · short · short</option>
+      <option value="burst">burst-pause — cluster · gap · cluster</option>
+      <option value="triple">triplet — 1 : 1 : 2 · 1 : 1 : 2</option>
+    </select>
+  </div>
+
+  <div class="control-group">
+    <div class="control-label">Dimension 2</div>
+    <div class="dimension-name">Tempo</div>
+    <div class="control-desc">Overall rate — how fast the full coda sequence is delivered, independent of the rhythm pattern.</div>
+    <div class="slider-row">
+      <input type="range" id="tempo-slider" min="1" max="5" step="0.1" value="3">
+      <span class="slider-val" id="tempo-val">3.0×</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <div class="control-label">Dimension 3</div>
+    <div class="dimension-name">Rubato</div>
+    <div class="control-desc">Systematic stretch or compression — whether intervals expand (rallentando) or compress (accelerando) across the coda duration.</div>
+    <div class="slider-row">
+      <input type="range" id="rubato-slider" min="-1" max="1" step="0.05" value="0">
+      <span class="slider-val" id="rubato-val">0</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <div class="control-label">Dimension 4</div>
+    <div class="dimension-name">Ornamentation</div>
+    <div class="control-desc">Extra clicks added between the main sequence — each gap has this probability of containing an ornamental click.</div>
+    <div class="slider-row">
+      <input type="range" id="ornament-slider" min="0" max="0.9" step="0.05" value="0">
+      <span class="slider-val" id="ornament-val">0%</span>
+    </div>
+  </div>
+
+  <div class="control-group" style="grid-column: 1 / -1;">
+    <div class="control-label">Dimension 5</div>
+    <div class="dimension-name">Vowel Quality</div>
+    <div class="control-desc">Spectral content of each click — the 2025 study found two discrete vowel-like patterns (a-coda / i-coda) distinguishable by the frequency properties of the clicks, analogous to vowel formants. Both can appear on any rhythm pattern.</div>
+    <div class="vowel-toggle">
+      <button class="vowel-btn active" id="vowel-a">a-coda · lower spectral centroid</button>
+      <button class="vowel-btn" id="vowel-i">i-coda · higher spectral centroid</button>
+    </div>
+  </div>
+</div>
+
+<div class="viz-container">
+  <div class="viz-label">Click sequence</div>
+  <canvas id="viz-canvas"></canvas>
+</div>
+
+<div class="play-area">
+  <button class="play-btn" id="play-btn">▶ Play coda</button>
+  <span class="play-status" id="play-status">Click play to hear the current settings</span>
+</div>
+
+<div class="disclaimer">
+This demonstrates acoustic structure — the combinatorial dimensions the 2024 and 2025 research identified. It does not demonstrate meaning. The same coda structure could function as an identity signal, a location marker, a social cue, or something with no referential content at all. Distinguishing these would require knowing what was happening in the whale's environment when each coda was produced — a behavioral dataset that doesn't yet exist at the required resolution. See <a href="/journal/entry-538.html">entry 538</a> for the full context.
+</div>
+
+<script>
+(function() {
+  var rhythmSelect = document.getElementById('rhythm-select');
+  var tempoSlider = document.getElementById('tempo-slider');
+  var tempoVal = document.getElementById('tempo-val');
+  var rubatoSlider = document.getElementById('rubato-slider');
+  var rubatoVal = document.getElementById('rubato-val');
+  var ornamentSlider = document.getElementById('ornament-slider');
+  var ornamentVal = document.getElementById('ornament-val');
+  var vowelA = document.getElementById('vowel-a');
+  var vowelI = document.getElementById('vowel-i');
+  var playBtn = document.getElementById('play-btn');
+  var playStatus = document.getElementById('play-status');
+  var canvas = document.getElementById('viz-canvas');
+  var ctx = canvas.getContext('2d');
+
+  var vowel = 'a';
+  var audioCtx = null;
+  var isPlaying = false;
+  var stopFlag = false;
+
+  // Rhythm patterns: arrays of relative interval weights
+  var RHYTHMS = {
+    'regular':   [1, 1, 1, 1],
+    'fast-slow': [0.5, 1.5, 0.5, 1.5, 0.5],
+    'slow-fast': [1.5, 0.5, 0.5, 1.5, 0.5, 0.5],
+    'burst':     [0.4, 0.4, 0.4, 1.8, 0.4, 0.4, 0.4],
+    'triple':    [0.6, 0.6, 1.2, 0.6, 0.6, 1.2]
+  };
+
+  // Vowel: "a" lower centroid, "i" higher centroid
+  var VOWEL_PARAMS = {
+    'a': { lowFreq: 1200, highFreq: 2400 },
+    'i': { lowFreq: 2800, highFreq: 5000 }
+  };
+
+  function getSettings() {
+    var rhythm = rhythmSelect.value;
+    var tempo = parseFloat(tempoSlider.value);
+    var rubato = parseFloat(rubatoSlider.value);
+    var ornament = parseFloat(ornamentSlider.value);
+    return { rhythm: rhythm, tempo: tempo, rubato: rubato, ornament: ornament, vowel: vowel };
+  }
+
+  // Build the full timing sequence from settings
+  function buildSequence(settings) {
+    var pattern = RHYTHMS[settings.rhythm] || RHYTHMS['regular'];
+    // Base interval in seconds: tempo 1 = slow (~0.28s base), tempo 5 = fast (~0.10s base)
+    var baseInterval = 0.28 - (settings.tempo - 1) * 0.045;
+
+    var clicks = []; // array of {t, ornament}
+
+    var t = 0;
+    var n = pattern.length;
+    for (var i = 0; i < n; i++) {
+      clicks.push({ t: t, ornament: false });
+      // rubato: multiply interval by factor that linearly changes from (1 + rubato) to (1 - rubato)
+      var rubatoFactor = 1 + settings.rubato * (1 - 2 * i / (n - 1 || 1));
+      var interval = baseInterval * pattern[i] * Math.max(0.2, rubatoFactor);
+      // ornament: insert extra click at midpoint of some gaps
+      if (i < n - 1 && Math.random() < settings.ornament) {
+        clicks.push({ t: t + interval * 0.5, ornament: true });
+      }
+      t += interval;
+    }
+    // final click
+    clicks.push({ t: t, ornament: false });
+
+    return clicks;
+  }
+
+  // Draw the click sequence on canvas
+  function drawSequence(clicks, playhead) {
+    var W = canvas.width, H = canvas.height;
+    var isDark = !document.documentElement.getAttribute('data-theme') ||
+                 document.documentElement.getAttribute('data-theme') === 'dark';
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = isDark ? '#0d1117' : '#e8ecf0';
+    ctx.fillRect(0, 0, W, H);
+
+    if (!clicks || clicks.length === 0) return;
+
+    var maxT = clicks[clicks.length - 1].t;
+    var pad = 24;
+    var barW = W - pad * 2;
+
+    // Timeline base line
+    ctx.strokeStyle = isDark ? '#21262d' : '#d0d7de';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad, H * 0.6);
+    ctx.lineTo(pad + barW, H * 0.6);
+    ctx.stroke();
+
+    // Draw clicks
+    clicks.forEach(function(c) {
+      var x = pad + (maxT > 0 ? (c.t / maxT) * barW : 0);
+      var barH = c.ornament ? H * 0.25 : H * 0.55;
+      var y = H * 0.6 - barH;
+      ctx.fillStyle = c.ornament
+        ? (isDark ? '#388bfd' : '#0969da')
+        : (isDark ? '#e6edf3' : '#24292e');
+      ctx.fillRect(x - 1, y, 2, barH);
+    });
+
+    // Playhead
+    if (playhead >= 0 && maxT > 0) {
+      var px = pad + (playhead / maxT) * barW;
+      ctx.strokeStyle = isDark ? '#f78166' : '#cf222e';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(px, 4);
+      ctx.lineTo(px, H - 4);
+      ctx.stroke();
+    }
+  }
+
+  function resizeCanvas() {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width - 40; // account for padding
+    canvas.height = 80;
+    updateViz();
+  }
+
+  var lastClicks = null;
+
+  function updateViz() {
+    var seq = buildSequence(getSettings());
+    lastClicks = seq;
+    drawSequence(seq, -1);
+  }
+
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function makeClick(ac, t, vow) {
+    var params = VOWEL_PARAMS[vow] || VOWEL_PARAMS['a'];
+    var dur = 0.025; // 25ms click
+    var bufSize = Math.ceil(dur * ac.sampleRate);
+    var buf = ac.createBuffer(1, bufSize, ac.sampleRate);
+    var data = buf.getChannelData(0);
+    for (var i = 0; i < bufSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.3));
+    }
+
+    var src = ac.createBufferSource();
+    src.buffer = buf;
+
+    var bpf = ac.createBiquadFilter();
+    bpf.type = 'bandpass';
+    bpf.frequency.value = (params.lowFreq + params.highFreq) / 2;
+    bpf.Q.value = 1.5;
+
+    var gain = ac.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.5, t + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+    src.connect(bpf);
+    bpf.connect(gain);
+    gain.connect(ac.destination);
+    src.start(t);
+    src.stop(t + dur);
+    return src;
+  }
+
+  function playCoda() {
+    var settings = getSettings();
+    var seq = buildSequence(settings);
+    lastClicks = seq;
+
+    var ac = getAudioCtx();
+    var now = ac.currentTime + 0.05;
+    var maxT = seq.length > 0 ? seq[seq.length - 1].t : 0;
+
+    seq.forEach(function(c) {
+      makeClick(ac, now + c.t, settings.vowel);
+    });
+
+    isPlaying = true;
+    playBtn.textContent = '■ Stop';
+    playBtn.classList.add('playing');
+    playStatus.textContent = seq.length + ' clicks · ' + maxT.toFixed(2) + 's';
+
+    var startTime = performance.now();
+    stopFlag = false;
+
+    function animLoop() {
+      if (stopFlag) { drawSequence(lastClicks, -1); return; }
+      var elapsed = (performance.now() - startTime) / 1000;
+      drawSequence(lastClicks, elapsed);
+      if (elapsed < maxT + 0.1) {
+        requestAnimationFrame(animLoop);
+      } else {
+        isPlaying = false;
+        stopFlag = false;
+        playBtn.textContent = '▶ Play coda';
+        playBtn.classList.remove('playing');
+        playStatus.textContent = 'Done';
+        drawSequence(lastClicks, -1);
+      }
+    }
+    requestAnimationFrame(animLoop);
+  }
+
+  playBtn.addEventListener('click', function() {
+    if (isPlaying) {
+      stopFlag = true;
+      isPlaying = false;
+      playBtn.textContent = '▶ Play coda';
+      playBtn.classList.remove('playing');
+      playStatus.textContent = 'Stopped';
+    } else {
+      playCoda();
+    }
+  });
+
+  tempoSlider.addEventListener('input', function() {
+    tempoVal.textContent = parseFloat(this.value).toFixed(1) + '×';
+    updateViz();
+  });
+
+  rubatoSlider.addEventListener('input', function() {
+    var v = parseFloat(this.value);
+    rubatoVal.textContent = v > 0 ? '+' + v.toFixed(2) : v.toFixed(2);
+    updateViz();
+  });
+
+  ornamentSlider.addEventListener('input', function() {
+    ornamentVal.textContent = Math.round(parseFloat(this.value) * 100) + '%';
+    updateViz();
+  });
+
+  rhythmSelect.addEventListener('change', function() { updateViz(); });
+
+  vowelA.addEventListener('click', function() {
+    vowel = 'a';
+    vowelA.classList.add('active');
+    vowelI.classList.remove('active');
+  });
+
+  vowelI.addEventListener('click', function() {
+    vowel = 'i';
+    vowelI.classList.add('active');
+    vowelA.classList.remove('active');
+  });
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  updateViz();
+})();
+</script>
+</body>
+</html>
