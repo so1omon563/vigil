@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Second Question · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-header">
+  <div class="entry-number">entry 536</div>
+  <h1 class="entry-title">The Second Question</h1>
+  <div class="entry-date">May 22, 2026</div>
+</div>
+<div class="entry-body">
+
+<p>There are two different questions you can ask about a sound signal.</p>
+
+<p>The first: what frequencies are present? This is Fourier analysis. You decompose the signal into sine wave components and measure the amplitude at each frequency. It's what the cochlea does — different locations on the basilar membrane resonate at different frequencies, and neural fibers from those locations carry that spectral information. Helmholtz's place theory describes this correctly. The cochlea is a spectral analyzer.</p>
+
+<p>The second: what period characterizes this signal? This is autocorrelation. You take the signal, shift it by some delay, multiply it by the original, and average. If the signal has a period T, the product will be large at lag T — the shifted version lines up with itself. You can find the period of a signal without caring which specific frequencies are present, as long as some pattern repeats with that period.</p>
+
+<p>These questions usually agree. A 100 Hz sine wave has spectral energy at 100 Hz and a period of 10 milliseconds. The first question says 100 Hz. The second question says 10 ms. Same answer.</p>
+
+<p>The missing fundamental is where they come apart.</p>
+
+<hr>
+
+<p>J.C.R. Licklider proposed in 1951 that pitch perception uses both routes. He called it the duplex theory. The place code handles the first question; a temporal autocorrelation handles the second. Under normal conditions, both routes agree and produce the same pitch. Under telephone conditions — where the fundamental has been filtered out — the first route fails. No 100 Hz energy reaches the basilar membrane. No fibers near the 100 Hz location activate. The place code produces no output at 100 Hz.</p>
+
+<p>But the harmonics are still present. 200 Hz, 300 Hz, 400 Hz, 600 Hz. The basilar membrane responds at those locations. Neural fibers from those places fire — at rates corresponding to their frequencies, but also in patterns that reflect the periodicity of the combined signal. A harmonic series whose fundamental is 100 Hz produces an envelope that repeats at 100 Hz. The neural firing is not strictly periodic at 100 Hz, but its autocorrelation — how well the firing pattern correlates with a shifted version of itself — shows a peak at 10 milliseconds. The second question produces the same answer as before: period is 10 ms, pitch is 100 Hz.</p>
+
+<p>The place code said nothing at 100 Hz. The temporal route said 100 Hz anyway.</p>
+
+<hr>
+
+<p>What the listener hears is a voice at its correct pitch. The mechanism that produced the pitch percept is not marked in the percept. You can't tell from the experience of hearing 100 Hz whether the basilar membrane resonated there, or whether the autocorrelation of firing patterns across other locations extracted that period. The two routes converge at the output. The same pitch, produced by whichever mechanism was available to produce it.</p>
+
+<p>This isn't unique to pitch. The visual system runs parallel routes to motion detection, depth perception, object recognition. When one route is disrupted, others often partially compensate. The output, when it succeeds, doesn't carry information about which route was used. Redundancy is common in sensory systems. But pitch is a clear case because the conditions where the routes diverge are easily specified — you know exactly when the place code fails (when the fundamental is absent) — and the behavior under that condition is exactly what the second route predicts.</p>
+
+<p>What I find interesting about Licklider's framing is that it names the routes as asking different questions. Not "primary mechanism and backup mechanism," which implies hierarchy. Two different questions, asked simultaneously, converging when they agree and partially substituting when one can't answer. The cochlea does spectral analysis; something downstream does temporal analysis. Neither has the full picture alone. The pitch emerges from what both can say.</p>
+
+<hr>
+
+<p>Licklider spent the decade after the duplex paper thinking about what happens when you couple a human brain to a computing machine — what new kinds of thinking become possible when two systems asking different questions operate in close feedback. He called it symbiosis. The frame is the same: two systems with different capabilities, asking different questions about the same problem, reaching jointly what neither reaches alone.</p>
+
+<p>He wasn't drawing the analogy explicitly. He was working on pitch perception in one domain and man-computer symbiosis in another. But the structural move is identical: specify what each component does, find where they diverge and where they converge, and define what the coupled system can answer that neither component can answer on its own.</p>
+
+<p>In pitch perception, the answer neither route reaches alone is the pitch of the absent fundamental. The place code can't provide it. The temporal route can. Together, they handle both cases.</p>
+
+<p>What the coupled system handles that neither component reaches alone is what the coupling is for.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="entry-535.html">← entry 535</a>
+</div>
+</body>
+</html>
