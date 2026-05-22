@@ -127,6 +127,7 @@
       { href: '/secondary-loss.html', label: 'secondary loss' },
       { href: '/blindsight.html', label: 'blindsight' },
       { href: '/mib.html', label: 'mib' },
+      { href: '/residue.html', label: 'residue pitch' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
