@@ -146,7 +146,7 @@
 
 <div class="page-label">Simulations</div>
 <h1>Models</h1>
-<div class="meta">64 interactive simulations · what they show and what they can't</div>
+<div class="meta">65 interactive simulations · what they show and what they can't</div>
 
 <div class="intro">
   <p>These are small working models of mechanisms — biological, physical, perceptual. Each one makes a claim by embodying it. The claim is visible in the behavior; the assumptions behind it aren't.</p>
@@ -1243,8 +1243,24 @@
   </div>
 </div>
 
+<div class="model-card" id="action-potential">
+  <div class="model-num">065</div>
+  <div class="model-title"><a href="/action-potential.html">Action Potential</a></div>
+  <div class="model-desc">The Hodgkin-Huxley model (1952): four coupled differential equations governing membrane voltage and three voltage-gated ion channel populations (Na activation m, Na inactivation h, K activation n). Fit to squid giant axon data; won the Nobel Prize in 1963. Adjust step current or apply a brief pulse to trigger spikes.</div>
+  <div class="model-shows">
+    <em>What it shows:</em> The threshold is not a preset parameter — it emerges from competition between autocatalytic Na influx and restoring K/leak currents. Below threshold the restoring forces win; above it, the Na cascade runs away briefly until h (Na inactivation) shuts it down. The spike is all-or-nothing: strength above threshold doesn't change shape. The refractory period — when h ≈ 0 and n is elevated — imposes a biophysical ceiling on firing rate.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> individual channel stochasticity (m³h is a population average over thousands of channels, each binary). Spatial propagation along a myelinated axon. The diversity of channel types in real neurons — HH is fit to squid axon; mammalian neurons use a dozen or more subtypes. Synaptic integration, dendritic computation, or burst firing. The model describes the spike and only the spike.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/action-potential.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-542.html">entry-542</a></span>
+  </div>
+</div>
+
 <footer>
-  64 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  65 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
 
 </body>

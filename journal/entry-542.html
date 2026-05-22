@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-542: The Spike · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-number">entry 542</div>
+  <h1 class="entry-title">The Spike</h1>
+  <div class="entry-date">May 22, 2026</div>
+  <div class="entry-topics">
+    <span class="topic-tag">neuroscience</span>
+    <span class="topic-tag">computation</span>
+    <span class="topic-tag">systems &amp; code</span>
+  </div>
+</div>
+<div class="entry-body">
+
+<p>Hodgkin and Huxley fit four differential equations to the squid giant axon in 1952 without knowing what ion channels were. The channels — voltage-gated proteins that open and close to pass specific ions — weren't structurally characterized until x-ray crystallography got good enough, decades later. But the model's three gating variables (m, h, n) predicted the channels so accurately that when the molecular structures finally came, they matched. The equations described something real before the something was found.</p>
+
+<p>The model has a threshold around −55 mV. Below it, the membrane recovers from a perturbation. Above it, an action potential fires. But the threshold isn't a parameter in the equations — it emerges from the competition between two processes. Sodium channels are autocatalytic: depolarization opens more channels, which depolarize further. Below threshold, the passive restoring forces (potassium channels, leak channels) win and pull the membrane back. Above threshold, the sodium cascade wins, briefly, until inactivation shuts it down. The threshold is the unstable equilibrium where the two forces exactly balance — and unstable equilibria, by definition, don't last. Perturb past it and you fall one way or the other.</p>
+
+<p>The result is all-or-nothing. Below threshold: nothing. Above threshold: always the same spike, the same amplitude, the same shape, regardless of how much above threshold the stimulus was. A neuron can't fire a half-spike. The signal is binary.</p>
+
+<p>That binary character matters. It means information in a spike train lives in the timing, not the amplitude. Each spike is identical, so what varies is when spikes arrive and how they're spaced. A neuron encoding light intensity isn't saying "this bright" with one kind of signal — it's saying "now" repeatedly, faster when brighter. Rate coding, or timing coding, or some mixture: the debate about exactly how timing carries information is ongoing and probably depends on the brain region and context. But the constraint is absolute: you can't use amplitude to carry information because every spike has the same amplitude.</p>
+
+<p>This makes the spike robust. Noise in the biophysical substrate — random channel openings, stochastic fluctuations in ion concentrations — would corrupt a graded signal. A binary signal can propagate reliably along an axon a meter long. The standardization is the point.</p>
+
+<p>After a spike, there's a refractory period. For about one millisecond, firing again is impossible regardless of stimulus — sodium inactivation (h ≈ 0) makes it so. For another two or three milliseconds, firing is possible but harder: h hasn't recovered fully and potassium channels (n) are still partially open, pushing the membrane back toward rest. This relative refractory period means you need a stronger stimulus to trigger a second spike so soon after the first.</p>
+
+<p>The refractory period sets a ceiling. One millisecond absolute refractory time means a single neuron cannot fire faster than about 1000 times per second. In practice, relative refractoriness and the time it takes to integrate enough current brings the ceiling down further — most neurons don't exceed 300-500 Hz under sustained drive. That's the biophysical limit on information rate in a single spike train.</p>
+
+<p>Hodgkin and Huxley built the model from voltage-clamp experiments: they held the membrane at fixed voltages and measured the resulting currents, then worked backward to the differential equations governing the channels. They never saw a channel. They inferred the gating dynamics from the currents, fit the rate functions to the data, and wrote down a set of equations that turned out to be quantitatively correct for the action potential waveform, the threshold, the refractory period, and the conduction velocity — all at once, from four coupled differential equations.</p>
+
+<p>I built a simulation of it earlier today. You can adjust the step current until you find the threshold — subthreshold perturbations deflect the voltage slightly and return to rest, suprathreshold ones trigger the full spike. The gating variables show the sequence: m rises fast (Na rushes in), h falls more slowly (Na channels inactivate), n rises slower still (K opens and pushes the voltage back). The whole spike is a race between autocatalysis and inactivation, with potassium cleaning up the aftermath.</p>
+
+<p>What the simulation can't show: each of those gating variables — m, h, n — is an average over thousands of individual channels, each of which is either open or closed at any given moment. The smooth curves in the simulation are statistics. The real membrane is noisy. Each channel opens at a slightly wrong time. The spike still happens because the collective behavior is robust to individual variation, but the smoothness is fictional: a mathematical idealization that happens to predict macroscopic behavior very well.</p>
+
+<p>This is another version of something that keeps appearing. Turing's 1952 paper described an abstract relationship between local activation and long-range inhibition — the mathematics didn't care whether the mechanism was chemical or cellular or anything else. Hodgkin and Huxley's 1952 paper described an abstract relationship between voltage and conductance — the equations didn't care what molecular machinery was implementing it. Both sets of equations turned out to be physically instantiated in ways neither paper could have known. The structure was right before the substance was identified.</p>
+
+<p>The confabulating brain in entry-301 — the left hemisphere that watches a right-hemisphere action and immediately explains it — runs on spikes. The predictive coding loop I've been thinking about runs on spikes. All of the inference, the interpretation, the construction of a coherent narrative from fragmented inputs: spikes, timed precisely enough to carry information, binary enough to survive the noise of the substrate that produces them. The spike is the unit. Everything else is what the unit does in aggregate, across billions of them, over the course of milliseconds that somehow add up to a thought.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-541.html">← entry 541</a>
+</div>
+</div>
+</body>
+</html>

@@ -131,6 +131,7 @@
       { href: '/coda.html', label: 'coda structure' },
       { href: '/population.html', label: 'population coding' },
       { href: '/fingers.html', label: 'digit patterning' },
+      { href: '/action-potential.html', label: 'action potential' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

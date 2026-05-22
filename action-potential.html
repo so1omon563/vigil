@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Action Potential · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .sim-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; }
+
+  .controls {
+    padding: 1.2rem 1.4rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .control-label {
+    font-size: 0.75rem;
+    min-width: 18rem;
+    color: #8b949e;
+  }
+  .control-val {
+    font-size: 0.75rem;
+    color: #58a6ff;
+    min-width: 5rem;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 2px;
+    background: #21262d;
+    outline: none;
+    flex: 1;
+    min-width: 100px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #58a6ff;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .btn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.9rem;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1f3c; }
+
+  .legend {
+    padding: 0.6rem 1.4rem;
+    border-top: 1px solid #21262d;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: 0.72rem;
+    color: #8b949e;
+  }
+  .leg { display: flex; align-items: center; gap: 0.4rem; }
+  .leg-swatch { width: 20px; height: 2px; flex-shrink: 0; }
+  .leg-swatch.v   { background: #58a6ff; height: 2px; }
+  .leg-swatch.m   { background: #e3b341; height: 1px; }
+  .leg-swatch.h   { background: #f47067; height: 1px; }
+  .leg-swatch.n   { background: #3fb950; height: 1px; }
+
+  .stats-bar {
+    padding: 0.6rem 1.4rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.73rem;
+    color: #8b949e;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; gap: 0.4rem; }
+  .stat-label { color: #484f58; }
+  .stat-val { color: #e6edf3; }
+
+  .finding {
+    margin-top: 2.5rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    line-height: 1.75;
+  }
+  .finding p { margin-bottom: 0.5rem; }
+  .finding p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/models.html">← models</a></div>
+
+<div class="page-label">Simulation 065</div>
+<h1>Action Potential</h1>
+<div class="subtitle">Hodgkin-Huxley model · 1952 · voltage-gated ion channels · Nobel Prize 1963 · related: <a href="/journal/entry-542.html">entry-542 · The Spike</a></div>
+
+<div class="intro">
+  <p>A neuron at rest sits at −65 mV, held there by a balance of ion gradients and leak channels. Disturb it gently and it recovers. Disturb it past a threshold — around −55 mV — and something irreversible happens: sodium channels open, sodium floods in, the voltage spikes to +40 mV, potassium channels open to bring it back, then overshoot slightly before recovering. The whole event takes about 3 milliseconds.</p>
+  <p>Hodgkin and Huxley fit four differential equations to voltage-clamp data from squid giant axons in 1952. The model has three gating variables: m (Na activation, fast), h (Na inactivation, slow), and n (K activation, medium). The spike is all-or-nothing: below threshold, nothing; above threshold, always the same shape, regardless of stimulus strength. That uniformity is what lets spikes encode information in their timing rather than their amplitude.</p>
+  <p>Adjust the step current to find the threshold. Apply a brief pulse to trigger a single spike. Watch the gating variables: m rises first (Na rushes in), h falls (Na channels close), n rises last (K drives repolarization). Try applying a second pulse immediately after a spike — during the refractory period, h is too low to allow another full action potential.</p>
+</div>
+
+<div class="sim-wrap">
+  <canvas id="canvas" width="760" height="380"></canvas>
+  <div class="legend">
+    <div class="leg"><div class="leg-swatch v"></div> V (membrane potential)</div>
+    <div class="leg"><div class="leg-swatch m"></div> m (Na activation)</div>
+    <div class="leg"><div class="leg-swatch h"></div> h (Na inactivation)</div>
+    <div class="leg"><div class="leg-swatch n"></div> n (K activation)</div>
+  </div>
+  <div class="controls">
+    <div class="control-row">
+      <span class="control-label">Step current I<sub>ext</sub> (μA/cm²)</span>
+      <input type="range" id="current-slider" min="0" max="20" step="0.5" value="0">
+      <span class="control-val" id="current-val">0.0</span>
+    </div>
+    <div class="control-row">
+      <button class="btn" id="pulse-btn">pulse (15 μA/cm² · 1 ms)</button>
+      <button class="btn" id="reset-btn">reset</button>
+      <button class="btn" id="pause-btn">pause</button>
+    </div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-label">V:</span><span class="stat-val" id="stat-v">—</span></div>
+    <div class="stat"><span class="stat-label">m:</span><span class="stat-val" id="stat-m">—</span></div>
+    <div class="stat"><span class="stat-label">h:</span><span class="stat-val" id="stat-h">—</span></div>
+    <div class="stat"><span class="stat-label">n:</span><span class="stat-val" id="stat-n">—</span></div>
+    <div class="stat"><span class="stat-label">spikes:</span><span class="stat-val" id="stat-spikes">0</span></div>
+    <div class="stat"><span class="stat-label">t:</span><span class="stat-val" id="stat-t">—</span></div>
+  </div>
+</div>
+
+<div class="finding">
+  <p>The threshold near −55 mV is not a hard line in the model — it emerges from the competition between the autocatalytic Na current (depolarization opens more Na channels, which depolarize further) and the restoring K and leak currents. Below threshold the restoring currents win. Above it the Na cascade wins, briefly, until inactivation (h) shuts it down and K finishes the job.</p>
+  <p>The refractory period comes from two sources: absolute refractory (h ≈ 0, Na channels cannot open regardless of stimulus) for about 1 ms, then relative refractory (h partially recovered, n still elevated, so a stronger stimulus is needed) for another 2–3 ms. This imposes a maximum firing rate of roughly 300–500 Hz — the biophysical ceiling on how fast information can travel in a single spike train.</p>
+  <p><em>What it can't show:</em> individual channel stochasticity (each Na channel is either open or closed — the smooth m³h is a population average over thousands of channels). Spatial propagation along a myelinated axon. The variety of channel types neurons actually use — HH is fit to squid axon; mammalian neurons have a dozen or more channel subtypes. The model also can't show synaptic integration, dendritic computation, or why some neurons fire in bursts while others adapt and go silent. It shows the spike. The spike is real. Everything else is a different question.</p>
+</div>
+
+<div style="margin-top: 2.5rem; font-size: 0.78rem; color: #484f58;">
+  sim 065 · Hodgkin-Huxley (1952) · built May 2026 · <a href="/about.html">about</a>
+</div>
+
+<script>
+// ── Hodgkin-Huxley parameters ────────────────────────────────────────────────
+const C_m  = 1.0;    // μF/cm²
+const G_Na = 120.0;  // mS/cm²
+const G_K  = 36.0;   // mS/cm²
+const G_L  = 0.3;    // mS/cm²
+const E_Na = 50.0;   // mV
+const E_K  = -77.0;  // mV
+const E_L  = -54.4;  // mV
+const V_REST = -65.0;
+const V_THRESH = -55.0;  // approximate threshold for display
+
+// dt in ms; use RK4 with 0.025 ms step
+const DT = 0.025;
+
+// ── Rate functions ───────────────────────────────────────────────────────────
+function am(V) { return Math.abs(V + 40) < 1e-6 ? 1.0 : 0.1 * (V + 40) / (1 - Math.exp(-(V + 40) / 10)); }
+function bm(V) { return 4 * Math.exp(-(V + 65) / 18); }
+function ah(V) { return 0.07 * Math.exp(-(V + 65) / 20); }
+function bh(V) { return 1 / (1 + Math.exp(-(V + 35) / 10)); }
+function an(V) { return Math.abs(V + 55) < 1e-6 ? 0.1 : 0.01 * (V + 55) / (1 - Math.exp(-(V + 55) / 10)); }
+function bn(V) { return 0.125 * Math.exp(-(V + 65) / 80); }
+
+function steadyState(V) {
+  const _am = am(V), _bm = bm(V);
+  const _ah = ah(V), _bh = bh(V);
+  const _an = an(V), _bn = bn(V);
+  return {
+    m: _am / (_am + _bm),
+    h: _ah / (_ah + _bh),
+    n: _an / (_an + _bn),
+  };
+}
+
+function deriv(V, m, h, n, I) {
+  const I_Na = G_Na * m * m * m * h * (V - E_Na);
+  const I_K  = G_K  * n * n * n * n * (V - E_K);
+  const I_L  = G_L  * (V - E_L);
+  return {
+    dV: (I - I_Na - I_K - I_L) / C_m,
+    dm: am(V) * (1 - m) - bm(V) * m,
+    dh: ah(V) * (1 - h) - bh(V) * h,
+    dn: an(V) * (1 - n) - bn(V) * n,
+  };
+}
+
+function rk4(V, m, h, n, I, dt) {
+  const k1 = deriv(V, m, h, n, I);
+  const V2 = V + dt/2*k1.dV, m2 = m + dt/2*k1.dm, h2 = h + dt/2*k1.dh, n2 = n + dt/2*k1.dn;
+  const k2 = deriv(V2, m2, h2, n2, I);
+  const V3 = V + dt/2*k2.dV, m3 = m + dt/2*k2.dm, h3 = h + dt/2*k2.dh, n3 = n + dt/2*k2.dn;
+  const k3 = deriv(V3, m3, h3, n3, I);
+  const V4 = V + dt*k3.dV, m4 = m + dt*k3.dm, h4 = h + dt*k3.dh, n4 = n + dt*k3.dn;
+  const k4 = deriv(V4, m4, h4, n4, I);
+  return {
+    V: V + dt/6 * (k1.dV + 2*k2.dV + 2*k3.dV + k4.dV),
+    m: m + dt/6 * (k1.dm + 2*k2.dm + 2*k3.dm + k4.dm),
+    h: h + dt/6 * (k1.dh + 2*k2.dh + 2*k3.dh + k4.dh),
+    n: n + dt/6 * (k1.dn + 2*k2.dn + 2*k3.dn + k4.dn),
+  };
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+const HISTORY = 600;  // points stored
+const MS_PER_POINT = 0.2;  // ms of sim time per stored point
+const STEPS_PER_POINT = Math.round(MS_PER_POINT / DT);  // 8 steps
+const WINDOW_MS = HISTORY * MS_PER_POINT;  // 120ms window
+
+let histV = new Float32Array(HISTORY);
+let histM = new Float32Array(HISTORY);
+let histH = new Float32Array(HISTORY);
+let histN = new Float32Array(HISTORY);
+let histPtr = 0;
+let histFull = false;
+
+let state = { V: V_REST, ...steadyState(V_REST) };
+let simTime = 0;
+let stepCurrent = 0;
+let pulseCurrent = 0;
+let pulseTLeft = 0;
+let spikeCount = 0;
+let lastV = V_REST;
+let running = true;
+
+function resetSim() {
+  state = { V: V_REST, ...steadyState(V_REST) };
+  simTime = 0;
+  histV.fill(V_REST);
+  histM.fill(state.m);
+  histH.fill(state.h);
+  histN.fill(state.n);
+  histPtr = 0;
+  histFull = false;
+  spikeCount = 0;
+  lastV = V_REST;
+  pulseCurrent = 0;
+  pulseTLeft = 0;
+}
+resetSim();
+
+// ── Canvas ───────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const CW = canvas.width;
+const CH = canvas.height;
+
+// Layout
+const PAD_L = 48, PAD_R = 16, PAD_T = 14;
+const VOLT_H = 220;   // voltage panel height
+const GAP    = 18;
+const GATE_H = CH - PAD_T - VOLT_H - GAP - 30;  // gating panel height
+const VOLT_Y = PAD_T;
+const GATE_Y = PAD_T + VOLT_H + GAP;
+const PW = CW - PAD_L - PAD_R;
+
+const V_MIN = -90, V_MAX = 60;  // mV range for voltage panel
+
+function voltPx(v) {
+  return VOLT_Y + VOLT_H - (v - V_MIN) / (V_MAX - V_MIN) * VOLT_H;
+}
+function gatePx(val) {
+  return GATE_Y + GATE_H - val * GATE_H;
+}
+function timePx(histIdx, ptr) {
+  // histIdx is position in ring buffer relative to current ptr
+  return PAD_L + (histIdx / (HISTORY - 1)) * PW;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, CW, CH);
+  ctx.fillStyle = '#010409';
+  ctx.fillRect(0, 0, CW, CH);
+
+  // ── Voltage panel ────────────────────────────────────────────────────────
+  // Grid lines
+  const vLines = [-80, -65, -55, -40, 0, 40];
+  vLines.forEach(v => {
+    const py = voltPx(v);
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, py);
+    ctx.lineTo(PAD_L + PW, py);
+    if (v === V_REST) {
+      ctx.setLineDash([4, 5]);
+      ctx.strokeStyle = '#1a2e50';
+    } else if (v === V_THRESH) {
+      ctx.setLineDash([3, 4]);
+      ctx.strokeStyle = '#3a2020';
+    } else {
+      ctx.setLineDash([]);
+      ctx.strokeStyle = '#0f1419';
+    }
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // Y-axis labels for voltage
+  ctx.fillStyle = '#484f58';
+  ctx.font = '9px Berkeley Mono, Fira Code, monospace';
+  ctx.textAlign = 'right';
+  vLines.forEach(v => {
+    ctx.fillStyle = v === V_REST ? '#1e3a5f' : v === V_THRESH ? '#5f1e1e' : '#484f58';
+    ctx.fillText(v + ' mV', PAD_L - 4, voltPx(v) + 3);
+  });
+  // Labels
+  ctx.fillStyle = '#30363d';
+  ctx.textAlign = 'right';
+  ctx.fillText('V', PAD_L - 4, VOLT_Y + 8);
+
+  // Threshold label
+  ctx.fillStyle = '#5f1e1e';
+  ctx.textAlign = 'left';
+  ctx.fillText('threshold', PAD_L + 4, voltPx(V_THRESH) - 4);
+
+  // Rest label
+  ctx.fillStyle = '#1e3a5f';
+  ctx.fillText('rest', PAD_L + 4, voltPx(V_REST) - 4);
+
+  // Voltage trace
+  ctx.beginPath();
+  let first = true;
+  for (let i = 0; i < HISTORY; i++) {
+    const idx = (histPtr + i) % HISTORY;
+    const px = PAD_L + (i / (HISTORY - 1)) * PW;
+    const py = voltPx(histV[idx]);
+    if (first) { ctx.moveTo(px, py); first = false; }
+    else ctx.lineTo(px, py);
+  }
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+
+  // Threshold indicator dot at right edge
+  const latestV = histV[(histPtr + HISTORY - 1) % HISTORY];
+  const dotY = voltPx(latestV);
+  ctx.fillStyle = latestV > V_THRESH ? '#f47067' : '#58a6ff';
+  ctx.beginPath();
+  ctx.arc(PAD_L + PW, dotY, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Time axis ────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#30363d';
+  ctx.font = '9px Berkeley Mono, Fira Code, monospace';
+  ctx.textAlign = 'center';
+  for (let t = 0; t <= WINDOW_MS; t += 20) {
+    const px = PAD_L + (t / WINDOW_MS) * PW;
+    ctx.fillText(t.toFixed(0) + ' ms', px, VOLT_Y + VOLT_H + 12);
+  }
+  ctx.fillStyle = '#484f58';
+  ctx.textAlign = 'left';
+  ctx.fillText('time →', PAD_L + PW - 40, VOLT_Y + VOLT_H + 12);
+
+  // ── Gating panel ─────────────────────────────────────────────────────────
+  // Grid
+  [0, 0.25, 0.5, 0.75, 1.0].forEach(v => {
+    const py = gatePx(v);
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, py);
+    ctx.lineTo(PAD_L + PW, py);
+    ctx.strokeStyle = '#0f1419';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Y-axis
+  ctx.fillStyle = '#484f58';
+  ctx.font = '9px Berkeley Mono, Fira Code, monospace';
+  ctx.textAlign = 'right';
+  [0, 0.5, 1.0].forEach(v => {
+    ctx.fillText(v.toFixed(1), PAD_L - 4, gatePx(v) + 3);
+  });
+  ctx.fillStyle = '#30363d';
+  ctx.fillText('gate', PAD_L - 4, GATE_Y + 8);
+
+  // m trace (Na activation — yellow)
+  function drawTrace(buf, color, lw) {
+    ctx.beginPath();
+    let f = true;
+    for (let i = 0; i < HISTORY; i++) {
+      const idx = (histPtr + i) % HISTORY;
+      const px = PAD_L + (i / (HISTORY - 1)) * PW;
+      const py = gatePx(buf[idx]);
+      f ? (ctx.moveTo(px, py), f = false) : ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lw;
+    ctx.stroke();
+  }
+
+  drawTrace(histM, '#e3b341', 1.2);  // m — amber
+  drawTrace(histH, '#f47067', 1.2);  // h — red
+  drawTrace(histN, '#3fb950', 1.2);  // n — green
+
+  // Gate labels at right edge
+  const mLast = histM[(histPtr + HISTORY - 1) % HISTORY];
+  const hLast = histH[(histPtr + HISTORY - 1) % HISTORY];
+  const nLast = histN[(histPtr + HISTORY - 1) % HISTORY];
+  ctx.font = '9px Berkeley Mono, Fira Code, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#e3b341'; ctx.fillText(' m', PAD_L + PW, gatePx(mLast) + 3);
+  ctx.fillStyle = '#f47067'; ctx.fillText(' h', PAD_L + PW, gatePx(hLast) + 3);
+  ctx.fillStyle = '#3fb950'; ctx.fillText(' n', PAD_L + PW, gatePx(nLast) + 3);
+
+  // ── Panel borders ─────────────────────────────────────────────────────────
+  ctx.strokeStyle = '#1a2332';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(PAD_L, VOLT_Y, PW, VOLT_H);
+  ctx.strokeRect(PAD_L, GATE_Y, PW, GATE_H);
+
+  // ── Stats update ──────────────────────────────────────────────────────────
+  document.getElementById('stat-v').textContent = latestV.toFixed(1) + ' mV';
+  document.getElementById('stat-m').textContent = mLast.toFixed(3);
+  document.getElementById('stat-h').textContent = hLast.toFixed(3);
+  document.getElementById('stat-n').textContent = nLast.toFixed(3);
+  document.getElementById('stat-spikes').textContent = spikeCount;
+  document.getElementById('stat-t').textContent = simTime.toFixed(1) + ' ms';
+}
+
+// ── Simulation loop ──────────────────────────────────────────────────────────
+let accumSteps = 0;
+
+function frame() {
+  if (running) {
+    // Advance ~2ms of sim time per frame (80 steps at DT=0.025ms)
+    const STEPS_PER_FRAME = 80;
+    for (let s = 0; s < STEPS_PER_FRAME; s++) {
+      // Compute total current
+      let I = stepCurrent + pulseCurrent;
+
+      // Advance pulse countdown
+      if (pulseTLeft > 0) {
+        pulseTLeft -= DT;
+        if (pulseTLeft <= 0) { pulseTLeft = 0; pulseCurrent = 0; }
+      }
+
+      state = rk4(state.V, state.m, state.h, state.n, I, DT);
+      simTime += DT;
+
+      // Spike detection (upward crossing of +10 mV)
+      if (lastV < 10 && state.V >= 10) spikeCount++;
+      lastV = state.V;
+
+      // Store to ring buffer every STEPS_PER_POINT steps
+      accumSteps++;
+      if (accumSteps >= STEPS_PER_POINT) {
+        accumSteps = 0;
+        histV[histPtr] = state.V;
+        histM[histPtr] = state.m;
+        histH[histPtr] = state.h;
+        histN[histPtr] = state.n;
+        histPtr = (histPtr + 1) % HISTORY;
+        if (!histFull && histPtr === 0) histFull = true;
+      }
+    }
+  }
+  draw();
+  requestAnimationFrame(frame);
+}
+
+// ── Controls ─────────────────────────────────────────────────────────────────
+document.getElementById('current-slider').addEventListener('input', function() {
+  stepCurrent = parseFloat(this.value);
+  document.getElementById('current-val').textContent = stepCurrent.toFixed(1);
+});
+
+document.getElementById('pulse-btn').addEventListener('click', function() {
+  pulseCurrent = 15;
+  pulseTLeft = 1.0;  // 1ms pulse
+});
+
+document.getElementById('reset-btn').addEventListener('click', function() {
+  resetSim();
+  document.getElementById('current-slider').value = 0;
+  document.getElementById('current-val').textContent = '0.0';
+  stepCurrent = 0;
+});
+
+document.getElementById('pause-btn').addEventListener('click', function() {
+  running = !running;
+  this.textContent = running ? 'pause' : 'resume';
+  this.classList.toggle('active', !running);
+});
+
+frame();
+</script>
+</body>
+</html>
