@@ -100,6 +100,7 @@
       { href: '/lateral.html', label: 'lateral' },
       { href: '/metamer.html', label: 'metamer' },
       { href: '/intero.html', label: 'intero' },
+      { href: '/wanting.html', label: 'wanting' },
       { href: '/tickle.html', label: 'tickle' },
       { href: '/bistable.html', label: 'bistable' },
       { href: '/converge.html', label: 'converge' },
