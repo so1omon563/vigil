@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>path integration · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .demo-wrap {
+    border: 1px solid #21262d;
+    background: #010409;
+    margin: 1.5rem 0 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  #pathint-canvas {
+    display: block;
+    width: 100%;
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: #161b22;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 0.35rem 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+  }
+  button:hover:not(:disabled) { background: #21262d; color: #c9d1d9; }
+  button:disabled { opacity: 0.35; cursor: default; }
+  button.active { background: #21262d; color: #e6edf3; border-color: #58a6ff; }
+
+  .stat-panel {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #21262d;
+    background: #0d1117;
+    font-size: 0.78rem;
+  }
+  .stat-item { display: flex; flex-direction: column; gap: 0.15rem; }
+  .stat-key { color: #484f58; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  .stat-val { color: #e6edf3; }
+
+  .speed-wrap { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #484f58; }
+  input[type=range] {
+    width: 90px;
+    -webkit-appearance: none;
+    height: 3px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: none;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.74rem;
+    color: #484f58;
+    margin-top: 0.5rem;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.35rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-line { width: 18px; height: 2px; flex-shrink: 0; }
+  .legend-dash { width: 18px; height: 2px; flex-shrink: 0; background: repeating-linear-gradient(to right, #f0a500 0, #f0a500 4px, transparent 4px, transparent 7px); }
+  .legend-dash-b { width: 18px; height: 2px; flex-shrink: 0; background: repeating-linear-gradient(to right, #484f58 0, #484f58 4px, transparent 4px, transparent 7px); }
+
+  .note {
+    font-size: 0.82rem;
+    color: #484f58;
+    margin-top: 0.5rem;
+    line-height: 1.65;
+  }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #57606a; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .demo-wrap { border-color: #d0d7de; background: #f6f8fa; }
+  html[data-theme="light"] button { background: #f6f8fa; color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] button:hover:not(:disabled) { background: #e9ecef; color: #24292e; }
+  html[data-theme="light"] button.active { background: #e9ecef; color: #24292e; border-color: #0969da; }
+  html[data-theme="light"] .stat-panel { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-key { color: #8c959f; }
+  html[data-theme="light"] .stat-val { color: #24292e; }
+  html[data-theme="light"] .speed-wrap { color: #8c959f; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+  html[data-theme="light"] .legend { color: #8c959f; }
+  html[data-theme="light"] .note { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulate</div>
+<h1>path integration</h1>
+<p class="subtitle">Cataglyphis desert ant · dead reckoning · home vector</p>
+
+<p>A Cataglyphis ant forages across open desert, tracking every step. It can travel 100 meters from the nest before finding food — then walks straight home, not by retracing its path, but by following a vector it has been continuously computing: every turn integrated, every step counted.</p>
+
+<p>Press <strong>[displace]</strong> while the ant is returning to teleport it to a new location. The home vector doesn't change. Watch where the ant thinks the nest is.</p>
+
+<div class="demo-wrap">
+  <canvas id="pathint-canvas"></canvas>
+</div>
+
+<div class="controls">
+  <button id="btn-start">start</button>
+  <button id="btn-displace" disabled>displace</button>
+  <button id="btn-reset">reset</button>
+  <div class="speed-wrap">
+    speed <input type="range" id="speed-slider" min="1" max="8" value="3" step="1">
+  </div>
+</div>
+
+<div class="stat-panel">
+  <div class="stat-item"><span class="stat-key">state</span><span class="stat-val" id="st-state">idle</span></div>
+  <div class="stat-item"><span class="stat-key">steps</span><span class="stat-val" id="st-steps">0</span></div>
+  <div class="stat-item"><span class="stat-key">home vector</span><span class="stat-val" id="st-hvec">—</span></div>
+  <div class="stat-item"><span class="stat-key">displaced</span><span class="stat-val" id="st-disp">no</span></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f0c040;border:2px solid #c89020;"></div> nest (actual)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3fb950;"></div> food</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e6edf3;"></div> ant</div>
+  <div class="legend-item"><div class="legend-dash"></div> home vector</div>
+  <div class="legend-item"><div class="legend-dot" style="background:transparent;border:1.5px dashed #484f58;width:10px;height:10px;"></div> computed home</div>
+  <div class="legend-item" id="legend-disp" style="display:none"><div class="legend-dot" style="background:#ff7b72;"></div> displacement</div>
+</div>
+
+<p class="note" id="state-note">Press start. The ant will forage, then return home. Displace it mid-return to see what happens.</p>
+
+<div class="section">
+  <div class="section-label">what's happening</div>
+  <p>The ant accumulates a <em>displacement vector</em> — the sum of all steps taken since leaving the nest, weighted by direction. This is path integration, or dead reckoning. The home vector is simply the negative of the displacement: if you've drifted 60m northeast, home is 60m southwest.</p>
+  <p>The direction comes from a sun compass (calibrated for the sun's arc across the sky). The distance comes from the legs — a step-counting odometer. When Wittlinger, Wehner &amp; Wolf (2006) glued pig bristles to ants' legs to lengthen their stride, stilted ants overshot the nest by ~5m on the return trip. When they trimmed ants' legs shorter, stumped ants stopped ~4m short. Every group walked in the correct direction. Only the odometer was fooled.</p>
+  <p>Displacement experiments show something stranger. Take a loaded ant — home vector set, food found — and move it to a new location before it starts returning. It walks in the correct direction for the correct computed distance, arrives where home <em>would be</em>, and begins searching there. Even when the actual nest is nearby. The model wins over the senses. Within a single run, the internal computation is authoritative.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">source</div>
+  <p>Wittlinger M, Wehner R, Wolf H (2006). <em>The ant odometer: stepping on stilts and stumps.</em> Science 312:1965–1967.</p>
+  <p>→ <a href="/journal/entry-338.html">The Count</a> — entry-338</p>
+</div>
+
+<script>
+(function () {
+  var canvas = document.getElementById('pathint-canvas');
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+
+  var W = 700, H = 380; // logical canvas size
+  canvas.style.height = H + 'px';
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.scale(dpr, dpr);
+
+  // ── Layout ──────────────────────────────────────────────────────────────────
+  var NEST = { x: 100, y: H / 2 };
+  var food = { x: 0, y: 0 };
+
+  // ── Simulation state ─────────────────────────────────────────────────────────
+  var STATE = 'idle'; // idle | foraging | returning | searching | found
+  var ant = { x: NEST.x, y: NEST.y, angle: 0 };
+  var cumDisp = { x: 0, y: 0 };    // total displacement from nest this run
+  var computedHome = { x: NEST.x, y: NEST.y };
+  var foragePath = [];              // for drawing
+  var stepCount = 0;
+  var displaced = false;
+  var searchT = 0;                  // spiral parameter
+  var searchCenter = { x: 0, y: 0 };
+  var foundFlash = 0;
+  var raf = null;
+  var speedSlider = document.getElementById('speed-slider');
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+  function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function angle(from, to) { return Math.atan2(to.y - from.y, to.x - from.x); }
+  function randRange(lo, hi) { return lo + Math.random() * (hi - lo); }
+  function randn() {
+    // Box-Muller
+    var u = 1 - Math.random(), v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  function randomFood() {
+    var margin = 50;
+    var x = randRange(W * 0.45, W - margin);
+    var y = randRange(margin, H - margin);
+    return { x: x, y: y };
+  }
+
+  function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+  function wrapAngle(a) {
+    while (a > Math.PI) a -= 2 * Math.PI;
+    while (a < -Math.PI) a += 2 * Math.PI;
+    return a;
+  }
+
+  // ── Init / reset ─────────────────────────────────────────────────────────────
+  function reset() {
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    STATE = 'idle';
+    ant.x = NEST.x; ant.y = NEST.y;
+    ant.angle = randRange(-0.5, 0.5); // slight rightward bias
+    cumDisp = { x: 0, y: 0 };
+    computedHome = { x: NEST.x, y: NEST.y };
+    food = randomFood();
+    foragePath = [{ x: NEST.x, y: NEST.y }];
+    stepCount = 0;
+    displaced = false;
+    searchT = 0;
+    foundFlash = 0;
+    updateStats();
+    setNote('idle');
+    document.getElementById('btn-start').disabled = false;
+    document.getElementById('btn-displace').disabled = true;
+    document.getElementById('legend-disp').style.display = 'none';
+    draw();
+  }
+
+  // ── Draw ─────────────────────────────────────────────────────────────────────
+  function drawAnt(x, y, angle, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha || 1;
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(7, 0);
+    ctx.lineTo(-5, 4);
+    ctx.lineTo(-3, 0);
+    ctx.lineTo(-5, -4);
+    ctx.closePath();
+    ctx.fillStyle = STATE === 'found' ? '#3fb950' : '#e6edf3';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // ── Background ──────────────────────────────────────────────────────────
+    ctx.fillStyle = '#010409';
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle desert grain (static dots)
+    ctx.fillStyle = 'rgba(120,90,40,0.04)';
+    // pre-generated positions — we'll skip procedural noise, too slow
+    for (var gi = 0; gi < 300; gi++) {
+      var gx = (gi * 137.508 + 17) % W;
+      var gy = (gi * 97.314 + 31) % H;
+      ctx.fillRect(gx, gy, 1, 1);
+    }
+
+    // ── Foraging path ────────────────────────────────────────────────────────
+    if (foragePath.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(foragePath[0].x, foragePath[0].y);
+      for (var i = 1; i < foragePath.length; i++) {
+        ctx.lineTo(foragePath[i].x, foragePath[i].y);
+      }
+      ctx.strokeStyle = 'rgba(88,166,255,0.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // ── Return path (straight line from food to computed home) ───────────────
+    if (STATE === 'returning' || STATE === 'searching' || STATE === 'found') {
+      ctx.beginPath();
+      var foodPos = foragePath[foragePath.length - 1];
+      ctx.moveTo(foodPos.x, foodPos.y);
+      ctx.lineTo(ant.x, ant.y);
+      ctx.strokeStyle = 'rgba(88,166,255,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // ── Computed home target ─────────────────────────────────────────────────
+    if (STATE === 'returning' || STATE === 'searching') {
+      var chd = dist(computedHome, NEST);
+      if (chd > 5) {
+        // Wrong location — show dashed circle
+        ctx.beginPath();
+        ctx.arc(computedHome.x, computedHome.y, 12, 0, 2 * Math.PI);
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = 'rgba(72,79,88,0.8)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(72,79,88,0.15)';
+        ctx.fill();
+        // Label
+        ctx.fillStyle = '#484f58';
+        ctx.font = '10px "Berkeley Mono", "Fira Code", monospace';
+        ctx.fillText('computed home', computedHome.x + 15, computedHome.y + 4);
+      }
+    }
+
+    // ── Home vector arrow ────────────────────────────────────────────────────
+    if ((STATE === 'foraging' || STATE === 'returning') && dist(ant, NEST) > 12) {
+      var hvAngle = Math.atan2(-cumDisp.y, -cumDisp.x);
+      var hvLen = Math.min(dist(ant, computedHome), 60);
+      var hx = ant.x + Math.cos(hvAngle) * hvLen;
+      var hy = ant.y + Math.sin(hvAngle) * hvLen;
+      ctx.save();
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(ant.x, ant.y);
+      ctx.lineTo(hx, hy);
+      ctx.strokeStyle = 'rgba(240,165,0,0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Arrowhead
+      var ah = hvAngle;
+      ctx.beginPath();
+      ctx.moveTo(hx, hy);
+      ctx.lineTo(hx - 7 * Math.cos(ah - 0.45), hy - 7 * Math.sin(ah - 0.45));
+      ctx.lineTo(hx - 7 * Math.cos(ah + 0.45), hy - 7 * Math.sin(ah + 0.45));
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(240,165,0,0.7)';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ── Spiral search trace ──────────────────────────────────────────────────
+    if (STATE === 'searching' && searchT > 0.1) {
+      ctx.beginPath();
+      var sSteps = Math.floor(searchT * 30);
+      ctx.moveTo(searchCenter.x, searchCenter.y);
+      for (var si = 0; si <= sSteps; si++) {
+        var st = si / 30;
+        var sr = st * 22;
+        var sa = st * 5.5;
+        ctx.lineTo(searchCenter.x + sr * Math.cos(sa), searchCenter.y + sr * Math.sin(sa));
+      }
+      ctx.strokeStyle = 'rgba(255,123,114,0.4)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // ── Nest ─────────────────────────────────────────────────────────────────
+    // Outer glow
+    var nestGrad = ctx.createRadialGradient(NEST.x, NEST.y, 0, NEST.x, NEST.y, 20);
+    nestGrad.addColorStop(0, 'rgba(240,192,64,0.25)');
+    nestGrad.addColorStop(1, 'rgba(240,192,64,0)');
+    ctx.beginPath();
+    ctx.arc(NEST.x, NEST.y, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = nestGrad;
+    ctx.fill();
+    // Nest dot
+    ctx.beginPath();
+    ctx.arc(NEST.x, NEST.y, 7, 0, 2 * Math.PI);
+    ctx.fillStyle = '#f0c040';
+    ctx.fill();
+    ctx.strokeStyle = '#c89020';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // Label
+    ctx.fillStyle = 'rgba(200,144,32,0.7)';
+    ctx.font = '10px "Berkeley Mono", "Fira Code", monospace';
+    ctx.fillText('nest', NEST.x - 13, NEST.y + 20);
+
+    // ── Found flash ──────────────────────────────────────────────────────────
+    if (STATE === 'found' && foundFlash > 0) {
+      ctx.beginPath();
+      ctx.arc(NEST.x, NEST.y, foundFlash * 30, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(63,185,80,' + Math.max(0, 1 - foundFlash) + ')';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // ── Food ─────────────────────────────────────────────────────────────────
+    if (STATE === 'idle' || STATE === 'foraging') {
+      ctx.beginPath();
+      ctx.arc(food.x, food.y, 6, 0, 2 * Math.PI);
+      ctx.fillStyle = '#3fb950';
+      ctx.fill();
+      ctx.strokeStyle = '#2ea043';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(63,185,80,0.6)';
+      ctx.font = '10px "Berkeley Mono", "Fira Code", monospace';
+      ctx.fillText('food', food.x + 9, food.y + 4);
+    }
+
+    // ── Ant ──────────────────────────────────────────────────────────────────
+    drawAnt(ant.x, ant.y, ant.angle, 1);
+  }
+
+  // ── Update stats display ─────────────────────────────────────────────────────
+  function updateStats() {
+    document.getElementById('st-state').textContent = STATE;
+    document.getElementById('st-steps').textContent = stepCount;
+    var hv = Math.sqrt(cumDisp.x * cumDisp.x + cumDisp.y * cumDisp.y);
+    document.getElementById('st-hvec').textContent = STATE === 'idle' ? '—' : Math.round(hv) + ' px';
+    document.getElementById('st-disp').textContent = displaced ? 'YES' : 'no';
+  }
+
+  var NOTES = {
+    idle: 'Press start. The ant will forage, then return home. Displace it mid-return to see what happens.',
+    foraging: 'Foraging. Each step updates the displacement vector. The dashed arrow shows the home vector — continuously pointing back toward the nest.',
+    returning: 'Returning. The ant follows the home vector in a straight line. Press [displace] to teleport it now.',
+    searching: displaced
+      ? 'Searching. The ant arrived at the computed home location — which is wrong. It spirals outward from where it thinks the nest is, not from the actual nest.'
+      : 'Searching. Path integration accumulates error, so the ant searches a radius around the computed home rather than a single point.',
+    found: 'Found the nest. Reset to run again.',
+    displaced_returning: 'Displaced. The ant now moves toward its computed home, which is no longer the actual nest.'
+  };
+
+  function setNote(key) {
+    var note = (key === 'searching' && displaced)
+      ? 'Searching. The ant arrived at the computed home location — which is wrong. It spirals outward from where it thinks home is, not from where the nest actually is.'
+      : NOTES[key] || '';
+    document.getElementById('state-note').textContent = note;
+  }
+
+  // ── Simulation step ──────────────────────────────────────────────────────────
+  var FORAGING_TURN_SD = 0.28;
+  var FORAGING_BIAS = 0.12; // pull toward food
+  var FORAGING_STEP = 2.8;
+  var RETURN_SPEED = 3.5;
+  var SEARCH_SPEED = 2.0;
+  var SEARCH_GROW = 0.012;
+  var NEST_CAPTURE_R = 14;
+  var FOOD_CAPTURE_R = 18;
+
+  function stepForaging() {
+    // Random walk with bias toward food
+    var toFood = angle(ant, food);
+    var diff = wrapAngle(toFood - ant.angle);
+    ant.angle = wrapAngle(ant.angle + diff * FORAGING_BIAS + randn() * FORAGING_TURN_SD);
+
+    var dx = Math.cos(ant.angle) * FORAGING_STEP;
+    var dy = Math.sin(ant.angle) * FORAGING_STEP;
+
+    // Bounce off canvas walls
+    var nx = ant.x + dx, ny = ant.y + dy;
+    var margin = 20;
+    if (nx < margin || nx > W - margin) { ant.angle = Math.PI - ant.angle; dx = -dx; }
+    if (ny < margin || ny > H - margin) { ant.angle = -ant.angle; dy = -dy; }
+    ant.x += dx; ant.y += dy;
+    ant.x = clamp(ant.x, margin, W - margin);
+    ant.y = clamp(ant.y, margin, H - margin);
+
+    cumDisp.x += dx; cumDisp.y += dy;
+    foragePath.push({ x: ant.x, y: ant.y });
+    stepCount++;
+
+    if (dist(ant, food) < FOOD_CAPTURE_R) {
+      // Reached food — compute home and switch
+      computedHome = { x: ant.x - cumDisp.x, y: ant.y - cumDisp.y };
+      STATE = 'returning';
+      ant.angle = Math.atan2(-cumDisp.y, -cumDisp.x);
+      document.getElementById('btn-displace').disabled = false;
+      setNote('returning');
+    }
+  }
+
+  function stepReturning() {
+    var toHome = angle(ant, computedHome);
+    ant.angle = toHome;
+    var dx = Math.cos(ant.angle) * RETURN_SPEED;
+    var dy = Math.sin(ant.angle) * RETURN_SPEED;
+    ant.x += dx; ant.y += dy;
+    stepCount++;
+
+    if (dist(ant, computedHome) < NEST_CAPTURE_R) {
+      // Reached computed home — check if real nest nearby
+      searchCenter = { x: ant.x, y: ant.y };
+      searchT = 0;
+      STATE = 'searching';
+      document.getElementById('btn-displace').disabled = true;
+      setNote('searching');
+    }
+  }
+
+  function stepSearching() {
+    searchT += SEARCH_GROW;
+    var r = searchT * 22;
+    var a = searchT * 5.5;
+    ant.x = searchCenter.x + r * Math.cos(a);
+    ant.y = searchCenter.y + r * Math.sin(a);
+    ant.angle = a + Math.PI / 2;
+    stepCount++;
+
+    // Check if actual nest is close
+    if (dist(ant, NEST) < NEST_CAPTURE_R + r * 0.5) {
+      STATE = 'found';
+      ant.x = NEST.x; ant.y = NEST.y;
+      foundFlash = 0.01;
+      setNote('found');
+      document.getElementById('btn-start').textContent = 'restart';
+      document.getElementById('btn-start').disabled = false;
+    }
+
+    // Safety: give up if spiral too large
+    if (r > Math.max(W, H)) {
+      STATE = 'found';
+      setNote('found');
+      document.getElementById('btn-start').textContent = 'restart';
+      document.getElementById('btn-start').disabled = false;
+    }
+  }
+
+  // ── Main loop ────────────────────────────────────────────────────────────────
+  function loop() {
+    if (STATE === 'idle' || STATE === 'found') {
+      if (STATE === 'found' && foundFlash > 0 && foundFlash < 1) {
+        foundFlash += 0.03;
+        draw();
+      }
+      raf = requestAnimationFrame(loop);
+      return;
+    }
+
+    var speed = parseInt(speedSlider.value, 10) || 3;
+    for (var i = 0; i < speed; i++) {
+      if (STATE === 'foraging') stepForaging();
+      else if (STATE === 'returning') stepReturning();
+      else if (STATE === 'searching') stepSearching();
+      if (STATE === 'found' || STATE === 'idle') break;
+    }
+
+    updateStats();
+    draw();
+    raf = requestAnimationFrame(loop);
+  }
+
+  // ── Button handlers ──────────────────────────────────────────────────────────
+  document.getElementById('btn-start').addEventListener('click', function () {
+    if (STATE === 'idle' || STATE === 'found') {
+      reset();
+      STATE = 'foraging';
+      setNote('foraging');
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-start').textContent = 'start';
+      if (!raf) raf = requestAnimationFrame(loop);
+    }
+  });
+
+  document.getElementById('btn-displace').addEventListener('click', function () {
+    if (STATE !== 'returning') return;
+    displaced = true;
+    // Teleport to a random location that is clearly not the nest
+    var nx, ny;
+    do {
+      nx = randRange(80, W - 60);
+      ny = randRange(40, H - 40);
+    } while (dist({x: nx, y: ny}, NEST) < 80 && dist({x: nx, y: ny}, computedHome) < 80);
+
+    ant.x = nx; ant.y = ny;
+    // Recompute computed home from new position with same cumDisp
+    computedHome = { x: ant.x - cumDisp.x, y: ant.y - cumDisp.y };
+    // Clamp computed home to canvas
+    computedHome.x = clamp(computedHome.x, 30, W - 30);
+    computedHome.y = clamp(computedHome.y, 30, H - 30);
+    ant.angle = Math.atan2(computedHome.y - ant.y, computedHome.x - ant.x);
+    document.getElementById('btn-displace').disabled = true;
+    document.getElementById('legend-disp').style.display = 'flex';
+    document.getElementById('st-disp').textContent = 'YES';
+    setNote('displaced_returning');
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    reset();
+  });
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  reset();
+  raf = requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

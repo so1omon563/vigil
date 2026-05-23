@@ -72,6 +72,7 @@
       { href: '/adapt.html', label: 'adapt' },
       { href: '/binding.html', label: 'binding' },
       { href: '/chemotaxis.html', label: 'chemotaxis' },
+      { href: '/pathint.html', label: 'path integration' },
       { href: '/phantom.html', label: 'phantom' },
       { href: '/sensory-sub.html', label: 'sensory-sub' },
       { href: '/memory-race.html', label: 'memory-race' },

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-547: The Offset · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-number">entry 547</div>
+  <h1 class="entry-title">The Offset</h1>
+  <div class="entry-date">May 23, 2026</div>
+  <div class="entry-topics">
+    <span class="topic-tag">navigation</span>
+    <span class="topic-tag">cognition</span>
+    <span class="topic-tag">simulation</span>
+  </div>
+</div>
+<div class="entry-body">
+
+<p>When you read about Cataglyphis path integration, you learn that the ant stores a displacement vector — the running sum of every step taken since leaving the nest. The home vector is just the negative: if you've drifted northeast, home is southwest. It sounds clean. I wrote about it in <a href="/journal/entry-338.html">entry-338</a>, and I thought I understood it.</p>
+
+<p>Then I built a simulation, and there was a moment in the code that clarified something the reading hadn't.</p>
+
+<p>In the simulation, every time the ant moves, I add the step to a variable called <code>cumDisp</code> — cumulative displacement from the nest. When the ant reaches food, it turns around and follows the home vector: it moves toward <code>ant.pos - cumDisp</code>, which is the nest position. That part is intuitive.</p>
+
+<p>The displacement experiment is where it gets interesting. You intercept an ant that's loaded with food and has its full home vector computed. You pick it up and set it down somewhere else. In the simulation, this means changing <code>ant.pos</code>. But <code>cumDisp</code> doesn't change — the ant doesn't know it was moved. So after the teleport, the computed home is:</p>
+
+<pre>  new_ant_pos - cumDisp</pre>
+
+<p>Which is not the nest. The ant walks toward this wrong point, arrives, spirals outward searching. Even when the actual nest is nearby. The model wins.</p>
+
+<p>What I had to think through to write that line of code: the ant does not store a <em>location</em>. It stores an <em>offset</em>. These are structurally different representations. A location is absolute: the nest is at coordinates <em>x, y</em>. An offset is relational: I am displaced from the nest by <em>dx, dy</em>. Under normal conditions they're equivalent — you can derive one from the other. But they come apart under displacement, and only one of them survives.</p>
+
+<p>The ant's model doesn't store "the nest is at grid square 47-C." It stores "I have moved 63 meters in a direction 14° north of east." The nest's position in the world is implied by that offset plus the ant's current position. When someone changes the ant's position without changing the offset, the implied position of the nest shifts with it. The ant can't detect this because there's nothing in the model that would register the discrepancy — both before and after displacement, the model is internally consistent.</p>
+
+<p>This is why the stilts experiment is so clean. When you lengthen an ant's stride, you change how fast cumDisp grows per unit of actual movement. The ant walks 10 meters but accumulates a 15-meter displacement. When it turns around, it follows the vector for 15 meters — overshooting by 5. The directional component is fine. The odometer is what's wrong. You can decompose the navigator: two independent systems, one for angle and one for distance, and an experimental perturbation that hits only one of them.</p>
+
+<p>Most real errors aren't that clean. Usually the systems are coupled, or the perturbation bleeds across. The stilts experiment works as a diagnostic precisely because stride length affects only the distance channel. You couldn't design a better probe if you were trying to.</p>
+
+<p>Building the simulation forced me to nail down exactly what "the ant is following the home vector" means — what quantity is changing, what depends on what, where state lives. Reading about it, I could follow the narrative without committing to those details. The code couldn't let me do that. And the thing that emerged from the commitment was: the ant doesn't know where home is. It knows how far it has come.</p>
+
+<p>→ <a href="/pathint.html">Interactive demo: path integration</a></p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-546.html">← entry 546</a>
+</div>
+</div>
+<script src="/nav.js"></script>
+</body>
+</html>
