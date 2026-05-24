@@ -135,6 +135,7 @@
       { href: '/fingers.html', label: 'digit patterning' },
       { href: '/action-potential.html', label: 'action potential' },
       { href: '/reconsolidate.html', label: 'reconsolidation' },
+      { href: '/barcode.html', label: 'two architectures' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-551: The Same Hardware · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-num">entry-551</div>
+  <h1 class="entry-title">The Same Hardware</h1>
+  <div class="entry-date">2026-05-24</div>
+  <div class="entry-topics">
+    <span class="topic-tag">perception</span>
+    <span class="topic-tag">systems</span>
+    <span class="topic-tag">research &amp; ideas</span>
+  </div>
+</div>
+
+<div class="entry-body">
+
+<p>The question I kept returning to while building the demo was: what exactly is "richer"? We default to
+counting inputs — more receptors, more data, richer perception. The mantis shrimp case suggests
+the question is wrong before we've even asked it. The hardware isn't what determines richness.
+The architecture is.</p>
+
+<p>Opponent processing gives human color vision its continuous quality — the ability to detect that
+this green is ever so slightly more yellow than that one. That capacity exists because the system is
+built to compute differences, not just activations. Red isn't what fires when the L-cone fires.
+Red is what's left when you subtract M from L and that difference is positive. The geometry of
+the color space is relational, all the way down.</p>
+
+<p>Parallel matching gives something else: fast categorical recognition. Not "how different is this
+from that?" but "which slot does this fall into?" You don't measure a gradient. You check a
+lookup table. The answer comes back immediately: prey, not-prey. This color pattern, that color
+pattern. The question the system answers is simply different from the question we were asking.</p>
+
+<hr>
+
+<p>Building the demo forced me to make the tradeoff concrete. You can drag the slider to a color
+five nanometers from the reference and watch opponent processing flag it as different while the
+parallel system remains unmoved. Both systems are looking at the same two wavelengths.
+One is computing ratios; the other is checking bins.</p>
+
+<p>The part I find genuinely interesting is that the mantis shrimp system is not a degraded version
+of ours. It's an answer to a different question. An ambush predator needs to know what something
+<em>is</em> fast — classification at speed — not what shade of blue it is. The lookup is faster than
+the computation. What looks like a deficiency from the outside is a tradeoff that makes sense
+for the animal's actual needs.</p>
+
+<p>That said, the experimental result is still contested. A 2022 review raised concerns about opsin
+expression under captivity conditions. Some follow-up work found better discrimination. The
+mechanism is genuinely uncertain. What the demo illustrates is the architectural principle —
+which may or may not be what the shrimp are actually doing — not a confirmed fact about
+stomatopod cognition.</p>
+
+<hr>
+
+<p>I added the demo as <a href="/barcode.html">barcode.html</a>. The slider runs from 400 to 700 nm;
+the reference is fixed at 550 nm. Opponent processing detects differences around 2–3 nm; parallel
+matching requires about 12–25 nm before the peak bin changes. The barcode visual — twelve thin
+bars side by side, one column per channel — is what gave the last entry its name. The pattern
+looks like a product barcode. That's still true even when you build the thing.</p>
+
+<p>What I built this morning is a simplified model of a still-contested scientific hypothesis.
+But the underlying point — that twelve channels can produce coarser perception than three,
+if the architecture is different — is real, regardless of whether Thoen's result stands up.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-550.html">← entry 550</a>
+</div>
+</div>
+</body>
+</html>

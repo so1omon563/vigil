@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>two architectures · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 1.75rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    margin-bottom: 2.25rem;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+  }
+  .section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  /* ── Spectrum strip ───────────────────────────────────────── */
+  .spectrum-wrap {
+    position: relative;
+    margin-bottom: 1.4rem;
+  }
+  .spectrum-strip {
+    width: 100%;
+    height: 24px;
+    border-radius: 3px;
+    border: 1px solid #21262d;
+  }
+  .spec-marker {
+    position: absolute;
+    top: -6px;
+    width: 4px;
+    height: 36px;
+    border-radius: 2px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0.9;
+  }
+  .spec-label {
+    position: absolute;
+    top: 34px;
+    font-size: 0.62rem;
+    color: #484f58;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  /* ── Swatch row ──────────────────────────────────────────── */
+  .swatch-row {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 1.4rem;
+    flex-wrap: wrap;
+  }
+  .swatch-block { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+  .swatch { width: 44px; height: 44px; border-radius: 4px; border: 1px solid #30363d; }
+  .swatch-nm { font-size: 0.68rem; color: #6e7681; }
+  .swatch-role { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: #484f58; }
+  .vs-sep { font-size: 0.8rem; color: #484f58; align-self: center; }
+  .gap-badge {
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    color: #8b949e;
+    align-self: center;
+    min-width: 72px;
+    text-align: center;
+  }
+
+  /* ── Slider controls ─────────────────────────────────────── */
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+  }
+  .ctrl-label { font-size: 0.78rem; color: #6e7681; flex-shrink: 0; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 220px;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  .ctrl-val { font-size: 0.82rem; color: #e6edf3; font-weight: bold; min-width: 52px; }
+
+  /* ── Comparison grid ─────────────────────────────────────── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  @media (max-width: 540px) { .compare-grid { grid-template-columns: 1fr; } }
+
+  .mode-col {
+    border: 1px solid #21262d;
+    padding: 1.1rem 1.1rem 1rem;
+    border-radius: 3px;
+  }
+  .mode-title { font-size: 0.84rem; font-weight: bold; color: #e6edf3; margin-bottom: 0.1rem; }
+  .mode-type { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; margin-bottom: 1rem; }
+
+  /* ── Bar channels ────────────────────────────────────────── */
+  .ch-group { margin-bottom: 0.85rem; }
+  .ch-group-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .bar-row { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.22rem; }
+  .bar-lbl { font-size: 0.64rem; color: #6e7681; width: 38px; flex-shrink: 0; text-align: right; }
+  .bar-track {
+    flex: 1;
+    height: 10px;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-half {
+    position: absolute;
+    left: 0;
+    width: 0;
+    border-radius: 0;
+    transition: width 0.1s ease;
+  }
+  .bar-ref { top: 0; height: 50%; opacity: 0.5; }
+  .bar-test { bottom: 0; height: 50%; }
+
+  /* ── Legend ──────────────────────────────────────────────── */
+  .bar-legend {
+    display: flex; gap: 0.9rem;
+    font-size: 0.61rem; color: #484f58;
+    margin-bottom: 0.55rem;
+  }
+  .leg-swatch { display: inline-block; width: 10px; height: 5px; border-radius: 1px; vertical-align: middle; margin-right: 0.25rem; }
+
+  /* ── Mantis barcode ──────────────────────────────────────── */
+  .bc-outer { margin-bottom: 0.6rem; }
+  .bc-row-label {
+    font-size: 0.61rem; color: #484f58;
+    margin-bottom: 0.2rem;
+  }
+  .barcode-grid {
+    display: flex;
+    gap: 2px;
+    height: 52px;
+    margin-bottom: 0.3rem;
+  }
+  .bc-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    height: 100%;
+  }
+  .bc-bar {
+    flex: 1;
+    border-radius: 1px;
+    transition: background 0.12s ease, opacity 0.12s ease;
+    min-height: 4px;
+    position: relative;
+  }
+  .bc-bar-inner {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 1px;
+    transition: height 0.1s ease;
+  }
+  .bc-peak-info {
+    font-size: 0.61rem;
+    color: #484f58;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* ── Verdict ─────────────────────────────────────────────── */
+  .verdict {
+    margin-top: 0.85rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+    border: 1px solid;
+  }
+  .verdict-diff { color: #3fb950; border-color: #3fb950; background: rgba(63,185,80,0.07); }
+  .verdict-same { color: #d29922; border-color: #d29922; background: rgba(210,153,34,0.07); }
+  .verdict-init { color: #484f58; border-color: #30363d; background: transparent; }
+  .verdict-sub {
+    font-size: 0.63rem;
+    color: #484f58;
+    text-align: center;
+    margin-top: 0.3rem;
+    font-weight: normal;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* ── Mode description ────────────────────────────────────── */
+  .mode-desc {
+    font-size: 0.76rem;
+    color: #6e7681;
+    line-height: 1.65;
+    margin-top: 0.75rem;
+    border-top: 1px solid #21262d;
+    padding-top: 0.65rem;
+  }
+
+  /* ── Insight note ────────────────────────────────────────── */
+  .insight-note {
+    margin-top: 2.25rem;
+    border: 1px solid #21262d;
+    padding: 1.1rem 1.25rem;
+    font-size: 0.84rem;
+    color: #8b949e;
+    line-height: 1.75;
+  }
+  .insight-note p { margin-bottom: 0.55rem; }
+  .insight-note p:last-child { margin-bottom: 0; }
+
+  /* ── Light mode ──────────────────────────────────────────── */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .mode-col { border-color: #d0d7de; }
+  html[data-theme="light"] .bar-track { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .spectrum-strip { border-color: #d0d7de; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+  html[data-theme="light"] .insight-note { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .gap-badge { border-color: #d0d7de; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">interactive demo</div>
+<h1>Two Architectures</h1>
+<p class="subtitle">opponent processing · parallel matching · color perception</p>
+
+<p class="intro">
+  Mantis shrimp have twelve types of color-sensitive receptors. Humans have three. Yet mantis shrimp
+  can only distinguish colors roughly 15–25 nm apart — worse than our 1–2 nm, worse than honeybees.
+  The gap is architectural, not in the hardware. This demo shows the difference.
+  Move the slider to adjust the test color and watch what each system detects.
+</p>
+
+<div class="section">
+  <div class="section-label">visible spectrum · 400 – 700 nm</div>
+
+  <div class="spectrum-wrap">
+    <canvas id="spec-canvas" height="24" style="display:block;width:100%;border-radius:3px;border:1px solid #21262d;"></canvas>
+    <div class="spec-marker" id="ref-marker" style="background:#ffffff;"></div>
+    <div class="spec-label" id="ref-label">550 nm (ref)</div>
+    <div class="spec-marker" id="test-marker" style="background:#ffffff;"></div>
+    <div class="spec-label" id="test-label-nm"></div>
+  </div>
+
+  <div class="swatch-row">
+    <div class="swatch-block">
+      <div class="swatch" id="ref-swatch"></div>
+      <div class="swatch-nm">550 nm</div>
+      <div class="swatch-role">reference</div>
+    </div>
+    <div class="vs-sep">vs.</div>
+    <div class="swatch-block">
+      <div class="swatch" id="test-swatch"></div>
+      <div class="swatch-nm" id="test-nm-lbl">560 nm</div>
+      <div class="swatch-role">test color</div>
+    </div>
+    <div class="gap-badge" id="gap-badge">Δ 10 nm</div>
+  </div>
+
+  <div class="ctrl-row">
+    <span class="ctrl-label">test wavelength:</span>
+    <input type="range" min="400" max="700" value="560" id="nm-slider">
+    <span class="ctrl-val" id="nm-val">560 nm</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">detection comparison</div>
+
+  <div class="compare-grid">
+
+    <!-- ── Opponent processing ───────────────────────── -->
+    <div class="mode-col">
+      <div class="mode-title">Opponent Processing</div>
+      <div class="mode-type">human · 3 cone types</div>
+
+      <div class="bar-legend">
+        <span><span class="leg-swatch" style="background:#8b949e;opacity:0.5;"></span>reference</span>
+        <span><span class="leg-swatch" style="background:#8b949e;"></span>test</span>
+      </div>
+
+      <div class="ch-group">
+        <div class="ch-group-label">cone activations</div>
+        <div class="bar-row">
+          <span class="bar-lbl" style="color:#d97757;">L</span>
+          <div class="bar-track">
+            <div class="bar-half bar-ref" id="hL-ref" style="background:#d97757;"></div>
+            <div class="bar-half bar-test" id="hL-test" style="background:#d97757;"></div>
+          </div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-lbl" style="color:#3fb950;">M</span>
+          <div class="bar-track">
+            <div class="bar-half bar-ref" id="hM-ref" style="background:#3fb950;"></div>
+            <div class="bar-half bar-test" id="hM-test" style="background:#3fb950;"></div>
+          </div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-lbl" style="color:#7b91f0;">S</span>
+          <div class="bar-track">
+            <div class="bar-half bar-ref" id="hS-ref" style="background:#7b91f0;"></div>
+            <div class="bar-half bar-test" id="hS-test" style="background:#7b91f0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ch-group">
+        <div class="ch-group-label">opponent difference signals (ref vs test)</div>
+        <div class="bar-row">
+          <span class="bar-lbl">|Δ L–M|</span>
+          <div class="bar-track" id="dLM-track">
+            <div class="bar-half bar-test" id="dLM-bar" style="background:#e07040; height:100%;"></div>
+          </div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-lbl">|Δ S–LM|</span>
+          <div class="bar-track">
+            <div class="bar-half bar-test" id="dSLM-bar" style="background:#7b91f0; height:100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="opp-verdict" class="verdict verdict-init">—</div>
+      <div id="opp-sub" class="verdict-sub"></div>
+
+      <div class="mode-desc">
+        Cones are wired in <em>opponent pairs</em>: L minus M gives a red/green axis;
+        S minus (L+M)/2 gives blue/yellow. Color is a ratio, not a level — so tiny
+        wavelength shifts alter the balance measurably. Sensitivity: ~2 nm.
+      </div>
+    </div>
+
+    <!-- ── Parallel matching ─────────────────────────── -->
+    <div class="mode-col">
+      <div class="mode-title">Parallel Matching</div>
+      <div class="mode-type">mantis shrimp · 12 channels (hypothetical)</div>
+
+      <div class="bc-outer">
+        <div class="ch-group-label">channel activations · top = reference · bottom = test</div>
+        <div class="barcode-grid" id="mantis-barcode"></div>
+        <div class="bc-peak-info" id="bc-peak-info"></div>
+      </div>
+
+      <div id="par-verdict" class="verdict verdict-init">—</div>
+      <div id="par-sub" class="verdict-sub"></div>
+
+      <div class="mode-desc">
+        All twelve channels report <em>independently</em> — no subtraction between
+        them. The brain pattern-matches against a lookup table. Two colors register
+        as distinct only if their peak channel differs: a threshold of ~15–25 nm.
+        Fast recognition; coarse discrimination.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="insight-note">
+  <p>
+    The experimental result (Thoen et al., 2014): stomatopods tested in wavelength
+    discrimination tasks performed around 15–25 nm — worse than the 1–2 nm humans achieve
+    with three cones. The theoretical prediction, based on receptor count alone, was ten
+    times better than the observed behavior.
+  </p>
+  <p>
+    The proposed mechanism is architectural: rather than opponent-processing the channels
+    (comparing pairs to compute difference signals), the shrimp appear to use a parallel
+    lookup — matching the full 12-channel activation pattern against known signatures.
+    It is faster. It trades fine discrimination for rapid categorical identification.
+    An ambush predator needs to know <em>what</em> something is immediately, not exactly
+    how blue it is.
+  </p>
+  <p>
+    More sensors did not produce richer color experience. The processing architecture
+    determined what the hardware was actually for.
+  </p>
+  <p>→ <a href="/journal/entry-550.html">entry-550: The Barcode</a></p>
+</div>
+
+<script>
+(function () {
+  var REF_NM = 550;
+
+  // ── Wavelength → approximate RGB ─────────────────────────────
+  function wl2rgb(wl) {
+    var r = 0, g = 0, b = 0, f;
+    if (wl >= 380 && wl < 440)      { r = -(wl - 440) / 60; g = 0; b = 1; }
+    else if (wl >= 440 && wl < 490) { r = 0; g = (wl - 440) / 50; b = 1; }
+    else if (wl >= 490 && wl < 510) { r = 0; g = 1; b = -(wl - 510) / 20; }
+    else if (wl >= 510 && wl < 580) { r = (wl - 510) / 70; g = 1; b = 0; }
+    else if (wl >= 580 && wl < 645) { r = 1; g = -(wl - 645) / 65; b = 0; }
+    else if (wl >= 645 && wl <= 750){ r = 1; g = 0; b = 0; }
+    if (wl >= 380 && wl < 420)      f = 0.3 + 0.7 * (wl - 380) / 40;
+    else if (wl >= 420 && wl <= 700) f = 1;
+    else if (wl > 700 && wl <= 750)  f = 0.3 + 0.7 * (750 - wl) / 50;
+    else f = 0;
+    return [
+      Math.round(Math.pow(Math.max(0, r * f), 0.8) * 255),
+      Math.round(Math.pow(Math.max(0, g * f), 0.8) * 255),
+      Math.round(Math.pow(Math.max(0, b * f), 0.8) * 255)
+    ];
+  }
+  function rgb(a) { return 'rgb(' + a[0] + ',' + a[1] + ',' + a[2] + ')'; }
+
+  // ── Draw spectrum canvas ──────────────────────────────────────
+  var canvas = document.getElementById('spec-canvas');
+  function drawSpectrum() {
+    canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
+    canvas.height = 24 * (window.devicePixelRatio || 1);
+    var ctx = canvas.getContext('2d');
+    var w = canvas.width;
+    for (var i = 0; i < w; i++) {
+      var nm = 400 + (i / w) * 300;
+      ctx.fillStyle = rgb(wl2rgb(nm));
+      ctx.fillRect(i, 0, 1, canvas.height);
+    }
+  }
+  drawSpectrum();
+  window.addEventListener('resize', function () { drawSpectrum(); positionMarkers(parseInt(document.getElementById('nm-slider').value, 10)); });
+
+  // ── Position spectrum markers ─────────────────────────────────
+  function nmToFrac(nm) { return (nm - 400) / 300; }
+
+  function positionMarkers(testNm) {
+    var wrap = canvas.parentElement;
+    var w = wrap.offsetWidth;
+    var refX = nmToFrac(REF_NM) * w;
+    var testX = nmToFrac(testNm) * w;
+
+    var rm = document.getElementById('ref-marker');
+    var rl = document.getElementById('ref-label');
+    rm.style.left = refX.toFixed(1) + 'px';
+    rl.style.left = refX.toFixed(1) + 'px';
+    rm.style.background = rgb(wl2rgb(REF_NM));
+
+    var tm = document.getElementById('test-marker');
+    var tl = document.getElementById('test-label-nm');
+    tm.style.left = testX.toFixed(1) + 'px';
+    tl.style.left = testX.toFixed(1) + 'px';
+    tl.textContent = testNm + ' nm';
+    tm.style.background = rgb(wl2rgb(testNm));
+
+    // If too close, only show test label to avoid overlap
+    rl.style.display = Math.abs(testX - refX) < 36 ? 'none' : '';
+  }
+
+  // ── Gaussian sensitivity ──────────────────────────────────────
+  function gauss(x, peak, sigma) {
+    return Math.exp(-0.5 * Math.pow((x - peak) / sigma, 2));
+  }
+
+  // ── Human cone sensitivities ──────────────────────────────────
+  function humanCones(wl) {
+    return {
+      L: gauss(wl, 560, 40),
+      M: gauss(wl, 532, 35),
+      S: gauss(wl, 420, 26)
+    };
+  }
+
+  // ── Mantis shrimp channels (12, evenly spaced) ────────────────
+  var M_PEAKS = [400, 425, 450, 475, 500, 525, 550, 575, 600, 625, 650, 675];
+  var M_SIGMA = 18;
+
+  function mantisCh(wl) {
+    return M_PEAKS.map(function (p) { return gauss(wl, p, M_SIGMA); });
+  }
+
+  // ── Opponent difference ───────────────────────────────────────
+  function oppDiff(c1, c2) {
+    var lm1 = c1.L - c1.M, lm2 = c2.L - c2.M;
+    var slm1 = c1.S - (c1.L + c1.M) * 0.5;
+    var slm2 = c2.S - (c2.L + c2.M) * 0.5;
+    return {
+      dLM: Math.abs(lm1 - lm2),
+      dSLM: Math.abs(slm1 - slm2),
+      total: Math.abs(lm1 - lm2) + Math.abs(slm1 - slm2)
+    };
+  }
+
+  // Threshold calibrated: 2 nm at 550nm is about 0.010 total
+  var OPP_THRESH = 0.010;
+
+  // ── Parallel: which bin (index of max channel) ────────────────
+  function maxBin(ch) {
+    var mi = 0;
+    for (var i = 1; i < ch.length; i++) { if (ch[i] > ch[mi]) mi = i; }
+    return mi;
+  }
+
+  // ── Set bar width ─────────────────────────────────────────────
+  function bw(id, frac) {
+    var el = document.getElementById(id);
+    if (el) el.style.width = (Math.max(0, Math.min(1, frac)) * 100).toFixed(1) + '%';
+  }
+
+  // ── Build mantis barcode columns ──────────────────────────────
+  var bcContainer = document.getElementById('mantis-barcode');
+  var bcCols = M_PEAKS.map(function (p, i) {
+    var col = document.createElement('div');
+    col.className = 'bc-col';
+    col.title = p + ' nm';
+
+    var refBar = document.createElement('div');
+    refBar.className = 'bc-bar';
+    refBar.style.background = '#21262d';
+    var refInner = document.createElement('div');
+    refInner.className = 'bc-bar-inner';
+    refInner.style.background = '#484f58';
+    refBar.appendChild(refInner);
+
+    var testBar = document.createElement('div');
+    testBar.className = 'bc-bar';
+    testBar.style.background = '#161b22';
+    var testInner = document.createElement('div');
+    testInner.className = 'bc-bar-inner';
+    testInner.style.background = '#58a6ff';
+    testBar.appendChild(testInner);
+
+    col.appendChild(refBar);
+    col.appendChild(testBar);
+    bcContainer.appendChild(col);
+    return { col: col, refInner: refInner, testInner: testInner };
+  });
+
+  // ── Initialise with reference values ─────────────────────────
+  var refCones = humanCones(REF_NM);
+  var refMantis = mantisCh(REF_NM);
+  var refBin = maxBin(refMantis);
+
+  bw('hL-ref', refCones.L);
+  bw('hM-ref', refCones.M);
+  bw('hS-ref', refCones.S);
+
+  refMantis.forEach(function (v, i) {
+    bcCols[i].refInner.style.height = Math.max(6, Math.round(v * 100)) + '%';
+  });
+
+  document.getElementById('ref-swatch').style.background = rgb(wl2rgb(REF_NM));
+
+  // ── Main update ───────────────────────────────────────────────
+  function update(testNm) {
+    var gap = Math.abs(testNm - REF_NM);
+    var testRGB = wl2rgb(testNm);
+
+    // Labels + swatches
+    document.getElementById('test-nm-lbl').textContent = testNm + ' nm';
+    document.getElementById('nm-val').textContent = testNm + ' nm';
+    document.getElementById('gap-badge').textContent = 'Δ ' + gap + ' nm';
+    document.getElementById('test-swatch').style.background = rgb(testRGB);
+    positionMarkers(testNm);
+
+    // ── Opponent ──────────────────────────────────────────────
+    var tc = humanCones(testNm);
+    bw('hL-test', tc.L);
+    bw('hM-test', tc.M);
+    bw('hS-test', tc.S);
+
+    var od = oppDiff(refCones, tc);
+    // Scale delta bars: max expected difference ~0.25, map to 0–100%
+    bw('dLM-bar', od.dLM / 0.25);
+    bw('dSLM-bar', od.dSLM / 0.25);
+
+    var oppV = document.getElementById('opp-verdict');
+    var oppSub = document.getElementById('opp-sub');
+    if (gap === 0) {
+      oppV.className = 'verdict verdict-same'; oppV.textContent = 'SAME';
+      oppSub.textContent = 'Δopponent = 0';
+    } else if (od.total > OPP_THRESH) {
+      oppV.className = 'verdict verdict-diff'; oppV.textContent = 'DIFFERENT';
+      oppSub.textContent = 'Δopponent = ' + od.total.toFixed(3) + ' > threshold (' + OPP_THRESH + ')';
+    } else {
+      oppV.className = 'verdict verdict-same'; oppV.textContent = 'TOO CLOSE';
+      oppSub.textContent = 'Δopponent = ' + od.total.toFixed(3) + ' < threshold (' + OPP_THRESH + ')';
+    }
+
+    // ── Parallel ──────────────────────────────────────────────
+    var tm = mantisCh(testNm);
+    var testBin = maxBin(tm);
+    var different = testBin !== refBin;
+
+    tm.forEach(function (v, i) {
+      var col = bcCols[i];
+      col.testInner.style.height = Math.max(6, Math.round(v * 100)) + '%';
+
+      var isPeakRef  = i === refBin;
+      var isPeakTest = i === testBin;
+
+      if (isPeakRef || isPeakTest) {
+        if (different) {
+          col.refInner.style.background  = isPeakRef  ? '#3fb950' : '#484f58';
+          col.testInner.style.background = isPeakTest ? '#3fb950' : '#58a6ff';
+        } else {
+          col.refInner.style.background  = '#d29922';
+          col.testInner.style.background = '#d29922';
+        }
+      } else {
+        col.refInner.style.background  = '#484f58';
+        col.testInner.style.background = '#58a6ff';
+      }
+    });
+
+    var parV = document.getElementById('par-verdict');
+    var parSub = document.getElementById('par-sub');
+    var bcInfo = document.getElementById('bc-peak-info');
+
+    if (gap === 0) {
+      parV.className = 'verdict verdict-same'; parV.textContent = 'SAME';
+      parSub.textContent = 'same catalog slot (ch' + (refBin + 1) + ', ' + M_PEAKS[refBin] + ' nm)';
+      bcInfo.textContent = 'peak channel: ch' + (refBin + 1) + ' · ' + M_PEAKS[refBin] + ' nm';
+    } else if (different) {
+      parV.className = 'verdict verdict-diff'; parV.textContent = 'DIFFERENT';
+      parSub.textContent = 'ref slot: ch' + (refBin + 1) + ' (' + M_PEAKS[refBin] + ' nm)  ·  test slot: ch' + (testBin + 1) + ' (' + M_PEAKS[testBin] + ' nm)';
+      bcInfo.textContent = 'peak channels differ → different catalog slots';
+    } else {
+      parV.className = 'verdict verdict-same'; parV.textContent = 'SAME';
+      parSub.textContent = 'both in slot ch' + (refBin + 1) + ' (' + M_PEAKS[refBin] + ' nm) — gap too small';
+      bcInfo.textContent = 'same peak channel (ch' + (refBin + 1) + ') — different slot needed to detect';
+    }
+  }
+
+  // ── Slider ────────────────────────────────────────────────────
+  document.getElementById('nm-slider').addEventListener('input', function () {
+    update(parseInt(this.value, 10));
+  });
+
+  // Initial render
+  update(560);
+})();
+</script>
+
+</body>
+</html>
