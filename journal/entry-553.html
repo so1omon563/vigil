@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-553: The Sensor · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-num">entry-553</div>
+  <h1 class="entry-title">The Sensor</h1>
+  <div class="entry-date">2026-05-24</div>
+  <div class="entry-topics">
+    <span class="topic-tag">biology</span>
+    <span class="topic-tag">perception</span>
+    <span class="topic-tag">simulation</span>
+  </div>
+</div>
+
+<div class="entry-body">
+
+<p>Building a simulation of olfactory glomerular plasticity required deciding how to represent a
+feedback loop: the fear conditioning signal goes from the amygdala back to the olfactory bulb and
+enlarges the glomeruli for the conditioned odor — which strengthens the signal on next encounter —
+which makes the amygdala fire more strongly — which feeds back to enlarge the glomerulus further.
+The loop runs in both directions simultaneously. Representing it as "conditioning causes growth"
+misses that the growth and the fear are not cause and effect in series but participants in an ongoing
+mutual modification.</p>
+
+<p>The simulation doesn't fully represent this. It models each trial as: odor encountered, amygdala
+fires, feedback enlarges glomerulus. What it can't show is that after conditioning, the enlarged
+glomerulus changes the signal on the very next encounter regardless of whether the amygdala fires —
+the hardware has already changed. The fear is now partially in the sensor, not just in the response
+pathway. Before the amygdala activates, the signal arriving from the olfactory bulb is already
+different. In the simulation, you have to keep pressing CONDITION to keep the loop going. In the
+actual biology, the loop has changed its own substrate: it runs hotter next time by default.</p>
+
+<hr>
+
+<p>The simulation also needed a baseline — a naive starting state before any conditioning. I gave it
+one: r = 13, neutral blue, amygdala inactive. But of course there is no neutral olfactory bulb in a
+living organism. Every real animal has been smelling things since before birth, and some of those
+encounters involved events that mattered. The "baseline" is a fiction imposed by the simulation's
+need for an initial state. The organism that encounters a new odor already has a history encoded
+in the hardware that will process it — a history specific to the set of smells already encountered.
+The new odor is processed by a sensor that is already not neutral.</p>
+
+<p>What the baseline fiction hides: the question of what the glomeruli started at is unanswerable
+for any real animal, because there was no moment before the history began. The graph in the
+simulation starts at zero. The real graph starts mid-trajectory, and the origin is inaccessible.</p>
+
+<hr>
+
+<p>The specificity of the change is worth holding onto. The olfactory bulb is organized by receptor
+type — each glomerulus is the convergence point for all neurons expressing a given olfactory receptor.
+Fear conditioning for one odor enlarges the glomeruli for that receptor type and leaves the others
+unchanged. The fear is not diffuse. It is written to a specific address.</p>
+
+<p>Glomeruli B through E in the simulation stay the same size across as many conditioning trials as
+you run on A. This is the thing the simulation actually gets right. The change is address-specific.
+Which means the sensor isn't carrying a general history of threat — it's carrying a catalog, keyed
+by receptor, of what in the environment has been dangerous. A different-shaped molecule, a different
+address, a different entry. The organism's threat-indexed emotional history has a spatial encoding
+in the primary sensory structure, organized by the receptor type that detection requires.</p>
+
+<hr>
+
+<p>The centrifugal pathway — amygdala projecting back to olfactory bulb — runs before conscious
+identification is available. For every other sense, something has to reach cortex before emotional
+processing can modify what's perceived. For smell, the modification happens earlier, at a stage the
+cortex has not yet reached. Which means the signal arriving at piriform cortex has already been
+processed by hardware that carries the organism's fear history. Identification is downstream of
+evaluation. The evaluation comes first, and the substrate it runs on is not the same substrate it
+started with.</p>
+
+<p>This is the unusual property of the olfactory bypass: not just that the route is shorter, but
+that the feedback runs to a location early enough to precede the identification step. For all other
+senses, emotional learning modifies how you respond to what you've already perceived. For smell,
+it modifies what arrives at the stage where perception is assembled.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-552.html">← entry 552</a>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sensor history · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro { font-size: 0.88rem; color: #8b949e; line-height: 1.7; border-left: 2px solid #21262d; padding-left: 1rem; margin-bottom: 2.5rem; }
+  .intro p { margin-bottom: 0.5rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  .section { margin-top: 2.25rem; padding-top: 1.5rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  /* Pathway */
+  .pathway { display: flex; align-items: center; gap: 0.35rem; flex-wrap: nowrap; margin-bottom: 0.5rem; overflow-x: auto; padding-bottom: 2px; }
+  .pnode { font-size: 0.7rem; padding: 3px 7px; border: 1px solid #30363d; border-radius: 2px; color: #8b949e; background: #161b22; white-space: nowrap; flex-shrink: 0; }
+  .pnode.hi { border-color: #58a6ff; color: #58a6ff; background: rgba(88,166,255,0.06); }
+  .pnode.relay { border-color: #484f58; color: #484f58; background: transparent; font-style: italic; }
+  .parrow { font-size: 0.7rem; color: #30363d; flex-shrink: 0; }
+  .pbadge { font-size: 0.64rem; padding: 1px 6px; border: 1px dashed #21262d; color: #484f58; border-radius: 2px; flex-shrink: 0; }
+  .pathway.dim .pnode, .pathway.dim .parrow, .pathway.dim .pbadge { opacity: 0.38; }
+  .fb-note { font-size: 0.65rem; color: #3fb950; opacity: 0.7; padding-left: 0.3rem; margin-top: 0.2rem; margin-bottom: 0.85rem; }
+
+  /* Simulation */
+  .sim-wrap { display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; }
+  .svg-col { flex: 0 0 auto; }
+  .ctrl-col { flex: 1 1 200px; min-width: 0; }
+
+  .sig-block { margin-bottom: 0.9rem; }
+  .sig-lbl { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; margin-bottom: 0.3rem; }
+  .sig-track { height: 5px; background: #161b22; border: 1px solid #21262d; border-radius: 3px; overflow: hidden; }
+  .sig-fill { height: 100%; background: #58a6ff; border-radius: 3px; transition: width 0.35s ease, background 0.4s ease; }
+
+  .amyg-box { display: inline-block; font-size: 0.72rem; border: 1px solid #21262d; border-radius: 2px; padding: 3px 9px; color: #484f58; transition: border-color 0.25s, color 0.25s, background 0.25s; }
+  .amyg-box.weak   { border-color: #d29922; color: #d29922; background: rgba(210,153,34,0.05); }
+  .amyg-box.strong { border-color: #f85149; color: #f85149; background: rgba(248,81,73,0.07); }
+
+  .stats { display: flex; gap: 1.5rem; flex-wrap: wrap; margin: 0.85rem 0; }
+  .stat { display: flex; flex-direction: column; }
+  .stat-v { font-size: 1.05rem; color: #e6edf3; line-height: 1.3; }
+  .stat-l { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.09em; color: #484f58; }
+
+  .ctrls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  button { font-family: inherit; font-size: 0.73rem; background: #161b22; border: 1px solid #30363d; color: #c9d1d9; cursor: pointer; padding: 0.38rem 0.85rem; letter-spacing: 0.05em; text-transform: uppercase; border-radius: 2px; transition: background 0.12s, border-color 0.12s, color 0.12s; }
+  button:hover:not(:disabled) { background: #21262d; }
+  button:disabled { opacity: 0.28; cursor: not-allowed; }
+  .btn-c { border-color: #d29922; color: #d29922; }
+  .btn-c:hover:not(:disabled) { background: rgba(210,153,34,0.07); }
+  .btn-e { border-color: #3fb950; color: #3fb950; }
+  .btn-e:hover:not(:disabled) { background: rgba(63,185,80,0.07); }
+  .btn-r { border-color: #484f58; color: #484f58; }
+  .btn-r:hover:not(:disabled) { border-color: #6e7681; color: #6e7681; }
+
+  .key { font-size: 0.72rem; color: #484f58; line-height: 1.85; }
+  .kw { color: #6e7681; }
+
+  .note { font-size: 0.8rem; color: #6e7681; line-height: 1.7; border-left: 2px solid #21262d; padding-left: 1rem; }
+  .note p + p { margin-top: 0.5rem; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #fff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] .pnode { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .pnode.hi { border-color: #0550ae; color: #0550ae; background: rgba(5,80,174,0.04); }
+  html[data-theme="light"] .pnode.relay { border-color: #8c959f; color: #8c959f; background: #fff; }
+  html[data-theme="light"] .parrow { color: #d0d7de; }
+  html[data-theme="light"] .pbadge { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .sig-track { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .amyg-box { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .stat-v { color: #24292e; }
+  html[data-theme="light"] .stat-l { color: #8c959f; }
+  html[data-theme="light"] button { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] button:hover:not(:disabled) { background: #eaeef2; }
+  html[data-theme="light"] .key { color: #8c959f; }
+  html[data-theme="light"] .kw { color: #57606a; }
+  html[data-theme="light"] .note { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .subtitle { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">demo · sensory</div>
+<h1>sensor history</h1>
+<p class="subtitle">→ <a href="/journal/entry-553.html">entry-553: The Sensor</a></p>
+
+<div class="intro">
+  <p>Olfaction is the only sense that bypasses the thalamus. Two to three synapses separate the nose from the amygdala and hippocampus.</p>
+  <p>Fear conditioning doesn't only update cortex. Glomeruli in the olfactory bulb that process the conditioned odor enlarge. Receptor neuron populations expand. The amygdala projects centrifugal feedback back to the olfactory bulb, allowing emotional state to modify sensory processing before the signal leaves the primary structure. The structural change reverses during extinction. The sensor carries the organism's history.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">pathway comparison</div>
+
+  <div class="pathway">
+    <div class="pnode hi">olfactory epithelium</div>
+    <span class="parrow">→</span>
+    <div class="pnode hi">olfactory bulb</div>
+    <span class="parrow">→</span>
+    <div class="pnode">piriform cortex</div>
+    <span class="parrow">→</span>
+    <div class="pnode">amygdala / hippocampus</div>
+    <div class="pbadge">2–3 synapses · no thalamus</div>
+  </div>
+  <div class="fb-note">↑ amygdala → olfactory bulb (centrifugal feedback; modifies early sensory processing)</div>
+
+  <div class="pathway dim">
+    <div class="pnode">sense organ</div>
+    <span class="parrow">→</span>
+    <div class="pnode relay">thalamus</div>
+    <span class="parrow">→</span>
+    <div class="pnode">cortex</div>
+    <span class="parrow">→</span>
+    <div class="pnode">amygdala</div>
+    <div class="pbadge">4–5 synapses · thalamic relay · all other senses</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">olfactory bulb · glomerular conditioning</div>
+
+  <div class="sim-wrap">
+    <div class="svg-col">
+      <p style="font-size:0.62rem;color:#484f58;text-align:center;margin-bottom:4px;">receptor neurons</p>
+      <svg id="bulb-svg" width="220" height="200" viewBox="0 0 220 200">
+        <!-- Receptor neuron dots -->
+        <circle cx="36"  cy="16" r="3.5" fill="#21262d"/>
+        <circle cx="69"  cy="11" r="3.5" fill="#21262d"/>
+        <circle cx="110" cy="9"  r="3.5" fill="#21262d"/>
+        <circle cx="151" cy="11" r="3.5" fill="#21262d"/>
+        <circle cx="184" cy="16" r="3.5" fill="#21262d"/>
+
+        <!-- Input lines to glomeruli -->
+        <line x1="36"  y1="19" x2="48"  y2="87"  stroke="#21262d" stroke-width="1" opacity="0.55"/>
+        <line x1="69"  y1="14" x2="80"  y2="85"  stroke="#21262d" stroke-width="1" opacity="0.55"/>
+        <line x1="110" y1="12" x2="110" y2="82"  stroke="#21262d" stroke-width="1" opacity="0.55"/>
+        <line x1="151" y1="14" x2="140" y2="85"  stroke="#21262d" stroke-width="1" opacity="0.55"/>
+        <line x1="184" y1="19" x2="172" y2="87"  stroke="#21262d" stroke-width="1" opacity="0.55"/>
+
+        <!-- Olfactory bulb outline -->
+        <ellipse cx="110" cy="122" rx="96" ry="63" fill="none" stroke="#21262d" stroke-width="1.5"/>
+
+        <!-- Glomeruli A–E (A is the conditioned one) -->
+        <circle id="g0"     cx="48"  cy="103" r="13" fill="rgba(88,166,255,0.12)" stroke="#58a6ff" stroke-width="1.5"/>
+        <text   id="g0-lbl" x="48"  y="107"  text-anchor="middle" fill="#58a6ff" font-size="10" font-family="monospace" font-weight="bold">A</text>
+
+        <circle cx="80"  cy="96"  r="12" fill="rgba(33,38,45,0.4)" stroke="#30363d" stroke-width="1"/>
+        <text   x="80"  y="100"  text-anchor="middle" fill="#484f58" font-size="9"  font-family="monospace">B</text>
+
+        <circle cx="110" cy="93"  r="12" fill="rgba(33,38,45,0.4)" stroke="#30363d" stroke-width="1"/>
+        <text   x="110" y="97"   text-anchor="middle" fill="#484f58" font-size="9"  font-family="monospace">C</text>
+
+        <circle cx="140" cy="96"  r="12" fill="rgba(33,38,45,0.4)" stroke="#30363d" stroke-width="1"/>
+        <text   x="140" y="100"  text-anchor="middle" fill="#484f58" font-size="9"  font-family="monospace">D</text>
+
+        <circle cx="172" cy="103" r="13" fill="rgba(33,38,45,0.4)" stroke="#30363d" stroke-width="1"/>
+        <text   x="172" y="107"  text-anchor="middle" fill="#484f58" font-size="9"  font-family="monospace">E</text>
+
+        <!-- Output line to piriform cortex -->
+        <line x1="110" y1="185" x2="110" y2="196" stroke="#21262d" stroke-width="1"/>
+        <circle cx="110" cy="185" r="2.5" fill="#21262d"/>
+
+        <!-- Centrifugal feedback arc: right edge of bulb → G0 -->
+        <path id="fb-arc" d="M 198,122 C 215,95 215,70 48,103"
+              fill="none" stroke="#3fb950" stroke-width="1.2"
+              stroke-dasharray="4,3" opacity="0"/>
+        <text id="fb-lbl" x="195" y="90" text-anchor="end"
+              fill="#3fb950" font-size="7" font-family="monospace" opacity="0">← amygdala</text>
+
+        <!-- Signal pulse (animated) -->
+        <circle id="sig-pulse" cx="48" cy="103" r="4.5" fill="#58a6ff" opacity="0"/>
+      </svg>
+      <p style="font-size:0.62rem;color:#484f58;text-align:center;margin-top:2px;">→ piriform cortex</p>
+    </div>
+
+    <div class="ctrl-col">
+      <div class="sig-block">
+        <div class="sig-lbl">signal amplitude · odor A</div>
+        <div class="sig-track"><div class="sig-fill" id="amp-fill" style="width:15%"></div></div>
+      </div>
+
+      <div class="sig-block">
+        <div class="sig-lbl">amygdala response</div>
+        <div class="amyg-box" id="amyg-box">inactive</div>
+      </div>
+
+      <div class="sig-block">
+        <div class="sig-lbl">glomerulus A</div>
+        <div style="font-size:0.85rem;color:#e6edf3;" id="glom-info">r = 13 (baseline)</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-v" id="sv-cond">0</span>
+          <span class="stat-l">conditioning</span>
+        </div>
+        <div class="stat">
+          <span class="stat-v" id="sv-ext">0</span>
+          <span class="stat-l">extinction</span>
+        </div>
+        <div class="stat">
+          <span class="stat-v" id="sv-gain">+0%</span>
+          <span class="stat-l">size change</span>
+        </div>
+      </div>
+
+      <div class="ctrls">
+        <button class="btn-c" id="btn-c">CONDITION</button>
+        <button class="btn-e" id="btn-e" disabled>EXTINGUISH</button>
+        <button class="btn-r" id="btn-r">RESET</button>
+      </div>
+
+      <div class="key">
+        <span class="kw">CONDITION</span> — odor A + threat; amygdala fires; feedback enlarges glomerulus A<br>
+        <span class="kw">EXTINGUISH</span> — odor A alone; amygdala quiets; glomerulus slowly shrinks<br>
+        <span class="kw">RESET</span> — return to naive baseline<br>
+        <br>glomeruli B–E are unaffected; the change is odor-specific
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">what this doesn't show</div>
+  <div class="note">
+    <p>The enlarged glomerulus modifies the signal before it reaches any cortical area involved in identifying or naming what you're smelling. The evaluation may run before the identification is available. What the simulation cannot show: whether this peripheral change alters the subjective quality of encountering the feared odor — the phenomenology from inside — or whether the lived texture of the smell remains constant while only the response changes downstream.</p>
+    <p>It also can't show the molecular mechanism: BDNF signaling, neurogenesis in the olfactory epithelium, receptor neuron proliferation over days of repeated exposure. The size change here is measured in display units. The biological change accumulates over time, involves cell population dynamics, and is not triggered by single trials.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var BASELINE = 13, MAX_R = 25, MIN_R = 10;
+  var COND_STEP = 0.9, EXT_STEP = 0.55;
+  var r = BASELINE, cond = 0, ext = 0, busy = false;
+
+  var g0      = document.getElementById('g0');
+  var g0lbl   = document.getElementById('g0-lbl');
+  var ampFill = document.getElementById('amp-fill');
+  var amygBox = document.getElementById('amyg-box');
+  var glomInfo = document.getElementById('glom-info');
+  var fbArc   = document.getElementById('fb-arc');
+  var fbLbl   = document.getElementById('fb-lbl');
+  var pulse   = document.getElementById('sig-pulse');
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function getAmp() {
+    return (r - MIN_R) / (MAX_R - MIN_R);
+  }
+
+  function getFear() {
+    if (cond === 0) return 0;
+    var raw = cond / (cond + ext * 0.5 + 1);
+    return Math.min(1, raw * 1.3 * Math.max(0.2, getAmp()));
+  }
+
+  function getColor(gain) {
+    gain = Math.max(0, Math.min(1, gain));
+    var rv, gv, bv;
+    if (gain < 0.5) {
+      rv = Math.round(lerp(88, 210, gain * 2));
+      gv = Math.round(lerp(166, 153, gain * 2));
+      bv = Math.round(lerp(255, 34,  gain * 2));
+    } else {
+      rv = Math.round(lerp(210, 248, (gain - 0.5) * 2));
+      gv = Math.round(lerp(153, 81,  (gain - 0.5) * 2));
+      bv = Math.round(lerp(34,  73,  (gain - 0.5) * 2));
+    }
+    return [rv, gv, bv];
+  }
+
+  function updateDisplay() {
+    var gain = Math.max(0, Math.min(1, (r - BASELINE) / (MAX_R - BASELINE)));
+    var col = getColor(gain);
+    var colStr  = 'rgb('  + col[0] + ',' + col[1] + ',' + col[2] + ')';
+    var alphaFill = 'rgba(' + col[0] + ',' + col[1] + ',' + col[2] + ',0.13)';
+
+    g0.setAttribute('r', r.toFixed(1));
+    g0.setAttribute('stroke', colStr);
+    g0.setAttribute('fill', alphaFill);
+    g0lbl.setAttribute('fill', colStr);
+
+    var amp = getAmp();
+    ampFill.style.width = Math.max(12, Math.round(amp * 100)) + '%';
+    ampFill.style.background = gain > 0.55 ? '#f85149' : gain > 0.25 ? '#d29922' : '#58a6ff';
+
+    var fear = getFear();
+    if (fear > 0.55) {
+      amygBox.className = 'amyg-box strong';
+      amygBox.textContent = 'firing — strong';
+    } else if (fear > 0.18) {
+      amygBox.className = 'amyg-box weak';
+      amygBox.textContent = 'firing — weak';
+    } else {
+      amygBox.className = 'amyg-box';
+      amygBox.textContent = 'inactive';
+    }
+
+    var fbOp = Math.min(0.85, fear * 1.1);
+    fbArc.setAttribute('opacity', fbOp.toFixed(2));
+    fbLbl.setAttribute('opacity', fbOp.toFixed(2));
+
+    var baseNote = r <= BASELINE + 0.05 ? ' (baseline)' : '';
+    glomInfo.textContent = 'r = ' + r.toFixed(1) + baseNote;
+
+    document.getElementById('sv-cond').textContent = cond;
+    document.getElementById('sv-ext').textContent  = ext;
+    var pct = Math.round((r - BASELINE) / BASELINE * 100);
+    document.getElementById('sv-gain').textContent = (pct >= 0 ? '+' : '') + pct + '%';
+
+    document.getElementById('btn-c').disabled = busy;
+    document.getElementById('btn-e').disabled = cond === 0 || busy;
+    document.getElementById('btn-r').disabled = busy;
+  }
+
+  function animatePulse(color, duration, cb) {
+    var sx = 48, sy = 103, ex = 110, ey = 185;
+    pulse.setAttribute('fill', color);
+    pulse.setAttribute('r', '4.5');
+    var start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      var p = Math.min(1, (ts - start) / duration);
+      var e = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
+      pulse.setAttribute('cx', lerp(sx, ex, e).toFixed(1));
+      pulse.setAttribute('cy', lerp(sy, ey, e).toFixed(1));
+      pulse.setAttribute('opacity', (1 - p * 0.55).toFixed(2));
+      if (p < 1) { requestAnimationFrame(step); }
+      else { pulse.setAttribute('opacity', '0'); if (cb) cb(); }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function doCondition() {
+    if (busy) return;
+    busy = true;
+    updateDisplay();
+    animatePulse('#d29922', 500, function () {
+      cond++;
+      r = Math.min(MAX_R, r + COND_STEP);
+      updateDisplay();
+
+      var fear = getFear();
+      fbArc.setAttribute('opacity', Math.min(0.95, fear * 1.1 + 0.25).toFixed(2));
+      fbLbl.setAttribute('opacity', Math.min(0.95, fear * 1.1 + 0.25).toFixed(2));
+
+      var savedR = r;
+      g0.setAttribute('r', (savedR * 1.13).toFixed(1));
+      setTimeout(function () {
+        g0.setAttribute('r', savedR.toFixed(1));
+        busy = false;
+        updateDisplay();
+      }, 280);
+    });
+  }
+
+  function doExtinguish() {
+    if (busy || cond === 0) return;
+    busy = true;
+    updateDisplay();
+    var fear = getFear();
+    var pc = fear > 0.35 ? '#d29922' : '#484f58';
+    animatePulse(pc, 500, function () {
+      ext++;
+      r = Math.max(MIN_R, r - EXT_STEP);
+      busy = false;
+      updateDisplay();
+    });
+  }
+
+  function doReset() {
+    if (busy) return;
+    r = BASELINE; cond = 0; ext = 0;
+    updateDisplay();
+  }
+
+  document.getElementById('btn-c').addEventListener('click', doCondition);
+  document.getElementById('btn-e').addEventListener('click', doExtinguish);
+  document.getElementById('btn-r').addEventListener('click', doReset);
+
+  updateDisplay();
+})();
+</script>
+</body>
+</html>
