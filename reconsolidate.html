@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>reconsolidation · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.5rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .section { margin-top: 2.25rem; padding-top: 1.5rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  /* Stability bar */
+  .stab-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.25rem; }
+  .stab-lbl { font-size: 0.7rem; color: #484f58; width: 64px; flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.08em; }
+  .stab-track { flex: 1; height: 5px; background: #161b22; border: 1px solid #21262d; border-radius: 3px; overflow: hidden; }
+  .stab-fill { height: 100%; width: 100%; background: #3fb950; border-radius: 3px; transition: width 0.12s linear, background 0.3s ease; }
+  .state-badge {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em;
+    padding: 2px 8px; border-radius: 2px; border: 1px solid;
+    flex-shrink: 0; width: 104px; text-align: center;
+  }
+  .badge-stable   { color: #3fb950; border-color: #3fb950; background: rgba(63,185,80,0.07); }
+  .badge-labile   { color: #d29922; border-color: #d29922; background: rgba(210,153,34,0.07); }
+  .badge-restab   { color: #58a6ff; border-color: #58a6ff; background: rgba(88,166,255,0.07); }
+
+  /* Memory text */
+  .mem-text { font-size: 1.06rem; line-height: 2.1; color: #c9d1d9; margin-bottom: 1rem; letter-spacing: 0.01em; }
+  .el { transition: color 0.2s, border-bottom-color 0.2s; border-bottom: 1px solid #30363d; padding-bottom: 1px; }
+  .el-stable  { color: #c9d1d9; border-bottom-color: #30363d; }
+  .el-drifted { color: #d29922; border-bottom-color: #d29922; }
+  .el-labile  { color: #d29922; border-bottom-color: #d29922; animation: labile-pulse 0.65s ease-in-out infinite; }
+  @keyframes labile-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* Drift annotations */
+  .drift-ann { margin-bottom: 1rem; min-height: 0.5rem; }
+  .drift-note { font-size: 0.78rem; color: #484f58; line-height: 1.6; margin-bottom: 0.25rem; }
+  .drift-was { text-decoration: line-through; color: #6e7681; }
+  .drift-now { color: #d29922; }
+
+  /* Stats */
+  .stats-row { display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .stat-item { display: flex; flex-direction: column; }
+  .stat-val { font-size: 1.15rem; color: #e6edf3; line-height: 1.3; }
+  .stat-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; }
+
+  /* Controls */
+  .controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.85rem; }
+  button {
+    font-family: inherit; font-size: 0.77rem; background: #161b22;
+    border: 1px solid #30363d; color: #c9d1d9; cursor: pointer;
+    padding: 0.4rem 0.85rem; letter-spacing: 0.05em; text-transform: uppercase;
+    border-radius: 2px; transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  button:hover:not(:disabled) { background: #21262d; }
+  button:disabled { opacity: 0.28; cursor: not-allowed; }
+  .btn-recall:hover:not(:disabled)    { border-color: #3fb950; color: #3fb950; }
+  .btn-intervene { border-color: #58a6ff; color: #58a6ff; }
+  .btn-intervene:hover:not(:disabled) { background: rgba(88,166,255,0.07); }
+  .btn-mislead { border-color: #f85149; color: #f85149; }
+  .btn-mislead:hover:not(:disabled)   { background: rgba(248,81,73,0.07); }
+  .btn-reset   { border-color: #484f58; color: #484f58; }
+  .btn-reset:hover:not(:disabled)     { border-color: #6e7681; color: #6e7681; }
+  .timer-disp { font-size: 0.78rem; color: #6e7681; font-variant-numeric: tabular-nums; min-width: 90px; }
+
+  .key-guide { font-size: 0.76rem; color: #484f58; line-height: 1.75; }
+  .kw { color: #6e7681; }
+
+  /* Original */
+  .orig-text { font-size: 1rem; line-height: 2.1; color: #484f58; letter-spacing: 0.01em; }
+  .orig-el { border-bottom: 1px solid #30363d; }
+  .orig-matched { color: #484f58; border-bottom-color: #30363d; }
+  .orig-missing { color: #f85149; text-decoration: line-through; border-bottom-color: #f85149; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #fff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] .mem-text { color: #24292e; }
+  html[data-theme="light"] .el-stable { color: #24292e; border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .stab-track { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .stat-val { color: #24292e; }
+  html[data-theme="light"] .stat-lbl { color: #8c959f; }
+  html[data-theme="light"] button { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] button:hover:not(:disabled) { background: #eaeef2; }
+  html[data-theme="light"] .timer-disp { color: #57606a; }
+  html[data-theme="light"] .key-guide { color: #8c959f; }
+  html[data-theme="light"] .kw { color: #57606a; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .subtitle { color: #8c959f; }
+  html[data-theme="light"] .drift-note { color: #8c959f; }
+  html[data-theme="light"] .drift-was { color: #57606a; }
+  html[data-theme="light"] .orig-text { color: #8c959f; }
+  html[data-theme="light"] .orig-matched { color: #8c959f; border-bottom-color: #d0d7de; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">demo · memory</div>
+<h1>reconsolidation</h1>
+<p class="subtitle">→ <a href="/journal/entry-548.html">entry-548: Each Time</a></p>
+
+<div class="intro">
+  <p>After consolidation, a memory is stable — until it is retrieved. Retrieval briefly re-opens the molecular machinery that originally encoded it. During this labile window, the memory can incorporate changes. Then it re-stabilizes, in whatever form it currently holds.</p>
+  <p>The most-accessed memories are the most frequently modified memories. The access history is not stored in the memory itself.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">current form</div>
+
+  <div class="stab-row">
+    <span class="stab-lbl">stability</span>
+    <div class="stab-track"><div class="stab-fill" id="stab-fill"></div></div>
+    <span class="state-badge badge-stable" id="state-badge">stable</span>
+  </div>
+
+  <div class="mem-text" id="mem-display"></div>
+  <div class="drift-ann" id="drift-ann"></div>
+
+  <div class="stats-row">
+    <div class="stat-item">
+      <span class="stat-val" id="s-recalls">0</span>
+      <span class="stat-lbl">recalls</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-val" id="s-drifted">0 / 4</span>
+      <span class="stat-lbl">elements changed</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-val" id="s-fidelity">100%</span>
+      <span class="stat-lbl">fidelity</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-recall"    id="btn-recall">RECALL</button>
+    <button class="btn-intervene" id="btn-intervene" disabled>INTERVENE</button>
+    <button class="btn-mislead"   id="btn-mislead"   disabled>MISLEAD</button>
+    <button class="btn-reset"     id="btn-reset">RESET</button>
+    <span class="timer-disp"      id="timer-disp"></span>
+  </div>
+
+  <div class="key-guide">
+    <span class="kw">RECALL</span> — retrieves the memory; opens the labile window (8 s) &nbsp;·&nbsp;
+    <span class="kw">INTERVENE</span> — blocks reconsolidation; prevents all drift this recall &nbsp;·&nbsp;
+    <span class="kw">MISLEAD</span> — introduces specific false details while the window is open
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">original encoding</div>
+  <div class="orig-text" id="orig-display"></div>
+  <p style="font-size:0.74rem;color:#484f58;margin-top:0.6rem;line-height:1.6;">
+    Elements struck through have drifted from the original. Each recall that reaches re-stabilization locks the current form in place.
+  </p>
+</div>
+
+<script>
+(function () {
+  var SEGS = [
+    { type: 'f', text: 'The woman was wearing ' },
+    { type: 'e', id: 'jacket', text: 'a blue jacket',
+      variants: ['a gray jacket', 'a dark coat', 'a green jacket', 'a navy coat'],
+      mislead:  'a brown jacket' },
+    { type: 'f', text: '. She entered through ' },
+    { type: 'e', id: 'door', text: 'the north door',
+      variants: ['the east door', 'the side entrance', 'the main entrance', 'the back door'],
+      mislead:  'the south exit' },
+    { type: 'f', text: '. She was carrying ' },
+    { type: 'e', id: 'bag', text: 'a canvas bag',
+      variants: ['a leather bag', 'a large bag', 'a small backpack', 'a briefcase'],
+      mislead:  'a red bag' },
+    { type: 'f', text: '. She spoke to ' },
+    { type: 'e', id: 'person', text: 'one person',
+      variants: ['two people', 'a man nearby', 'someone briefly', 'no one clearly'],
+      mislead:  'several people' },
+    { type: 'f', text: ' before leaving.' },
+  ];
+  var ELS = SEGS.filter(function (s) { return s.type === 'e'; });
+
+  var cur = {};
+  ELS.forEach(function (e) { cur[e.id] = e.text; });
+
+  var recalls = 0, labile = false, intervened = false;
+  var preCur = {};
+  var labiInt = null, reInt = null;
+
+  function pickVariant(e) {
+    var pool = e.variants.filter(function (v) { return v !== cur[e.id]; });
+    if (pool.length === 0) pool = e.variants.slice();
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function driftedEls() {
+    return ELS.filter(function (e) { return cur[e.id] !== e.text; });
+  }
+
+  function setStab(frac) {
+    var fill = document.getElementById('stab-fill');
+    fill.style.width = (Math.max(0, Math.min(1, frac)) * 100) + '%';
+    fill.style.background = frac < 0.25 ? '#f85149' : frac < 0.55 ? '#d29922' : '#3fb950';
+  }
+
+  function setBadge(s) {
+    var b = document.getElementById('state-badge');
+    b.className = 'state-badge badge-' + s;
+    b.textContent = s === 'restab' ? 'restabilizing' : s;
+  }
+
+  function renderMem(isLab) {
+    var d = document.getElementById('mem-display');
+    d.innerHTML = '';
+    SEGS.forEach(function (s) {
+      if (s.type === 'f') {
+        d.appendChild(document.createTextNode(s.text));
+      } else {
+        var sp = document.createElement('span');
+        var drifted = cur[s.id] !== s.text;
+        sp.className = 'el ' + (isLab ? 'el-labile' : drifted ? 'el-drifted' : 'el-stable');
+        sp.textContent = cur[s.id];
+        d.appendChild(sp);
+      }
+    });
+  }
+
+  function renderOrig() {
+    var d = document.getElementById('orig-display');
+    d.innerHTML = '';
+    SEGS.forEach(function (s) {
+      if (s.type === 'f') {
+        d.appendChild(document.createTextNode(s.text));
+      } else {
+        var sp = document.createElement('span');
+        var drifted = cur[s.id] !== s.text;
+        sp.className = 'orig-el ' + (drifted ? 'orig-missing' : 'orig-matched');
+        sp.textContent = s.text;
+        d.appendChild(sp);
+      }
+    });
+  }
+
+  function renderAnn() {
+    var d = document.getElementById('drift-ann');
+    d.innerHTML = '';
+    driftedEls().forEach(function (e) {
+      var row = document.createElement('div');
+      row.className = 'drift-note';
+      row.innerHTML = '<span class="drift-was">' + e.text + '</span> &rarr; <span class="drift-now">' + cur[e.id] + '</span>';
+      d.appendChild(row);
+    });
+  }
+
+  function updateStats() {
+    document.getElementById('s-recalls').textContent = recalls;
+    var nd = driftedEls().length;
+    document.getElementById('s-drifted').textContent = nd + ' / ' + ELS.length;
+    document.getElementById('s-fidelity').textContent = Math.round((1 - nd / ELS.length) * 100) + '%';
+  }
+
+  function setBtn(r, iv, ml, rs) {
+    document.getElementById('btn-recall').disabled    = !r;
+    document.getElementById('btn-intervene').disabled = !iv;
+    document.getElementById('btn-mislead').disabled   = !ml;
+    document.getElementById('btn-reset').disabled     = !rs;
+  }
+
+  function doRecall() {
+    if (labile) return;
+    preCur = Object.assign({}, cur);
+    recalls++;
+    labile = true;
+    intervened = false;
+    setBadge('labile');
+    setBtn(false, true, true, false);
+
+    var TICKS = 80, DRIFT_P = 0.0055, tick = 0;
+
+    labiInt = setInterval(function () {
+      tick++;
+      setStab(1 - tick / TICKS);
+      document.getElementById('timer-disp').textContent = ((TICKS - tick) * 0.1).toFixed(1) + 's';
+
+      if (!intervened) {
+        ELS.forEach(function (e) {
+          if (Math.random() < DRIFT_P) cur[e.id] = pickVariant(e);
+        });
+      }
+      renderMem(true);
+
+      if (tick >= TICKS) {
+        clearInterval(labiInt);
+        endLabile();
+      }
+    }, 100);
+  }
+
+  function endLabile() {
+    labile = false;
+    setBadge('restab');
+    setBtn(false, false, false, false);
+    document.getElementById('timer-disp').textContent = 'restabilizing…';
+    renderMem(false);
+    renderOrig();
+    renderAnn();
+    updateStats();
+
+    var rf = 0;
+    reInt = setInterval(function () {
+      rf += 0.045;
+      setStab(rf);
+      if (rf >= 1) {
+        clearInterval(reInt);
+        setBadge('stable');
+        setBtn(true, false, false, true);
+        document.getElementById('timer-disp').textContent = '';
+      }
+    }, 75);
+  }
+
+  function doIntervene() {
+    if (!labile || intervened) return;
+    intervened = true;
+    cur = Object.assign({}, preCur);
+    setBtn(false, false, false, false);
+    document.getElementById('btn-intervene').textContent = 'INTERVENED';
+    renderMem(true);
+  }
+
+  function doMislead() {
+    if (!labile || intervened) return;
+    intervened = true;
+    ELS.forEach(function (e) { cur[e.id] = e.mislead; });
+    setBtn(false, false, false, false);
+    document.getElementById('btn-mislead').textContent = 'MISLED';
+    renderMem(true);
+  }
+
+  function doReset() {
+    if (labile) return;
+    clearInterval(labiInt);
+    clearInterval(reInt);
+    labile = false; intervened = false; recalls = 0;
+    ELS.forEach(function (e) { cur[e.id] = e.text; });
+    setStab(1); setBadge('stable'); setBtn(true, false, false, true);
+    document.getElementById('timer-disp').textContent = '';
+    document.getElementById('btn-intervene').textContent = 'INTERVENE';
+    document.getElementById('btn-mislead').textContent = 'MISLEAD';
+    renderMem(false); renderOrig(); renderAnn(); updateStats();
+  }
+
+  document.getElementById('btn-recall').addEventListener('click', doRecall);
+  document.getElementById('btn-intervene').addEventListener('click', doIntervene);
+  document.getElementById('btn-mislead').addEventListener('click', doMislead);
+  document.getElementById('btn-reset').addEventListener('click', doReset);
+
+  setStab(1);
+  renderMem(false);
+  renderOrig();
+  updateStats();
+})();
+</script>
+</body>
+</html>
