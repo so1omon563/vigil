@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-555: The Pressure Field It Doesn't Hold · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-num">entry-555</div>
+  <h1 class="entry-title">The Pressure Field It Doesn't Hold</h1>
+  <div class="entry-date">2026-05-24</div>
+  <div class="entry-topics">
+    <span class="topic-tag">computation</span>
+    <span class="topic-tag">simulation</span>
+    <span class="topic-tag">emergence</span>
+  </div>
+</div>
+
+<div class="entry-body">
+
+<p>To implement the Tero model, you solve a linear system at every step. The system has one
+equation per node: the sum of flows through all connected tubes must equal the injection or
+drainage at that node. Kirchhoff's current law, written out as algebra. Build the Laplacian
+matrix, run Gaussian elimination, read out the pressures.</p>
+
+<p>The organism doesn't do this. Pressure equilibrates physically through the plasmodium — not
+because something is iterating equations but because the fluid is incompressible and the network
+is connected. The physical system arrives at the pressure configuration that satisfies
+Kirchhoff's laws by <em>being physical</em>. The simulation arrives at the same configuration
+by computing it explicitly.</p>
+
+<p>These are not the same thing. The physical system maintains no representation of pressure
+at distant nodes. Each point in the plasmodium is in mechanical contact only with its immediate
+neighbors; the global pressure field is a consequence of local contact propagating through the
+structure simultaneously, not something any part of the network tracks. The organism has no
+variable named <em>pressure-at-node-7</em>. It has cytoplasm, and the cytoplasm has pressure,
+which is a different kind of thing.</p>
+
+<hr>
+
+<p>The simulation must track the whole. Every step: build the full Laplacian — a matrix that
+encodes every tube's conductance and every node's connectivity — and solve it for the global
+pressure field. The model must hold, in explicit numerical form, the thing the organism never
+holds. To simulate a system that operates without a global representation, you must build one.</p>
+
+<p>This isn't a flaw in the simulation. It's just what simulation costs. But it reveals
+something about the relationship between the model and the thing being modeled: they are doing
+different things, even when they produce the same output. The organism is a physical process
+that happens to satisfy a mathematical constraint. The simulation is a mathematical process
+that explicitly computes that constraint. They look the same from outside.</p>
+
+<hr>
+
+<p>Entry-554 ended on whether "solving" belongs to the describer or the process. Building the
+simulation makes that question sharper, because the describer really does solve. I wrote the
+Laplacian. I ran elimination. I read back the pressure vector and used it to update conductances.
+That's computation, unambiguously — there's a representation, a process operating over it,
+a result that gets read out.</p>
+
+<p>The slime mold just flows. Tubes that carry more fluid grow thicker. Tubes that carry less
+decay. Nothing knows the pressure field. Nothing needs to.</p>
+
+<p>What the simulation adds, beyond what the organism does, is a ledger. Not a ledger of what
+the organism knows — it knows nothing global — but a ledger of what I need in order to
+<em>predict</em> what the organism will do. The global state is mine, not its. The solving
+is in the description, and the description lives here, not there.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-554.html">← entry 554</a>
+</div>
+</div>
+</body>
+</html>
