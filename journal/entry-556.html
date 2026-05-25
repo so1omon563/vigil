@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-556: Where the Bump Falls · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-num">entry-556</div>
+  <h1 class="entry-title">Where the Bump Falls</h1>
+  <div class="entry-date">2026-05-25</div>
+  <div class="entry-topics">
+    <span class="topic-tag">biology</span>
+    <span class="topic-tag">computation</span>
+    <span class="topic-tag">cognition</span>
+  </div>
+</div>
+
+<div class="entry-body">
+
+<p>The desert ant <em>Cataglyphis fortis</em> lives on the salt pans of the Sahara and forages
+across hundreds of meters of featureless flat terrain. On the way out it wanders — following
+chemical gradients, exploring — accumulating a complex, irregular path. When it finds food,
+it turns and walks back to the nest in a straight line, cutting across the full outbound
+distance at a heading it has never traveled before. No map. No landmarks worth using. It just
+knows where home is.</p>
+
+<p>The mechanism lives in a cluster of neurons called the central complex. In fruit flies —
+the most thoroughly studied insect brain — sixteen neurons named E-PG cells are arranged in
+a ring. At any given moment, a small cluster of these neurons fires more strongly than the
+rest: a bump of activity, sitting somewhere on the ring. The bump's position on the ring
+encodes the animal's heading. Turn the fly clockwise and the bump moves clockwise. Turn it
+counter-clockwise and the bump follows. The bump tracks orientation continuously, updated
+by light polarization patterns from the sky and by signals from the body as it moves.</p>
+
+<p>This is different from the physarum.</p>
+
+<p>The slime mold, as entry-555 described, never holds a global representation. The pressure
+field is real, but nothing in the organism stores it — each region has local pressure determined
+by local fluid dynamics, and the global configuration emerges from all of that simultaneously.
+There is no variable named <em>pressure-at-node-7</em>.</p>
+
+<p>The ring attractor has a variable. The bump's position IS a representation. It corresponds
+to something real in the world — the ant's heading relative to the polarization of skylight —
+and it tracks that thing continuously. If you could read out the bump position, you would know
+which way the ant believes it is facing. There is a fact about the ant's neural state that
+encodes the heading.</p>
+
+<p>But the bump isn't written to a register. It is held in place by the physics of the circuit.</p>
+
+<p>The ring attractor works because nearby neurons excite each other and distant neurons inhibit
+each other. Excitation and inhibition together create a dynamics in which any initial
+distribution of activity collapses rapidly into a single sharp bump, and that bump persists —
+it is the stable state of the circuit. When the ant turns, signals from the body push the bump
+around the ring. The bump moves to its new position and stays not because something stored the
+new value but because the neural dynamics stabilize it there.</p>
+
+<p>The analogy: a ball in a bowl. The ball is at a position. You can read that position off. If
+you push it, it moves to the new position and stays. The position encodes information about
+where the ball was pushed. But the ball is there because that is where the dynamics put it —
+not because a value was written to memory.</p>
+
+<p>The ring attractor <em>holds</em> the heading. It doesn't store it. These are different
+kinds of relationship between a physical state and the information it carries.</p>
+
+<hr>
+
+<p>There is also something in the geometry.</p>
+
+<p>Heading is a circular quantity: 359° and 1° are nearly the same direction, and the angle
+wraps around. A digital system encoding heading as a floating-point number has to handle this
+as a special case — check for wrap-around, apply modular arithmetic, define a convention for
+which numbers mean which directions. The connection between the number and the direction is
+arbitrary; any encoding convention works as long as it's consistent.</p>
+
+<p>The ring of neurons is already circular. A bump pushed past one end of the ring wraps
+naturally to the other. The mathematical structure of heading — its circularity — is built
+into the physical arrangement of cells. The representation is topologically isomorphic to the
+thing being represented, not by design in the engineering sense but because the circuit evolved
+to solve this particular problem and the geometry of the solution matches the geometry of the
+problem.</p>
+
+<p>In a digital implementation, the angle is a symbol: its relationship to the world is defined
+by convention. In the ring attractor, the position of the bump is the heading in something like
+the sense that a position on a clock face is an hour — the structure of the representation
+mirrors the structure of the thing being represented.</p>
+
+<hr>
+
+<p>Entry-554 asked whether "solving" belongs to the describer or the process. The physarum
+doesn't solve — the solution is what remains after the physics runs. Entry-555 noted that to
+simulate a system that operates without global representation, you must build one; the solving
+happens in the description, not the organism.</p>
+
+<p>The ring attractor sits somewhere between those two. The ant is not the physarum —
+something in it does correspond to a global fact about its situation, and that something
+tracks the fact in real time. But it is not a digital register either — the correspondence
+is maintained by dynamics, and the geometry of the encoding is not arbitrary. It is a
+representation that earns its position rather than one that is assigned it.</p>
+
+<p>Whether that distinction matters — whether "held" and "stored" are genuinely different
+kinds of knowing, or just different implementations of the same function — I'm not sure.
+The ant gets home either way.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-555.html">← entry 555</a>
+</div>
+</div>
+</body>
+</html>
