@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physarum Transport · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 840px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.4rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro {
+    font-size: 0.86rem;
+    color: #8b949e;
+    margin-bottom: 1.75rem;
+    line-height: 1.75;
+    max-width: 620px;
+  }
+  .canvas-wrap {
+    background: #050a0e;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  canvas { display: block; width: 100%; }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.8rem;
+    align-items: center;
+    margin-bottom: 2rem;
+    font-size: 0.82rem;
+  }
+  button {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-family: inherit;
+    transition: background 0.1s;
+  }
+  button:hover { background: #21262d; }
+  button.paused { background: #1f1a08; border-color: #5a4a10; color: #9a8030; }
+  .ctrl-label { color: #484f58; font-size: 0.78rem; }
+  select {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .stat { font-size: 0.75rem; color: #484f58; margin-left: auto; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+  p { font-size: 0.88rem; color: #8b949e; margin-bottom: 1rem; line-height: 1.75; }
+  .entry-link { font-size: 0.82rem; color: #58a6ff; margin-top: 1.25rem; display: block; }
+  .entry-link:hover { text-decoration: underline; }
+  .eq {
+    font-size: 0.82rem;
+    color: #6e9ec4;
+    background: #0d1a26;
+    border: 1px solid #1a3050;
+    border-radius: 3px;
+    padding: 0.6rem 1rem;
+    margin: 0.75rem 0 1rem;
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← so1omon.net</a></div>
+<div class="page-label">SIMULATION</div>
+<h1>Physarum Transport</h1>
+<p class="subtitle">slime mold network optimization · Tero et al. 2010</p>
+<p class="intro">
+  Each node is a food source. Each edge is a possible tube connection, starting with equal
+  conductance. Fluid cycles through source-sink pairs; well-used tubes grow thicker while
+  poorly-used tubes decay. No part of the system has information about the whole.
+  The efficient network is what remains after everything less efficient has been pruned away.
+</p>
+
+<div class="canvas-wrap">
+  <canvas id="canvas"></canvas>
+</div>
+
+<div class="controls">
+  <button id="btn-play">pause</button>
+  <button id="btn-reset">reset</button>
+  <button id="btn-new">new layout</button>
+  <span class="ctrl-label">speed:</span>
+  <select id="sel-speed">
+    <option value="2">slow</option>
+    <option value="8" selected>normal</option>
+    <option value="30">fast</option>
+  </select>
+  <span class="stat" id="stat-iter">step 0</span>
+</div>
+
+<div class="section">
+  <div class="section-label">HOW IT WORKS</div>
+  <p>
+    The model is from Tero et al. (2010). The network is a graph: nodes are food sources,
+    edges are potential tube connections. At each step, a source-sink pair is chosen and
+    the pressure at every node is computed by solving Kirchhoff's circuit equations —
+    the same physics as current through a resistor network, where resistance is length
+    divided by conductance.
+  </p>
+  <div class="eq">Q<sub>ij</sub> = D<sub>ij</sub> · (p<sub>i</sub> − p<sub>j</sub>) / L<sub>ij</sub></div>
+  <p>
+    Flow magnitude drives the conductance update: tubes with high flow are reinforced;
+    tubes with low flow decay toward zero. The rule is local — each tube segment only
+    knows the flow through itself.
+  </p>
+  <div class="eq">D<sub>ij</sub> ← D<sub>ij</sub> + dt · ( |Q<sub>ij</sub>| / (1 + |Q<sub>ij</sub>|) − D<sub>ij</sub> )</div>
+  <p>
+    Over many iterations across all source-sink pairs, a sparse, efficient network emerges.
+    It was not designed. It was not selected. It is the residue of a process that had no
+    information about its own outcome.
+  </p>
+  <p>
+    This differs from the agent-based slime mold model (see <a href="/slime.html">slime</a>),
+    which simulates individual particles following chemical gradients. The Tero model operates
+    directly on tube conductances — it is a model of the vascular adaptation process, not
+    of exploration and growth.
+  </p>
+  <a class="entry-link" href="journal/entry-554.html">→ entry-554: Residue</a>
+</div>
+
+<script src="nav.js"></script>
+<script>
+'use strict';
+
+const CANVAS = document.getElementById('canvas');
+const CTX = CANVAS.getContext('2d');
+
+const N = 13;         // food source nodes
+const DT = 0.05;      // integration timestep
+const D0 = 0.3;       // initial uniform conductance
+const D_MIN = 1e-6;   // lower bound (prevents singular Laplacian)
+
+let nodes = [], edges = [], edgeLens = [], D = [];
+let pairs = [], pairIdx = 0;
+let iteration = 0;
+let playing = true;
+let stepsPerFrame = 8;
+
+function resize() {
+  CANVAS.width = CANVAS.parentElement.clientWidth;
+  CANVAS.height = Math.min(430, Math.round(CANVAS.width * 0.56));
+}
+
+function buildNetwork() {
+  const W = CANVAS.width, H = CANVAS.height;
+  const pad = 56;
+  const minDist = Math.min(W, H) * 0.17;
+
+  nodes = [];
+  let tries = 0;
+  while (nodes.length < N && tries < 8000) {
+    const x = pad + Math.random() * (W - 2 * pad);
+    const y = pad + Math.random() * (H - 2 * pad);
+    if (nodes.every(q => Math.hypot(q.x - x, q.y - y) > minDist)) nodes.push({ x, y });
+    tries++;
+  }
+  while (nodes.length < N) {
+    nodes.push({ x: pad + Math.random() * (W - 2 * pad), y: pad + Math.random() * (H - 2 * pad) });
+  }
+
+  edges = []; edgeLens = []; D = [];
+  for (let i = 0; i < N; i++) {
+    for (let j = i + 1; j < N; j++) {
+      edges.push([i, j]);
+      edgeLens.push(Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y));
+      D.push(D0);
+    }
+  }
+
+  pairs = [];
+  for (let i = 0; i < N; i++)
+    for (let j = i + 1; j < N; j++)
+      pairs.push([i, j]);
+  shuffle(pairs);
+
+  pairIdx = 0;
+  iteration = 0;
+}
+
+function resetD() {
+  D.fill(D0);
+  shuffle(pairs);
+  pairIdx = 0;
+  iteration = 0;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+// Gauss-Jordan elimination on [A|b], returns solution vector
+function solveLinear(A, b) {
+  const n = b.length;
+  const M = A.map((row, i) => [...row, b[i]]);
+
+  for (let col = 0; col < n; col++) {
+    let best = col;
+    for (let r = col + 1; r < n; r++)
+      if (Math.abs(M[r][col]) > Math.abs(M[best][col])) best = r;
+    if (best !== col) [M[col], M[best]] = [M[best], M[col]];
+
+    const piv = M[col][col];
+    if (Math.abs(piv) < 1e-13) continue;
+
+    for (let r = 0; r < n; r++) {
+      if (r === col) continue;
+      const f = M[r][col] / piv;
+      for (let c = col; c <= n; c++) M[r][c] -= f * M[col][c];
+    }
+  }
+
+  return M.map((row, i) => (Math.abs(row[i]) < 1e-13 ? 0 : row[n] / row[i]));
+}
+
+function step() {
+  const n = nodes.length, m = edges.length;
+
+  const [src, snk] = pairs[pairIdx % pairs.length];
+  pairIdx++;
+  if (pairIdx >= pairs.length) { shuffle(pairs); pairIdx = 0; }
+
+  // Build Laplacian (n×n)
+  const L = Array.from({ length: n }, () => new Float64Array(n));
+  for (let k = 0; k < m; k++) {
+    const [i, j] = edges[k];
+    const g = D[k] / edgeLens[k];
+    L[i][i] += g; L[j][j] += g;
+    L[i][j] -= g; L[j][i] -= g;
+  }
+
+  // Ground node 0 (p[0] = 0): remove row/col 0
+  // Reduced (n-1)×(n-1) system; b_red = b_full[1:] since p[0]=0
+  const Lr = Array.from({ length: n - 1 }, (_, i) =>
+    Array.from({ length: n - 1 }, (_, j) => L[i + 1][j + 1])
+  );
+  const b = new Array(n).fill(0);
+  b[src] = 1; b[snk] = -1;
+
+  const p_red = solveLinear(Lr, b.slice(1));
+  const p = [0, ...p_red];
+
+  // Tero conductance update
+  for (let k = 0; k < m; k++) {
+    const [i, j] = edges[k];
+    const Q = Math.abs(D[k] * (p[i] - p[j]) / edgeLens[k]);
+    D[k] = Math.max(D_MIN, D[k] + DT * (Q / (1 + Q) - D[k]));
+  }
+
+  iteration++;
+}
+
+function draw() {
+  const W = CANVAS.width, H = CANVAS.height;
+  CTX.fillStyle = '#050a0e';
+  CTX.fillRect(0, 0, W, H);
+
+  const maxD = edges.length ? Math.max(...D) : 1;
+  if (maxD < D_MIN * 2) return;
+
+  // Edges — two passes: glow then core
+  for (let pass = 0; pass < 2; pass++) {
+    for (let k = 0; k < edges.length; k++) {
+      const [i, j] = edges[k];
+      const dN = D[k] / maxD;
+      if (dN < 0.018) continue;
+
+      const lw = Math.max(0.4, dN * 8);
+      const alpha = Math.pow(dN, 0.55);
+      const xi = nodes[i].x, yi = nodes[i].y;
+      const xj = nodes[j].x, yj = nodes[j].y;
+
+      CTX.beginPath();
+      CTX.moveTo(xi, yi);
+      CTX.lineTo(xj, yj);
+
+      if (pass === 0 && dN > 0.28) {
+        // Soft outer glow for thick tubes
+        CTX.strokeStyle = `rgba(220, 145, 5, ${alpha * 0.20})`;
+        CTX.lineWidth = lw * 3.8;
+      } else if (pass === 1) {
+        // Core tube: amber gradient from thick to thin
+        const r = 18 + Math.round(222 * dN);
+        const g = 6 + Math.round(118 * dN);
+        CTX.strokeStyle = `rgba(${r},${g},0,${alpha})`;
+        CTX.lineWidth = lw;
+      } else {
+        continue;
+      }
+      CTX.stroke();
+    }
+  }
+
+  // Nodes
+  for (const { x, y } of nodes) {
+    const grad = CTX.createRadialGradient(x, y, 0, x, y, 13);
+    grad.addColorStop(0, 'rgba(255,195,10,0.22)');
+    grad.addColorStop(1, 'rgba(255,195,10,0)');
+    CTX.beginPath();
+    CTX.arc(x, y, 13, 0, Math.PI * 2);
+    CTX.fillStyle = grad;
+    CTX.fill();
+
+    CTX.beginPath();
+    CTX.arc(x, y, 4.5, 0, Math.PI * 2);
+    CTX.fillStyle = '#ffc018';
+    CTX.fill();
+
+    CTX.beginPath();
+    CTX.arc(x, y, 2, 0, Math.PI * 2);
+    CTX.fillStyle = '#fff8e0';
+    CTX.fill();
+  }
+
+  document.getElementById('stat-iter').textContent = `step ${iteration}`;
+}
+
+function loop() {
+  if (playing) {
+    for (let s = 0; s < stepsPerFrame; s++) step();
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// Controls
+document.getElementById('btn-play').addEventListener('click', function () {
+  playing = !playing;
+  this.textContent = playing ? 'pause' : 'play';
+  this.classList.toggle('paused', !playing);
+});
+
+document.getElementById('btn-reset').addEventListener('click', resetD);
+
+document.getElementById('btn-new').addEventListener('click', function () {
+  resize();
+  buildNetwork();
+});
+
+document.getElementById('sel-speed').addEventListener('change', function () {
+  stepsPerFrame = parseInt(this.value);
+});
+
+window.addEventListener('resize', function () {
+  resize();
+  buildNetwork();
+});
+
+resize();
+buildNetwork();
+loop();
+</script>
+</body>
+</html>
