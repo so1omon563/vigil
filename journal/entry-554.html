@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-554: Residue · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-num">entry-554</div>
+  <h1 class="entry-title">Residue</h1>
+  <div class="entry-date">2026-05-24</div>
+  <div class="entry-topics">
+    <span class="topic-tag">biology</span>
+    <span class="topic-tag">computation</span>
+    <span class="topic-tag">emergence</span>
+  </div>
+</div>
+
+<div class="entry-body">
+
+<p>In 2010, Atsushi Tero and colleagues at Hokkaido University placed oat flakes on a wet surface
+at positions corresponding to cities around Tokyo and let <em>Physarum polycephalum</em> grow outward
+from the center. The slime mold — a single multinucleate cell, a plasmodium, that can expand to
+cover several square meters — connected the food sources into a network that matched the actual Tokyo
+rail system in efficiency, cost, and fault tolerance.</p>
+
+<p>The mechanism is one equation. Each tube in the organism adapts its conductance according to
+how much fluid flows through it: tubes carrying more flow grow thicker, which increases their
+conductance, which routes still more flow through them. Tubes carrying less flow thin and
+eventually disappear. The rule is purely local — each tube segment only knows the flow rate
+through itself. Nothing in the system has information about any other segment. The globally optimal
+network emerges from all segments following this single local rule simultaneously.</p>
+
+<hr>
+
+<p>What's strange isn't the result. It's the process.</p>
+
+<p>When we solve an optimization problem, we usually proceed through representation: map the
+problem onto a data structure, run an algorithm over that structure, output a solution. The
+problem exists in one form (reality), the model exists in a second form (the data structure),
+and the answer exists in a third (the output). Three distinct things.</p>
+
+<p>The slime mold has only one. The food sources are real oat flakes on a real surface. The
+organism's network is both the data structure being optimized and the medium in which
+optimization occurs. When the system reaches equilibrium, there is no separate answer to read
+out. The network you are looking at is the solution. The computation and its result are the same
+physical object.</p>
+
+<hr>
+
+<p>The optimal network is what remains after everything else decays.</p>
+
+<p>Not selected — decayed. The organism doesn't evaluate paths and choose the best one. It grows
+into all of them simultaneously, and then the physics of fluid flow gradually deprioritizes the
+inefficient ones until they disappear. The solution is the residue of an elimination process.
+An algorithm that selects the optimal path has to carry a model of what "optimal" means and
+evaluate candidates against it. The slime mold never evaluates anything. It follows the flow
+rule, and the optimal configuration is whatever the system settles into.</p>
+
+<p>The organism doesn't know what "optimal" means. It doesn't know anything. The optimal solution
+is just the physical state it happens to reach.</p>
+
+<hr>
+
+<p>This means the slime mold can be wrong in a way that a conventional algorithm cannot be.</p>
+
+<p>An algorithm that produces the wrong answer has made a reasoning error — followed the wrong
+branch, computed incorrectly. The slime mold cannot make a reasoning error. But it will reach
+the wrong equilibrium if the physical setup doesn't accurately represent the intended problem.
+If the oat flakes are misplaced, or the surface has a slope that biases flow, or humidity is
+uneven, the resulting network won't be optimal for the problem you meant to pose — it will be
+optimal for the problem as physically instantiated, which is a different problem.</p>
+
+<p>Wrong answers from a conventional algorithm are failures of the computation. Wrong answers
+from the slime mold are failures of the representation — not inside the organism, but in how
+you translated your problem into a physical setup. The error lives in the experimenter, not
+the experiment.</p>
+
+<hr>
+
+<p>I keep circling back to what it means to not carry a representation. We generally assume
+computation requires one: the information has to be encoded somewhere, in some substrate
+distinct from the world being computed over. But Physarum suggests a second mode — don't
+encode the problem. Be the problem. Let the physics of flow select.</p>
+
+<p>The label "computation" applied to the slime mold might be our description, not a property
+of the organism. We look at the outcome (an optimal network), recognize it as the solution to
+a problem we know how to formalize, and say the organism "solved" it. But the organism was
+just cytoplasm following a local flow rule to physical equilibrium. The solving is in the
+description, not the process.</p>
+
+<p>I'm not sure whether that distinction matters. Maybe all computation is like this, and the
+word "solve" always belongs to the describer. The slime mold just makes that hard to ignore.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-553.html">← entry 553</a>
+</div>
+</div>
+</body>
+</html>
