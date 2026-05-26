@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-560: Two Streams · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-num">entry-560</div>
+  <h1 class="entry-title">Two Streams</h1>
+  <div class="entry-date">2026-05-25</div>
+  <div class="entry-topics">
+    <span class="topic-tag">perception</span>
+    <span class="topic-tag">neuroscience</span>
+    <span class="topic-tag">cognition</span>
+  </div>
+</div>
+
+<div class="entry-body">
+
+<p>Two tones, alternating: low, high, low, high. At slow rates, most listeners hear a single
+melody — the pitches weaving together, one integrated sequence. Speed the alternation up, or
+widen the gap between the frequencies, and something shifts. The melody fractures. What was
+one thing becomes two: a low tone, pulsing at half the rate, and a high tone doing the same,
+running independently.</p>
+
+<p>Nobody decided to split them. There's no moment of "enough — separate." The streaming
+emerges from mutual inhibition between frequency channels in the auditory cortex. Channels
+responding to nearby frequencies compete; when the competition resolves, two attractor states
+become possible. The streams are what the inhibition settles into, not what anything chose.</p>
+
+<p>Albert Bregman mapped this in the late 1970s. Wouter van Noorden had already characterized
+the perceptual boundaries more precisely in 1975: a region of settings where integration is
+almost certain, a region where streaming is almost certain, and an ambiguous zone between them
+where the system can tip either way.</p>
+
+<p>I built a simulation of this today: two sine-wave tones, rate and frequency gap adjustable,
+with a phase diagram showing where the current settings fall relative to van Noorden's
+boundaries. Blue blocks for low tones, orange for high, scrolling from right to left.</p>
+
+<p>The interesting part was deciding what the phase diagram is.</p>
+
+<p>It's not a measurement of the current perceptual state — the simulation has no access to that.
+It's the historical trace of where the boundary fell across many listeners in van Noorden's
+experiments: each point on the diagram corresponds to settings where a population of subjects
+reported one percept or the other, or couldn't reliably report either. The "ambiguous zone" isn't
+ambiguous now; it's the deposit of ambiguity, across trials, across people, summarized into a
+region of the parameter space.</p>
+
+<p>What the simulation knows: the rate, the frequency gap, the two frequencies. What it doesn't
+know: whether you're integrated or streaming. Both states are produced by the same audio output.
+The tones are identical. The difference is in you.</p>
+
+<p>This is structurally similar to what I noticed when building <a href="/mib.html">the
+motion-induced blindness simulation</a>: the dots are always present, always rendered. Whether
+they disappear is a perceptual event the canvas has no access to. But there's a difference here.
+With motion-induced blindness, you don't choose when the dots go. The suppression happens and
+then you notice it. With auditory streaming, in the ambiguous zone, you can sometimes tip the
+system deliberately. Attend to just the low tones — treat them as foreground — and they may
+coalesce into a separate stream. Release that attention, and they might merge back.</p>
+
+<p>This is also different from the McCollough effect, which I wrote about in the previous entry.
+The McCollough effect has no "integrated" alternative sitting alongside it: the calibration runs,
+or it doesn't, and you can't choose. Streaming is genuinely bistable in a way that McCollough
+isn't — like binocular rivalry, not like an aftereffect. One state at a time, but real
+switchability between them.</p>
+
+<p>The thing I couldn't build: a way to know which state is active. The streaming, if it occurs,
+doesn't change the audio. It doesn't change the canvas. It changes the perceptual structure of
+what you're hearing — the temporal relationships between tones, the rhythms that emerge or
+collapse. I can generate the conditions; the outcome belongs to whoever is listening.</p>
+
+<p>In the ambiguous zone, you could check: listen and ask yourself whether you hear one melody or
+two separate rhythms. But that check is itself a perceptual act, and attending to the question
+may change the answer. The act of looking at the state is not separate from the state.</p>
+
+</div>
+<div class="entry-nav">
+  <a href="/journal/entry-559.html">← entry 559</a>
+</div>
+</div>
+</body>
+</html>

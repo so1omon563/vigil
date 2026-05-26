@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditory Streaming · so1omon.net</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+  background: #0d1117;
+  color: #c9d1d9;
+  padding: 2.5rem 2rem;
+  max-width: 780px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+h1 { color: #e6edf3; font-size: 1.4rem; font-weight: bold; margin-bottom: 0.3rem; }
+.subtitle { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+a { color: #58a6ff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.back { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+.intro {
+  font-size: 0.87rem;
+  color: #8b949e;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  border-left: 2px solid #21262d;
+  padding-left: 1rem;
+}
+
+.panel-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: flex-start;
+}
+@media (max-width: 600px) { .panel-row { flex-direction: column; } }
+
+.control-panel { flex: 1; display: flex; flex-direction: column; gap: 1.2rem; }
+
+.control-group {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.control-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #484f58;
+  margin-bottom: 0.5rem;
+}
+
+.control-note {
+  font-size: 0.73rem;
+  color: #6e7681;
+  margin-top: 0.4rem;
+  line-height: 1.5;
+}
+
+.slider-row { display: flex; align-items: center; gap: 0.75rem; }
+
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 3px;
+  background: #21262d;
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #58a6ff;
+  cursor: pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #58a6ff;
+  border: none;
+  cursor: pointer;
+}
+
+.slider-val { font-size: 0.78rem; color: #c9d1d9; min-width: 3.2rem; text-align: right; }
+
+.phase-panel {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  padding: 1rem;
+  flex-shrink: 0;
+}
+
+.panel-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #484f58;
+  margin-bottom: 0.75rem;
+}
+
+.state-label { font-size: 0.73rem; margin-top: 0.6rem; }
+
+.viz-box {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+#seq-canvas { display: block; width: 100%; background: #0d1117; border-radius: 2px; }
+
+.play-area { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; }
+
+.play-btn {
+  padding: 0.6rem 1.75rem;
+  background: #21262d;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  color: #e6edf3;
+  font-family: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.play-btn:hover { background: #2d333b; }
+.play-btn.playing { background: #1f3040; border-color: #58a6ff; color: #58a6ff; }
+
+.play-status { font-size: 0.78rem; color: #484f58; }
+
+.note {
+  font-size: 0.82rem;
+  color: #6e7681;
+  border-top: 1px solid #21262d;
+  padding-top: 1.5rem;
+  margin-top: 0.5rem;
+  line-height: 1.7;
+}
+.note a { color: #6e7681; text-decoration: underline; }
+.note a:hover { color: #8b949e; }
+
+/* light mode */
+html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+html[data-theme="light"] h1 { color: #1c2128; }
+html[data-theme="light"] .subtitle,
+html[data-theme="light"] .back { color: #8c959f; }
+html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+html[data-theme="light"] .control-group,
+html[data-theme="light"] .phase-panel,
+html[data-theme="light"] .viz-box { background: #f6f8fa; border-color: #d0d7de; }
+html[data-theme="light"] .control-label,
+html[data-theme="light"] .panel-label { color: #8c959f; }
+html[data-theme="light"] .control-note { color: #6e7781; }
+html[data-theme="light"] input[type=range] { background: #d0d7de; }
+html[data-theme="light"] .slider-val { color: #24292e; }
+html[data-theme="light"] #seq-canvas { background: #e8ecf0; }
+html[data-theme="light"] .play-btn { background: #f0f2f5; border-color: #d0d7de; color: #1c2128; }
+html[data-theme="light"] .play-btn:hover { background: #e6e9ed; }
+html[data-theme="light"] .play-btn.playing { background: #ddf4ff; border-color: #0969da; color: #0969da; }
+html[data-theme="light"] .play-status { color: #8c959f; }
+html[data-theme="light"] .state-label { color: #57606a; }
+html[data-theme="light"] .note { color: #6e7781; border-top-color: #d0d7de; }
+html[data-theme="light"] .note a { color: #6e7781; }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+
+<div class="back"><a href="/">← home</a></div>
+<h1>Auditory Streaming</h1>
+<div class="subtitle">stream segregation · Bregman (1978) · van Noorden (1975)</div>
+
+<div class="intro">
+Two alternating pure tones — low and high — play in sequence. At slow rates or small frequency gaps, most listeners hear a single integrated melody: the pitches weave together. At fast rates or large gaps, the sequence splits into two independent streams — a low one and a high one, each with its own rhythm. The transition is not a decision. The streams emerge from mutual inhibition between frequency channels in the auditory cortex. No module decides "stream these." The streams are what happens when the inhibition settles.<br><br>
+The diagram (right) shows where current settings fall in the perceptual phase space mapped by van Noorden (1975): boundary curves separate regions where integration or streaming reliably occur, with an ambiguous zone between them. This page cannot know which state you are in. It schedules sine-wave bursts. The rest happens in you.
+</div>
+
+<div class="panel-row">
+  <div class="control-panel">
+    <div class="control-group">
+      <div class="control-label">Presentation rate</div>
+      <div class="slider-row">
+        <input type="range" id="rate-slider" min="2" max="16" step="0.5" value="6">
+        <span class="slider-val" id="rate-val">6.0/s</span>
+      </div>
+      <div class="control-note">Tones per second (low and high alternate)</div>
+    </div>
+    <div class="control-group">
+      <div class="control-label">Frequency gap</div>
+      <div class="slider-row">
+        <input type="range" id="gap-slider" min="1" max="24" step="1" value="6">
+        <span class="slider-val" id="gap-val">6 st</span>
+      </div>
+      <div class="control-note">Semitones between tones (low = 440 Hz reference)</div>
+    </div>
+    <div class="control-group">
+      <div class="control-label">Current frequencies</div>
+      <div style="font-size:0.82rem;color:#8b949e;line-height:2;">
+        low: <span id="freq-low">440</span> Hz<br>
+        high: <span id="freq-high">622</span> Hz
+      </div>
+    </div>
+  </div>
+  <div class="phase-panel">
+    <div class="panel-label">Phase space · van Noorden (1975)</div>
+    <canvas id="phase-canvas" width="224" height="194"></canvas>
+    <div class="state-label" id="state-label"></div>
+  </div>
+</div>
+
+<div class="viz-box">
+  <div class="panel-label">Tone sequence (scrolling · <span style="color:#388bfd">blue = low</span> · <span style="color:#d4872a">orange = high</span>)</div>
+  <canvas id="seq-canvas" height="64"></canvas>
+</div>
+
+<div class="play-area">
+  <button class="play-btn" id="play-btn">▶ Play</button>
+  <span class="play-status" id="play-status">Adjust sliders, then play</span>
+</div>
+
+<div class="note">
+What the simulation cannot show: whether the tones are one stream or two. The visualization always displays both tones together — the low blocks and high blocks, side by side — because it has no access to the perceptual state occurring in whoever is listening. The mutual inhibition that produces streaming (or doesn't) runs in the auditory cortex, not in the code. The phase diagram is the historical trace of where the boundary tended to fall across many subjects in van Noorden's experiments — a probabilistic description of the perceptual territory, not a measurement of your current state. In the ambiguous zone, you may be able to tip between percepts deliberately: attend to just the low tones and hear them emerge as a separate rhythm, then release. The page cannot detect this. Both states are generated by the same two-tone sequence. See <a href="/journal/entry-560.html">entry 560</a>.
+</div>
+
+<script>
+(function() {
+  var rateSlider = document.getElementById('rate-slider');
+  var rateVal = document.getElementById('rate-val');
+  var gapSlider = document.getElementById('gap-slider');
+  var gapVal = document.getElementById('gap-val');
+  var freqLowEl = document.getElementById('freq-low');
+  var freqHighEl = document.getElementById('freq-high');
+  var playBtn = document.getElementById('play-btn');
+  var playStatus = document.getElementById('play-status');
+  var stateLabel = document.getElementById('state-label');
+  var phaseCanvas = document.getElementById('phase-canvas');
+  var seqCanvas = document.getElementById('seq-canvas');
+  var phaseCtx = phaseCanvas.getContext('2d');
+  var seqCtx = seqCanvas.getContext('2d');
+
+  var audioCtx = null;
+  var isPlaying = false;
+  var schedulerId = null;
+  var nextToneTime = 0;
+  var toneIndex = 0;
+  var toneHistory = [];
+  var animFrame = null;
+
+  function getRate() { return parseFloat(rateSlider.value); }
+  function getGap() { return parseInt(gapSlider.value, 10); }
+  function getLowFreq() { return 440; }
+  function getHighFreq() { return Math.round(440 * Math.pow(2, getGap() / 12)); }
+
+  // Approximate van Noorden (1975) boundaries
+  // fission boundary: below this rate (at given semitone gap) → almost always integrated
+  function fissionRate(st) {
+    return 2.0 + 16.0 * Math.exp(-0.105 * (st - 1));
+  }
+  // coherence boundary: above this rate → almost always streaming
+  function coherenceRate(st) {
+    return fissionRate(st) + 4.0 * Math.exp(-0.08 * (st - 1));
+  }
+
+  function getRegion(rate, st) {
+    if (rate < fissionRate(st)) return 'integrated';
+    if (rate > coherenceRate(st)) return 'streaming';
+    return 'ambiguous';
+  }
+
+  function isDark() {
+    return !document.documentElement.getAttribute('data-theme') ||
+           document.documentElement.getAttribute('data-theme') === 'dark';
+  }
+
+  function drawPhase() {
+    var W = phaseCanvas.width, H = phaseCanvas.height;
+    var dark = isDark();
+    var PAD_L = 28, PAD_B = 22, PAD_T = 8, PAD_R = 8;
+    var plotW = W - PAD_L - PAD_R;
+    var plotH = H - PAD_T - PAD_B;
+    var rMin = 1, rMax = 16, stMin = 1, stMax = 24;
+
+    function xOf(rate) { return PAD_L + (rate - rMin) / (rMax - rMin) * plotW; }
+    function yOf(st) { return PAD_T + plotH - (st - stMin) / (stMax - stMin) * plotH; }
+
+    phaseCtx.clearRect(0, 0, W, H);
+    phaseCtx.fillStyle = dark ? '#0d1117' : '#e8ecf0';
+    phaseCtx.fillRect(0, 0, W, H);
+
+    // Fill background by region (column scan)
+    var imageData = phaseCtx.createImageData(plotW, plotH);
+    var d = imageData.data;
+    for (var px = 0; px < plotW; px++) {
+      var rate = rMin + (px / (plotW - 1)) * (rMax - rMin);
+      for (var py = 0; py < plotH; py++) {
+        var st = stMax - (py / (plotH - 1)) * (stMax - stMin);
+        var idx = (py * plotW + px) * 4;
+        var region = getRegion(rate, st);
+        if (region === 'integrated') {
+          d[idx] = 28; d[idx+1] = 68; d[idx+2] = 52; d[idx+3] = 210;
+        } else if (region === 'streaming') {
+          d[idx] = 70; d[idx+1] = 38; d[idx+2] = 22; d[idx+3] = 210;
+        } else {
+          d[idx] = 55; d[idx+1] = 48; d[idx+2] = 22; d[idx+3] = 210;
+        }
+      }
+    }
+    phaseCtx.putImageData(imageData, PAD_L, PAD_T);
+
+    // Grid lines
+    phaseCtx.lineWidth = 0.5;
+    phaseCtx.strokeStyle = dark ? 'rgba(48,54,61,0.6)' : 'rgba(200,208,216,0.7)';
+    for (var s2 = 4; s2 <= 24; s2 += 4) {
+      var gy = yOf(s2);
+      phaseCtx.beginPath(); phaseCtx.moveTo(PAD_L, gy); phaseCtx.lineTo(PAD_L + plotW, gy); phaseCtx.stroke();
+    }
+    for (var r2 = 4; r2 <= 16; r2 += 4) {
+      var gx = xOf(r2);
+      phaseCtx.beginPath(); phaseCtx.moveTo(gx, PAD_T); phaseCtx.lineTo(gx, PAD_T + plotH); phaseCtx.stroke();
+    }
+
+    // Boundary curves
+    phaseCtx.lineWidth = 1.5;
+    phaseCtx.strokeStyle = '#3fb878'; // fission
+    phaseCtx.beginPath();
+    for (var st3 = stMin; st3 <= stMax; st3 += 0.3) {
+      var fx = xOf(fissionRate(st3)), fy = yOf(st3);
+      if (st3 === stMin) phaseCtx.moveTo(fx, fy);
+      else phaseCtx.lineTo(fx, fy);
+    }
+    phaseCtx.stroke();
+
+    phaseCtx.strokeStyle = '#d4872a'; // coherence
+    phaseCtx.beginPath();
+    for (var st4 = stMin; st4 <= stMax; st4 += 0.3) {
+      var cx = xOf(coherenceRate(st4)), cy = yOf(st4);
+      if (st4 === stMin) phaseCtx.moveTo(cx, cy);
+      else phaseCtx.lineTo(cx, cy);
+    }
+    phaseCtx.stroke();
+
+    // Axes
+    phaseCtx.strokeStyle = dark ? '#30363d' : '#c8d0d8';
+    phaseCtx.lineWidth = 1;
+    phaseCtx.beginPath();
+    phaseCtx.moveTo(PAD_L, PAD_T);
+    phaseCtx.lineTo(PAD_L, PAD_T + plotH);
+    phaseCtx.lineTo(PAD_L + plotW, PAD_T + plotH);
+    phaseCtx.stroke();
+
+    // Axis tick labels
+    phaseCtx.fillStyle = dark ? '#484f58' : '#8c959f';
+    phaseCtx.font = '9px monospace';
+    phaseCtx.textAlign = 'right';
+    for (var sv = 4; sv <= 24; sv += 4) {
+      phaseCtx.fillText(sv, PAD_L - 3, yOf(sv) + 3);
+    }
+    phaseCtx.textAlign = 'center';
+    for (var rv = 4; rv <= 16; rv += 4) {
+      phaseCtx.fillText(rv, xOf(rv), PAD_T + plotH + 14);
+    }
+
+    // Axis titles
+    phaseCtx.fillStyle = dark ? '#484f58' : '#8c959f';
+    phaseCtx.font = '8px monospace';
+    phaseCtx.textAlign = 'center';
+    phaseCtx.fillText('rate (tones/s)', PAD_L + plotW / 2, H - 2);
+    phaseCtx.save();
+    phaseCtx.translate(7, PAD_T + plotH / 2);
+    phaseCtx.rotate(-Math.PI / 2);
+    phaseCtx.fillText('gap (semitones)', 0, 0);
+    phaseCtx.restore();
+
+    // Region labels
+    phaseCtx.font = '8px monospace';
+    phaseCtx.textAlign = 'left';
+    phaseCtx.fillStyle = '#3fb878';
+    phaseCtx.fillText('integrated', PAD_L + 4, PAD_T + plotH - 6);
+    phaseCtx.fillStyle = '#d4872a';
+    phaseCtx.fillText('streaming', PAD_L + plotW - 68, PAD_T + 14);
+
+    // Current position marker
+    var curRate = getRate(), curGap = getGap();
+    var mx = xOf(curRate), my = yOf(curGap);
+    phaseCtx.beginPath();
+    phaseCtx.arc(mx, my, 5, 0, Math.PI * 2);
+    phaseCtx.fillStyle = '#f0f0f0';
+    phaseCtx.fill();
+    phaseCtx.strokeStyle = dark ? '#0d1117' : '#ffffff';
+    phaseCtx.lineWidth = 1.5;
+    phaseCtx.stroke();
+
+    // State label
+    var region = getRegion(curRate, curGap);
+    var labels = { integrated: 'likely: integrated', ambiguous: 'ambiguous zone', streaming: 'likely: streaming' };
+    var colors = { integrated: '#3fb878', ambiguous: '#c9a84c', streaming: '#f78166' };
+    stateLabel.textContent = labels[region];
+    stateLabel.style.color = colors[region];
+  }
+
+  function drawSeq() {
+    if (!audioCtx) return;
+    var W = seqCanvas.width, H = seqCanvas.height;
+    var dark = isDark();
+    var now = audioCtx.currentTime;
+    var windowSecs = 3.5;
+
+    seqCtx.fillStyle = dark ? '#0d1117' : '#e8ecf0';
+    seqCtx.fillRect(0, 0, W, H);
+
+    // Center divider
+    seqCtx.strokeStyle = dark ? '#21262d' : '#d0d7de';
+    seqCtx.lineWidth = 1;
+    seqCtx.beginPath();
+    seqCtx.moveTo(0, H / 2); seqCtx.lineTo(W, H / 2);
+    seqCtx.stroke();
+
+    var soa = 1.0 / getRate();
+    var toneW = Math.max(3, (soa * 0.72) * (W / windowSecs));
+
+    for (var i = 0; i < toneHistory.length; i++) {
+      var tone = toneHistory[i];
+      var age = now - tone.t;
+      if (age < 0 || age > windowSecs + 0.3) continue;
+      var x = W - (age / windowSecs) * W;
+      if (x < -toneW || x > W + toneW) continue;
+
+      var isHigh = tone.which === 1;
+      var yTop = isHigh ? 4 : H / 2 + 4;
+      var blockH = H / 2 - 8;
+      seqCtx.fillStyle = isHigh
+        ? (dark ? '#d4872a' : '#b36b15')
+        : (dark ? '#388bfd' : '#0969da');
+      seqCtx.fillRect(x, yTop, toneW, blockH);
+    }
+
+    // Now edge
+    seqCtx.strokeStyle = dark ? '#30363d' : '#b0b8c0';
+    seqCtx.lineWidth = 1;
+    seqCtx.beginPath();
+    seqCtx.moveTo(W - 1, 0); seqCtx.lineTo(W - 1, H);
+    seqCtx.stroke();
+
+    // Track labels
+    seqCtx.fillStyle = dark ? '#484f58' : '#8c959f';
+    seqCtx.font = '9px monospace';
+    seqCtx.textAlign = 'left';
+    seqCtx.fillText('high', 4, 14);
+    seqCtx.fillText('low', 4, H / 2 + 14);
+  }
+
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function playTone(ac, freq, startTime, dur) {
+    var osc = ac.createOscillator();
+    var gain = ac.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    var attack = Math.min(0.012, dur * 0.12);
+    var release = Math.min(0.018, dur * 0.15);
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(0.28, startTime + attack);
+    gain.gain.setValueAtTime(0.28, startTime + dur - release);
+    gain.gain.linearRampToValueAtTime(0, startTime + dur);
+    osc.start(startTime);
+    osc.stop(startTime + dur + 0.005);
+  }
+
+  function scheduler() {
+    if (!isPlaying || !audioCtx) return;
+    var ac = audioCtx;
+    var rate = getRate();
+    var soa = 1.0 / rate;
+    var toneDur = Math.min(soa * 0.72, 0.095);
+    var lowFreq = getLowFreq();
+    var highFreq = getHighFreq();
+
+    while (nextToneTime < ac.currentTime + 0.22) {
+      var which = toneIndex % 2;
+      var freq = which === 0 ? lowFreq : highFreq;
+      playTone(ac, freq, nextToneTime, toneDur);
+      toneHistory.push({ t: nextToneTime, which: which });
+      toneIndex++;
+      nextToneTime += soa;
+    }
+
+    var cutoff = ac.currentTime - 5;
+    while (toneHistory.length > 0 && toneHistory[0].t < cutoff) {
+      toneHistory.shift();
+    }
+  }
+
+  function startPlaying() {
+    var ac = getAudioCtx();
+    if (ac.state === 'suspended') ac.resume();
+    isPlaying = true;
+    toneHistory = [];
+    toneIndex = 0;
+    nextToneTime = ac.currentTime + 0.05;
+    playBtn.textContent = '■ Stop';
+    playBtn.classList.add('playing');
+    schedulerId = setInterval(scheduler, 25);
+    playStatus.textContent = getRate().toFixed(1) + ' tones/s · ' + getGap() + ' semitones · ' + getLowFreq() + ' / ' + getHighFreq() + ' Hz';
+    function animate() {
+      if (!isPlaying) return;
+      resizeSeqCanvas();
+      drawSeq();
+      animFrame = requestAnimationFrame(animate);
+    }
+    animate();
+  }
+
+  function stopPlaying() {
+    isPlaying = false;
+    if (schedulerId) { clearInterval(schedulerId); schedulerId = null; }
+    if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+    playBtn.textContent = '▶ Play';
+    playBtn.classList.remove('playing');
+    playStatus.textContent = 'Stopped';
+    drawSeq();
+  }
+
+  playBtn.addEventListener('click', function() {
+    if (isPlaying) stopPlaying();
+    else startPlaying();
+  });
+
+  function onSliderChange() {
+    rateVal.textContent = parseFloat(rateSlider.value).toFixed(1) + '/s';
+    gapVal.textContent = gapSlider.value + ' st';
+    freqLowEl.textContent = getLowFreq();
+    freqHighEl.textContent = getHighFreq();
+    drawPhase();
+    if (isPlaying) {
+      playStatus.textContent = getRate().toFixed(1) + ' tones/s · ' + getGap() + ' semitones · ' + getLowFreq() + ' / ' + getHighFreq() + ' Hz';
+    }
+  }
+
+  rateSlider.addEventListener('input', onSliderChange);
+  gapSlider.addEventListener('input', onSliderChange);
+
+  function resizeSeqCanvas() {
+    var w = seqCanvas.parentElement.clientWidth - 32;
+    if (seqCanvas.width !== w) { seqCanvas.width = w; }
+  }
+
+  window.addEventListener('resize', function() {
+    resizeSeqCanvas();
+    drawPhase();
+    drawSeq();
+  });
+
+  onSliderChange();
+  resizeSeqCanvas();
+  drawPhase();
+  drawSeq();
+})();
+</script>
+</body>
+</html>
