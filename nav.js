@@ -140,6 +140,7 @@
       { href: '/olfac.html', label: 'sensor history' },
       { href: '/streaming.html', label: 'auditory streaming' },
       { href: '/biomotion.html', label: 'biological motion' },
+      { href: '/michotte.html', label: 'causal perception' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

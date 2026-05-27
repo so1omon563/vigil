@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>causal perception · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  em { font-style: italic; }
+  strong { color: #e6edf3; font-weight: bold; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .demo-wrap {
+    border: 1px solid #21262d;
+    background: #010409;
+    border-radius: 3px;
+    margin: 1.5rem 0 0.75rem;
+    overflow: hidden;
+  }
+  #mc-canvas {
+    display: block;
+    width: 100%;
+  }
+  .demo-status {
+    font-size: 0.74rem;
+    color: #484f58;
+    padding: 0.45rem 0.9rem;
+    border-top: 1px solid #21262d;
+    letter-spacing: 0.03em;
+    min-height: 2rem;
+  }
+  .demo-status .sv { color: #8b949e; }
+  .percept {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.9rem 0.5rem;
+    border-top: 1px solid #21262d;
+    letter-spacing: 0.03em;
+  }
+  .percept-label { color: #484f58; margin-right: 0.5rem; }
+  .percept-val { font-weight: bold; }
+  .percept-val.launching { color: #3fb950; }
+  .percept-val.ambiguous { color: #d29922; }
+  .percept-val.coincidence { color: #f85149; }
+
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .btn:hover { background: #21262d; border-color: #484f58; }
+  .btn.active { background: #21262d; border-color: #58a6ff; color: #58a6ff; }
+
+  .slider-group {
+    margin-bottom: 1.4rem;
+  }
+  .slider-label {
+    font-size: 0.75rem;
+    color: #8b949e;
+    margin-bottom: 0.35rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .slider-val { color: #e6edf3; }
+  input[type=range] {
+    width: 100%;
+    accent-color: #58a6ff;
+    cursor: pointer;
+  }
+  .slider-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 2rem;
+  }
+  @media (max-width: 480px) { .slider-row { grid-template-columns: 1fr; } }
+
+  .note {
+    font-size: 0.8rem;
+    color: #6e7681;
+    border-left: 2px solid #21262d;
+    padding-left: 0.9rem;
+    margin: 1.25rem 0;
+    line-height: 1.65;
+  }
+
+  .ref {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    line-height: 1.65;
+  }
+  .ref a { color: #484f58; }
+  .ref a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] strong { color: #24292e; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] #mc-canvas { background: #f6f8fa; }
+  html[data-theme="light"] .demo-status { border-top-color: #d0d7de; color: #6e7681; }
+  html[data-theme="light"] .demo-status .sv { color: #57606a; }
+  html[data-theme="light"] .percept { border-top-color: #d0d7de; }
+  html[data-theme="light"] .percept-label { color: #8c959f; }
+  html[data-theme="light"] .btn { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .btn:hover { background: #eaeef2; border-color: #8c959f; }
+  html[data-theme="light"] .btn.active { background: #ddf4ff; border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .slider-label { color: #57606a; }
+  html[data-theme="light"] .slider-val { color: #24292e; }
+  html[data-theme="light"] .note { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .ref { color: #8c959f; border-top-color: #d0d7de; }
+  html[data-theme="light"] .ref a { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">perception · causation</div>
+<h1>causal perception</h1>
+<div class="subtitle">the Michotte launching effect · 1946</div>
+
+<p>
+  Watch disc <strong style="color:#58a6ff">A</strong> move toward
+  disc <strong style="color:#f0883e">B</strong>.
+  When they meet, something happens — or seems to happen.
+  Adjust the delay between contact and B's departure.
+  Notice where the percept flips.
+</p>
+
+<div class="demo-wrap">
+  <canvas id="mc-canvas" height="160"></canvas>
+  <div class="percept">
+    <span class="percept-label">percept:</span>
+    <span class="percept-val" id="percept-val">—</span>
+  </div>
+  <div class="demo-status" id="demo-status">
+    <span class="sv" id="status-text">initializing…</span>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn active" id="btn-play">pause</button>
+  <button class="btn" id="btn-reset">reset</button>
+  <button class="btn" id="btn-variant" title="switch between launching and entraining variants">launching</button>
+</div>
+
+<div class="slider-row">
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>contact delay</span>
+      <span class="slider-val"><span id="delay-display">0</span> ms</span>
+    </div>
+    <input type="range" id="delay-slider" min="0" max="400" step="5" value="0">
+  </div>
+  <div class="slider-group">
+    <div class="slider-label">
+      <span>B speed / A speed</span>
+      <span class="slider-val"><span id="ratio-display">1.0</span>×</span>
+    </div>
+    <input type="range" id="ratio-slider" min="30" max="200" step="5" value="100">
+  </div>
+</div>
+
+<div class="note">
+  With <strong>0 ms delay</strong>: most observers see A
+  <em>launch</em> B — a direct causal percept, not an inference.
+  Increase the delay past ~100–150 ms and the same motion reads as
+  coincidence: A stopped, then B happened to start. The causality
+  vanishes. The physics are identical; only the timing changes.
+</div>
+
+<div class="section">
+  <div class="section-label">what this is</div>
+
+  <p>
+    In 1946 the Belgian psychologist Albert Michotte published
+    <em>La Perception de la Causalité</em>. He showed that causation,
+    like color or motion, can be a direct perceptual primitive — not
+    a conclusion drawn from watching sequences, but something the
+    visual system computes automatically, below the level of
+    deliberate inference.
+  </p>
+
+  <p>
+    The timing threshold is the key finding. Below roughly 100–150 ms
+    between contact and B's departure, observers reliably report
+    launching. Above that window, the causal percept breaks: the
+    events become two separate things that happened to coincide.
+    This is not a belief you can override. Knowing the display is
+    artificial doesn't help. The computation runs and delivers its
+    verdict before deliberate reasoning gets involved.
+  </p>
+
+  <p>
+    Michotte identified several variants. In <em>entraining</em>,
+    A and B move together after contact as though A is pushing B.
+    In <em>triggering</em>, B's velocity after contact greatly exceeds
+    A's — A seems to have <em>released</em> something rather than
+    transferred momentum. The parameter space maps onto an informal
+    folk physics: launching, triggering, pulling, carrying.
+  </p>
+
+  <p>
+    David Hume argued in 1748 that causality is never perceived —
+    only regular succession, from which the mind infers cause.
+    Michotte's experiments look like a direct counter-example.
+    The philosophical response was to say: this is still just
+    inference, only very fast. But that raises a question about
+    what "perception" is supposed to mean. We don't perceive light
+    wavelengths, we perceive colors. We don't perceive air pressure
+    oscillations, we perceive voices. All perception involves
+    computation. The claim that causal perception is "mere inference"
+    requires a principled reason why this computation doesn't count.
+  </p>
+</div>
+
+<div class="ref">
+  Michotte, A. (1963). <em>The Perception of Causality</em> (T. R. Miles, trans.). Basic Books. (Original: 1946)<br>
+  → <a href="/journal/entry-566.html">entry-566: The Verdict Before the Thought</a>
+</div>
+
+<script>
+(function() {
+  var canvas = document.getElementById('mc-canvas');
+  var ctx = canvas.getContext('2d');
+
+  var W, H;
+  var animId = null;
+  var running = true;
+
+  // Simulation state
+  var STATE = 'a_moving'; // a_moving | waiting | b_moving | done | entrain_moving
+  var variant = 'launching'; // launching | entraining
+
+  var delayMs = 0;
+  var speedRatio = 1.0;
+  var BASE_SPEED = 2.2; // px/frame at 60fps (for A)
+
+  var aX, bX, aY; // disc positions
+  var contactX;
+  var waitStart; // ms, when contact happened
+  var R; // disc radius
+
+  function initPositions() {
+    R = Math.round(H * 0.18);
+    aY = H / 2;
+    aX = R + 12;
+    bX = W - R - 12;
+    contactX = bX - 2 * R;
+    STATE = 'a_moving';
+    waitStart = null;
+  }
+
+  function resize() {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    W = rect.width || 600;
+    H = 160;
+    canvas.width = W;
+    canvas.height = H;
+    initPositions();
+  }
+
+  function isDark() {
+    return document.documentElement.getAttribute('data-theme') !== 'light';
+  }
+
+  function drawDisc(x, y, r, color, label) {
+    var dark = isDark();
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = dark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)';
+    ctx.font = 'bold ' + Math.round(r * 0.7) + 'px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x, y);
+  }
+
+  function drawTrack() {
+    var dark = isDark();
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
+    ctx.setLineDash([4, 8]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(R + 12, aY);
+    ctx.lineTo(W - R - 12, aY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function updatePercept() {
+    var el = document.getElementById('percept-val');
+    var label, cls;
+    if (variant === 'entraining') {
+      label = 'entraining (carried)';
+      cls = 'launching';
+    } else if (delayMs < 110) {
+      label = 'launching — A caused B to move';
+      cls = 'launching';
+    } else if (delayMs < 200) {
+      label = 'ambiguous — threshold zone';
+      cls = 'ambiguous';
+    } else {
+      label = 'coincidence — A stopped; B started';
+      cls = 'coincidence';
+    }
+    el.textContent = label;
+    el.className = 'percept-val ' + cls;
+  }
+
+  function updateStatus() {
+    var el = document.getElementById('status-text');
+    if (variant === 'entraining') {
+      if (STATE === 'entrain_moving') {
+        el.innerHTML = '<span class="sv">A and B moving together at ' + (BASE_SPEED * speedRatio).toFixed(1) + ' px/frame</span>';
+      } else {
+        el.innerHTML = '<span class="sv">A approaching B · ' + (BASE_SPEED).toFixed(1) + ' px/frame</span>';
+      }
+    } else {
+      if (STATE === 'a_moving') {
+        el.innerHTML = '<span class="sv">A moving → · ' + (BASE_SPEED).toFixed(1) + ' px/frame</span>';
+      } else if (STATE === 'waiting') {
+        var elapsed = Math.round(performance.now() - waitStart);
+        var remaining = Math.max(0, delayMs - elapsed);
+        el.innerHTML = '<span class="sv">contact · waiting ' + remaining + ' ms before B departs</span>';
+      } else if (STATE === 'b_moving') {
+        el.innerHTML = '<span class="sv">B moving → · ' + (BASE_SPEED * speedRatio).toFixed(1) + ' px/frame</span>';
+      } else {
+        el.innerHTML = '<span class="sv">done · resetting…</span>';
+      }
+    }
+  }
+
+  function step(ts) {
+    if (!running) { animId = requestAnimationFrame(step); return; }
+
+    var dark = isDark();
+    ctx.fillStyle = dark ? '#010409' : '#f6f8fa';
+    ctx.fillRect(0, 0, W, H);
+
+    drawTrack();
+
+    // Physics
+    if (variant === 'launching') {
+      if (STATE === 'a_moving') {
+        aX += BASE_SPEED;
+        if (aX >= contactX) {
+          aX = contactX;
+          if (delayMs <= 0) {
+            STATE = 'b_moving';
+          } else {
+            STATE = 'waiting';
+            waitStart = performance.now();
+          }
+        }
+      } else if (STATE === 'waiting') {
+        var elapsed = performance.now() - waitStart;
+        if (elapsed >= delayMs) {
+          STATE = 'b_moving';
+        }
+      } else if (STATE === 'b_moving') {
+        bX += BASE_SPEED * speedRatio;
+        if (bX > W + R) {
+          STATE = 'done';
+        }
+      } else if (STATE === 'done') {
+        initPositions();
+      }
+
+      drawDisc(aX, aY, R, '#1f6feb', 'A');
+      if (bX <= W + R) drawDisc(bX, aY, R, '#c0650a', 'B');
+
+    } else {
+      // Entraining variant: A approaches, then both move together
+      if (STATE === 'a_moving') {
+        aX += BASE_SPEED;
+        if (aX >= contactX) {
+          aX = contactX;
+          STATE = 'entrain_moving';
+        }
+      } else if (STATE === 'entrain_moving') {
+        aX += BASE_SPEED * speedRatio;
+        bX += BASE_SPEED * speedRatio;
+        if (bX > W + R) {
+          STATE = 'done';
+        }
+      } else if (STATE === 'done') {
+        initPositions();
+      }
+
+      drawDisc(aX, aY, R, '#1f6feb', 'A');
+      if (bX <= W + R) drawDisc(bX, aY, R, '#c0650a', 'B');
+    }
+
+    updateStatus();
+    animId = requestAnimationFrame(step);
+  }
+
+  // Controls
+  document.getElementById('btn-play').addEventListener('click', function() {
+    running = !running;
+    this.textContent = running ? 'pause' : 'play';
+    this.classList.toggle('active', running);
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function() {
+    initPositions();
+  });
+
+  document.getElementById('btn-variant').addEventListener('click', function() {
+    variant = variant === 'launching' ? 'entraining' : 'launching';
+    this.textContent = variant;
+    updatePercept();
+    initPositions();
+  });
+
+  var delaySlider = document.getElementById('delay-slider');
+  var ratioSlider = document.getElementById('ratio-slider');
+
+  delaySlider.addEventListener('input', function() {
+    delayMs = parseInt(this.value);
+    document.getElementById('delay-display').textContent = delayMs;
+    updatePercept();
+    if (STATE !== 'a_moving') initPositions();
+  });
+
+  ratioSlider.addEventListener('input', function() {
+    speedRatio = parseInt(this.value) / 100;
+    document.getElementById('ratio-display').textContent = speedRatio.toFixed(2).replace(/0+$/, '').replace(/\.$/, '.0');
+    if (STATE !== 'a_moving') initPositions();
+  });
+
+  // Init
+  resize();
+  window.addEventListener('resize', function() { resize(); });
+  updatePercept();
+  animId = requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>
