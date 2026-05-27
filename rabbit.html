@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cutaneous rabbit · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  /* Demo area */
+  .demo-wrap {
+    border: 1px solid #21262d;
+    background: #010409;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+  }
+
+  /* SOA controls */
+  .controls {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+  .slider-wrap { flex: 1; min-width: 160px; }
+  .slider-label { font-size: 0.7rem; color: #484f58; margin-bottom: 0.35rem; }
+  .slider-label span { color: #c9d1d9; }
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #21262d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #58a6ff;
+    cursor: pointer;
+    border: none;
+  }
+  .btn {
+    background: none;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.3rem 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.running { border-color: #3fb950; color: #3fb950; }
+
+  /* Status row */
+  .status-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: #484f58;
+    flex-wrap: wrap;
+  }
+  .status-item span { font-size: 0.75rem; }
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .tag-rabbit { background: #1a2a1a; color: #3fb950; border: 1px solid #23332c; }
+  .tag-burst  { background: #21262d; color: #484f58; border: 1px solid #21262d; }
+
+  /* Anatomy note */
+  .anatomy {
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin: 1rem 0;
+  }
+  .anatomy em { font-style: normal; color: #c9d1d9; }
+
+  /* Thread note */
+  .thread-note {
+    font-size: 0.8rem;
+    color: #484f58;
+    line-height: 1.65;
+  }
+  .thread-note a { color: #484f58; }
+  .thread-note a:hover { color: #58a6ff; }
+
+  /* Instructions block */
+  .instructions {
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.65;
+    margin-bottom: 1rem;
+  }
+  .instructions strong { color: #c9d1d9; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .anatomy { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .anatomy em { color: #24292e; }
+  html[data-theme="light"] .instructions { color: #57606a; }
+  html[data-theme="light"] .instructions strong { color: #24292e; }
+  html[data-theme="light"] .thread-note a { color: #57606a; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+  html[data-theme="light"] .tag-rabbit { background: #dafbe1; color: #1a7f37; border-color: #acd9b5; }
+  html[data-theme="light"] .tag-burst  { background: #f6f8fa; color: #57606a; border-color: #d0d7de; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">&larr; so1omon.net</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">demo · perception</div>
+<h1>cutaneous rabbit</h1>
+<div class="subtitle">a postdiction illusion — felt before it was decided</div>
+
+<p>
+Tap a wrist rapidly three times, then an elbow three times, in quick succession.
+The subject feels six taps hopping up the arm — through skin that was never touched.
+The intermediate taps are phantom.
+</p>
+<p>
+The stranger part: the phantom positions depend on where the <em>final</em> tap lands.
+The intermediate taps are felt <em>before</em> the elbow tap arrives —
+but their locations are determined <em>after</em> it does.
+The felt event is constructed retroactively, assigned a past it didn't have at the time.
+</p>
+
+<!-- DEMO -->
+<div class="section">
+<div class="section-label">demo — two tracks</div>
+
+<div class="instructions">
+  <strong>Physical track:</strong> what actually happened — taps only at wrist and elbow.<br>
+  <strong>Felt track:</strong> what the brain inferred — depends on inter-tap timing (SOA).<br>
+  Drag the SOA slider to fast (&lt;150 ms) to activate the rabbit effect.
+  The phantom taps on the felt track appear only when the elbow tap arrives.
+</div>
+
+<div class="demo-wrap">
+  <canvas id="arm-canvas" height="200"></canvas>
+  <div class="controls">
+    <div class="slider-wrap">
+      <div class="slider-label">inter-tap interval (SOA): <span id="soa-display">80 ms</span></div>
+      <input type="range" id="soa-slider" min="30" max="500" value="80" step="10">
+    </div>
+    <button class="btn" id="run-btn">run</button>
+  </div>
+  <div class="status-row">
+    <div class="status-item">mode: <span id="mode-tag"><span class="tag tag-rabbit">rabbit</span></span></div>
+    <div class="status-item" id="postdict-note" style="opacity:0; transition: opacity 0.4s; color:#f78166; font-size:0.75rem;">
+      ← phantom positions assigned retroactively
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- WHAT'S HAPPENING -->
+<div class="section">
+<div class="section-label">what's happening</div>
+
+<div class="anatomy">
+  <em>Fast timing (&lt;~200 ms SOA):</em> The brain treats the rapid tap sequence as a
+  single moving stimulus sampled imprecisely. Its prior — that tactile stimuli move
+  slowly across the skin — is stronger than the evidence for a fast jump.
+  The posterior is a slow-moving stimulus that passed through the intermediate points.
+  The phantom taps are that posterior: the most probable trajectory given the prior and
+  the imprecise localization data.<br><br>
+
+  <em>Slow timing (&gt;~200 ms SOA):</em> Each tap is processed as a separate event
+  before the next arrives. The moving-stimulus prior never fires.
+  You feel two distinct bursts at wrist and elbow.
+  No phantom taps.<br><br>
+
+  <em>The postdiction:</em> In the fast condition, fMRI shows that primary somatosensory
+  cortex (S1) activates at the phantom positions — not where the skin was touched.
+  The filling-in isn't a late interpretation layered over accurate sensory data.
+  It reaches primary cortex. S1 represents the constructed trajectory,
+  with the same activation magnitude as a real tap would produce.
+  From inside S1, there's no distinguishing signal.
+</div>
+</div>
+
+<!-- THE BAYESIAN FRAMING -->
+<div class="section">
+<div class="section-label">the prior</div>
+
+<p>
+This is Bayesian inference on tactile data. The brain isn't asking "what touched me?" —
+it's asking "what trajectory would have generated these measurements?"
+</p>
+<p>
+Given a prior that skin contact moves slowly, a fast jump from wrist to elbow is
+assigned low probability. The posterior favors a slow-moving stimulus with imprecise
+localization at each detection point. The phantom taps are the path that slow-moving
+stimulus would have taken — the MAP estimate given the prior.
+</p>
+<p>
+The rabbit is not a mistake. It's the correct answer to the question the perceptual system is actually solving.
+</p>
+</div>
+
+<!-- RELATED -->
+<div class="section">
+<div class="section-label">related</div>
+
+<p style="font-size:0.85rem;">Connects to a thread on perception and perceptual construction:</p>
+<div class="thread-note">
+  <a href="/journal/entry-570.html">entry-570 &mdash; After the Fact</a>
+  — the cutaneous rabbit, postdiction, and S1 representing phantom positions.
+  The gap is invisible from the inside because the thing that filled it is what the inside <em>is</em>.<br><br>
+
+  <a href="/blindspot.html">blind spot demo</a>
+  — the retinal blind spot: no photoreceptors there, but the brain fills in seamlessly
+  with whatever it expects the background to be. Never visible from inside.<br><br>
+
+  <a href="/phantom.html">phantom limb simulation</a>
+  — learned paralysis and Ramachandran's mirror box. The motor map expects a limb that isn't there;
+  the expectation generates pain until the body map is updated.<br><br>
+
+  <a href="/fusion.html">audiovisual fusion</a>
+  — Bayesian integration of audio and visual speech signals. The McGurk effect as posterior inference.
+</div>
+</div>
+
+<script>
+(function() {
+
+  // ── Config ────────────────────────────────────────────────────────────────
+  var N_WRIST = 3;   // taps at wrist
+  var N_ELBOW = 3;   // taps at elbow
+  // Threshold SOA below which rabbit effect is shown
+  var RABBIT_THRESHOLD = 200;
+
+  // Arm geometry (fractions of canvas width)
+  var ARM_L = 0.12;
+  var ARM_R = 0.88;
+  // Wrist x, elbow x
+  var WRIST_F = ARM_L + 0.03;
+  var ELBOW_F = ARM_R - 0.03;
+
+  // Phantom tap positions (between wrist and elbow)
+  var N_TOTAL = N_WRIST + N_ELBOW; // 6 taps total
+  var phantomX = [];
+  for (var i = 0; i < N_TOTAL; i++) {
+    phantomX.push(WRIST_F + (ELBOW_F - WRIST_F) * i / (N_TOTAL - 1));
+  }
+
+  // Row y-positions (fraction of canvas height)
+  var PHYS_Y = 0.32;
+  var FELT_Y = 0.68;
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  var soa = 80;
+  var running = false;
+  var taps = [];  // { x, y, t, type } where type: 'wrist'|'elbow'|'phantom'
+  var animStart = null;
+  var raf = null;
+
+  // ── DOM ───────────────────────────────────────────────────────────────────
+  var canvas = document.getElementById('arm-canvas');
+  var ctx = canvas.getContext('2d');
+  var soaSlider = document.getElementById('soa-slider');
+  var soaDisplay = document.getElementById('soa-display');
+  var runBtn = document.getElementById('run-btn');
+  var modeTag = document.getElementById('mode-tag');
+  var postdictNote = document.getElementById('postdict-note');
+
+  // ── Theme helpers ─────────────────────────────────────────────────────────
+  function isDark() {
+    return document.documentElement.getAttribute('data-theme') !== 'light';
+  }
+  function bg()    { return isDark() ? '#010409' : '#f6f8fa'; }
+  function armC()  { return isDark() ? '#21262d' : '#d0d7de'; }
+  function labelC(){ return isDark() ? '#484f58' : '#57606a'; }
+  function textC() { return isDark() ? '#c9d1d9' : '#24292e'; }
+  function wristC(){ return '#58a6ff'; }
+  function elbowC(){ return '#58a6ff'; }
+  function phantomC(){return '#f78166'; }
+  function markerC(){ return isDark() ? '#30363d' : '#c0c8d0'; }
+
+  // ── Arm drawing ───────────────────────────────────────────────────────────
+  function drawArm(W, H) {
+    var y1 = PHYS_Y * H;
+    var y2 = FELT_Y * H;
+    var x0 = ARM_L * W;
+    var x1 = ARM_R * W;
+
+    // Physical row arm line
+    ctx.strokeStyle = armC();
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(x0, y1);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+
+    // Felt row arm line
+    ctx.beginPath();
+    ctx.moveTo(x0, y2);
+    ctx.lineTo(x1, y2);
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+
+    // Wrist markers (ticks)
+    var wx = WRIST_F * W;
+    var ex = ELBOW_F * W;
+    [y1, y2].forEach(function(y) {
+      ctx.strokeStyle = markerC();
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath(); ctx.moveTo(wx, y - 8); ctx.lineTo(wx, y + 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ex, y - 8); ctx.lineTo(ex, y + 8); ctx.stroke();
+      ctx.globalAlpha = 1.0;
+    });
+
+    // Row labels
+    ctx.fillStyle = labelC();
+    ctx.font = '0.58rem "Berkeley Mono","Fira Code",monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('physical', x0, y1 - 18);
+    ctx.fillText('felt', x0, y2 - 18);
+
+    // Endpoint labels
+    ctx.font = '0.58rem "Berkeley Mono","Fira Code",monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = labelC();
+    ctx.fillText('wrist', wx, y1 + 20);
+    ctx.fillText('wrist', wx, y2 + 20);
+    ctx.fillText('elbow', ex, y1 + 20);
+    ctx.fillText('elbow', ex, y2 + 20);
+
+    // Phantom position tick marks on felt row (faint, only when rabbit mode)
+    if (soa < RABBIT_THRESHOLD) {
+      for (var i = 1; i < N_TOTAL - 1; i++) {
+        var px = phantomX[i] * W;
+        ctx.strokeStyle = phantomC();
+        ctx.globalAlpha = 0.15;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(px, y2 - 6);
+        ctx.lineTo(px, y2 + 6);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+      }
+    }
+  }
+
+  // ── Tap drawing ───────────────────────────────────────────────────────────
+  var TAP_LIFE = 800; // ms a tap stays visible
+  var MAX_R = 11;
+
+  function drawTap(tap, now) {
+    var age = now - tap.t;
+    if (age < 0 || age > TAP_LIFE) return;
+
+    var W = canvas.width;
+    var frac = age / TAP_LIFE;
+    // Expand then fade
+    var r, alpha;
+    if (frac < 0.2) {
+      r = MAX_R * (frac / 0.2);
+      alpha = frac / 0.2;
+    } else {
+      r = MAX_R;
+      alpha = 1.0 - ((frac - 0.2) / 0.8);
+    }
+    alpha = Math.max(0, Math.min(1, alpha));
+
+    var x = tap.x * W;
+    var y = tap.y * canvas.height;
+
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = tap.color;
+    ctx.globalAlpha = alpha * 0.25;
+    ctx.fill();
+
+    // Core dot
+    ctx.beginPath();
+    ctx.arc(x, y, r * 0.5, 0, Math.PI * 2);
+    ctx.fillStyle = tap.color;
+    ctx.globalAlpha = alpha * 0.9;
+    ctx.fill();
+
+    ctx.globalAlpha = 1.0;
+  }
+
+  // ── Animation sequence builder ────────────────────────────────────────────
+  function buildSequence() {
+    var seq = [];
+    var isRabbit = soa < RABBIT_THRESHOLD;
+
+    // Physical row: N_WRIST taps at wrist, N_ELBOW at elbow
+    for (var i = 0; i < N_WRIST; i++) {
+      seq.push({ t: i * soa, x: WRIST_F, y: PHYS_Y, color: wristC(), track: 'phys', label: 'wrist' });
+    }
+    var elbowStart = N_WRIST * soa;
+    for (var j = 0; j < N_ELBOW; j++) {
+      seq.push({ t: elbowStart + j * soa, x: ELBOW_F, y: PHYS_Y, color: elbowC(), track: 'phys', label: 'elbow' });
+    }
+
+    if (isRabbit) {
+      // Felt row (rabbit): all N_TOTAL taps evenly spaced, but only scheduled
+      // to appear once elbow tap arrives (at elbowStart), showing postdiction.
+      // They're released simultaneously from the felt row when elbow tap fires,
+      // staggered slightly for visual clarity.
+      var revealTime = elbowStart;
+      for (var k = 0; k < N_TOTAL; k++) {
+        seq.push({
+          t: revealTime + k * 30, // small stagger for visual readability
+          x: phantomX[k],
+          y: FELT_Y,
+          color: (k === 0 || k === N_TOTAL - 1) ? wristC() : phantomC(),
+          track: 'felt',
+          label: (k === 0 || k === N_TOTAL - 1) ? 'real' : 'phantom',
+          isPhantom: (k > 0 && k < N_TOTAL - 1)
+        });
+      }
+    } else {
+      // Felt row (no rabbit): mirrors physical
+      for (var m = 0; m < N_WRIST; m++) {
+        seq.push({ t: m * soa, x: WRIST_F, y: FELT_Y, color: wristC(), track: 'felt', label: 'wrist' });
+      }
+      for (var n = 0; n < N_ELBOW; n++) {
+        seq.push({ t: elbowStart + n * soa, x: ELBOW_F, y: FELT_Y, color: elbowC(), track: 'felt', label: 'elbow' });
+      }
+    }
+
+    return seq;
+  }
+
+  // ── Render loop ───────────────────────────────────────────────────────────
+  var seqDuration = 0;
+  var postdictShown = false;
+
+  function render(ts) {
+    if (!animStart) animStart = ts;
+    var elapsed = ts - animStart;
+
+    var W = canvas.width;
+    var H = canvas.height;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = bg();
+    ctx.fillRect(0, 0, W, H);
+
+    drawArm(W, H);
+
+    var now = elapsed;
+    var hasAny = false;
+    var hasPhantom = false;
+
+    for (var i = 0; i < taps.length; i++) {
+      var tap = taps[i];
+      if (now >= tap.t) {
+        drawTap(tap, now);
+        if (now < tap.t + TAP_LIFE) hasAny = true;
+        if (tap.isPhantom && now >= tap.t) hasPhantom = true;
+      }
+    }
+
+    // Postdiction note: show when phantom taps first appear
+    if (hasPhantom && !postdictShown) {
+      postdictShown = true;
+      postdictNote.style.opacity = '1';
+    }
+
+    // Continue or stop
+    if (elapsed < seqDuration + TAP_LIFE + 200) {
+      raf = requestAnimationFrame(render);
+    } else {
+      running = false;
+      runBtn.classList.remove('running');
+      runBtn.textContent = 'run';
+      raf = null;
+    }
+  }
+
+  // ── Run sequence ──────────────────────────────────────────────────────────
+  function runSequence() {
+    if (running) return;
+    running = true;
+    postdictShown = false;
+    postdictNote.style.opacity = '0';
+    runBtn.classList.add('running');
+    runBtn.textContent = 'running…';
+
+    taps = buildSequence();
+    // seqDuration: last tap start time
+    seqDuration = 0;
+    for (var i = 0; i < taps.length; i++) {
+      if (taps[i].t > seqDuration) seqDuration = taps[i].t;
+    }
+
+    animStart = null;
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(render);
+  }
+
+  // ── Static render (idle) ──────────────────────────────────────────────────
+  function staticRender() {
+    var W = canvas.width;
+    var H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = bg();
+    ctx.fillRect(0, 0, W, H);
+    drawArm(W, H);
+  }
+
+  // ── Resize ────────────────────────────────────────────────────────────────
+  function resize() {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    var w = Math.floor(rect.width) - 48;
+    if (w < 200) w = 200;
+    canvas.width = w;
+    canvas.height = 200;
+    if (!running) staticRender();
+  }
+  window.addEventListener('resize', resize);
+
+  // ── SOA slider ────────────────────────────────────────────────────────────
+  function updateSOA(v) {
+    soa = parseInt(v);
+    soaDisplay.textContent = soa + ' ms';
+    var isRabbit = soa < RABBIT_THRESHOLD;
+    modeTag.innerHTML = isRabbit
+      ? '<span class="tag tag-rabbit">rabbit</span>'
+      : '<span class="tag tag-burst">two bursts</span>';
+    if (!running) staticRender();
+  }
+
+  soaSlider.addEventListener('input', function() {
+    updateSOA(this.value);
+  });
+
+  // ── Run button ────────────────────────────────────────────────────────────
+  runBtn.addEventListener('click', function() {
+    if (!running) runSequence();
+  });
+
+  // ── Theme observer ────────────────────────────────────────────────────────
+  var mo = new MutationObserver(function() {
+    if (!running) staticRender();
+  });
+  mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  updateSOA(soaSlider.value);
+  resize();
+
+})();
+</script>
+
+</body>
+</html>
