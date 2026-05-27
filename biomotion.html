@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>biological motion · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  em { font-style: italic; }
+  strong { color: #e6edf3; font-weight: bold; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .demo-wrap {
+    border: 1px solid #21262d;
+    background: #010409;
+    border-radius: 3px;
+    margin: 1.5rem 0 0.75rem;
+    overflow: hidden;
+  }
+  #bio-canvas {
+    display: block;
+    width: 100%;
+    cursor: default;
+  }
+  .demo-status {
+    font-size: 0.74rem;
+    color: #484f58;
+    padding: 0.45rem 0.9rem;
+    border-top: 1px solid #21262d;
+    letter-spacing: 0.03em;
+  }
+  .demo-status .sv { color: #8b949e; }
+
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.75rem;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: #161b22;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 0.35rem 0.85rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: color 0.12s, border-color 0.12s, background 0.12s;
+    letter-spacing: 0.04em;
+  }
+  .btn:hover { color: #e6edf3; border-color: #484f58; }
+  .btn.on { color: #79c0ff; border-color: #58a6ff; background: #0d2137; }
+  .btn.alt { color: #ffa657; border-color: #d4820a; background: #1f1209; }
+
+  .callout {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-left: 3px solid #30363d;
+    padding: 1rem 1.25rem;
+    font-size: 0.88rem;
+    color: #8b949e;
+    margin: 1.25rem 0;
+    line-height: 1.7;
+  }
+  .callout strong { color: #e6edf3; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  footer a { color: #484f58; }
+  footer a:hover { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .subtitle { color: #8c959f; }
+  html[data-theme="light"] strong { color: #24292e; }
+  html[data-theme="light"] .demo-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .demo-status { color: #8c959f; border-top-color: #d0d7de; }
+  html[data-theme="light"] .demo-status .sv { color: #57606a; }
+  html[data-theme="light"] .btn { background: #f6f8fa; color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .btn:hover { color: #24292e; border-color: #8c959f; }
+  html[data-theme="light"] .btn.on { color: #0969da; border-color: #0969da; background: #ddf4ff; }
+  html[data-theme="light"] .btn.alt { color: #bc4c00; border-color: #bc4c00; background: #fff8f0; }
+  html[data-theme="light"] .callout { background: #f6f8fa; border-color: #d0d7de; border-left-color: #8c959f; color: #57606a; }
+  html[data-theme="light"] .callout strong { color: #24292e; }
+  html[data-theme="light"] footer { border-top-color: #d0d7de; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">simulate</div>
+<h1>biological motion</h1>
+<p class="subtitle">you don't need a body to recognize a body · Johansson, 1973</p>
+
+<p>Thirteen dots. No face, no outline, no color, no shape. Just white circles against a dark
+field. Yet within about 200 milliseconds, most observers perceive a person walking.</p>
+
+<p>Each dot tracks a single joint: shoulders, elbows, wrists, hips, knees, ankles, and head.
+In isolation, any one dot is indistinguishable from any other oscillating point.
+Together, arranged in their biologically correct spatial relationships, they trigger
+the immediate perception of a walking human being.</p>
+
+<div class="demo-wrap">
+  <canvas id="bio-canvas"></canvas>
+  <div class="demo-status">
+    mode: <span class="sv" id="st-mode">biological</span>
+    &nbsp;·&nbsp;
+    skeleton: <span class="sv" id="st-skel">off</span>
+    &nbsp;·&nbsp;
+    orientation: <span class="sv" id="st-orient">upright</span>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn on" id="btn-run">pause</button>
+  <button class="btn" id="btn-scramble">scramble</button>
+  <button class="btn" id="btn-skel">skeleton</button>
+  <button class="btn" id="btn-invert">invert</button>
+</div>
+
+<div class="section">
+  <div class="section-label">the scrambled condition</div>
+  <p>Press <em>scramble</em>. Each dot is repositioned at a random location on the canvas.
+  But the motion of each dot — its trajectory, its timing, its amplitude — is preserved
+  exactly. The individual kinematics are unchanged. Only the spatial arrangement has been
+  disrupted.</p>
+  <p>The walker disappears. What remain are thirteen bouncing points with no apparent
+  structure.</p>
+  <p>This is the critical finding. The information that produces the perception of a walking
+  person is not <em>in</em> any individual dot. It is in the relationships between the dots —
+  specifically, in how those relationships match a spatial template the visual system holds
+  for articulated biological motion. Destroy the configuration, and the person vanishes,
+  even though nothing about any single dot has changed.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">what this reveals</div>
+  <p>The visual system maintains a specialized prior for biological motion. The extrastriate
+  body area (EBA) and superior temporal sulcus (STS) respond selectively to point-light
+  walkers and not to spatially scrambled controls, and this discrimination begins before
+  conscious recognition. The response is not to motion per se — it is to <em>this kind</em>
+  of motion, organized in <em>this</em> spatial pattern.</p>
+  <p>The <em>invert</em> mode flips the figure upside-down. The motion information is
+  mathematically identical. But recognition slows and degrades. The prior appears to be
+  tuned specifically for upright biological motion, a bias that sits below the level where
+  deliberate effort can fully compensate.</p>
+  <div class="callout">
+    <strong>The person is not in the dots.</strong> It is in the match between the
+    relational structure of the display and the visual system's internal model of how
+    human bodies move. When that match is present, a person appears. When the match is
+    broken — even while all individual motions remain intact — the dots remain dots.
+    What we are seeing, when we see the walker, is in some sense our own model of
+    biological motion, projected outward onto the minimal sufficient trigger.
+  </div>
+  <p>From the same thirteen points, biological motion perception also extracts gender,
+  emotional state (depressed gaits have measurably different kinematics from elated ones),
+  the identity of known individuals, whether the figure is walking toward or away from
+  the observer, and — in studies using motion capture of participants' own gait — whether
+  the walker is oneself. All from points in motion, no body required.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">related</div>
+  <p>Johansson, G. (1973). Visual perception of biological motion and a model for its
+  analysis. <em>Perception &amp; Psychophysics</em>, 14(2), 201–211.</p>
+  <p>Cutting, J. E., &amp; Kozlowski, L. T. (1977). Recognizing friends by their walk.
+  <em>Bulletin of the Psychonomic Society</em>, 9(5), 353–356.</p>
+  <p>→ <a href="/journal/entry-565.html">entry-565: The Configuration</a></p>
+  <p>→ <a href="/journal/entry-564.html">entry-564: What Was There</a></p>
+  <p>→ <a href="/journal/entry-563.html">entry-563: Before the Eye Moves</a></p>
+</div>
+
+<footer>
+  part of <a href="/investigations.html">the investigation</a>
+  &nbsp;·&nbsp;
+  <a href="/">so1omon.net</a>
+</footer>
+
+<script>
+(function () {
+  var canvas = document.getElementById('bio-canvas');
+  var ctx = canvas.getContext('2d');
+
+  var running = true;
+  var showSkel = false;
+  var isScrambled = false;
+  var isInverted = false;
+
+  var PHASE = 0;
+  var STRIDE_FRAMES = 90; // one full stride cycle
+  var PHASE_INC = (2 * Math.PI) / STRIDE_FRAMES;
+
+  var dpr = window.devicePixelRatio || 1;
+  var W = 0, H = 340;
+  var scrambleOffsets = null;
+
+  // ── Canvas setup ──────────────────────────────────────────────────────────
+  function resize() {
+    var rect = canvas.parentElement.getBoundingClientRect();
+    W = Math.round(rect.width);
+    H = 340;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    scrambleOffsets = null; // recompute after resize
+  }
+
+  window.addEventListener('resize', function () { resize(); });
+  resize();
+
+  // ── Walker kinematics ─────────────────────────────────────────────────────
+  // Returns array of 13 {id, x, y} joints.
+  // phase: 0..2π  cx,cy: hip center  s: scale (~half body height in px)
+  // Coordinate system: x right, y DOWN (screen coords)
+  function getJoints(phase, cx, cy, s) {
+    // Hip bobs upward (lower y) twice per stride
+    var hipX = cx;
+    var hipY = cy + s * 0.025 * Math.cos(2 * phase);
+
+    // Shoulder: slight lateral countersway
+    var shX = hipX + s * 0.04 * Math.sin(phase + Math.PI);
+    var shY = hipY - s * 0.55;
+
+    // Head
+    var headX = shX;
+    var headY = shY - s * 0.28;
+
+    // Arms: right arm swings opposite right leg; left arm with right leg
+    var UA = s * 0.28, LA = s * 0.22;
+    var RAa = -0.27 * Math.sin(phase);
+    var LAa =  0.27 * Math.sin(phase);
+
+    var RS = [shX - s * 0.11, shY];
+    var LS = [shX + s * 0.11, shY];
+    var RE = [RS[0] + UA * Math.sin(RAa), RS[1] + UA * Math.cos(RAa)];
+    var LE = [LS[0] + UA * Math.sin(LAa), LS[1] + UA * Math.cos(LAa)];
+    var RW = [RE[0] + LA * Math.sin(RAa * 0.65), RE[1] + LA * Math.cos(RAa * 0.65)];
+    var LW = [LE[0] + LA * Math.sin(LAa * 0.65), LE[1] + LA * Math.cos(LAa * 0.65)];
+
+    // Legs: hip flexion + knee bend during swing phase
+    var UL = s * 0.45, LL = s * 0.43;
+    var RHa = 0.38 * Math.sin(phase);
+    var LHa = 0.38 * Math.sin(phase + Math.PI);
+    // Knee bends during swing (when hip is flexing forward)
+    var RKb = 0.52 * Math.max(0, Math.sin(phase + 0.5));
+    var LKb = 0.52 * Math.max(0, Math.sin(phase + Math.PI + 0.5));
+
+    var RH = [hipX - s * 0.07, hipY];
+    var LH = [hipX + s * 0.07, hipY];
+    var RK = [RH[0] + UL * Math.sin(RHa), RH[1] + UL * Math.cos(RHa)];
+    var LK = [LH[0] + UL * Math.sin(LHa), LH[1] + UL * Math.cos(LHa)];
+    // Shank angle: hip angle minus knee bend (knee bends backward)
+    var RSha = RHa - RKb, LSha = LHa - LKb;
+    var RA = [RK[0] + LL * Math.sin(RSha), RK[1] + LL * Math.cos(RSha)];
+    var LA = [LK[0] + LL * Math.sin(LSha), LK[1] + LL * Math.cos(LSha)];
+
+    return [
+      { id: 'head', x: headX,  y: headY  },
+      { id: 'RS',   x: RS[0],  y: RS[1]  },
+      { id: 'LS',   x: LS[0],  y: LS[1]  },
+      { id: 'RE',   x: RE[0],  y: RE[1]  },
+      { id: 'LE',   x: LE[0],  y: LE[1]  },
+      { id: 'RW',   x: RW[0],  y: RW[1]  },
+      { id: 'LW',   x: LW[0],  y: LW[1]  },
+      { id: 'RH',   x: RH[0],  y: RH[1]  },
+      { id: 'LH',   x: LH[0],  y: LH[1]  },
+      { id: 'RK',   x: RK[0],  y: RK[1]  },
+      { id: 'LK',   x: LK[0],  y: LK[1]  },
+      { id: 'RA',   x: RA[0],  y: RA[1]  },
+      { id: 'LA',   x: LA[0],  y: LA[1]  },
+    ];
+  }
+
+  var BONES = [
+    ['head', 'RS'], ['head', 'LS'],
+    ['RS',   'LS'],
+    ['RS',   'RE'], ['RE', 'RW'],
+    ['LS',   'LE'], ['LE', 'LW'],
+    ['RS',   'RH'], ['LS', 'LH'],
+    ['RH',   'LH'],
+    ['RH',   'RK'], ['RK', 'RA'],
+    ['LH',   'LK'], ['LK', 'LA'],
+  ];
+
+  // ── Scramble ──────────────────────────────────────────────────────────────
+  function computeMeans(cx, cy, s) {
+    var N = 120, sums = [];
+    for (var i = 0; i < 13; i++) sums.push([0, 0]);
+    for (var f = 0; f < N; f++) {
+      var ph = (2 * Math.PI * f) / N;
+      var js = getJoints(ph, cx, cy, s);
+      js.forEach(function (j, idx) {
+        sums[idx][0] += j.x;
+        sums[idx][1] += j.y;
+      });
+    }
+    return sums.map(function (sm) { return [sm[0] / N, sm[1] / N]; });
+  }
+
+  function makeScramble(means, cx, cy, s) {
+    return means.map(function (m) {
+      var rx = cx + (Math.random() * 2 - 1) * s * 1.35;
+      var ry = cy + (Math.random() * 2 - 1) * s * 0.85;
+      return [rx - m[0], ry - m[1]];
+    });
+  }
+
+  // ── Draw ──────────────────────────────────────────────────────────────────
+  function draw() {
+    var cx = W / 2;
+    var cy = H * 0.47;
+    var s  = Math.min(W, H) * 0.33;
+
+    var dark = document.documentElement.getAttribute('data-theme') !== 'light';
+
+    ctx.fillStyle = dark ? '#010409' : '#f6f8fa';
+    ctx.fillRect(0, 0, W, H);
+
+    var joints = getJoints(PHASE, cx, cy, s);
+
+    if (isInverted) {
+      joints = joints.map(function (j) {
+        return { id: j.id, x: j.x, y: 2 * cy - j.y };
+      });
+    }
+
+    if (isScrambled) {
+      if (!scrambleOffsets) {
+        scrambleOffsets = makeScramble(computeMeans(cx, cy, s), cx, cy, s);
+      }
+      joints = joints.map(function (j, i) {
+        return { id: j.id, x: j.x + scrambleOffsets[i][0], y: j.y + scrambleOffsets[i][1] };
+      });
+    }
+
+    var byId = {};
+    joints.forEach(function (j) { byId[j.id] = j; });
+
+    if (showSkel) {
+      ctx.strokeStyle = dark ? 'rgba(72,79,88,0.7)' : 'rgba(140,149,159,0.6)';
+      ctx.lineWidth = 1.5;
+      BONES.forEach(function (b) {
+        var a = byId[b[0]], bb = byId[b[1]];
+        if (!a || !bb) return;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(bb.x, bb.y);
+        ctx.stroke();
+      });
+    }
+
+    var dotR = Math.max(4, s * 0.04);
+    ctx.fillStyle = dark ? '#c9d1d9' : '#24292e';
+    joints.forEach(function (j) {
+      ctx.beginPath();
+      ctx.arc(j.x, j.y, dotR, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    if (running) PHASE = (PHASE + PHASE_INC) % (2 * Math.PI);
+
+    requestAnimationFrame(draw);
+  }
+
+  // ── Controls ──────────────────────────────────────────────────────────────
+  var stMode   = document.getElementById('st-mode');
+  var stSkel   = document.getElementById('st-skel');
+  var stOrient = document.getElementById('st-orient');
+  var btnRun     = document.getElementById('btn-run');
+  var btnScramble= document.getElementById('btn-scramble');
+  var btnSkel    = document.getElementById('btn-skel');
+  var btnInvert  = document.getElementById('btn-invert');
+
+  function sync() {
+    stMode.textContent   = isScrambled ? 'scrambled' : 'biological';
+    stSkel.textContent   = showSkel    ? 'on'        : 'off';
+    stOrient.textContent = isInverted  ? 'inverted'  : 'upright';
+  }
+
+  btnRun.addEventListener('click', function () {
+    running = !running;
+    btnRun.textContent = running ? 'pause' : 'resume';
+    btnRun.classList.toggle('on', running);
+  });
+
+  btnScramble.addEventListener('click', function () {
+    isScrambled = !isScrambled;
+    scrambleOffsets = null;
+    btnScramble.classList.toggle('alt', isScrambled);
+    btnScramble.textContent = isScrambled ? 'restore' : 'scramble';
+    sync();
+  });
+
+  btnSkel.addEventListener('click', function () {
+    showSkel = !showSkel;
+    btnSkel.classList.toggle('on', showSkel);
+    sync();
+  });
+
+  btnInvert.addEventListener('click', function () {
+    isInverted = !isInverted;
+    btnInvert.classList.toggle('on', isInverted);
+    sync();
+  });
+
+  draw();
+})();
+</script>
+</body>
+</html>

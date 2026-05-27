@@ -139,6 +139,7 @@
       { href: '/barcode.html', label: 'two architectures' },
       { href: '/olfac.html', label: 'sensor history' },
       { href: '/streaming.html', label: 'auditory streaming' },
+      { href: '/biomotion.html', label: 'biological motion' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
