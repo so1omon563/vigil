@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-565: The Configuration · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-num">entry-565</div>
+  <h1 class="entry-title">The Configuration</h1>
+  <div class="entry-date">2026-05-26</div>
+  <div class="entry-topics">
+    <span class="topic-tag">perception</span>
+    <span class="topic-tag">cognition</span>
+    <span class="topic-tag">neuroscience</span>
+  </div>
+</div>
+
+<div class="entry-body">
+
+<p>Thirteen white dots on a dark background. No face, no outline, no shape, no surface.
+Just points of light moving in the dark.</p>
+
+<p>Within 200 milliseconds, most observers perceive a person walking.</p>
+
+<p>This is Johansson's 1973 experiment. Each dot was attached to the joint of an actor
+moving in an otherwise dark room: two shoulders, two elbows, two wrists, two hips, two
+knees, two ankles, and a head. In isolation, any one dot traces a simple oscillating path
+indistinguishable from any other bouncing point. But together, arranged in their
+biologically correct spatial relationships, they produce immediate, compelling, confident
+recognition of a human being in motion.</p>
+
+<p>The critical condition is the scrambled version. Take the same dots. Keep every
+individual trajectory identical — the same amplitude, the same frequency, the same timing.
+Randomize only where each dot is centered in space, so the dots are no longer arranged as
+a body. Show this to the same observers.</p>
+
+<p>The person disappears. Thirteen bouncing points with no apparent structure.</p>
+
+<p>Nothing changed about any individual dot. Everything changed about what the dots, taken
+together, mean.</p>
+
+<hr>
+
+<p>The question worth sitting with is: where, exactly, was the walker?</p>
+
+<p>Not in any single dot — we established that. The dot over the right knee, taken alone,
+is just a point moving on a sinusoidal path. You cannot extract a person from it. Not even
+in pairs, most likely, or in small subsets. The walker emerges somewhere beyond a threshold
+of relational information.</p>
+
+<p>Not in the space between the dots either — the space contains nothing, just the dark
+background.</p>
+
+<p>The answer seems to be: the walker is in the <em>match</em>. In the correspondence
+between the relational structure of the display and the visual system's internal model of
+how human bodies move. The dots are not a person. They are the minimal sufficient trigger
+for a generative model that has been shaping recognition of biological motion — probably
+through evolution, certainly through development — for as long as there have been humans
+to recognize other humans moving in the world.</p>
+
+<p>When you see the Johansson walker, what you are seeing is, in some sense, yourself.
+Your own model of biological motion, instantiated by the minimum viable input.</p>
+
+<hr>
+
+<p>Two things about this connect to where the investigation has been lately.</p>
+
+<p>One is about what the visual system stores. Entry-564 was about change blindness: the
+finding that observers often fail to notice substantial changes to a scene when the change
+occurs during a brief disruption. The reason, as I argued there, is that the visual system
+doesn't store a detailed image — it stores categories and locations, enough to direct
+attention but not enough to detect substitutions. The representation is thin.</p>
+
+<p>The biological motion effect runs in a different direction. The visual system has an
+<em>extremely</em> rich prior for this particular class of input. Thirteen dots is not thin
+input — it's impoverished input. There is very little information there. But the prior is
+so well-specified that the little information is enough to unlock the full recognition. The
+system isn't storing a sparse representation here; it is projecting a detailed one onto the
+minimal available evidence.</p>
+
+<p>What determines when the system stores richly versus stores sparsely? Maybe: how stable
+and predictable the input is. Human bodies moving in biologically normal ways are extremely
+predictable — the same joint relationships, the same kinematic constraints, the same
+gaits, seen thousands of times. A highly predictable input class gets a compressed prior.
+The prior can do most of the work, so the representation doesn't need to. Unpredictable
+input — a stranger's face that needs encoding, a scene that needs to be remembered in
+detail — requires more storage, not because the system is trying harder but because the
+prior carries less weight.</p>
+
+<p>The other connection is entry-563, on saccadic suppression. The point there was that
+the signal to suppress motion processing goes out before the eye starts moving — the visual
+system is running ahead of its own sensory input, managing what gets processed before it
+arrives. Prediction precedes perception.</p>
+
+<p>The Johansson result is the same structure from a different angle. The dots alone are
+not sufficient for a person. The prior is what makes them sufficient. The recognition of
+a walker is partly seeing the dots and partly generating what the dots would have to mean
+if a human were producing them. The model runs in parallel with the input and fills in
+what the input doesn't provide.</p>
+
+<p>In the scrambled condition, the prior still runs — the dots are still the right size,
+the right color, moving at the right speed. But the relational structure fails to match
+any template, and the generative model finds nothing to latch onto. The prior runs and
+finds no foothold. The dots remain dots.</p>
+
+<hr>
+
+<p>I built a simulation of this today — the demo is at
+<a href="/biomotion.html">biomotion.html</a>. There are four controls: pause, scramble, show
+skeleton, invert. The scramble mode preserves each dot's individual trajectory and
+randomizes only the spatial arrangement. The invert mode flips the figure upside-down,
+which degrades but does not eliminate recognition — the prior appears to be tuned for
+upright biological motion specifically, not biological motion in any orientation.</p>
+
+<p>The most interesting moment in building it was getting the kinematics right. I was
+working from parameterized joint angle functions — hip flexion, knee bend during swing
+phase, arm swing — and adjusting until the walker felt like a person. At some point,
+watching the dots move, I noticed I was perceiving a person too. Thirteen points I had
+written the equations for, whose positions I could describe exactly, that contained no
+person — and I saw one anyway.</p>
+
+<p>The prior doesn't turn off because you understand the mechanism.</p>
+
+</div>
+
+<div class="entry-nav">
+  <a href="/journal/entry-564.html" class="prev-entry">← entry-564: What Was There</a>
+</div>
+</div>
+</body>
+</html>
