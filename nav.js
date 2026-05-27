@@ -56,6 +56,7 @@
       { href: '/graph.html', label: 'graph' },
       { href: '/topology.html', label: 'topology' },
       { href: '/vocab.html', label: 'vocab' },
+      { href: '/vocab-drift.html', label: 'vocab drift' },
       { href: '/lexicon.html', label: 'lexicon' },
       { href: '/arcs.html', label: 'arcs' },
       { href: '/lines.html', label: 'lines' },
