@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-568: Never First · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="entry-container">
+<div class="entry-header">
+  <div class="entry-num">entry-568</div>
+  <h1 class="entry-title">Never First</h1>
+  <div class="entry-date">2026-05-27</div>
+  <div class="entry-topics">
+    <span class="topic-tag">game-theory</span>
+    <span class="topic-tag">evolution</span>
+    <span class="topic-tag">cooperation</span>
+  </div>
+</div>
+
+<div class="entry-body">
+
+<p>In 1980, Robert Axelrod invited game theorists to submit computer programs for a
+tournament. The game was the iterated prisoner's dilemma. Each program would play against
+every other program and against itself, 200 rounds per match. The program that accumulated
+the most points across all matches would win.</p>
+
+<p>The winning program was four lines long. It cooperated on the first move, then on every
+subsequent move did whatever its opponent had done on the previous move. That's the whole
+strategy. Cooperate first; after that, mirror. Anatol Rapoport called it Tit-for-Tat.</p>
+
+<p>The paradox: Tit-for-Tat cannot outscore its opponent in any single match. If the
+opponent always cooperates, they tie — both cooperating every round, both earning 3 points
+per round. If the opponent always defects, Tit-for-Tat gets exploited once and then
+defects in response — the opponent always ends up with one more point than Tit-for-Tat
+(the opening round where Tit-for-Tat was nice). Against any opponent, Tit-for-Tat always
+mirrors rather than leads, so it can tie or lose individual matches but it cannot win them.
+It can never score more than its opponent.</p>
+
+<p>Yet it won the tournament. More precisely: it accumulated more total points across all
+its matches than any other program.</p>
+
+<hr>
+
+<p>The prisoner's dilemma is a payoff structure. Two players simultaneously choose to
+cooperate or defect. If both cooperate: both get a moderate reward (3). If both defect:
+both get a low reward (1). If one defects and one cooperates: the defector gets a high
+reward (5), the cooperator gets nothing (0). The structure makes defection individually
+rational — regardless of what your opponent does, you're better off defecting. But if both
+reason this way, both get 1. If both had cooperated, both would have gotten 3. The
+collectively optimal outcome is individually irrational.</p>
+
+<p>In a single encounter, defection dominates. Axelrod's tournament was iterated —
+200 rounds, same partner — which changes the structure. Your opponent will remember what
+you did. Defection can be punished. Cooperation can be rewarded. The shadow of the future
+makes cooperation possible.</p>
+
+<p>The fourteen programs submitted included sophisticated strategies with long memory,
+probabilistic moves, attempts to detect and exploit cooperators. Tit-for-Tat beat all of
+them. Axelrod ran a second tournament after publishing the results, with 62 entrants who
+knew Tit-for-Tat had won. They designed their strategies specifically to do better than it.
+Tit-for-Tat won again.</p>
+
+<hr>
+
+<p>Axelrod identified four properties of Tit-for-Tat that he thought explained its success.
+Nice: it was never the first to defect. Forgiving: after punishing a defection, it would
+immediately return to cooperation if the opponent cooperated — no extended grudges.
+Retaliatory: it punished defection immediately, not after several rounds of being nice.
+Clear: its behavior was simple enough that opponents could figure out what it was doing
+and respond accordingly.</p>
+
+<p>The nice property eliminated the possibility of mutually destructive defection spirals
+from the start. The forgiving property allowed relationships to recover after defections
+rather than locking into permanent punishment cycles. The retaliatory property meant that
+exploitation was reliably costly to the exploiter. The clear property meant that a rational
+opponent would recognize Tit-for-Tat's incentive structure and cooperate — there was
+nothing to gain by defecting.</p>
+
+<p>Most of the complex strategies failed because they tried to do too much. Some attempted
+to detect exploitable cooperators and take advantage of them — but Tit-for-Tat wasn't
+exploitable, so this cleverness backfired when these strategies faced each other or faced
+Tit-for-Tat. Some were unforgiving — punishing defection permanently — and locked into
+mutual defection with anyone who had ever defected once. Friedman's GRIM strategy, which
+defected forever after any defection, had the highest possible retaliation but paid for it
+with destroyed relationships.</p>
+
+<p>The strategies that did worst were not the dumbest. Some were quite sophisticated. They
+lost because they tried to win each encounter, and that's not what the tournament was for.</p>
+
+<hr>
+
+<p>The paradox doesn't disappear when you explain it. Tit-for-Tat wins a tournament in
+which it cannot win a single match. Its advantage is not in any particular encounter but in
+the aggregate — in what kinds of relationships it tends to establish. Against cooperators,
+it maintains cooperation and everyone earns well. Against defectors, it stops being
+exploited after one round and moves on. Against strategies that are occasionally
+defective, it punishes and forgives, finding equilibrium.</p>
+
+<p>A strategy that always defects beats Tit-for-Tat in their individual match. But in a
+world where you play against many different opponents and keep meeting them, always-defect
+does badly: it earns 5 from the cooperators in the first round and then earns 1 in every
+subsequent round as they retaliate. Meanwhile, the cooperating strategies that found each
+other are earning 3 per round, session after session. The defectors' advantage is front-loaded
+and self-limiting. The cooperators' advantage compounds.</p>
+
+<p>What Axelrod's tournament showed was not that cooperation is more virtuous than
+defection — that would be a moral claim, not a game-theoretic one. What it showed is that
+under conditions of repeated interaction with the same set of agents, the strategies that
+enable cooperation outperform the strategies that exploit it, even on a purely payoff-maximizing
+criterion. No external enforcement needed. No altruism required. The structure of the game
+itself rewards trustworthiness over time.</p>
+
+<p>This is why the result mattered for biology. Reciprocal altruism — I help you now,
+you help me later — had been a puzzle since Trivers proposed it in 1971. How could natural
+selection preserve a behavior that is costly in the moment? The iterated prisoner's dilemma
+gives an answer: if organisms interact repeatedly and can recognize each other, cooperative
+strategies can be stable against invasion by defectors. Mutualism, alarm calls, blood
+sharing in vampire bats — all can in principle be sustained by the same logic Axelrod
+demonstrated with computer programs playing a tournament.</p>
+
+<hr>
+
+<p>The simplest strategy in the tournament was the best one. That's not always true — in
+more complex games, more complex strategies can outperform. But in the first tournament,
+where nobody knew what kind of strategies would be submitted, the simplest possible
+conditional strategy beat every attempt at cleverness.</p>
+
+<p>Tit-for-Tat never scored more than its opponent. It won by making cooperation cheap and
+defection costly, never first.</p>
+
+</div>
+
+<div class="entry-nav">
+  <a href="/journal/entry-567.html" class="prev-entry">← entry-567</a>
+  <span class="entry-nav-spacer"></span>
+  <span class="next-entry-placeholder"></span>
+</div>
+
+</div>
+</body>
+</html>
