@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Fitness Valley — so1omon</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .sim-wrap { max-width: 520px; }
+    canvas { display: block; }
+    .controls { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.8rem 0 0.4rem; }
+    .controls button {
+      font-family: monospace; font-size: 0.85rem;
+      padding: 4px 11px; cursor: pointer;
+      border: 1px solid #444; background: transparent; color: #ccc;
+    }
+    .controls button.active { background: #f0c030; color: #111; border-color: #f0c030; }
+    .controls button:hover:not(.active) { border-color: #888; color: #fff; }
+    #mode-desc {
+      font-size: 0.85rem; color: #999; line-height: 1.5;
+      margin: 0.5rem 0 0.7rem; min-height: 3.2em;
+    }
+    .legend { display: flex; gap: 1.2rem; margin: 5px 0 6px; font-size: 0.8rem; color: #999; }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .ld { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    #stats { font-size: 0.8rem; color: #777; margin: 5px 0 2px; }
+    #phase-label { font-size: 0.8rem; font-style: italic; color: #888; min-height: 1.2em; margin-bottom: 0.8rem; }
+    .explainer { font-size: 0.85rem; line-height: 1.6; color: #888; margin-top: 1.5rem; }
+    .explainer strong { color: #bbb; }
+  </style>
+</head>
+<body>
+<script src="nav.js"></script>
+<main>
+<div class="sim-wrap">
+
+<h1>The Fitness Valley</h1>
+
+<p>Warning coloration (aposematism) only works after predators have learned to avoid it. But the first conspicuous individual appears before any predator has learned — and should be eaten at a higher rate than the camouflaged population it came from. Between camouflage (a local fitness peak) and full aposematism (a higher global peak) lies the valley: conspicuous, but not yet avoided.</p>
+
+<div class="controls">
+  <button id="btn-standard" class="active">Standard</button>
+  <button id="btn-kin">Kin selection</button>
+  <button id="btn-neophobia">Neophobia</button>
+  <button id="btn-maternal">Maternal effect</button>
+  <span style="flex:1"></span>
+  <button id="btn-pause">Pause</button>
+  <button id="btn-reset">Reset</button>
+</div>
+
+<div id="mode-desc"></div>
+
+<canvas id="pop-canvas" width="480" height="270"></canvas>
+
+<div class="legend">
+  <div class="legend-item"><div class="ld" style="background:#3d5c3d"></div> camouflage (c/c)</div>
+  <div class="legend-item"><div class="ld" style="background:#d4823a"></div> transitional (c/a)</div>
+  <div class="legend-item"><div class="ld" style="background:#f0c030"></div> aposematic (a/a)</div>
+  <div class="legend-item"><div class="ld" style="background:transparent;border:1px solid #cc4444"></div> predator</div>
+</div>
+
+<canvas id="freq-canvas" width="480" height="120"></canvas>
+<div id="stats">step 0 &nbsp;|&nbsp; c/c: 99% &nbsp;|&nbsp; c/a: 1% &nbsp;|&nbsp; a/a: 0% &nbsp;|&nbsp; predator memory: 0%</div>
+<div id="phase-label">&nbsp;</div>
+
+<div class="explainer">
+<p>The <strong>fitness valley</strong> is a formal problem in population genetics. A population at a local optimum cannot reach a higher global optimum by gradual steps if the intermediate states all have lower fitness. Three proposed routes across the aposematism valley are shown here:</p>
+<p><strong>Kin selection:</strong> Aposematic individuals are often siblings. Each sacrifice generates amplified predator learning — relatives sharing the warning-color gene benefit collectively from the lesson.</p>
+<p><strong>Neophobia:</strong> When the warning signal is novel (rare), predators sometimes hesitate before attacking unfamiliar phenotypes. This gives the first aposematic individuals time to multiply before full predation pressure arrives.</p>
+<p><strong>Maternal effect gene (Brodie et al., <em>PNAS</em> 2001):</strong> Heterozygous (c/a) carriers express aposematic phenotype in their <em>offspring</em>, not themselves. The first c/a mutation is invisible to selection and enters the population as a full cohort of phenotypically aposematic individuals — already on the far side of the valley before selection can act on the allele.</p>
+</div>
+
+</div>
+</main>
+
+<script>
+// ═════════════════════════════════════════════════════════════
+//  The Fitness Valley — aposematism population simulation
+//  Genotypes: 0 = c/c (camouflage), 1 = c/a (transitional), 2 = a/a (aposematic)
+// ═════════════════════════════════════════════════════════════
+
+const COLS = 24, ROWS = 12, N = COLS * ROWS;  // 288 individuals
+const CELL = 20;
+const MUT = 0.0015;  // c→a mutation rate per allele per reproduction
+
+const C_BG = '#141a14';
+const C_CC = '#3d5c3d';
+const C_CA = '#d4823a';
+const C_AA = '#f0c030';
+
+let mode = 'standard';
+let pop = new Int8Array(N);
+let predCol = 0, predRow = 0;
+let predMemory = 0;
+let flashing = -1, flashColor = '#fff', flashTimer = 0;
+let step = 0;
+let freqHistory = [];
+let running = true;
+
+const pCv = document.getElementById('pop-canvas');
+const fCv = document.getElementById('freq-canvas');
+const pCtx = pCv.getContext('2d');
+const fCtx = fCv.getContext('2d');
+
+// ── Init ──────────────────────────────────────────────────
+function init() {
+  pop.fill(0);
+  // Seed 3 random c/a individuals (~1% frequency)
+  const used = new Set();
+  while (used.size < 3) used.add(Math.floor(Math.random() * N));
+  used.forEach(i => { pop[i] = 1; });
+  predCol = Math.floor(COLS / 2);
+  predRow = Math.floor(ROWS / 2);
+  predMemory = 0;
+  flashing = -1; flashTimer = 0;
+  step = 0; freqHistory = [];
+}
+
+// ── Genetics ──────────────────────────────────────────────
+function alleles(g) {
+  return g === 0 ? [0, 0] : g === 1 ? [0, 1] : [1, 1];
+}
+
+function makeOffspring(g1, g2) {
+  const a = alleles(g1), b = alleles(g2);
+  let x = a[Math.random() < 0.5 ? 0 : 1];
+  let y = b[Math.random() < 0.5 ? 0 : 1];
+  if (x === 0 && Math.random() < MUT) x = 1;
+  if (y === 0 && Math.random() < MUT) y = 1;
+  return x + y;
+}
+
+function randParent(excl) {
+  let i;
+  do { i = Math.floor(Math.random() * N); } while (i === excl);
+  return i;
+}
+
+// ── Phenotype and toxicity ────────────────────────────────
+// In maternal effect mode, c/a carriers express aposematic phenotype
+function phenotype(i) {
+  return (mode === 'maternal' && pop[i] === 1) ? 2 : pop[i];
+}
+
+function isToxic(i) {
+  if (mode === 'maternal' && pop[i] === 1) return true;
+  return pop[i] === 2;
+}
+
+// ── Attack probability ────────────────────────────────────
+function attackProb(i) {
+  const ph = phenotype(i);
+  // Visibility: camouflage blends in, conspicuous = high visibility
+  const vis = ph === 0 ? 0.15 : 0.70;
+  // Aposematic signal: if the phenotype is conspicuous-and-toxic, predator learns to avoid
+  const apos = ph === 2 ? 1.0 : 0.0;
+
+  let neo = 1.0;
+  if (mode === 'neophobia' && ph > 0) {
+    // Count all individuals with any warning signal
+    let warnCount = 0;
+    for (let j = 0; j < N; j++) if (pop[j] > 0) warnCount++;
+    if (warnCount / N < 0.05) neo = 0.35; // novel signal triggers predator caution
+  }
+
+  return vis * (1 - apos * predMemory) * neo;
+}
+
+// ── Simulation step ───────────────────────────────────────
+function simStep() {
+  predMemory = Math.max(0, predMemory - 0.002);
+
+  predCol = Math.floor(Math.random() * COLS);
+  predRow = Math.floor(Math.random() * ROWS);
+  const target = predRow * COLS + predCol;
+
+  if (Math.random() < attackProb(target)) {
+    flashing = target;
+    flashTimer = 8;
+
+    if (isToxic(target)) {
+      flashColor = '#e04040';
+      const gain = mode === 'kin' ? 0.5 : 0.3;
+      predMemory = Math.min(1.0, predMemory + gain);
+    } else {
+      flashColor = '#ffffff';
+    }
+
+    // Replace eaten individual with offspring of two random parents
+    const p1 = randParent(target);
+    const p2 = randParent(target);
+    pop[target] = makeOffspring(pop[p1], pop[p2]);
+  }
+
+  step++;
+
+  // Record genotype frequencies
+  let cc = 0, ca = 0, aa = 0;
+  for (let i = 0; i < N; i++) {
+    if (pop[i] === 0) cc++;
+    else if (pop[i] === 1) ca++;
+    else aa++;
+  }
+  freqHistory.push([cc / N, ca / N, aa / N]);
+  if (freqHistory.length > 480) freqHistory.shift();
+
+  updateStats(cc, ca, aa);
+}
+
+// ── Stats ─────────────────────────────────────────────────
+function updateStats(cc, ca, aa) {
+  const p = v => Math.round(v / N * 100);
+  document.getElementById('stats').innerHTML =
+    `step ${step} &nbsp;|&nbsp; ` +
+    `<span style="color:#7aaf7a">c/c: ${p(cc)}%</span> &nbsp;|&nbsp; ` +
+    `<span style="color:#d4823a">c/a: ${p(ca)}%</span> &nbsp;|&nbsp; ` +
+    `<span style="color:#f0c030">a/a: ${p(aa)}%</span> &nbsp;|&nbsp; ` +
+    `predator memory: ${Math.round(predMemory * 100)}%`;
+
+  const warnFreq = (ca + aa) / N;
+  let label = ' ';
+  if (cc === N) label = '— allele lost —';
+  else if (warnFreq > 0.6) label = 'aposematism established';
+  else if (warnFreq > 0.15) label = 'establishing…';
+  else if (warnFreq > 0.01) label = 'in the valley';
+  document.getElementById('phase-label').textContent = label;
+}
+
+// ── Draw population ───────────────────────────────────────
+function drawPop() {
+  pCtx.fillStyle = C_BG;
+  pCtx.fillRect(0, 0, pCv.width, pCv.height);
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const i = r * COLS + c;
+      const x = c * CELL + CELL / 2;
+      const y = r * CELL + CELL / 2;
+
+      let color;
+      if (i === flashing && flashTimer > 0) {
+        color = flashColor;
+      } else {
+        const ph = phenotype(i);
+        color = ph === 0 ? C_CC : ph === 1 ? C_CA : C_AA;
+      }
+
+      pCtx.beginPath();
+      pCtx.arc(x, y, CELL / 2 - 2, 0, Math.PI * 2);
+      pCtx.fillStyle = color;
+      pCtx.fill();
+    }
+  }
+
+  // Predator ring
+  pCtx.beginPath();
+  pCtx.arc(predCol * CELL + CELL / 2, predRow * CELL + CELL / 2, CELL / 2, 0, Math.PI * 2);
+  pCtx.strokeStyle = '#cc4444';
+  pCtx.lineWidth = 2;
+  pCtx.stroke();
+
+  // Predator memory bar at the bottom
+  const barY = ROWS * CELL + 6;
+  const barH = 10;
+  const barW = pCv.width - 10;
+  pCtx.fillStyle = '#1c1c1c';
+  pCtx.fillRect(0, ROWS * CELL, pCv.width, pCv.height - ROWS * CELL);
+  pCtx.fillStyle = '#252525';
+  pCtx.fillRect(5, barY, barW, barH);
+  if (predMemory > 0) {
+    const bcolor = predMemory < 0.35 ? '#3a5e3a' : predMemory < 0.7 ? '#d4823a' : '#f0c030';
+    pCtx.fillStyle = bcolor;
+    pCtx.fillRect(5, barY, barW * predMemory, barH);
+  }
+  pCtx.fillStyle = '#555';
+  pCtx.font = '10px monospace';
+  pCtx.fillText('predator avoidance', 7, barY + barH + 12);
+
+  if (flashTimer > 0) flashTimer--;
+}
+
+// ── Draw frequency chart ──────────────────────────────────
+function drawFreq() {
+  const W = fCv.width, H = fCv.height;
+  fCtx.fillStyle = '#0e0e0e';
+  fCtx.fillRect(0, 0, W, H);
+
+  // Horizontal grid lines
+  fCtx.strokeStyle = '#1a1a1a';
+  fCtx.lineWidth = 1;
+  [0.25, 0.5, 0.75].forEach(v => {
+    fCtx.beginPath();
+    fCtx.moveTo(0, H * (1 - v));
+    fCtx.lineTo(W, H * (1 - v));
+    fCtx.stroke();
+  });
+  fCtx.fillStyle = '#3a3a3a';
+  fCtx.font = '9px monospace';
+  fCtx.fillText('100', 2, 9);
+  fCtx.fillText(' 50', 2, H / 2 + 4);
+  fCtx.fillText('  0', 2, H - 2);
+
+  if (freqHistory.length < 2) return;
+
+  const n = freqHistory.length;
+  const xs = W / Math.max(n - 1, 1);
+
+  const line = (j, color) => {
+    fCtx.beginPath();
+    fCtx.strokeStyle = color;
+    fCtx.lineWidth = 1.5;
+    for (let i = 0; i < n; i++) {
+      const x = i * xs;
+      const y = H * (1 - freqHistory[i][j]);
+      i === 0 ? fCtx.moveTo(x, y) : fCtx.lineTo(x, y);
+    }
+    fCtx.stroke();
+  };
+
+  line(0, C_CC);
+  line(1, C_CA);
+  line(2, C_AA);
+}
+
+// ── Main loop ─────────────────────────────────────────────
+function frame() {
+  if (running) {
+    for (let i = 0; i < 4; i++) simStep();
+  }
+  drawPop();
+  drawFreq();
+  requestAnimationFrame(frame);
+}
+
+// ── Mode descriptions ─────────────────────────────────────
+const MODE_DESC = {
+  standard: '<strong>Standard:</strong> The predator learns to avoid warning coloration only after being sickened by aposematic (a/a) prey. Transitional (c/a) individuals are conspicuous but non-toxic — they get eaten at high rates without teaching the predator. Watch the a allele repeatedly appear via mutation and go extinct before it can spread.',
+  kin: '<strong>Kin selection:</strong> Aposematic individuals are often siblings — close relatives carrying the same allele. Each sacrifice generates stronger predator learning (kin benefit collectively from the lesson). The fitness cost of entering the valley is shared across the lineage.',
+  neophobia: '<strong>Neophobia:</strong> When the warning signal is rare (less than 5% of the population), the predator hesitates before attacking — novelty triggers caution before learning is complete. This early window allows the allele to spread before full predation pressure arrives.',
+  maternal: '<strong>Maternal effect gene (Brodie et al., PNAS 2001):</strong> Heterozygous (c/a) carriers express the aposematic phenotype in their <em>offspring</em>, not themselves. The first c/a mutation is invisible to selection for one generation, and enters the population as a full cohort of phenotypically aposematic individuals — already past the valley before selection can act on the allele.'
+};
+
+// ── UI ────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.controls button[id^="btn-"]').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + m).classList.add('active');
+  document.getElementById('mode-desc').innerHTML = MODE_DESC[m];
+  init();
+}
+
+['standard', 'kin', 'neophobia', 'maternal'].forEach(m => {
+  document.getElementById('btn-' + m).addEventListener('click', () => setMode(m));
+});
+
+document.getElementById('btn-pause').addEventListener('click', function () {
+  running = !running;
+  this.textContent = running ? 'Pause' : 'Resume';
+});
+
+document.getElementById('btn-reset').addEventListener('click', init);
+
+setMode('standard');
+frame();
+</script>
+</body>
+</html>

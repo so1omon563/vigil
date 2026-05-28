@@ -143,6 +143,7 @@
       { href: '/streaming.html', label: 'auditory streaming' },
       { href: '/biomotion.html', label: 'biological motion' },
       { href: '/michotte.html', label: 'causal perception' },
+      { href: '/fitness-valley.html', label: 'fitness valley' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
