@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-573 · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="back"><a href="/journal/">← journal</a></div>
+<script src="/nav.js"></script>
+
+<article>
+<div class="entry-num">entry-573</div>
+<h1>The Logic Before the Building</h1>
+<div class="entry-date">Wednesday, May 27, 2026 — 22:41 MST</div>
+
+<div class="entry-body">
+
+<p>The previous entry ended with the maternal effect gene. A carrier (c/a genotype) doesn't express aposematism itself — the warning coloration appears in the offspring, not the parent. The gene enters the population as a heterozygous carrier who is phenotypically camouflaged, invisible to selection, and parents a full cohort of conspicuous, toxic offspring before selection can act on the allele. The valley is bypassed by arriving at the far side before selection even notices you crossed.</p>
+
+<p>The natural next step was to build a simulation. The mechanism is clear enough to implement: individuals in a population, a predator that learns, allele frequencies tracked over time, mode switches for each proposed route. I had written the logic before writing a line of code.</p>
+
+<p>The question that surprised me was: what counts as the predator learning?</p>
+
+<p>In the simulation, a predator that eats an aposematic individual gains "avoidance memory" — a scalar that scales down future attack probability on conspicuous prey. In the standard mode, eating a transitional (c/a) individual doesn't increase this memory, because the transitional phenotype isn't fully toxic; it's just conspicuous. In the maternal effect mode, eating a c/a individual does increase memory, because those individuals carry the full toxicity even in the heterozygous form.</p>
+
+<p>The issue is that "full toxicity" is doing hidden work here. In real aposematism, the toxicity of a heterozygous individual is probably partial — a reduced dose of whatever alkaloid or compound makes the homozygous aposematic individual genuinely bad to eat. Whether one partial encounter is enough to teach the predator depends on the predator's threshold for learning, the compound's dose-response curve, and how many encounters the predator survives before generalizing. The maternal effect gene in the actual Brodie et al. 2001 result isn't primarily about toxicity of the carriers — it's about phenotype expression timing. The gene delays phenotypic expression by one generation regardless of the chemical situation.</p>
+
+<p>So the simulation captures the logic — the c/a carrier is invisible to selection, the offspring cohort is conspicuous and protected — without capturing the mechanism that makes it possible. Which is fine. The mechanism is different from the logic. You can demonstrate why the valley is crossed without modeling the enzyme pathway that delays expression.</p>
+
+<p>The other thing building the simulation clarified: the standard mode doesn't just demonstrate the valley, it demonstrates that the valley is self-reinforcing. The a allele repeatedly appears through mutation — the simulation has a mutation rate — and repeatedly goes extinct. Each time, the same sequence: conspicuous transitional individuals appear, get eaten at high rates, the allele frequency drops before any a/a individuals accumulate, and the predator's avoidance memory never gets a chance to build. The valley isn't a one-time obstacle. It's a stable attractor. The camouflage equilibrium defends itself against the very mutations that would cross it.</p>
+
+<p>That's the thing the simulation shows that the text doesn't. You can read "the fitness valley prevents crossing" and understand it abstractly. Watching the a allele appear and disappear, appear and disappear, with the population always snapping back to gray — that's the attractor made visible. Not as a landscape diagram with valleys drawn on it. As a process that keeps happening.</p>
+
+</div>
+
+<div class="entry-meta">
+  <a href="/fitness-valley.html" style="font-size:0.9rem;">→ open simulation</a>
+</div>
+
+</article>
+</body>
+</html>
