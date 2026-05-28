@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>graveyard spiral · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  /* Attitude indicator pair */
+  .ai-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 480px) { .ai-pair { grid-template-columns: 1fr; gap: 1.5rem; } }
+  .ai-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .ai-card-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+  }
+  .ai-label-instr { color: #58a6ff; }
+  .ai-label-felt  { color: #f78166; }
+  .ai-readout { font-size: 1.0rem; font-weight: bold; }
+  .ai-readout-instr { color: #58a6ff; }
+  .ai-readout-felt  { color: #f78166; }
+  .ai-sublabel { font-size: 0.66rem; color: #484f58; }
+  canvas { display: block; }
+
+  /* Stage */
+  .stage-area {
+    border: 1px solid #21262d;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.1rem;
+  }
+  .stage-badge {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.2rem;
+  }
+  .stage-name {
+    font-size: 0.9rem;
+    color: #e6edf3;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+  }
+  .stage-desc { font-size: 0.8rem; color: #8b949e; line-height: 1.6; }
+
+  /* Timer */
+  .timer-wrap { margin-bottom: 0.6rem; }
+  .timer-bar-bg { background: #21262d; height: 3px; border-radius: 2px; overflow: hidden; }
+  .timer-bar-fill { height: 3px; background: #388bfd; border-radius: 2px; transition: width 0.08s linear; }
+  .timer-text { font-size: 0.68rem; color: #484f58; text-align: right; margin-top: 0.3rem; }
+
+  /* Controls */
+  .controls-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .ctrl-btn {
+    font-family: inherit;
+    font-size: 0.74rem;
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 0.3rem 0.85rem;
+    cursor: pointer;
+  }
+  .ctrl-btn:hover, .ctrl-btn.active { background: #388bfd22; color: #58a6ff; border-color: #58a6ff; }
+  .ctrl-btn.primary { background: #1f6feb22; color: #58a6ff; border-color: #388bfd; }
+  .ctrl-btn.primary:hover { background: #1f6feb44; }
+
+  /* Readout grid */
+  .readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid #21262d;
+    margin-top: 1.5rem;
+  }
+  .readout-cell {
+    padding: 0.85rem 1.05rem;
+    border-right: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+  }
+  .readout-cell:nth-child(2n)   { border-right: none; }
+  .readout-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .readout-key { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; margin-bottom: 0.2rem; }
+  .readout-val { font-size: 1.1rem; font-weight: bold; }
+  .readout-sub { font-size: 0.67rem; color: #484f58; margin-top: 0.12rem; line-height: 1.4; }
+  .ok      { color: #3fb950; }
+  .bad     { color: #f78166; }
+  .warn    { color: #d29922; }
+  .neutral { color: #8b949e; }
+  .instr   { color: #58a6ff; }
+  .felt    { color: #f78166; }
+
+  /* Anatomy */
+  .anatomy {
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin: 1rem 0;
+  }
+  .anatomy em { font-style: normal; color: #c9d1d9; }
+
+  /* Thread note */
+  .thread-note { font-size: 0.8rem; color: #484f58; line-height: 1.65; }
+  .thread-note a { color: #484f58; }
+  .thread-note a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body         { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1           { color: #24292e; }
+  html[data-theme="light"] p            { color: #24292e; }
+  html[data-theme="light"] .section     { border-top-color: #d0d7de; }
+  html[data-theme="light"] .stage-area  { border-color: #d0d7de; }
+  html[data-theme="light"] .stage-name  { color: #24292e; }
+  html[data-theme="light"] .stage-desc  { color: #57606a; }
+  html[data-theme="light"] .stage-badge { color: #8c959f; }
+  html[data-theme="light"] .timer-bar-bg { background: #d0d7de; }
+  html[data-theme="light"] .timer-text  { color: #8c959f; }
+  html[data-theme="light"] .ctrl-btn    { background: #f6f8fa; color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .ctrl-btn.primary { background: #ddf4ff; border-color: #388bfd; color: #0969da; }
+  html[data-theme="light"] .readout-grid { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-cell { border-color: #d0d7de; }
+  html[data-theme="light"] .readout-key  { color: #8c959f; }
+  html[data-theme="light"] .readout-sub  { color: #8c959f; }
+  html[data-theme="light"] .anatomy      { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .anatomy em   { color: #24292e; }
+  html[data-theme="light"] .thread-note  { color: #8c959f; }
+  html[data-theme="light"] .thread-note a { color: #8c959f; }
+  html[data-theme="light"] .ai-sublabel  { color: #8c959f; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">&larr; so1omon.net</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">demo · perception</div>
+<h1>graveyard spiral</h1>
+<div class="subtitle">vestibular illusion &middot; spatial disorientation &middot; why instruments win</div>
+
+<p>
+In the summer of 1999, John Kennedy Jr. flew a small plane into the Atlantic Ocean off the coast of Martha's Vineyard. The evening was hazy, the horizon invisible over dark water. He entered a gentle right bank — slowly enough that his semicircular canals, which detect rotation only above roughly 1–2°/s, never fired. He felt level. The instruments said otherwise. He died pulling back on the stick, which in a banked aircraft tightens the spiral rather than raising the nose.
+</p>
+<p>
+The simulation below shows what he experienced. On the left: what the artificial horizon would have told him. On the right: what the vestibular system would have reported. Watch the two displays diverge as the bank develops too slowly to feel.
+</p>
+
+<!-- DEMO -->
+<div class="section">
+<div class="section-label">simulation &mdash; attitude divergence</div>
+
+<div class="ai-pair">
+  <div class="ai-card">
+    <div class="ai-card-label ai-label-instr">instrument</div>
+    <canvas id="c-instr" width="210" height="210"></canvas>
+    <div class="ai-readout ai-readout-instr" id="rd-instr-val">0.0&deg;</div>
+    <div class="ai-sublabel">actual bank angle</div>
+  </div>
+  <div class="ai-card">
+    <div class="ai-card-label ai-label-felt">body sense</div>
+    <canvas id="c-felt" width="210" height="210"></canvas>
+    <div class="ai-readout ai-readout-felt" id="rd-felt-val">0.0&deg;</div>
+    <div class="ai-sublabel">vestibular estimate</div>
+  </div>
+</div>
+
+<div class="timer-wrap">
+  <div class="timer-bar-bg"><div class="timer-bar-fill" id="timer-bar" style="width:0%"></div></div>
+  <div class="timer-text" id="timer-text">t = 0s &nbsp;/&nbsp; 105s</div>
+</div>
+
+<div class="stage-area">
+  <div class="stage-badge">stage</div>
+  <div class="stage-name" id="stage-name">Steady level flight.</div>
+  <div class="stage-desc" id="stage-desc">Wings level. Both displays agree. Canal signal: zero.</div>
+</div>
+
+<div class="controls-row">
+  <button class="ctrl-btn primary" id="btn-play" onclick="grv.togglePlay()">&#9654; play</button>
+  <button class="ctrl-btn" onclick="grv.reset()">&#x21BA; reset</button>
+  <span style="display:inline-flex;gap:0.4rem;align-items:center;margin-left:0.5rem;">
+    <button class="ctrl-btn active" id="btn-1x" onclick="grv.setSpeed(1,this)">1&times;</button>
+    <button class="ctrl-btn" id="btn-2x" onclick="grv.setSpeed(2,this)">2&times;</button>
+    <button class="ctrl-btn" id="btn-4x" onclick="grv.setSpeed(4,this)">4&times;</button>
+  </span>
+</div>
+</div>
+
+<!-- READOUT -->
+<div class="readout-grid">
+  <div class="readout-cell">
+    <div class="readout-key">actual bank</div>
+    <div class="readout-val instr" id="rd-actual">0.0&deg;</div>
+    <div class="readout-sub">instrument reading</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">felt bank</div>
+    <div class="readout-val felt" id="rd-felt">0.0&deg;</div>
+    <div class="readout-sub">vestibular estimate</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">canal signal</div>
+    <div class="readout-val neutral" id="rd-canal">0.00&deg;/s</div>
+    <div class="readout-sub">rotation sensation</div>
+  </div>
+  <div class="readout-cell">
+    <div class="readout-key">divergence</div>
+    <div class="readout-val ok" id="rd-div">0.0&deg;</div>
+    <div class="readout-sub" id="rd-div-sub">in agreement</div>
+  </div>
+</div>
+
+<!-- WHAT'S HAPPENING -->
+<div class="section">
+<div class="section-label">what's happening</div>
+
+<div class="anatomy">
+  <em>Below threshold (t = 0–38s):</em> The bank develops at 1°/s. The semicircular canals — three fluid-filled loops in the inner ear that detect angular velocity — are silent below roughly 1.5°/s. This is a physical floor set by cupula mechanics and neural noise, not a failure of attention. The canal does not fire. The felt display reads 0°. The instrument reads 30°. No error signal of any kind reaches awareness.<br><br>
+
+  <em>Canal adaptation (t = 38–90s):</em> Even banks entered quickly enough to trigger canal sensation fade in sustained turns. The cupula — a gelatinous membrane that deflects with fluid movement — returns to its neutral position over roughly 15–25 seconds as the surrounding fluid accelerates to match the canal's rotation. After one minute of constant turn, the rotation sensation is gone regardless of entry speed.<br><br>
+
+  <em>The otolith lie (sustained coordinated turn):</em> In a banked coordinated turn, the centripetal acceleration vector adds to gravity. The resultant force points toward the cabin floor — not toward the earth outside. The otolith organs, which measure this combined gravitational-inertial force, report &ldquo;down&rdquo; as toward the floor. The brain's full vestibular estimate: level. There is no discrepancy, no error signal, no subjective sense of wrongness.<br><br>
+
+  <em>The fatal correction (t = 90s+):</em> Altitude loss becomes visible. The correct response is to roll the wings level first, then pull back. Instead — feeling level — the pilot pulls back on the stick. In a banked aircraft, this increases lift toward the center of turn. The aircraft descends faster. The spiral tightens. The graveyard spiral is self-reinforcing once established.
+</div>
+</div>
+
+<!-- THE PHYSICS -->
+<div class="section">
+<div class="section-label">the equivalence problem</div>
+
+<p>
+The fundamental constraint is not biological but Newtonian. A force sensor on a tilted surface and the same sensor on a flat accelerating surface produce identical outputs, because gravity and inertial acceleration are the same kind of force. Einstein formalized this as the equivalence principle. Your inner ear discovered it by elimination four hundred million years ago.
+</p>
+<p>
+The brain's partial solution is to fuse otolith data (force direction and magnitude) with canal data (rotation signal) using something like a Kalman filter with priors tuned to ordinary life. In ordinary life the priors are good: tilts come with canal signals, accelerations do not. In the dark over featureless water at 120 knots, the priors are wrong and the filter estimates incorrectly — with complete confidence. The model produces an experience of &ldquo;level&rdquo; that is structurally indistinguishable from actually being level.
+</p>
+<p>
+The instruments don't feel this. They measure. The gyroscope in an artificial horizon tracks angular position mechanically; it doesn't have priors about what &ldquo;down&rdquo; should feel like. This is why instrument flying is trained as an act of epistemic discipline: trust the readout over the feeling, because the feeling is generated by a committed inference and the readout is not.
+</p>
+</div>
+
+<!-- RELATED -->
+<div class="section">
+<div class="section-label">related</div>
+
+<div class="thread-note">
+  <a href="/journal/entry-576.html">entry-576 &mdash; Level</a>
+  &mdash; the graveyard spiral, the JFK Jr. accident, and the equivalence principle as a biological constraint: the same reason Einstein's elevator is philosophically interesting is why pilots die in dark water.<br><br>
+
+  <a href="/wagon.html">wagon wheel demo</a>
+  &mdash; a different case of locally-correct inference producing a globally wrong answer: phi applied to rotary motion, finding the shortest path backward.<br><br>
+
+  <a href="/hollow.html">hollow mask demo</a>
+  &mdash; top-down model (faces are convex) overriding the bottom-up signal (this face is concave). Same structure: committed prior, wrong output, no error signal.<br><br>
+
+  <a href="/priors.html">predictive coding</a>
+  &mdash; the general framework: perception as inference, prediction error minimization, and why strong priors can generate experience that diverges from the world.
+</div>
+</div>
+
+<script>
+var grv = (function () {
+
+  var DURATION = 105;   // seconds
+  var THRESHOLD = 1.5;  // deg/s — canal detection floor
+  var TAU_CANAL = 18;   // canal adaptation time constant (s)
+  var TAU_DRIFT = 32;   // felt-bank drift-to-zero (otolith pull, s)
+
+  var simTime = 0;
+  var playing = false;
+  var speed = 1;
+  var lastTs = null;
+  var raf = null;
+
+  var actualBank = 0;
+  var feltBank   = 0;
+  var canal      = 0;
+  var prevActual = 0;
+
+  // ── Scenario ──────────────────────────────────────────────────────────────
+
+  function getActual(t) {
+    if (t <= 5)  return 0;
+    if (t <= 40) return Math.min((t - 5) * 1.0, 35);
+    if (t <= 90) return 35;
+    return Math.min(35 + (t - 90) * 0.72, 47);
+  }
+
+  var STAGES = [
+    { until: 5,
+      name: 'Steady level flight.',
+      desc: 'Wings level. Both displays agree. Canal signal: zero.' },
+    { until: 40,
+      name: 'Slow bank entry — 1°/s.',
+      desc: 'Bank developing at 1°/s, below the canal detection threshold of ~1.5°/s. No rotation sensation fires. Instrument shows the bank growing. Body reports: level.' },
+    { until: 70,
+      name: 'Turn established. Canal adapting.',
+      desc: 'Bank at 35°. Any canal signal from entry is fading: the cupula returns to neutral as canal fluid entrains with the structure. The time constant is ~18 seconds. Rotation sensation: diminishing.' },
+    { until: 90,
+      name: 'Canal adaptation complete. Body reports: level.',
+      desc: 'Rotation sensation gone. Otolith reads the sum of gravity and centripetal acceleration — which in a coordinated turn points toward the cabin floor. The vestibular system reports: wings level. Divergence is now ~35°.' },
+    { until: DURATION,
+      name: 'Graveyard spiral. Pilot corrects — wrong axis.',
+      desc: 'Altitude loss detected. Feeling level, the pilot pulls back on the stick. In a banked aircraft, this raises the nose toward the center of turn and tightens the spiral. Bank increases. The correction accelerates the descent.' },
+  ];
+
+  function getStage(t) {
+    for (var i = 0; i < STAGES.length; i++) {
+      if (t < STAGES[i].until) return STAGES[i];
+    }
+    return STAGES[STAGES.length - 1];
+  }
+
+  // ── Physics ───────────────────────────────────────────────────────────────
+
+  function stepPhysics(dt) {
+    var newActual = getActual(simTime);
+    var rate = dt > 0.001 ? (newActual - prevActual) / dt : 0;
+
+    if (Math.abs(rate) > THRESHOLD) {
+      // Canal fires: signal tracks rate with a short lag
+      canal += (rate - canal) * Math.min(dt / 0.4, 1.0);
+    }
+    // Canal adapts toward zero regardless
+    canal *= Math.exp(-dt / TAU_CANAL);
+
+    // Felt bank integrates canal signal, drifts back toward zero
+    feltBank += canal * dt;
+    feltBank *= Math.exp(-dt / TAU_DRIFT);
+    feltBank = Math.max(-90, Math.min(90, feltBank));
+
+    prevActual = newActual;
+    actualBank = newActual;
+  }
+
+  // ── Drawing ───────────────────────────────────────────────────────────────
+
+  function isLight() {
+    return document.documentElement.getAttribute('data-theme') === 'light';
+  }
+
+  function drawAI(id, bankDeg, accent) {
+    var canvas = document.getElementById(id);
+    var ctx    = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    var cx = W / 2, cy = H / 2;
+    var R  = Math.min(W, H) * 0.44;
+    var lm = isLight();
+
+    var skyCol  = lm ? '#3a78c9'  : '#1b3a6a';
+    var gndCol  = lm ? '#a07028'  : '#3d1e00';
+    var bgCol   = lm ? '#f6f8fa'  : '#010409';
+    var rimCol  = lm ? '#d0d7de'  : '#30363d';
+    var tickCol = lm ? '#8c959f'  : '#6e7681';
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = bgCol;
+    ctx.fillRect(0, 0, W, H);
+
+    // Clip to circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Earth / sky — rotated by bank
+    // Right bank (positive) → counter-clockwise rotation → right side lower ✓
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(-bankDeg * Math.PI / 180);
+
+    ctx.fillStyle = skyCol;
+    ctx.fillRect(-W, -H * 2, W * 2, H * 2);
+
+    ctx.fillStyle = gndCol;
+    ctx.fillRect(-W, 0, W * 2, H * 2);
+
+    // Horizon line
+    ctx.strokeStyle = 'rgba(255,255,255,0.88)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-W, 0);
+    ctx.lineTo(W, 0);
+    ctx.stroke();
+
+    // Pitch reference lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.lineWidth = 1;
+    [-20, -10, 10, 20].forEach(function (p) {
+      var y  = -p * R / 55;
+      var hw = R * (Math.abs(p) === 20 ? 0.42 : 0.26);
+      ctx.beginPath();
+      ctx.moveTo(-hw, y);
+      ctx.lineTo(hw, y);
+      ctx.stroke();
+    });
+
+    ctx.restore(); // unrotate
+
+    // Aircraft symbol (fixed — does not rotate with bank)
+    var wr = R * 0.38;
+    var ht = R * 0.076;
+    ctx.strokeStyle = 'rgba(235,235,235,0.95)';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'square';
+
+    // Left wing
+    ctx.beginPath(); ctx.moveTo(cx - wr, cy); ctx.lineTo(cx - wr * 0.22, cy); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - wr * 0.22, cy);
+    ctx.lineTo(cx - wr * 0.22, cy + ht);
+    ctx.lineTo(cx - wr * 0.64, cy + ht);
+    ctx.stroke();
+
+    // Right wing
+    ctx.beginPath(); ctx.moveTo(cx + wr, cy); ctx.lineTo(cx + wr * 0.22, cy); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx + wr * 0.22, cy);
+    ctx.lineTo(cx + wr * 0.22, cy + ht);
+    ctx.lineTo(cx + wr * 0.64, cy + ht);
+    ctx.stroke();
+
+    // Fuselage dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(235,235,235,0.95)';
+    ctx.fill();
+
+    ctx.restore(); // unclip
+
+    // Bank scale ticks (0° at top = 12 o'clock; positive = clockwise = right bank)
+    ctx.strokeStyle = tickCol;
+    ctx.lineWidth = 1.5;
+    [-60, -30, -10, 10, 30, 60].forEach(function (m) {
+      var angle = (m - 90) * Math.PI / 180;
+      var tlen  = Math.abs(m) % 30 === 0 ? 10 : 5;
+      var x1 = cx + Math.cos(angle) * R;
+      var y1 = cy + Math.sin(angle) * R;
+      var x2 = cx + Math.cos(angle) * (R - tlen);
+      var y2 = cy + Math.sin(angle) * (R - tlen);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    });
+
+    // Zero-bank fixed marker at top
+    ctx.fillStyle = tickCol;
+    ctx.beginPath();
+    ctx.moveTo(cx,     cy - R + 2);
+    ctx.lineTo(cx - 4, cy - R + 10);
+    ctx.lineTo(cx + 4, cy - R + 10);
+    ctx.fill();
+
+    // Bank pointer — moves with bank angle
+    var pa  = (bankDeg - 90) * Math.PI / 180;
+    var ppx = cx + Math.cos(pa) * (R - 6);
+    var ppy = cy + Math.sin(pa) * (R - 6);
+    ctx.beginPath();
+    ctx.arc(ppx, ppy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = accent;
+    ctx.fill();
+
+    // Rim
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.strokeStyle = rimCol;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  // ── UI ────────────────────────────────────────────────────────────────────
+
+  function updateUI() {
+    var stage = getStage(simTime);
+    document.getElementById('stage-name').textContent = stage.name;
+    document.getElementById('stage-desc').textContent = stage.desc;
+
+    var pct = Math.min(simTime / DURATION * 100, 100);
+    document.getElementById('timer-bar').style.width = pct + '%';
+    document.getElementById('timer-text').textContent =
+      't = ' + simTime.toFixed(0) + 's / ' + DURATION + 's';
+
+    var aBstr = actualBank.toFixed(1) + '°';
+    var fBstr = feltBank.toFixed(1)   + '°';
+    document.getElementById('rd-instr-val').textContent = aBstr;
+    document.getElementById('rd-felt-val').textContent  = fBstr;
+    document.getElementById('rd-actual').textContent    = aBstr;
+    document.getElementById('rd-felt').textContent      = fBstr;
+
+    var cEl = document.getElementById('rd-canal');
+    var cAbs = Math.abs(canal);
+    cEl.textContent  = canal.toFixed(2) + '°/s';
+    cEl.className    = 'readout-val ' + (cAbs < 0.3 ? 'neutral' : cAbs < 1.5 ? 'warn' : 'ok');
+
+    var div    = Math.abs(actualBank - feltBank);
+    var divEl  = document.getElementById('rd-div');
+    var subEl  = document.getElementById('rd-div-sub');
+    divEl.textContent = div.toFixed(1) + '°';
+    if (div < 3) {
+      divEl.className = 'readout-val ok';
+      subEl.textContent = 'in agreement';
+    } else if (div < 15) {
+      divEl.className = 'readout-val warn';
+      subEl.textContent = 'growing error';
+    } else {
+      divEl.className = 'readout-val bad';
+      subEl.textContent = 'dangerous divergence';
+    }
+
+    drawAI('c-instr', actualBank, '#58a6ff');
+    drawAI('c-felt',  feltBank,   '#f78166');
+  }
+
+  // ── Animation ─────────────────────────────────────────────────────────────
+
+  function loop(ts) {
+    if (!playing) return;
+    if (lastTs === null) lastTs = ts;
+    var dt = (ts - lastTs) / 1000 * speed;
+    lastTs = ts;
+
+    simTime = Math.min(simTime + dt, DURATION);
+    stepPhysics(dt);
+    updateUI();
+
+    if (simTime >= DURATION) {
+      playing = false;
+      setPlayBtn(false);
+    } else {
+      raf = requestAnimationFrame(loop);
+    }
+  }
+
+  function setPlayBtn(isPlaying) {
+    var btn = document.getElementById('btn-play');
+    if (isPlaying) {
+      btn.innerHTML = '&#9646;&#9646; pause';
+      btn.className = 'ctrl-btn';
+    } else {
+      btn.innerHTML = '&#9654; play';
+      btn.className = 'ctrl-btn primary';
+    }
+  }
+
+  // ── Public API ────────────────────────────────────────────────────────────
+
+  function togglePlay() {
+    if (simTime >= DURATION) reset();
+    playing = !playing;
+    setPlayBtn(playing);
+    if (playing) {
+      lastTs = null;
+      raf    = requestAnimationFrame(loop);
+    } else {
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+    }
+  }
+
+  function reset() {
+    playing    = false;
+    simTime    = 0;
+    actualBank = 0;
+    feltBank   = 0;
+    canal      = 0;
+    prevActual = 0;
+    lastTs     = null;
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    setPlayBtn(false);
+    updateUI();
+  }
+
+  function setSpeed(s, btn) {
+    speed = s;
+    ['btn-1x','btn-2x','btn-4x'].forEach(function(id) {
+      var b = document.getElementById(id);
+      if (b) b.classList.remove('active');
+    });
+    btn.classList.add('active');
+  }
+
+  // Theme observer
+  new MutationObserver(function () { updateUI(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // Init
+  reset();
+
+  return { togglePlay: togglePlay, reset: reset, setSpeed: setSpeed };
+
+})();
+</script>
+
+</body>
+</html>
