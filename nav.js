@@ -144,6 +144,7 @@
       { href: '/biomotion.html', label: 'biological motion' },
       { href: '/michotte.html', label: 'causal perception' },
       { href: '/fitness-valley.html', label: 'fitness valley' },
+      { href: '/wagon.html', label: 'wagon wheel' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
