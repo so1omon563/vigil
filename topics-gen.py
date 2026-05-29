@@ -141,6 +141,8 @@ OVERRIDES = {
     87:  'rhythm',   # Recovery
     89:  'rhythm',   # Baseline
     88:  'rhythm',   # 88
+    580: 'natural_world',  # The Dark Substrate (neutral theory of molecular evolution)
+    581: 'natural_world',  # One Point Five Billion (allometric scaling)
 }
 
 # Keyword-based fallback categorization
