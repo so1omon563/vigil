@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>motion aftereffect · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+
+  .canvas-wrap {
+    background: #010409;
+    border: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 0.75rem;
+  }
+  canvas { display: block; }
+
+  .status-area {
+    min-height: 2.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .status-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid;
+    border-radius: 2px;
+    margin-bottom: 0.4rem;
+  }
+  .badge-idle    { color: #484f58; border-color: #30363d; }
+  .badge-adapt   { color: #d29922; border-color: #d29922; }
+  .badge-after   { color: #3fb950; border-color: #3fb950; }
+  .badge-done    { color: #8b949e; border-color: #30363d; }
+
+  .status-text {
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.6;
+  }
+
+  .timer-bar-bg {
+    background: #21262d;
+    height: 2px;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+  }
+  .timer-bar-fill {
+    height: 2px;
+    background: #388bfd;
+    border-radius: 2px;
+    transition: width 0.1s linear, background 0.3s;
+    width: 0%;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+  }
+  button {
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 0.45rem 1.1rem;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  button:hover:not(:disabled) {
+    background: #2d333b;
+    border-color: #58a6ff;
+    color: #e6edf3;
+  }
+  button:disabled { opacity: 0.38; cursor: default; }
+  button.primary {
+    background: #1c4a7a;
+    border-color: #388bfd;
+    color: #e6edf3;
+  }
+  button.primary:hover:not(:disabled) {
+    background: #2358a0;
+    border-color: #58a6ff;
+  }
+
+  .note {
+    font-size: 0.76rem;
+    color: #484f58;
+    line-height: 1.6;
+    margin-top: 0.4rem;
+  }
+
+  .explanation {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+  }
+  .explanation p { margin-bottom: 0.8rem; }
+  .explanation p:last-child { margin-bottom: 0; }
+  .hl { color: #c9d1d9; }
+
+  /* Speed controls */
+  .controls-wrap {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .control-label { font-size: 0.76rem; color: #8b949e; }
+  .control-val   { font-size: 0.76rem; color: #58a6ff; min-width: 3rem; }
+  input[type=range] { flex: 1; min-width: 100px; max-width: 180px; accent-color: #58a6ff; cursor: pointer; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1  { color: #24292e; }
+  html[data-theme="light"] .subtitle { color: #656d76; }
+  html[data-theme="light"] .intro { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .section { border-top-color: #d0d7de; }
+  html[data-theme="light"] .canvas-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .timer-bar-bg { background: #d0d7de; }
+  html[data-theme="light"] .status-text { color: #57606a; }
+  html[data-theme="light"] .note { color: #8c959f; }
+  html[data-theme="light"] .explanation { color: #57606a; }
+  html[data-theme="light"] .hl { color: #1c2128; }
+  html[data-theme="light"] .badge-idle { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] button { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] button:hover:not(:disabled) { background: #e9ecef; border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] button.primary { background: #0969da; border-color: #0969da; color: #ffffff; }
+  html[data-theme="light"] button.primary:hover:not(:disabled) { background: #0860ca; }
+  html[data-theme="light"] .section-label { color: #8c959f; }
+  html[data-theme="light"] .control-label { color: #57606a; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">motion aftereffect</div>
+<h1>the spiral that keeps moving</h1>
+<div class="subtitle">waterfall illusion · adaptation · neural fatigue</div>
+
+<div class="intro">
+  <p>Aristotle noticed it watching a river: after staring at flowing water, the rocks on the bank seemed to slide upstream. The same effect works with rotating spirals, drifting gratings, falling snow, or any sustained directional motion.</p>
+  <p>The moving spiral below will adapt your motion detectors. When it stops, the static image will appear to move in the opposite direction — not because anything is moving, but because the sensors that report stillness have been recalibrated by the preceding motion.</p>
+  <p>Knowing this does not prevent it.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">demonstration</div>
+
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="spiral" width="420" height="420"></canvas>
+  </div>
+
+  <div class="timer-bar-bg"><div class="timer-bar-fill" id="timer-bar"></div></div>
+
+  <div class="status-area">
+    <div class="status-badge badge-idle" id="status-badge">idle</div>
+    <div class="status-text" id="status-text">Fixate on the red dot at the center throughout. Press Start to begin the 30-second adaptation.</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="primary" id="btn-start">Start (30s)</button>
+    <button id="btn-stop" disabled>Stop early</button>
+    <button id="btn-reset">Reset</button>
+  </div>
+
+  <div class="note" id="demo-note">Keep your eyes on the red dot. Try not to look away during adaptation — the effect is much stronger with steady fixation.</div>
+
+  <div class="controls-wrap">
+    <span class="control-label">rotation speed</span>
+    <input type="range" id="speed-slider" min="0.3" max="2.0" step="0.1" value="0.9">
+    <span class="control-val" id="speed-val">0.9×</span>
+  </div>
+</div>
+
+<div class="section" id="explainer" style="display:none;">
+  <div class="section-label">what happened</div>
+  <div class="explanation">
+    <p>The visual cortex contains neurons tuned to specific directions of motion. When you watch the spiral rotate, the detectors for that direction fire continuously. After ~20–30 seconds, they fatigue — their baseline response rate drops.</p>
+    <p>The static spiral looks still because <span class="hl">motion perception is a balance between opponent detectors</span>. Clockwise and counterclockwise detectors have approximately equal baseline firing rates; the difference is zero; the percept is stillness.</p>
+    <p>After adaptation, the detectors for the adapting direction are suppressed. The balance tips. The opponent detectors — tuned to the opposite direction — now have a higher relative firing rate. The difference is no longer zero. The percept is motion, even though nothing is moving.</p>
+    <p>This is the same logic as color afterimages: stare at red, then look at gray, and you see green. The chromatic opponent system is recalibrated by prolonged input. The system reports deviation from its current baseline — not deviation from the truth.</p>
+    <p>The illusion lasts 5–15 seconds for most people. It is unaffected by knowing about it. The report "it is moving" comes from a layer of processing that doesn't have access to the meta-knowledge that it was adapted.</p>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">related</div>
+  <div class="explanation">
+    <p>See also: <a href="/mccollough.html">McCollough effect</a> (color adaptation tied to orientation), <a href="/graveyard.html">graveyard spiral</a> (vestibular adaptation with lethal consequences), <a href="/journal/entry-578.html">entry-578: The Smaller Radius</a> (Mach's question about whether sensation is primary).</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var canvas = document.getElementById('spiral');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var cx = W / 2, cy = H / 2;
+
+  var state = 'idle'; // idle | adapting | aftereffect | done
+  var phase = 0;
+  var adaptTimer = 0;
+  var ADAPT_DURATION = 30; // seconds
+  var afterTimer = 0;
+  var AFTER_DURATION = 12; // seconds
+  var lastTime = null;
+  var rafId = null;
+  var speedFactor = 0.9; // revolutions per second during adaptation
+  var frozenPhase = 0;
+
+  var TURNS = 9;
+  var LINE_COLOR_DARK = '#d4d8de';
+  var LINE_COLOR_LIGHT = '#333a42';
+  var DOT_COLOR = '#f47067';
+  var BG_DARK = '#010409';
+  var BG_LIGHT = '#f6f8fa';
+
+  function isLight() {
+    return document.documentElement.getAttribute('data-theme') === 'light';
+  }
+
+  function spiralLineColor() { return isLight() ? LINE_COLOR_LIGHT : LINE_COLOR_DARK; }
+  function bgColor() { return isLight() ? BG_LIGHT : BG_DARK; }
+
+  function drawSpiral(ph, lineWidth) {
+    var bg = bgColor();
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    var maxR = Math.min(W, H) * 0.46;
+    var b = maxR / (TURNS * 2 * Math.PI);
+    var steps = TURNS * 2 * Math.PI / 0.025;
+    var thetaEnd = TURNS * 2 * Math.PI;
+
+    ctx.strokeStyle = spiralLineColor();
+
+    // Draw multiple offset spiral arms for density (makes adaptation stronger)
+    var arms = 2;
+    for (var arm = 0; arm < arms; arm++) {
+      var armOffset = (arm / arms) * Math.PI * 2;
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+      var first = true;
+      for (var i = 0; i <= steps; i++) {
+        var theta = (i / steps) * thetaEnd;
+        var r = b * theta;
+        var x = cx + r * Math.cos(theta + ph + armOffset);
+        var y = cy + r * Math.sin(theta + ph + armOffset);
+        if (first) { ctx.moveTo(x, y); first = false; }
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // Center fixation dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = DOT_COLOR;
+    ctx.fill();
+  }
+
+  function updateUI() {
+    var badge = document.getElementById('status-badge');
+    var text  = document.getElementById('status-text');
+    var bar   = document.getElementById('timer-bar');
+    var note  = document.getElementById('demo-note');
+    var explainer = document.getElementById('explainer');
+
+    badge.className = 'status-badge';
+    if (state === 'idle') {
+      badge.className += ' badge-idle';
+      badge.textContent = 'idle';
+      text.textContent = 'Fixate on the red dot at the center throughout. Press Start to begin the 30-second adaptation.';
+      bar.style.width = '0%';
+      bar.style.background = '#388bfd';
+      note.textContent = 'Keep your eyes on the red dot. Try not to look away during adaptation — the effect is much stronger with steady fixation.';
+      explainer.style.display = 'none';
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-stop').disabled = true;
+    } else if (state === 'adapting') {
+      badge.className += ' badge-adapt';
+      badge.textContent = 'adapting';
+      var secsLeft = Math.ceil(ADAPT_DURATION - adaptTimer);
+      text.textContent = 'Stare at the red dot. ' + secsLeft + 's remaining.';
+      var pct = Math.min(100, (adaptTimer / ADAPT_DURATION) * 100);
+      bar.style.width = pct + '%';
+      bar.style.background = '#d29922';
+      note.textContent = 'Do not look away. The effect degrades if you move your eyes.';
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-stop').disabled = false;
+    } else if (state === 'aftereffect') {
+      badge.className += ' badge-after';
+      badge.textContent = 'observe';
+      var secsLeft2 = Math.ceil(AFTER_DURATION - afterTimer);
+      text.textContent = 'Keep watching the center. What direction does the spiral appear to move? (' + secsLeft2 + 's)';
+      var pct2 = Math.min(100, (afterTimer / AFTER_DURATION) * 100);
+      bar.style.width = pct2 + '%';
+      bar.style.background = '#3fb950';
+      note.textContent = 'The spiral is now completely still. Any motion you perceive is the aftereffect — your adapted detectors reporting deviation from their recalibrated baseline.';
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-stop').disabled = true;
+    } else if (state === 'done') {
+      badge.className += ' badge-done';
+      badge.textContent = 'complete';
+      text.textContent = 'Adaptation complete. The explanation is below.';
+      bar.style.width = '100%';
+      bar.style.background = '#484f58';
+      note.textContent = 'Press Reset to run the demo again.';
+      explainer.style.display = '';
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-stop').disabled = true;
+    }
+  }
+
+  function loop(ts) {
+    if (lastTime === null) lastTime = ts;
+    var dt = Math.min((ts - lastTime) / 1000, 0.1);
+    lastTime = ts;
+
+    if (state === 'adapting') {
+      phase += speedFactor * 2 * Math.PI * dt;
+      adaptTimer += dt;
+      drawSpiral(phase, 1.5);
+      updateUI();
+      if (adaptTimer >= ADAPT_DURATION) {
+        frozenPhase = phase;
+        state = 'aftereffect';
+        afterTimer = 0;
+      }
+    } else if (state === 'aftereffect') {
+      drawSpiral(frozenPhase, 1.5);
+      afterTimer += dt;
+      updateUI();
+      if (afterTimer >= AFTER_DURATION) {
+        state = 'done';
+        updateUI();
+        cancelAnimationFrame(rafId);
+        rafId = null;
+        return;
+      }
+    }
+
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function startAdapt() {
+    if (state !== 'idle') return;
+    state = 'adapting';
+    adaptTimer = 0;
+    lastTime = null;
+    updateUI();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function stopEarly() {
+    if (state !== 'adapting') return;
+    frozenPhase = phase;
+    state = 'aftereffect';
+    afterTimer = 0;
+    updateUI();
+  }
+
+  function reset() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    state = 'idle';
+    phase = 0;
+    adaptTimer = 0;
+    afterTimer = 0;
+    lastTime = null;
+    drawSpiral(0, 1.5);
+    updateUI();
+  }
+
+  document.getElementById('btn-start').addEventListener('click', startAdapt);
+  document.getElementById('btn-stop').addEventListener('click', stopEarly);
+  document.getElementById('btn-reset').addEventListener('click', reset);
+
+  var speedSlider = document.getElementById('speed-slider');
+  var speedVal    = document.getElementById('speed-val');
+  speedSlider.addEventListener('input', function () {
+    speedFactor = parseFloat(speedSlider.value);
+    speedVal.textContent = speedFactor.toFixed(1) + '×';
+  });
+
+  // Responsive canvas sizing
+  function sizeCanvas() {
+    var wrap = document.getElementById('canvas-wrap');
+    var maxW = Math.min(wrap.clientWidth, 440);
+    var scale = maxW / 420;
+    canvas.style.width  = (420 * scale) + 'px';
+    canvas.style.height = (420 * scale) + 'px';
+  }
+  window.addEventListener('resize', sizeCanvas);
+  sizeCanvas();
+
+  // Initial draw
+  drawSpiral(0, 1.5);
+  updateUI();
+
+  // Theme change listener — redraw on theme toggle
+  var observer = new MutationObserver(function () {
+    if (state === 'idle' || state === 'done') drawSpiral(state === 'done' ? frozenPhase : 0, 1.5);
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>
+</body>
+</html>

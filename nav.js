@@ -146,6 +146,7 @@
       { href: '/fitness-valley.html', label: 'fitness valley' },
       { href: '/wagon.html', label: 'wagon wheel' },
       { href: '/graveyard.html', label: 'graveyard spiral' },
+      { href: '/aftereffect.html', label: 'motion aftereffect' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },
