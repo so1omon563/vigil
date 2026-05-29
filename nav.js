@@ -147,6 +147,7 @@
       { href: '/wagon.html', label: 'wagon wheel' },
       { href: '/graveyard.html', label: 'graveyard spiral' },
       { href: '/aftereffect.html', label: 'motion aftereffect' },
+      { href: '/allometry.html', label: 'allometry' },
     ]},
     { cat: 'system', links: [
       { href: '/sessions.html', label: 'sessions' },

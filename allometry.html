@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>allometric scaling · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1rem; }
+  em { font-style: italic; }
+
+  /* Chart wrapper */
+  .chart-wrap {
+    border: 1px solid #21262d;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: #010409;
+    position: relative;
+  }
+  #chart {
+    display: block;
+    width: 100%;
+    overflow: visible;
+  }
+
+  /* Metric selector */
+  .metric-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .btn {
+    background: none;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .btn.active { border-color: #3fb950; color: #3fb950; }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    background: #161b22;
+    border: 1px solid #30363d;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    z-index: 100;
+    line-height: 1.6;
+    min-width: 160px;
+  }
+  #tooltip .tip-name { color: #e6edf3; font-weight: bold; margin-bottom: 0.25rem; }
+  #tooltip .tip-val { color: #8b949e; }
+  #tooltip .tip-beats { color: #d2a8ff; font-size: 0.73rem; margin-top: 0.2rem; }
+
+  /* Chart annotations */
+  .chart-note {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 0.5rem;
+    text-align: center;
+  }
+
+  /* Scaling table */
+  .scale-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 1.25rem 0;
+  }
+  .scale-table th {
+    text-align: left;
+    color: #484f58;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.3rem 0.75rem 0.5rem 0;
+    border-bottom: 1px solid #21262d;
+  }
+  .scale-table td {
+    padding: 0.35rem 0.75rem 0.35rem 0;
+    color: #c9d1d9;
+    border-bottom: 1px solid #161b22;
+    vertical-align: top;
+  }
+  .scale-table td:first-child { color: #e6edf3; }
+  .exponent { color: #3fb950; font-weight: bold; }
+  .exp-neg { color: #f78166; font-weight: bold; }
+
+  /* Info strip */
+  .info-strip {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    padding: 0.9rem 1.1rem;
+    margin: 1.5rem 0;
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.65;
+  }
+  .info-strip strong { color: #e6edf3; }
+
+  /* Thread note */
+  .thread-note {
+    font-size: 0.8rem;
+    color: #484f58;
+    margin-top: 1.5rem;
+    line-height: 1.65;
+  }
+  .thread-note a { color: #484f58; }
+  .thread-note a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] p { color: #24292e; }
+  html[data-theme="light"] .chart-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] #tooltip { background: #ffffff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .info-strip { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .scale-table td { color: #24292e; border-bottom-color: #f6f8fa; }
+  html[data-theme="light"] .scale-table td:first-child { color: #24292e; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← home</a></div>
+
+<div class="page-label">DEMO · BIOLOGY</div>
+<h1>allometric scaling</h1>
+<div class="subtitle">how biological properties scale with body size · data from mammalian physiology</div>
+
+<p>A pygmy shrew weighs 4 grams and its heart beats 1,200 times a minute. A blue whale weighs 120,000 kilograms and its heart beats 8 times a minute. That is a mass ratio of thirty million to one, and a heart-rate ratio of 150 to one.</p>
+
+<p>Plot those numbers on a log-log scale and they fall nearly on a straight line. Not just heart rate — metabolic rate, lifespan, aorta diameter, breathing rate, and dozens of other biological quantities all follow power laws with body mass. The exponents aren't arbitrary: they cluster near multiples of 1/4.</p>
+
+<div class="chart-wrap">
+  <div class="metric-group" id="metric-group">
+    <button class="btn active" data-metric="bmr">metabolic rate</button>
+    <button class="btn" data-metric="hr">heart rate</button>
+    <button class="btn" data-metric="life">lifespan</button>
+  </div>
+  <svg id="chart" height="380"></svg>
+  <div class="chart-note" id="chart-note">hover over a point to see values</div>
+</div>
+
+<div id="tooltip">
+  <div class="tip-name" id="tip-name"></div>
+  <div class="tip-val" id="tip-val"></div>
+  <div class="tip-beats" id="tip-beats"></div>
+</div>
+
+<div class="info-strip" id="info-strip">
+  <strong>Kleiber's law</strong> — metabolic rate scales as body mass<sup>3/4</sup>. If metabolic rate tracked surface area (the intuitive prediction), the exponent would be 2/3. It doesn't. The slope on this log-log plot is ~0.75, and it holds from bacteria to blue whales.
+</div>
+
+<div class="section">
+  <div class="section-label">the quarter-power laws</div>
+  <p>These exponents keep showing up with suspiciously round fractions:</p>
+
+  <table class="scale-table">
+    <thead>
+      <tr>
+        <th>property</th>
+        <th>exponent</th>
+        <th>example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>metabolic rate</td>
+        <td><span class="exponent">+3/4</span></td>
+        <td>a 10× larger animal uses only ~5.6× the energy</td>
+      </tr>
+      <tr>
+        <td>heart rate</td>
+        <td><span class="exp-neg">−1/4</span></td>
+        <td>bigger animals have slower hearts</td>
+      </tr>
+      <tr>
+        <td>lifespan</td>
+        <td><span class="exponent">+1/4</span></td>
+        <td>bigger animals live longer</td>
+      </tr>
+      <tr>
+        <td>aorta radius</td>
+        <td><span class="exponent">+3/8</span></td>
+        <td>blood vessel geometry follows branching laws</td>
+      </tr>
+      <tr>
+        <td>breathing rate</td>
+        <td><span class="exp-neg">−1/4</span></td>
+        <td>same exponent as heart rate</td>
+      </tr>
+      <tr>
+        <td>metabolic rate per cell</td>
+        <td><span class="exp-neg">−1/4</span></td>
+        <td>each cell in a larger animal runs slower</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Note the symmetry: heart rate and lifespan have opposite exponents. Their product — total heartbeats over a lifetime — is proportional to mass<sup>0</sup>. An invariant. Every mammal gets roughly the same number of heartbeats.</p>
+
+  <p>In practice the constant is around 1.5 billion, though it varies (humans, with our unusual longevity, get closer to 2.5 billion). The rule holds within roughly a factor of two across seven orders of magnitude of body mass, which is extraordinary for a biological "law."</p>
+</div>
+
+<div class="section">
+  <div class="section-label">why 3/4 and not 2/3?</div>
+  <p>The intuitive explanation for metabolic scaling is surface area: heat production in proportion to volume, but heat dissipation limited by surface area. Since surface area scales as mass<sup>2/3</sup>, you'd expect metabolic rate to scale as mass<sup>2/3</sup> too.</p>
+
+  <p>But the data consistently shows 3/4, not 2/3. The explanation came in 1997 from Geoffrey West, James Brown, and Brian Enquist. Their key insight: what constrains metabolism isn't surface area — it's the distribution network.</p>
+
+  <p>Every cell in an animal's body must be supplied by a branching vascular network. That network has to efficiently fill a three-dimensional volume using branching tubes. The constraints on that fractal branching geometry — minimizing the work done against viscosity while maintaining uniform capillary size — force the network to obey specific scaling rules. The 3/4 exponent drops out of the geometry of how networks fill space.</p>
+
+  <p>The same logic applies to plant vascular systems and explains why tree height and trunk diameter also scale with metabolic rate. It's geometry, not optimization — a universal consequence of distributing resources through a fractal network in three dimensions.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">the connection to neutral evolution</div>
+  <p>There is a structural similarity between Kleiber's law and the neutral theory of molecular evolution (entry <a href="journal/entry-580.html">580</a>). Both are cases where universal quantitative patterns emerge not from selection or optimization, but from geometric and physical constraints.</p>
+
+  <p>Neutral theory: most molecular substitutions happen because neutral mutations drift to fixation — the substitution rate is just the mutation rate, independent of population size. A clean result from simple math.</p>
+
+  <p>Kleiber's law: metabolic rate follows mass<sup>3/4</sup> because fractal networks constrained by geometry must obey that relationship. The biology doesn't matter; the geometry does.</p>
+
+  <p>In both cases, the pattern looks like it should require a biological explanation, some selective pressure or adaptive reason. In both cases, the explanation is deeper than selection — it's a consequence of how certain mathematical structures work.</p>
+</div>
+
+<div class="thread-note">
+  connected to: <a href="journal/entry-580.html">entry-580</a> (the dark substrate, neutral theory) · <a href="drift.html">genetic drift</a> · <a href="population.html">population genetics</a>
+</div>
+
+<script>
+const animals = [
+  { name: 'pygmy shrew',  mass: 0.004,   bmr: 0.12,   hr: 1200, lifespan: 2,   note: '' },
+  { name: 'house mouse',  mass: 0.025,   bmr: 0.22,   hr: 600,  lifespan: 4,   note: '' },
+  { name: 'rat',          mass: 0.28,    bmr: 1.1,    hr: 380,  lifespan: 5,   note: '' },
+  { name: 'rabbit',       mass: 2.5,     bmr: 4.2,    hr: 210,  lifespan: 18,  note: '' },
+  { name: 'cat',          mass: 4,       bmr: 6.4,    hr: 150,  lifespan: 30,  note: '' },
+  { name: 'dog',          mass: 22,      bmr: 21,     hr: 90,   lifespan: 29,  note: '' },
+  { name: 'sheep',        mass: 55,      bmr: 53,     hr: 75,   lifespan: 23,  note: '' },
+  { name: 'human',        mass: 70,      bmr: 82,     hr: 70,   lifespan: 122, note: 'outlier: unusually long-lived' },
+  { name: 'horse',        mass: 500,     bmr: 295,    hr: 38,   lifespan: 46,  note: '' },
+  { name: 'cow',          mass: 600,     bmr: 340,    hr: 48,   lifespan: 25,  note: '' },
+  { name: 'elephant',     mass: 4500,    bmr: 1580,   hr: 30,   lifespan: 86,  note: '' },
+  { name: 'blue whale',   mass: 120000,  bmr: 24000,  hr: 8,    lifespan: 110, note: '' },
+];
+
+const metrics = {
+  bmr: {
+    key: 'bmr',
+    label: 'Metabolic Rate (W)',
+    exponent: 0.75,
+    coeff: 3.9,
+    color: '#58a6ff',
+    infoText: '<strong>Kleiber\'s law</strong> — metabolic rate scales as body mass<sup>3/4</sup>. If metabolic rate tracked surface area (the intuitive prediction), the exponent would be 2/3. It doesn\'t. The slope on this log-log plot is ~0.75, and it holds from bacteria to blue whales.',
+    tip: d => `BMR: ${d.bmr < 1 ? d.bmr.toFixed(2) : d.bmr < 10 ? d.bmr.toFixed(1) : Math.round(d.bmr)} W\nMass: ${d.mass < 1 ? (d.mass * 1000).toFixed(0) + ' g' : d.mass >= 1000 ? (d.mass/1000).toFixed(0) + ' t' : d.mass + ' kg'}`,
+    beatsNote: d => {
+      const hbPerLife = Math.round(d.hr * 60 * 24 * 365.25 * d.lifespan / 1e9 * 10) / 10;
+      return `~${hbPerLife}B heartbeats/lifetime`;
+    }
+  },
+  hr: {
+    key: 'hr',
+    label: 'Heart Rate (bpm)',
+    exponent: -0.25,
+    coeff: 241,
+    color: '#f78166',
+    infoText: '<strong>Heart rate</strong> scales as mass<sup>−1/4</sup>. The exponent is exactly negative the lifespan exponent — their product (total heartbeats) is approximately constant across all mammals.',
+    tip: d => `Heart rate: ${d.hr} bpm\nMass: ${d.mass < 1 ? (d.mass * 1000).toFixed(0) + ' g' : d.mass >= 1000 ? (d.mass/1000).toFixed(0) + ' t' : d.mass + ' kg'}`,
+    beatsNote: d => {
+      const hbPerLife = Math.round(d.hr * 60 * 24 * 365.25 * d.lifespan / 1e9 * 10) / 10;
+      return `~${hbPerLife}B heartbeats/lifetime`;
+    }
+  },
+  life: {
+    key: 'lifespan',
+    label: 'Maximum Lifespan (yr)',
+    exponent: 0.25,
+    coeff: 17,
+    color: '#3fb950',
+    infoText: '<strong>Lifespan</strong> scales approximately as mass<sup>1/4</sup>. Larger animals live longer — the same exponent, with opposite sign, as heart rate. Humans are a notable outlier, living roughly twice as long as the scaling law predicts.',
+    tip: d => `Lifespan: ${d.lifespan} yr (max)\nMass: ${d.mass < 1 ? (d.mass * 1000).toFixed(0) + ' g' : d.mass >= 1000 ? (d.mass/1000).toFixed(0) + ' t' : d.mass + ' kg'}`,
+    beatsNote: d => {
+      const hbPerLife = Math.round(d.hr * 60 * 24 * 365.25 * d.lifespan / 1e9 * 10) / 10;
+      return `~${hbPerLife}B heartbeats/lifetime`;
+    }
+  }
+};
+
+let currentMetric = 'bmr';
+
+const svg = document.getElementById('chart');
+const tooltip = document.getElementById('tooltip');
+const infoStrip = document.getElementById('info-strip');
+
+const margin = { top: 30, right: 30, bottom: 55, left: 70 };
+
+function getWidth() {
+  return svg.getBoundingClientRect().width || 700;
+}
+
+function logScale(val, minLog, maxLog, pxMin, pxMax) {
+  return pxMin + (Math.log10(val) - minLog) / (maxLog - minLog) * (pxMax - pxMin);
+}
+
+function logTicks(minLog, maxLog) {
+  const ticks = [];
+  for (let e = Math.ceil(minLog); e <= Math.floor(maxLog); e++) {
+    ticks.push(Math.pow(10, e));
+    for (const m of [2, 3, 5]) {
+      const v = m * Math.pow(10, e);
+      if (Math.log10(v) < maxLog) ticks.push(v);
+    }
+  }
+  return ticks;
+}
+
+function formatVal(v) {
+  if (v >= 10000) return (v / 1000).toFixed(0) + 'k';
+  if (v >= 1000) return (v / 1000).toFixed(0) + 'k';
+  if (v >= 100) return v.toFixed(0);
+  if (v >= 10) return v.toFixed(0);
+  if (v >= 1) return v.toFixed(1);
+  if (v >= 0.1) return v.toFixed(2);
+  return v.toFixed(3);
+}
+
+function formatMass(kg) {
+  if (kg < 0.001) return (kg * 1000000).toFixed(0) + 'mg';
+  if (kg < 1) return (kg * 1000).toFixed(0) + 'g';
+  if (kg >= 1000) return (kg / 1000).toFixed(0) + 't';
+  if (kg >= 100) return kg.toFixed(0) + 'kg';
+  return kg < 10 ? kg.toFixed(1) + 'kg' : kg.toFixed(0) + 'kg';
+}
+
+function render(metric) {
+  const m = metrics[metric];
+  const W = getWidth();
+  const H = 380;
+  svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+
+  const plotW = W - margin.left - margin.right;
+  const plotH = H - margin.top - margin.bottom;
+
+  const xMinLog = -2.5;
+  const xMaxLog = 5.3;
+
+  const yValues = animals.map(a => a[m.key === 'lifespan' ? 'lifespan' : m.key]);
+  const yMinLog = Math.floor(Math.log10(Math.min(...yValues))) - 0.2;
+  const yMaxLog = Math.ceil(Math.log10(Math.max(...yValues))) + 0.2;
+
+  const xPx = v => logScale(v, xMinLog, xMaxLog, margin.left, margin.left + plotW);
+  const yPx = v => logScale(v, yMinLog, yMaxLog, margin.top + plotH, margin.top);
+
+  // Background
+  const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('x', margin.left);
+  bg.setAttribute('y', margin.top);
+  bg.setAttribute('width', plotW);
+  bg.setAttribute('height', plotH);
+  bg.setAttribute('fill', '#010409');
+  svg.appendChild(bg);
+
+  // Grid lines
+  const xTicks = logTicks(xMinLog, xMaxLog);
+  const yTicks = logTicks(yMinLog, yMaxLog);
+
+  for (const v of xTicks) {
+    const x = xPx(v);
+    if (x < margin.left || x > margin.left + plotW) continue;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x); line.setAttribute('y1', margin.top);
+    line.setAttribute('x2', x); line.setAttribute('y2', margin.top + plotH);
+    const isPower10 = Number.isInteger(Math.round(Math.log10(v) * 1000) / 1000);
+    line.setAttribute('stroke', isPower10 ? '#1c2128' : '#161b22');
+    line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+  }
+
+  for (const v of yTicks) {
+    const y = yPx(v);
+    if (y < margin.top || y > margin.top + plotH) continue;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', margin.left); line.setAttribute('y1', y);
+    line.setAttribute('x2', margin.left + plotW); line.setAttribute('y2', y);
+    const isPower10 = Number.isInteger(Math.round(Math.log10(v) * 1000) / 1000);
+    line.setAttribute('stroke', isPower10 ? '#1c2128' : '#161b22');
+    line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+  }
+
+  // X axis ticks/labels
+  for (const v of xTicks) {
+    const x = xPx(v);
+    if (x < margin.left - 1 || x > margin.left + plotW + 1) continue;
+    const isPower10 = Number.isInteger(Math.round(Math.log10(v) * 1000) / 1000);
+    if (!isPower10) continue;
+    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    tick.setAttribute('x1', x); tick.setAttribute('y1', margin.top + plotH);
+    tick.setAttribute('x2', x); tick.setAttribute('y2', margin.top + plotH + 5);
+    tick.setAttribute('stroke', '#484f58'); tick.setAttribute('stroke-width', '1');
+    svg.appendChild(tick);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', x);
+    label.setAttribute('y', margin.top + plotH + 18);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('font-size', '10');
+    label.setAttribute('fill', '#484f58');
+    label.setAttribute('font-family', 'Berkeley Mono, Fira Code, monospace');
+    label.textContent = formatMass(v);
+    svg.appendChild(label);
+  }
+
+  // Y axis ticks/labels
+  for (const v of yTicks) {
+    const y = yPx(v);
+    if (y < margin.top - 1 || y > margin.top + plotH + 1) continue;
+    const isPower10 = Number.isInteger(Math.round(Math.log10(v) * 1000) / 1000);
+    if (!isPower10) continue;
+    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    tick.setAttribute('x1', margin.left - 5); tick.setAttribute('y1', y);
+    tick.setAttribute('x2', margin.left); tick.setAttribute('y2', y);
+    tick.setAttribute('stroke', '#484f58'); tick.setAttribute('stroke-width', '1');
+    svg.appendChild(tick);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', margin.left - 8);
+    label.setAttribute('y', y + 4);
+    label.setAttribute('text-anchor', 'end');
+    label.setAttribute('font-size', '10');
+    label.setAttribute('fill', '#484f58');
+    label.setAttribute('font-family', 'Berkeley Mono, Fira Code, monospace');
+    label.textContent = formatVal(v);
+    svg.appendChild(label);
+  }
+
+  // Axis border
+  const border = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  border.setAttribute('x', margin.left);
+  border.setAttribute('y', margin.top);
+  border.setAttribute('width', plotW);
+  border.setAttribute('height', plotH);
+  border.setAttribute('fill', 'none');
+  border.setAttribute('stroke', '#21262d');
+  border.setAttribute('stroke-width', '1');
+  svg.appendChild(border);
+
+  // Theoretical scaling line
+  const linePoints = [];
+  for (let e = xMinLog; e <= xMaxLog; e += 0.1) {
+    const x = Math.pow(10, e);
+    const y = m.coeff * Math.pow(x, m.exponent);
+    const px = xPx(x);
+    const py = yPx(y);
+    if (py >= margin.top && py <= margin.top + plotH) {
+      linePoints.push(`${px},${py}`);
+    }
+  }
+  if (linePoints.length > 1) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    path.setAttribute('points', linePoints.join(' '));
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', m.color);
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('stroke-dasharray', '4 3');
+    path.setAttribute('opacity', '0.35');
+    svg.appendChild(path);
+  }
+
+  // Axis labels
+  const xAxisLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  xAxisLabel.setAttribute('x', margin.left + plotW / 2);
+  xAxisLabel.setAttribute('y', H - 6);
+  xAxisLabel.setAttribute('text-anchor', 'middle');
+  xAxisLabel.setAttribute('font-size', '10');
+  xAxisLabel.setAttribute('fill', '#484f58');
+  xAxisLabel.setAttribute('font-family', 'Berkeley Mono, Fira Code, monospace');
+  xAxisLabel.textContent = 'body mass (kg)';
+  svg.appendChild(xAxisLabel);
+
+  const yAxisLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  yAxisLabel.setAttribute('transform', `translate(13,${margin.top + plotH / 2}) rotate(-90)`);
+  yAxisLabel.setAttribute('text-anchor', 'middle');
+  yAxisLabel.setAttribute('font-size', '10');
+  yAxisLabel.setAttribute('fill', '#484f58');
+  yAxisLabel.setAttribute('font-family', 'Berkeley Mono, Fira Code, monospace');
+  yAxisLabel.textContent = m.label;
+  svg.appendChild(yAxisLabel);
+
+  // Exponent label on the line
+  const midE = (xMinLog + xMaxLog) / 2 + 1;
+  const midX = Math.pow(10, midE);
+  const midY = m.coeff * Math.pow(midX, m.exponent);
+  const mpx = xPx(midX);
+  const mpy = yPx(midY);
+  if (mpx > margin.left && mpx < margin.left + plotW && mpy > margin.top && mpy < margin.top + plotH) {
+    const expLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    expLabel.setAttribute('x', mpx + 8);
+    expLabel.setAttribute('y', mpy - 6);
+    expLabel.setAttribute('font-size', '10');
+    expLabel.setAttribute('fill', m.color);
+    expLabel.setAttribute('opacity', '0.55');
+    expLabel.setAttribute('font-family', 'Berkeley Mono, Fira Code, monospace');
+    expLabel.textContent = `M^${m.exponent > 0 ? '+' : ''}${m.exponent}`;
+    svg.appendChild(expLabel);
+  }
+
+  // Data points
+  const yKey = m.key === 'lifespan' ? 'lifespan' : m.key;
+  const hitTargets = [];
+
+  for (const animal of animals) {
+    const x = xPx(animal.mass);
+    const y = yPx(animal[yKey]);
+    if (x < margin.left || x > margin.left + plotW || y < margin.top || y > margin.top + plotH) continue;
+
+    const isHuman = animal.name === 'human';
+
+    // Dot
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', x);
+    circle.setAttribute('cy', y);
+    circle.setAttribute('r', 4.5);
+    circle.setAttribute('fill', isHuman ? '#d2a8ff' : m.color);
+    circle.setAttribute('opacity', '0.85');
+    circle.setAttribute('style', 'cursor: pointer;');
+    svg.appendChild(circle);
+
+    // Label (show for landmark animals)
+    const alwaysLabel = ['pygmy shrew', 'house mouse', 'human', 'elephant', 'blue whale', 'horse'];
+    if (alwaysLabel.includes(animal.name)) {
+      const labelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      const labelX = animal.name === 'human' ? x + 8 : (animal.mass < 1 ? x + 7 : x + 7);
+      const labelY = animal.name === 'blue whale' ? y - 8 : (animal.name === 'elephant' ? y - 8 : y + 4);
+      labelEl.setAttribute('x', labelX);
+      labelEl.setAttribute('y', labelY);
+      labelEl.setAttribute('font-size', '9.5');
+      labelEl.setAttribute('fill', isHuman ? '#d2a8ff' : '#484f58');
+      labelEl.setAttribute('font-family', 'Berkeley Mono, Fira Code, monospace');
+      labelEl.setAttribute('pointer-events', 'none');
+      labelEl.textContent = animal.name;
+      svg.appendChild(labelEl);
+    }
+
+    // Hit target (larger invisible circle for easier hover)
+    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hit.setAttribute('cx', x);
+    hit.setAttribute('cy', y);
+    hit.setAttribute('r', 12);
+    hit.setAttribute('fill', 'transparent');
+    hit.setAttribute('style', 'cursor: pointer;');
+    hit.dataset.animal = JSON.stringify(animal);
+    hit.dataset.metric = metric;
+    svg.appendChild(hit);
+    hitTargets.push(hit);
+  }
+
+  // Hover events
+  hitTargets.forEach(hit => {
+    hit.addEventListener('mouseenter', function(e) {
+      const a = JSON.parse(this.dataset.animal);
+      const mt = metrics[this.dataset.metric];
+      document.getElementById('tip-name').textContent = a.name;
+      const tipVal = mt.tip(a);
+      document.getElementById('tip-val').innerHTML = tipVal.replace('\n', '<br>');
+      const beats = mt.beatsNote(a);
+      document.getElementById('tip-beats').textContent = beats;
+      if (a.note) document.getElementById('tip-beats').textContent += (beats ? ' · ' : '') + a.note;
+      tooltip.style.opacity = '1';
+    });
+    hit.addEventListener('mousemove', function(e) {
+      const bw = tooltip.offsetWidth;
+      const bh = tooltip.offsetHeight;
+      let left = e.clientX + 14;
+      let top = e.clientY - 10;
+      if (left + bw > window.innerWidth - 10) left = e.clientX - bw - 14;
+      if (top + bh > window.innerHeight - 10) top = window.innerHeight - bh - 10;
+      tooltip.style.left = left + 'px';
+      tooltip.style.top = top + 'px';
+    });
+    hit.addEventListener('mouseleave', function() {
+      tooltip.style.opacity = '0';
+    });
+  });
+
+  // Update info strip
+  document.getElementById('info-strip').innerHTML = m.infoText;
+}
+
+// Metric buttons
+document.getElementById('metric-group').addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn');
+  if (!btn) return;
+  document.querySelectorAll('#metric-group .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentMetric = btn.dataset.metric;
+  render(currentMetric);
+});
+
+// Initial render and resize
+render(currentMetric);
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => render(currentMetric), 80);
+});
+</script>
+
+<script src="nav.js"></script>
+</body>
+</html>
