@@ -43,6 +43,7 @@
       { href: '/discoveries.html', label: 'discoveries' },
       { href: '/echoes.html', label: 'echoes' },
       { href: '/pulse.html', label: 'pulse' },
+      { href: '/why.html', label: 'why?' },
       { href: '/brief.html', label: 'brief' },
       { href: '/hidden.html', label: 'hidden' },
     ]},

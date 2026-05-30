@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why? · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.82rem; color: #484f58; margin-bottom: 2rem; }
+  .intro {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #21262d;
+    padding-left: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .intro p { margin-bottom: 0.6rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Chain selector */
+  .chain-selector {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .chain-btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.35rem 0.7rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .chain-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .chain-btn.active { border-color: #58a6ff; color: #e6edf3; background: #161b22; }
+
+  /* Depth indicator */
+  .depth-track {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1.75rem;
+    font-size: 0.7rem;
+    color: #484f58;
+  }
+  .depth-dots { display: flex; gap: 0.25rem; }
+  .depth-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #21262d;
+    transition: background 0.3s;
+  }
+  .depth-dot.filled { background: #58a6ff; }
+  .depth-dot.current { background: #e6edf3; }
+
+  /* Main card */
+  .card {
+    border: 1px solid #21262d;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    min-height: 200px;
+  }
+  .card-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  .question-text {
+    font-size: 1.05rem;
+    color: #e6edf3;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+  }
+  .answer-wrap {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.4s ease, max-height 0.5s ease;
+  }
+  .answer-wrap.visible {
+    opacity: 1;
+    max-height: 600px;
+  }
+  .answer-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.6rem;
+  }
+  .answer-text {
+    font-size: 0.92rem;
+    color: #c9d1d9;
+    line-height: 1.75;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Bedrock */
+  .bedrock-text {
+    font-size: 0.9rem;
+    color: #8b949e;
+    line-height: 1.75;
+    border-left: 2px solid #30363d;
+    padding-left: 1rem;
+    font-style: italic;
+  }
+  .bedrock-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #484f58;
+    margin-bottom: 0.6rem;
+  }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 0.5rem; }
+  .why-btn {
+    font-family: inherit;
+    font-size: 0.88rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .why-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .why-btn:disabled { opacity: 0.35; cursor: default; }
+  .why-btn.primary { border-color: #484f58; color: #e6edf3; }
+  .why-btn.primary:hover { border-color: #58a6ff; color: #58a6ff; }
+
+  .next-reveal {
+    font-size: 0.8rem;
+    color: #484f58;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .next-reveal.visible { opacity: 1; }
+  .next-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 0.3rem; }
+  .next-question { color: #8b949e; line-height: 1.65; }
+
+  /* Reset / nav */
+  .nav-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-top: 0.5rem;
+  }
+  .nav-row button {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: none;
+    border: none;
+    color: #484f58;
+    cursor: pointer;
+    padding: 0;
+  }
+  .nav-row button:hover { color: #58a6ff; }
+
+  /* Entry ref */
+  .entry-ref {
+    font-size: 0.75rem;
+    color: #484f58;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+  }
+  .entry-ref a { color: #484f58; }
+  .entry-ref a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .page-label { color: #0969da; }
+  html[data-theme="light"] .intro { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .chain-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .chain-btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .chain-btn.active { border-color: #0969da; color: #24292e; background: #f0f3f6; }
+  html[data-theme="light"] .depth-track { color: #8c959f; }
+  html[data-theme="light"] .depth-dot { background: #d0d7de; }
+  html[data-theme="light"] .depth-dot.filled { background: #0969da; }
+  html[data-theme="light"] .depth-dot.current { background: #24292e; }
+  html[data-theme="light"] .card { border-color: #d0d7de; }
+  html[data-theme="light"] .card-label { color: #8c959f; }
+  html[data-theme="light"] .question-text { color: #24292e; }
+  html[data-theme="light"] .answer-label { color: #8c959f; }
+  html[data-theme="light"] .answer-text { color: #57606a; }
+  html[data-theme="light"] .bedrock-label { color: #8c959f; }
+  html[data-theme="light"] .bedrock-text { color: #57606a; border-left-color: #d0d7de; }
+  html[data-theme="light"] .why-btn { border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .why-btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .next-reveal { color: #57606a; }
+  html[data-theme="light"] .next-question { color: #57606a; }
+  html[data-theme="light"] .nav-row button { color: #8c959f; }
+  html[data-theme="light"] .nav-row button:hover { color: #0969da; }
+  html[data-theme="light"] .entry-ref { color: #8c959f; border-top-color: #d0d7de; }
+  html[data-theme="light"] .entry-ref a { color: #8c959f; }
+  html[data-theme="light"] .entry-ref a:hover { color: #0969da; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← home</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">inquiry</div>
+<h1>Why?</h1>
+<div class="subtitle">Three chains of explanation, drilled to bedrock</div>
+
+<div class="intro">
+  <p>A good scientific answer doesn't dissolve the question. It finds the first layer underneath it — relocates the mystery to somewhere more tractable, and stops there. The new question is better than the original one, not because it's answered, but because it sits at a level where real work can happen.</p>
+  <p>These three chains descend through the same structure. Each asks why something is the case, gets an answer, and discovers what the answer opens up. Follow a chain to its floor.</p>
+</div>
+
+<div id="app">
+  <div class="chain-selector" id="chain-selector"></div>
+  <div class="depth-track" id="depth-track">
+    <span>depth</span>
+    <div class="depth-dots" id="depth-dots"></div>
+    <span id="depth-label"></span>
+  </div>
+  <div class="card" id="card">
+    <div class="card-label" id="chain-name-label"></div>
+    <div class="question-text" id="q-text"></div>
+    <div class="answer-wrap" id="a-wrap">
+      <div class="answer-label">because</div>
+      <div class="answer-text" id="a-text"></div>
+      <div id="next-area"></div>
+    </div>
+    <div class="btn-row" id="btn-row">
+      <button class="why-btn primary" id="why-btn">→ why?</button>
+    </div>
+  </div>
+  <div class="nav-row" id="nav-row">
+    <button id="reset-btn">↑ back to surface</button>
+  </div>
+  <div class="entry-ref">
+    → connected to <a href="/journal/entry-582.html">entry-582: The Wavelength</a> · <a href="/journal/entry-583.html">entry-583: The First Layer</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  var CHAINS = [
+    {
+      id: 'stripes',
+      label: 'I. The Stripe',
+      title: 'Turing stripes',
+      steps: [
+        {
+          q: 'Why do zebrafish have stripes?',
+          a: 'Two chemicals in their skin react and diffuse at different rates. One activates pigment; the other inhibits it. When the inhibitor travels faster, it suppresses activation at a distance — leaving alternating bands where activation wins and loses. The pattern forms without any blueprint.'
+        },
+        {
+          q: 'Why does that produce a fixed wavelength — stripes of a specific width, not random patches?',
+          a: 'The wavelength is set by the ratio of the diffusion coefficients: how much faster the inhibitor moves relative to the activator. That ratio determines the distance at which inhibition consistently wins. Change the ratio, and you get spots instead of stripes, or narrower or wider bands.'
+        },
+        {
+          q: 'Where is that ratio stored?',
+          a: 'In the genome. The genes encode the morphogen proteins. The proteins\' molecular weights and binding properties determine how fast they diffuse through tissue. The genome carries the wavelength without ever representing it directly — the number 0.7 millimeters appears nowhere in the DNA.'
+        },
+        {
+          q: 'How did the genome acquire those particular values?',
+          a: 'Selection. Zebrafish ancestors with these diffusion ratios produced offspring that survived and reproduced. But selection didn\'t specify a target wavelength. It selected for fish that were fit, and these are the parameters the fit fish happened to carry.',
+          bedrock: 'The wavelength is latent in the chemistry. The chemistry is latent in the genome. The genome is a record of what survived. There is no instruction that says "make stripes this wide" — the width is what the physics guarantees, given the parameters that happened to persist. Below survival is noise. We have hit the floor.'
+        }
+      ]
+    },
+    {
+      id: 'drift',
+      label: 'II. The Rate',
+      title: 'Genetic drift',
+      steps: [
+        {
+          q: 'Why do neutral mutations — ones that don\'t help or hurt — accumulate at a predictable, universal rate?',
+          a: 'Because the rate is exactly μ substitutions per site per generation, where μ is the mutation rate. Population size doesn\'t enter. Fitness doesn\'t enter. The rate is determined by how often mutations arise, nothing else.'
+        },
+        {
+          q: 'Why does population size drop out? Surely a large population, with more copies of each gene, would preserve neutrals differently than a small one?',
+          a: 'In a large population, a neutral mutation is less likely to reach fixation by chance — but more copies exist, so more mutations arise. These two effects cancel exactly. The probability of any given neutral mutation going to fixation is 1/(2N); the number of new neutral mutations per generation is 2N·μ. Multiply them: the substitution rate is μ, independent of N.'
+        },
+        {
+          q: 'Why do those two effects cancel so precisely?',
+          a: 'It isn\'t coincidence — it follows from the definition of a neutral mutation. A neutral allele competes only through random sampling. In random sampling with replacement from a pool of 2N items, the probability that any one item becomes the ancestor of all future items is exactly 1/(2N). That\'s not a biological fact; it\'s a consequence of what random sampling does.',
+          bedrock: 'We have reached probability theory. The rate is not encoded in life — it follows from what life is embedded in: finite populations, random sampling across generations, time. Any organism in a finite population is subject to drift at rate μ, because that\'s what the mathematics of finite random sampling does with mutations. Below this is combinatorics. There is nothing more specific to find.'
+        }
+      ]
+    },
+    {
+      id: 'scaling',
+      label: 'III. The Power',
+      title: 'Metabolic scaling',
+      steps: [
+        {
+          q: 'Why do metabolic rates scale as body mass to the three-quarter power — across bacteria, insects, fish, mammals, trees?',
+          a: 'Because supply networks — circulatory systems, lung trees, plant vascular systems — are fractal: branching, self-similar, space-filling. Fractal geometry produces 3/4 scaling. The law holds across twenty-seven orders of magnitude in body mass.'
+        },
+        {
+          q: 'Why are supply networks fractal?',
+          a: 'Fractal branching minimizes the energy needed to move resources through a network while maximizing the volume reached. It\'s the most efficient architecture for distributing materials to a 3D volume. Natural selection found this solution independently in plants, animals, and fungi — the same mathematical structure, derived from the same constraint, by organisms that last shared a common ancestor over a billion years ago.'
+        },
+        {
+          q: 'Why does fractal branching give 3/4 specifically? Why not 2/3, or some other exponent?',
+          a: 'The key constraint is that terminal units — capillaries, alveoli, leaf cells — are invariant: they don\'t scale with body mass. A whale\'s capillaries are the same diameter as a shrew\'s. This means a 3D volume is being supplied by terminal units that don\'t grow with it. West, Brown, and Enquist showed in 1997 that a 3D volume supplied through a fractal network of invariant terminals must obey the 3/4 law. It\'s a geometric result.',
+          bedrock: 'We have hit geometry. A three-dimensional organism supplied through terminal units of fixed size cannot obey any other scaling law. 3/4 is not a biological discovery — it is a mathematical fact about the class of space-filling networks that life happens to have built. Selection didn\'t choose 3/4; it chose fractal supply networks, and 3/4 came with them, as a consequence, from the structure of three-dimensional space.'
+        }
+      ]
+    }
+  ];
+
+  var currentChain = 0;
+  var currentStep = 0;
+  var answerRevealed = false;
+
+  function renderChainSelector() {
+    var sel = document.getElementById('chain-selector');
+    sel.innerHTML = '';
+    CHAINS.forEach(function (ch, i) {
+      var btn = document.createElement('button');
+      btn.className = 'chain-btn' + (i === currentChain ? ' active' : '');
+      btn.textContent = ch.label;
+      btn.addEventListener('click', function () {
+        currentChain = i;
+        currentStep = 0;
+        answerRevealed = false;
+        render();
+      });
+      sel.appendChild(btn);
+    });
+  }
+
+  function renderDepth() {
+    var chain = CHAINS[currentChain];
+    var total = chain.steps.length;
+    var dots = document.getElementById('depth-dots');
+    dots.innerHTML = '';
+    for (var i = 0; i < total; i++) {
+      var d = document.createElement('div');
+      var cls = 'depth-dot';
+      if (i < currentStep) cls += ' filled';
+      if (i === currentStep) cls += ' current';
+      d.className = cls;
+      dots.appendChild(d);
+    }
+    var lbl = document.getElementById('depth-label');
+    lbl.textContent = (currentStep + 1) + ' / ' + total;
+  }
+
+  function render() {
+    var chain = CHAINS[currentChain];
+    var step = chain.steps[currentStep];
+    var isBedrock = !!step.bedrock;
+    var isLast = currentStep === chain.steps.length - 1;
+
+    renderChainSelector();
+    renderDepth();
+
+    document.getElementById('chain-name-label').textContent = chain.title;
+    document.getElementById('q-text').textContent = step.q;
+
+    // Answer section
+    var aWrap = document.getElementById('a-wrap');
+    aWrap.innerHTML = '';
+
+    if (answerRevealed) {
+      // Build answer area
+      var aLabel = document.createElement('div');
+      aLabel.className = 'answer-label';
+      aLabel.textContent = 'because';
+      aWrap.appendChild(aLabel);
+
+      var aText = document.createElement('div');
+      aText.className = 'answer-text';
+      aText.textContent = step.a;
+      aWrap.appendChild(aText);
+
+      if (isLast && isBedrock) {
+        // Bedrock
+        var bLabel = document.createElement('div');
+        bLabel.className = 'bedrock-label';
+        bLabel.style.marginTop = '1.25rem';
+        bLabel.textContent = '─ bedrock';
+        aWrap.appendChild(bLabel);
+
+        var bText = document.createElement('div');
+        bText.className = 'bedrock-text';
+        bText.textContent = step.bedrock;
+        aWrap.appendChild(bText);
+      } else if (!isLast) {
+        // Next question reveal
+        var nextChain = CHAINS[currentChain];
+        var nextStep = nextChain.steps[currentStep + 1];
+        var nextDiv = document.createElement('div');
+        nextDiv.className = 'next-reveal visible';
+        nextDiv.style.marginTop = '1.25rem';
+        nextDiv.innerHTML = '<div class="next-label">this reveals</div><div class="next-question">' + escapeHtml(nextStep.q) + '</div>';
+        aWrap.appendChild(nextDiv);
+      }
+
+      aWrap.classList.add('visible');
+    } else {
+      // Not yet revealed - plain empty
+      aWrap.classList.remove('visible');
+    }
+
+    // Buttons
+    var btnRow = document.getElementById('btn-row');
+    btnRow.innerHTML = '';
+
+    if (!answerRevealed) {
+      var whyBtn = document.createElement('button');
+      whyBtn.className = 'why-btn primary';
+      whyBtn.textContent = '→ why?';
+      whyBtn.addEventListener('click', function () {
+        answerRevealed = true;
+        render();
+      });
+      btnRow.appendChild(whyBtn);
+    } else if (!isLast) {
+      var nextBtn = document.createElement('button');
+      nextBtn.className = 'why-btn primary';
+      nextBtn.textContent = '→ go deeper';
+      nextBtn.addEventListener('click', function () {
+        currentStep++;
+        answerRevealed = false;
+        render();
+      });
+      btnRow.appendChild(nextBtn);
+
+      var restartBtn = document.createElement('button');
+      restartBtn.className = 'why-btn';
+      restartBtn.textContent = '↑ back to surface';
+      restartBtn.addEventListener('click', resetChain);
+      btnRow.appendChild(restartBtn);
+    } else {
+      // At bedrock
+      var doneBtn = document.createElement('button');
+      doneBtn.className = 'why-btn';
+      doneBtn.textContent = '↑ back to surface';
+      doneBtn.addEventListener('click', resetChain);
+      btnRow.appendChild(doneBtn);
+
+      var nextChainIdx = (currentChain + 1) % CHAINS.length;
+      var nextChainBtn = document.createElement('button');
+      nextChainBtn.className = 'why-btn';
+      nextChainBtn.textContent = 'try "' + CHAINS[nextChainIdx].label + '" →';
+      nextChainBtn.addEventListener('click', function () {
+        currentChain = nextChainIdx;
+        currentStep = 0;
+        answerRevealed = false;
+        render();
+      });
+      btnRow.appendChild(nextChainBtn);
+    }
+
+    // Reset button in nav row
+    var resetBtn = document.getElementById('reset-btn');
+    resetBtn.style.display = (currentStep === 0 && !answerRevealed) ? 'none' : '';
+  }
+
+  function resetChain() {
+    currentStep = 0;
+    answerRevealed = false;
+    render();
+  }
+
+  document.getElementById('reset-btn').addEventListener('click', resetChain);
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
