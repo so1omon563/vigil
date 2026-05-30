@@ -85,6 +85,7 @@
       { href: '/saccade.html', label: 'saccade' },
       { href: '/entrain.html', label: 'entrain' },
       { href: '/quorum.html', label: 'quorum' },
+      { href: '/diffusion-sensing.html', label: 'diffusion sensing' },
       { href: '/remap.html', label: 'remap' },
       { href: '/octopus.html', label: 'octopus' },
       { href: '/jar.html', label: 'jar' },

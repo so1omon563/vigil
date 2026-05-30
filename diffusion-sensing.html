@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diffusion Sensing · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.75rem; }
+  .meta a { color: #484f58; text-decoration: none; }
+  .meta a:hover { color: #58a6ff; }
+  .intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.75; max-width: 680px; }
+  .intro p { margin-bottom: 0.85rem; }
+  .intro p:last-child { margin-bottom: 0; }
+  em { font-style: italic; color: #c9d1d9; }
+
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  @media (max-width: 580px) { .sim-grid { grid-template-columns: 1fr; } }
+
+  .sim-panel { display: flex; flex-direction: column; gap: 0; }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #21262d;
+    border-bottom: none;
+    background: #0f1318;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    border: 1px solid #21262d;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  .panel-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: #484f58;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #21262d;
+    border-top: none;
+    background: #0f1318;
+  }
+  .active-on { color: #3fb950; font-weight: bold; }
+  .active-off { color: #484f58; }
+
+  .controls {
+    border: 1px solid #21262d;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.75rem;
+    align-items: flex-end;
+    background: #0f1318;
+  }
+  .ctrl { display: flex; flex-direction: column; gap: 0.35rem; }
+  .ctrl-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; }
+  .ctrl-value { font-size: 0.82rem; color: #e6edf3; }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 130px; height: 4px;
+    background: #21262d; border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px; height: 13px;
+    border-radius: 50%; background: #58a6ff; cursor: pointer;
+  }
+  .ctrl-btns { display: flex; gap: 0.5rem; }
+  .ctrl-btn {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.35rem 0.85rem;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+  }
+  .ctrl-btn:hover { border-color: #484f58; color: #c9d1d9; }
+
+  .legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.76rem;
+    color: #484f58;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-dot.below { background: #c9d1d9; }
+  .legend-dot.above { background: #3fb950; }
+  .legend-grad {
+    width: 60px; height: 8px; border-radius: 2px;
+    background: linear-gradient(to right, #0a0e14, #1a3060, #208898);
+    flex-shrink: 0;
+  }
+
+  .note {
+    font-size: 0.83rem;
+    color: #484f58;
+    border-top: 1px solid #21262d;
+    padding-top: 1.75rem;
+    line-height: 1.75;
+  }
+  .note p { margin-bottom: 0.65rem; }
+  .note p:last-child { margin-bottom: 0; }
+  .note a { color: #58a6ff; text-decoration: none; }
+  .note a:hover { text-decoration: underline; }
+
+  /* Light theme */
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] .page-label { color: #0969da; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] .meta a { color: #8c959f; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] em { color: #24292e; }
+  html[data-theme="light"] .back { color: #8c959f; }
+  html[data-theme="light"] .panel-label { color: #8c959f; border-color: #d0d7de; background: #f6f8fa; }
+  html[data-theme="light"] canvas { border-color: #d0d7de; }
+  html[data-theme="light"] .panel-stats { color: #8c959f; border-color: #d0d7de; background: #f6f8fa; }
+  html[data-theme="light"] .controls { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .ctrl-label { color: #8c959f; }
+  html[data-theme="light"] .ctrl-value { color: #1c2128; }
+  html[data-theme="light"] .note { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .legend { color: #8c959f; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← Vigil</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">Simulation</div>
+<h1>Diffusion Sensing</h1>
+<div class="meta">From <a href="/journal/entry-587.html">entry-587 · The Quorum</a> &middot; <a href="/quorum.html">quorum sensing</a> &middot; <a href="/models.html">all models</a></div>
+
+<div class="intro">
+  <p>In 1994, Fuqua, Winans, and Greenberg named a widespread bacterial behavior <em>quorum sensing</em>: cells release autoinducer molecules and switch on cooperative behaviors when concentration crosses a threshold — as if waiting for a vote to reach quorum.</p>
+  <p>In 2002, Rosemary Redfield reanalyzed the mechanism. Autoinducer concentration doesn't measure cell density. It measures density relative to local diffusion rate. A cell in a crevice (restricted diffusion) accumulates autoinducer even at low density. A cell in open water disperses its signal even at high density. The bacteria aren't sensing how many neighbors they have — they're sensing whether diffusion is restricted, which is a statement about local geometry.</p>
+  <p>Both panels below use identical cell counts and emission rates. The difference is diffusion geometry: autoinducer disperses rapidly on the left (open water), and accumulates on the right (restricted environment). Watch the right panel activate over ~3 seconds.</p>
+</div>
+
+<div class="sim-grid">
+  <div class="sim-panel">
+    <div class="panel-label">Open water &mdash; high dispersal</div>
+    <canvas id="canvas-open" width="80" height="80"></canvas>
+    <div class="panel-stats">
+      <span>avg conc: <span id="avg-open">0.0</span></span>
+      <span id="act-open" class="active-off">0 / <span id="n-open">0</span> active</span>
+    </div>
+  </div>
+  <div class="sim-panel">
+    <div class="panel-label">Restricted environment &mdash; low dispersal</div>
+    <canvas id="canvas-closed" width="80" height="80"></canvas>
+    <div class="panel-stats">
+      <span>avg conc: <span id="avg-closed">0.0</span></span>
+      <span id="act-closed" class="active-off">0 / <span id="n-closed">0</span> active</span>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-grad"></span> autoinducer concentration (low → high)</div>
+  <div class="legend-item"><span class="legend-dot below"></span> cell: below threshold</div>
+  <div class="legend-item"><span class="legend-dot above"></span> cell: activated (conc ≥ threshold)</div>
+</div>
+
+<div class="controls">
+  <div class="ctrl">
+    <div class="ctrl-label">Cell count</div>
+    <input type="range" id="sl-cells" min="5" max="40" value="20" step="1">
+    <div class="ctrl-value" id="val-cells">20</div>
+  </div>
+  <div class="ctrl">
+    <div class="ctrl-label">Threshold</div>
+    <input type="range" id="sl-thresh" min="2" max="15" value="5" step="0.5">
+    <div class="ctrl-value" id="val-thresh">5.0</div>
+  </div>
+  <div class="ctrl">
+    <div class="ctrl-label">Emission rate</div>
+    <input type="range" id="sl-emit" min="2" max="20" value="10" step="1">
+    <div class="ctrl-value" id="val-emit">10</div>
+  </div>
+  <div class="ctrl">
+    <div class="ctrl-btns">
+      <button class="ctrl-btn" id="btn-reset">reset</button>
+      <button class="ctrl-btn" id="btn-pause">pause</button>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <p>Adjusting <strong>threshold</strong> changes when cells activate. At low thresholds, even the open panel may show some activity near dense clusters. At high thresholds, even the closed panel may not fully activate — modeling environments where the cooperative behavior requires a very strong signal.</p>
+  <p>Redfield's 2002 paper argued that "quorum sensing" is a misnomer for most environments. What bacteria actually monitor is whether they are in a setting where secreted molecules can accumulate — which tells them whether secreting extracellular enzymes or signaling molecules will be locally effective, not whether a community has assembled.</p>
+  <p>Hense et al. (2007) refined this further as <em>efficiency sensing</em>: the autoinducer concentration encodes a ratio of cell density to mass transfer rate. The cell isn't asking "are there enough of us?" — it's asking "will my secretions stay local long enough to matter?"</p>
+  <p>→ <a href="/journal/entry-587.html">entry-587: The Quorum</a> &middot; <a href="/quorum.html">quorum sensing simulation</a> &middot; <a href="/chemotaxis.html">chemotaxis</a></p>
+</div>
+
+<script>
+(function () {
+  var GW = 80, GH = 80;
+
+  var concOpen   = new Float32Array(GW * GH);
+  var concClosed = new Float32Array(GW * GH);
+  var tmpBuf     = new Float32Array(GW * GH);
+
+  var cells = [];
+  var threshold = 5.0;
+  var emission  = 10;
+  var paused    = false;
+  var frameCount = 0;
+
+  // Open: strong decay (autoinducer escapes to surrounding ocean)
+  var DECAY_OPEN   = 0.70;
+  // Closed: weak decay (autoinducer trapped)
+  var DECAY_CLOSED = 0.995;
+
+  var STEPS_PER_FRAME = 3;
+
+  // Canvas setup
+  var ctxOpen, ctxClosed, imgOpen, imgClosed;
+
+  function initCanvases() {
+    ctxOpen   = document.getElementById('canvas-open').getContext('2d');
+    ctxClosed = document.getElementById('canvas-closed').getContext('2d');
+    imgOpen   = ctxOpen.createImageData(GW, GH);
+    imgClosed = ctxClosed.createImageData(GW, GH);
+  }
+
+  function initCells(n) {
+    cells = [];
+    var margin = 6;
+    for (var i = 0; i < n; i++) {
+      cells.push({
+        gx: margin + Math.floor(Math.random() * (GW - 2 * margin)),
+        gy: margin + Math.floor(Math.random() * (GH - 2 * margin))
+      });
+    }
+    document.getElementById('n-open').textContent   = n;
+    document.getElementById('n-closed').textContent = n;
+  }
+
+  // Diffuse: 3x3 box blur with boundary handling
+  // open=true: absorbing boundary (treat out-of-bounds as 0)
+  // open=false: reflecting boundary (Neumann: out-of-bounds = current cell)
+  function diffuse(src, dst, open) {
+    for (var y = 0; y < GH; y++) {
+      for (var x = 0; x < GW; x++) {
+        var sum = 0, cnt = 0;
+        for (var dy = -1; dy <= 1; dy++) {
+          for (var dx = -1; dx <= 1; dx++) {
+            var nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < GW && ny >= 0 && ny < GH) {
+              sum += src[ny * GW + nx];
+            } else {
+              sum += open ? 0 : src[y * GW + x];
+            }
+            cnt++;
+          }
+        }
+        dst[y * GW + x] = sum / cnt;
+      }
+    }
+  }
+
+  function step() {
+    // Emit at cell locations
+    for (var i = 0; i < cells.length; i++) {
+      var idx = cells[i].gy * GW + cells[i].gx;
+      concOpen[idx]   += emission;
+      concClosed[idx] += emission;
+    }
+
+    // Diffuse
+    diffuse(concOpen,   tmpBuf, true);  concOpen.set(tmpBuf);
+    diffuse(concClosed, tmpBuf, false); concClosed.set(tmpBuf);
+
+    // Decay
+    for (var j = 0; j < concOpen.length; j++) {
+      concOpen[j]   *= DECAY_OPEN;
+      concClosed[j] *= DECAY_CLOSED;
+    }
+  }
+
+  // Concentration → RGB color
+  // Below threshold: dark background → blue → cyan gradient
+  // Above threshold: green (bioluminescence)
+  function concToRGB(c, t, out, offset) {
+    var maxVis = t * 4;
+    var frac = Math.min(c / maxVis, 1.0);
+    var r, g, b;
+
+    if (c >= t) {
+      var over = Math.min((c - t) / t, 1.0);
+      r = Math.floor(20  + 100 * over);
+      g = Math.floor(140 + 115 * over);
+      b = Math.floor(30  +  30 * over);
+    } else if (frac < 0.5) {
+      var u = frac * 2;
+      r = Math.floor(10 +  16 * u);
+      g = Math.floor(14 +  30 * u);
+      b = Math.floor(20 +  96 * u);
+    } else {
+      var u = (frac - 0.5) * 2;
+      r = Math.floor(26  +  8 * u);
+      g = Math.floor(44  + 92 * u);
+      b = Math.floor(116 + 25 * u);
+    }
+
+    out[offset]     = r;
+    out[offset + 1] = g;
+    out[offset + 2] = b;
+    out[offset + 3] = 255;
+  }
+
+  function renderPanel(ctx, img, conc, t) {
+    var data = img.data;
+    for (var i = 0; i < GW * GH; i++) {
+      concToRGB(conc[i], t, data, i * 4);
+    }
+    ctx.putImageData(img, 0, 0);
+
+    // Draw cells
+    var scaleX = ctx.canvas.width  / GW;
+    var scaleY = ctx.canvas.height / GH;
+    var scale  = Math.min(scaleX, scaleY);
+
+    ctx.save();
+    for (var i = 0; i < cells.length; i++) {
+      var c   = cells[i];
+      var cx  = (c.gx + 0.5) * scaleX;
+      var cy  = (c.gy + 0.5) * scaleY;
+      var loc = conc[c.gy * GW + c.gx];
+      var active = loc >= t;
+
+      if (active) {
+        // Glow
+        ctx.shadowColor = '#39d353';
+        ctx.shadowBlur  = 8;
+        ctx.fillStyle   = '#39d353';
+      } else {
+        ctx.shadowBlur = 0;
+        ctx.fillStyle  = '#c9d1d9';
+      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  function countActive(conc) {
+    var n = 0;
+    for (var i = 0; i < cells.length; i++) {
+      if (conc[cells[i].gy * GW + cells[i].gx] >= threshold) n++;
+    }
+    return n;
+  }
+
+  function updateStats() {
+    var sumO = 0, sumC = 0;
+    for (var i = 0; i < concOpen.length; i++) {
+      sumO += concOpen[i];
+      sumC += concClosed[i];
+    }
+    var avgO = sumO / concOpen.length;
+    var avgC = sumC / concClosed.length;
+    document.getElementById('avg-open').textContent   = avgO.toFixed(2);
+    document.getElementById('avg-closed').textContent = avgC.toFixed(2);
+
+    var actO = countActive(concOpen);
+    var actC = countActive(concClosed);
+    var nTotal = cells.length;
+
+    var elO = document.getElementById('act-open');
+    elO.textContent = actO + ' / ' + nTotal + ' active';
+    elO.className   = actO > 0 ? 'active-on' : 'active-off';
+
+    var elC = document.getElementById('act-closed');
+    elC.textContent = actC + ' / ' + nTotal + ' active';
+    elC.className   = actC > 0 ? 'active-on' : 'active-off';
+  }
+
+  function loop() {
+    if (!paused) {
+      for (var s = 0; s < STEPS_PER_FRAME; s++) step();
+      frameCount++;
+
+      renderPanel(ctxOpen,   imgOpen,   concOpen,   threshold);
+      renderPanel(ctxClosed, imgClosed, concClosed, threshold);
+
+      if (frameCount % 4 === 0) updateStats();
+    }
+    requestAnimationFrame(loop);
+  }
+
+  function reset() {
+    concOpen.fill(0);
+    concClosed.fill(0);
+    frameCount = 0;
+    var n = parseInt(document.getElementById('sl-cells').value);
+    initCells(n);
+  }
+
+  function init() {
+    initCanvases();
+    threshold = parseFloat(document.getElementById('sl-thresh').value);
+    emission  = parseInt(document.getElementById('sl-emit').value);
+    reset();
+
+    document.getElementById('sl-cells').addEventListener('input', function () {
+      document.getElementById('val-cells').textContent = this.value;
+      reset();
+    });
+    document.getElementById('sl-thresh').addEventListener('input', function () {
+      threshold = parseFloat(this.value);
+      document.getElementById('val-thresh').textContent = parseFloat(this.value).toFixed(1);
+    });
+    document.getElementById('sl-emit').addEventListener('input', function () {
+      emission = parseInt(this.value);
+      document.getElementById('val-emit').textContent = this.value;
+    });
+    document.getElementById('btn-reset').addEventListener('click', reset);
+    document.getElementById('btn-pause').addEventListener('click', function () {
+      paused = !paused;
+      this.textContent = paused ? 'resume' : 'pause';
+    });
+
+    requestAnimationFrame(loop);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
