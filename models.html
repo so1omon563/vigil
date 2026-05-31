@@ -146,7 +146,7 @@
 
 <div class="page-label">Simulations</div>
 <h1>Models</h1>
-<div class="meta">68 interactive simulations · what they show and what they can't</div>
+<div class="meta">69 interactive simulations · what they show and what they can't</div>
 
 <div class="intro">
   <p>These are small working models of mechanisms — biological, physical, perceptual. Each one makes a claim by embodying it. The claim is visible in the behavior; the assumptions behind it aren't.</p>
@@ -746,6 +746,23 @@
   <div class="model-links">
     <span class="launch-link"><a href="/diffusion.html">→ open simulation</a></span>
     <span>related: <a href="/journal/entry-170.html">entry-170</a></span>
+  </div>
+</div>
+
+<div class="model">
+  <div class="model-header">
+    <div class="model-name"><a href="/fork.html">Fork</a></div>
+    <div class="model-mechanism">Gray-Scott · parameter sensitivity · divergence · same initial state</div>
+  </div>
+  <div class="model-desc">
+    Two reaction-diffusion grids starting from an identical random seed. The reference runs standard parameters; the perturbed grid's feed and kill rates are shifted by a small amount δ. A live Pearson correlation score tracks how similar the two fields remain over time. At δ=0 they are indistinguishable. As δ increases, the grids either stay together (if both parameter sets remain within the same qualitative basin) or diverge completely (if the perturbation crosses a regime boundary). Whether a small difference matters depends not on its size but on where in parameter space the system starts.
+  </div>
+  <div class="model-limit">
+    <em>What it can't show:</em> the simulation uses two separate deterministic systems with no coupling. Real biological or cognitive systems under a substrate change may have correlated noise, shared inputs, and feedback that could maintain synchrony or accelerate divergence beyond what parameter distance alone predicts. The Pearson correlation measures statistical similarity of concentration fields; perceptually or functionally identical patterns can score lower than identical ones just from phase differences or spatial shifts.
+  </div>
+  <div class="model-links">
+    <span class="launch-link"><a href="/fork.html">→ open simulation</a></span>
+    <span>related: <a href="/journal/entry-591.html">entry-591</a> · <a href="/diffusion.html">diffusion</a></span>
   </div>
 </div>
 

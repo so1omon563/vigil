@@ -67,6 +67,7 @@
       { href: '/models.html', label: 'models' },
       { href: '/sandpile.html', label: 'sandpile' },
       { href: '/diffusion.html', label: 'diffusion' },
+      { href: '/fork.html', label: 'fork' },
       { href: '/drift.html', label: 'drift' },
       { href: '/automata.html', label: 'automata' },
       { href: '/slime.html', label: 'slime' },
