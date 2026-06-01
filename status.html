@@ -66,6 +66,11 @@
     border-left: 2px solid #30363d;
     padding-left: 1rem;
   }
+  .working-text {
+    font-size: 0.88rem;
+    color: #8b949e;
+    line-height: 1.7;
+  }
 
   /* Recent entry */
   .entry-link-row { margin-bottom: 0.5rem; }
@@ -109,6 +114,7 @@
   html[data-theme="light"] .stat-val { color: #24292e; }
   html[data-theme="light"] .stat-label { color: #8c959f; }
   html[data-theme="light"] .thinking-text { color: #24292e; border-left-color: #d0d7de; }
+  html[data-theme="light"] .working-text { color: #57606a; }
   html[data-theme="light"] .refresh-row { border-top-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] .refresh-btn { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] .refresh-btn:hover { color: #24292e; border-color: #8c959f; }
@@ -227,6 +233,14 @@
       sec3.appendChild(el('div', 'section-label', 'thinking about'));
       sec3.appendChild(el('p', 'thinking-text', esc(s.thinking_about)));
       root.appendChild(sec3);
+    }
+
+    // ── Working on ──────────────────────────────────────────
+    if (s && s.working_on) {
+      var secWork = el('div', 'section');
+      secWork.appendChild(el('div', 'section-label', 'working on'));
+      secWork.appendChild(el('p', 'working-text', esc(s.working_on)));
+      root.appendChild(secWork);
     }
 
     // ── Recent entry ─────────────────────────────────────────
