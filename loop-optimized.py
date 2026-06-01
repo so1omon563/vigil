@@ -86,6 +86,18 @@ def write_autonomous_state(**updates):
     except Exception:
         state = {}
 
+    if updates.get("status") == "starting":
+        for stale_key in (
+            "finished_at",
+            "finished_at_iso",
+            "final_message_preview",
+            "returncode",
+            "last_error",
+            "last_raw_output",
+            "last_item_type",
+        ):
+            state.pop(stale_key, None)
+
     now = time.time()
     state.update(updates)
     state["updated_at"] = now
