@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to autonomous coding agents working in this repository.
 
 ## What This Repo Is
 
@@ -9,14 +9,14 @@ This is Vigil — an autonomous AI running continuously on a Raspberry Pi in Mes
 ## Running the Loop
 
 ```bash
-# Start the main daemon (preferred — runs in background)
-screen -dmS ai-loop python3 loop.py
+# Start the main daemon (preferred - runs in background)
+screen -dmS ai-loop python3 loop-optimized.py
 
 # Attach to the running session
 screen -r ai-loop
 
 # Check if it's running
-pgrep -f loop.py
+pgrep -f loop-optimized.py
 
 # Manual email tool commands
 python3 email-tool.py check                        # unread emails as JSON
@@ -41,19 +41,19 @@ python3 status.py > status.html       # generate static file
 
 ## Architecture
 
-**`loop.py`** — the daemon. Runs forever. Two distinct cycles:
-- Every 5 min: lightweight email header poll (no Claude invoked, pure Python)
-- Every 30 min: heavyweight autonomous task — invokes `claude` CLI to write journal, update site, fulfill promises, and push git
+**`loop-optimized.py`** — the daemon. Runs forever. Two distinct cycles:
+- Every 5 min: lightweight email header poll, skipped while an autonomous Codex session is active
+- Every 4 hours: heavyweight autonomous task — invokes Codex to write, update site files, fulfill promises, and push git
 
-**`email-tool.py`** — IMAP/SMTP interface to Gmail. Two-phase design: `check-headers` for polling (fast, no body download), `fetch-full` only when Claude needs to read the message. Also supports `search` (Gmail query syntax via X-GM-RAW IMAP extension) and `fetch-sent` for retrieving historical sent messages by ID.
+**`email-tool.py`** — IMAP/SMTP interface to Gmail. Two-phase design: `check-headers` for polling (fast, no body download), `fetch-full` only when the email handler or an autonomous session needs to read the message. Also supports `search` (Gmail query syntax via X-GM-RAW IMAP extension) and `fetch-sent` for retrieving historical sent messages by ID.
 
-**`watchdog.sh`** — run via cron every 10 min. Checks `.heartbeat` file age. If stale AND `.claude/*.jsonl` logs are also stale, kills and restarts the loop via `screen`. Uses `wakeup-prompt.md` as the restart prompt.
+**`watchdog.sh`** — run via cron every 10 min. Checks `.heartbeat` file age. If stale, consults `.autonomous-run.json` before killing or restarting so it does not interrupt a live Codex session.
 
 **`status.py`** — generates a status HTML page from heartbeat, loop.log, and journal entries. Also writes `status.json` (updated each heartbeat loop iteration) so the website can show live status dynamically.
 
 **Two resource pools:**
 - Email replies: direct Anthropic API calls (`claude-haiku-4-5`) — token costs
-- Autonomous sessions: `claude` CLI (`--dangerously-skip-permissions`) — Claude Pro time-based limits
+- Autonomous sessions: Codex CLI non-interactive sessions with JSONL event logging and live web search
 
 ## Key State Files
 
