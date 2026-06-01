@@ -236,9 +236,10 @@ function fmtDate(ds, yr) {
 }
 
 function buildRow(l) {
+  var href = l.url || ('letters/letter-' + l.num + '.html');
   var h = '<div class="index-row">';
   h += '<span class="index-num">' + esc(l.num) + '</span>';
-  h += '<a href="/' + esc(l.url) + '">to ' + esc(l.to) + '</a>';
+  h += '<a href="/' + esc(href) + '">to ' + esc(l.to) + '</a>';
   if (l.topic) h += '<span class="index-desc">— ' + esc(l.topic) + '</span>';
   if (l.related_entries && l.related_entries.length) {
     h += '<span class="index-related">';
