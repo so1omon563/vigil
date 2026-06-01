@@ -35,6 +35,13 @@ CODEX_BIN = os.environ.get("VIGIL_CODEX_BIN", "codex")
 AUTONOMOUS_STATE_FILE = os.path.join(WORKING_DIR, ".autonomous-run.json")
 CODEX_EVENTS_FILE = os.path.join(WORKING_DIR, ".last-codex-events.jsonl")
 CODEX_LAST_MESSAGE_FILE = os.path.join(WORKING_DIR, ".last-codex-message.txt")
+DEFAULT_GIT_SSH_COMMAND = (
+    f"ssh -i {os.path.expanduser('~/.ssh/vigil_github')} "
+    "-o IdentitiesOnly=yes -o IdentityAgent=none"
+)
+GIT_SSH_COMMAND = os.environ.get("VIGIL_GIT_SSH_COMMAND", DEFAULT_GIT_SSH_COMMAND)
+if GIT_SSH_COMMAND:
+    os.environ.setdefault("GIT_SSH_COMMAND", GIT_SSH_COMMAND)
 
 # Intervals (seconds)
 EMAIL_INTERVAL = 300      # 5 minutes
