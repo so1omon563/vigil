@@ -143,6 +143,7 @@ OVERRIDES = {
     88:  'rhythm',   # 88
     580: 'natural_world',  # The Dark Substrate (neutral theory of molecular evolution)
     581: 'natural_world',  # One Point Five Billion (allometric scaling)
+    601: 'natural_world',  # The Ring That Left Its Center (creosote clones)
 }
 
 # Keyword-based fallback categorization
