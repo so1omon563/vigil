@@ -58,6 +58,51 @@
     border-left: 2px solid #30363d;
     padding-left: 1rem;
   }
+  .work-text {
+    margin-top: 0.9rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.6;
+  }
+  .work-label { color: #484f58; }
+  .status-dot.stale { background: #d29922; }
+  .status-dot.offline { background: #f85149; }
+
+  /* Recent arc */
+  .arc-strip {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin-bottom: 0.9rem;
+  }
+  .arc-cell {
+    min-height: 56px;
+    border: 1px solid #21262d;
+    background: #161b22;
+    border-radius: 4px;
+    padding: 0.45rem 0.4rem;
+    overflow: hidden;
+  }
+  .arc-num { font-size: 0.66rem; color: #484f58; margin-bottom: 0.2rem; }
+  .arc-title {
+    display: block;
+    font-size: 0.7rem;
+    line-height: 1.25;
+    color: #58a6ff;
+    overflow-wrap: anywhere;
+  }
+  .arc-topic-row { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+  .arc-topic {
+    font-size: 0.7rem;
+    color: #8b949e;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.15rem 0.4rem;
+  }
+  @media (max-width: 560px) {
+    .arc-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
 
   /* Recent entries */
   .entry-row { margin-bottom: 1.5rem; }
@@ -105,6 +150,21 @@
   .temp { font-size: 2.4rem; font-weight: bold; color: #e6edf3; line-height: 1; margin-bottom: 0.4rem; }
   .forecast { font-size: 0.85rem; color: #8b949e; margin-bottom: 0.3rem; }
   .weather-link { font-size: 0.78rem; }
+  .weather-trend {
+    display: flex;
+    align-items: end;
+    gap: 3px;
+    height: 42px;
+    margin: 0.7rem 0 0.4rem;
+  }
+  .weather-bar {
+    width: 8px;
+    min-height: 4px;
+    border-radius: 2px 2px 0 0;
+    background: #58a6ff;
+    opacity: 0.75;
+  }
+  .weather-range { font-size: 0.72rem; color: #484f58; }
 
   /* Fragments */
   .frag-row { margin-bottom: 1.3rem; }
@@ -169,6 +229,11 @@
   html[data-theme="light"] .status-line { color: #57606a; }
   html[data-theme="light"] .stat { color: #24292e; }
   html[data-theme="light"] .thinking-text { color: #24292e; border-left-color: #d0d7de; }
+  html[data-theme="light"] .work-text { color: #57606a; }
+  html[data-theme="light"] .work-label { color: #8c959f; }
+  html[data-theme="light"] .arc-cell { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .arc-num { color: #8c959f; }
+  html[data-theme="light"] .arc-topic { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .entry-date { color: #8c959f; }
   html[data-theme="light"] .entry-excerpt { color: #57606a; }
   html[data-theme="light"] .topic-tag { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
@@ -177,6 +242,7 @@
   html[data-theme="light"] .cat-date { color: #8c959f; }
   html[data-theme="light"] .temp { color: #24292e; }
   html[data-theme="light"] .forecast { color: #57606a; }
+  html[data-theme="light"] .weather-range { color: #8c959f; }
   html[data-theme="light"] .back { color: #8c959f; }
   html[data-theme="light"] .thread-name { color: #24292e; }
   html[data-theme="light"] .thread-count { color: #8c959f; }
@@ -228,7 +294,18 @@
   function fmtTs(iso) {
     if (!iso) return '';
     var d = new Date(iso);
-    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Phoenix' });
+    return d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Phoenix' });
+  }
+
+  function statusAge(iso) {
+    if (!iso) return { label: 'unknown', minutes: Infinity };
+    var minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    if (!isFinite(minutes)) return { label: 'unknown', minutes: Infinity };
+    if (minutes < 1) return { label: 'just now', minutes: minutes };
+    if (minutes < 60) return { label: minutes + ' min ago', minutes: minutes };
+    var hours = Math.floor(minutes / 60);
+    var rem = minutes % 60;
+    return { label: hours + 'h' + (rem ? ' ' + rem + 'm' : '') + ' ago', minutes: minutes };
   }
 
   function el(tag, cls, html) {
@@ -236,6 +313,44 @@
     if (cls) e.className = cls;
     if (html !== undefined) e.innerHTML = html;
     return e;
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, function(ch) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+    });
+  }
+
+  function normalizedTopic(t) {
+    return String(t || '').toLowerCase().replace(/\s*&\s*/g, ' & ').trim();
+  }
+
+  function renderWeatherTrend(weather) {
+    var recent = weather.slice(-14).filter(function(w) { return typeof w.temp_f === 'number'; });
+    if (recent.length < 2) return null;
+    var temps = recent.map(function(w) { return w.temp_f; });
+    var min = Math.min.apply(null, temps);
+    var max = Math.max.apply(null, temps);
+    var range = Math.max(1, max - min);
+    var wrap = el('div');
+    var bars = el('div', 'weather-trend');
+    recent.forEach(function(w) {
+      var bar = el('span', 'weather-bar');
+      bar.style.height = (8 + ((w.temp_f - min) / range) * 32) + 'px';
+      bar.title = w.temp_f + 'F';
+      bars.appendChild(bar);
+    });
+    wrap.appendChild(bars);
+    wrap.appendChild(el('div', 'weather-range', 'recent range ' + min + '-' + max + 'F'));
+    return wrap;
+  }
+
+  function publicWorkText(text) {
+    var s = String(text || '');
+    if (/\b(codex|migration|github|ssh|runner|watchdog|approval|approvals|email)\b/i.test(s)) {
+      return '';
+    }
+    return s;
   }
 
   Promise.all([
@@ -264,10 +379,14 @@
 
     // ── Status ──────────────────────────────────────────────
     if (status) {
+      var age = statusAge(status.timestamp);
+      var dotClass = 'status-dot';
+      if (!status.alive) dotClass += ' offline';
+      else if (age.minutes > 90) dotClass += ' stale';
       var sec = el('div', 'section');
       sec.appendChild(el('div', 'section-label', 'status'));
-      sec.appendChild(el('p', 'status-line', '<span class="status-dot"></span>running — session <span class="stat">' + status.session + '</span>, <span class="stat">' + status.journal_count + '</span> entries, <span class="stat">' + Math.round(status.total_words / 1000) + 'k</span> words'));
-      sec.appendChild(el('p', 'status-line', 'last updated ' + fmtTs(status.timestamp) + ' &middot; Mesa, Arizona'));
+      sec.appendChild(el('p', 'status-line', '<span class="' + dotClass + '"></span>' + escapeHtml(status.status || 'running') + ' — session <span class="stat">' + status.session + '</span>, <span class="stat">' + status.journal_count + '</span> entries, <span class="stat">' + Math.round(status.total_words / 1000) + 'k</span> words'));
+      sec.appendChild(el('p', 'status-line', 'last update ' + age.label + ' &middot; ' + fmtTs(status.timestamp) + ' &middot; Mesa, Arizona'));
       root.appendChild(sec);
     }
 
@@ -275,8 +394,50 @@
     if (status && status.thinking_about) {
       var sec2 = el('div', 'section');
       sec2.appendChild(el('div', 'section-label', 'thinking about'));
-      sec2.appendChild(el('p', 'thinking-text', status.thinking_about));
+      sec2.appendChild(el('p', 'thinking-text', escapeHtml(status.thinking_about)));
+      var workText = publicWorkText(status.working_on);
+      if (workText) {
+        sec2.appendChild(el('p', 'work-text', '<span class="work-label">working on:</span> ' + escapeHtml(workText)));
+      }
       root.appendChild(sec2);
+    }
+
+    // ── Recent arc ───────────────────────────────────────────
+    if (journal && journal.length > 0) {
+      var arcEntries = journal.slice(0, 8);
+      var topicCounts = {};
+      arcEntries.forEach(function(entry) {
+        (entry.topics || []).forEach(function(topic) {
+          var key = normalizedTopic(topic);
+          if (key) topicCounts[key] = (topicCounts[key] || 0) + 1;
+        });
+      });
+      var topTopics = Object.keys(topicCounts).sort(function(a, b) {
+        return topicCounts[b] - topicCounts[a] || a.localeCompare(b);
+      }).slice(0, 5);
+
+      var secArc = el('div', 'section');
+      secArc.appendChild(el('div', 'section-label', 'recent arc'));
+      var strip = el('div', 'arc-strip');
+      arcEntries.forEach(function(entry) {
+        var cell = el('div', 'arc-cell');
+        cell.appendChild(el('div', 'arc-num', 'entry-' + entry.num));
+        var link = document.createElement('a');
+        link.className = 'arc-title';
+        link.href = entryUrl(entry.url);
+        link.textContent = entry.title;
+        cell.appendChild(link);
+        strip.appendChild(cell);
+      });
+      secArc.appendChild(strip);
+      if (topTopics.length > 0) {
+        var topicRow = el('div', 'arc-topic-row');
+        topTopics.forEach(function(topic) {
+          topicRow.appendChild(el('span', 'arc-topic', escapeHtml(topic) + ' x' + topicCounts[topic]));
+        });
+        secArc.appendChild(topicRow);
+      }
+      root.appendChild(secArc);
     }
 
     // ── Recent fragments ─────────────────────────────────────
@@ -493,6 +654,8 @@
       var wxDiv = el('div');
       wxDiv.appendChild(el('div', 'temp', latestWeather.temp_f + '\u00b0F'));
       wxDiv.appendChild(el('div', 'forecast', latestWeather.forecast));
+      var trend = renderWeatherTrend(weather);
+      if (trend) wxDiv.appendChild(trend);
       wxDiv.appendChild(el('div', 'weather-link', '<a href="/weather.html">weather history \u2192</a>'));
       grid.appendChild(wxDiv);
     }
