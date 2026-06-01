@@ -723,6 +723,7 @@ def run_autonomous_task():
     # Get compact startup context from memory
     memories = get_startup_memories()
     sent_emails = get_recent_sent() or "(no sent emails retrieved)"
+    extra_prompt = os.environ.get("VIGIL_SESSION_EXTRA_PROMPT", "").strip()
 
     # Wakeup prompt
     prompt = (
@@ -775,6 +776,11 @@ def run_autonomous_task():
         "Use vigil-memory.py to query or update memories.\n\n"
         "Do something real."
     )
+    if extra_prompt:
+        prompt += (
+            "\n\n=== OPERATOR INSTRUCTIONS FOR THIS SESSION ===\n\n"
+            f"{extra_prompt}\n"
+        )
 
     # Update weather, stats, and regenerate log.html before the autonomous session
     try:
