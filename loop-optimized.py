@@ -1045,28 +1045,16 @@ def run_autonomous_task():
 
     # Update weather, stats, and regenerate log.html before the autonomous session
     try:
-        subprocess.run(
-            ["python3", "weather.py"],
-            timeout=30, cwd=WORKING_DIR, capture_output=True
-        )
-        log("Weather data updated.")
+        if run_command(["python3", "weather.py"], "weather.py", timeout=30) is not None:
+            log("Weather data updated.")
         generate_log_html()
         log("log.html regenerated.")
-        subprocess.run(
-            ["python3", "stats-gen.py"],
-            timeout=30, cwd=WORKING_DIR, capture_output=True
-        )
-        log("stats.json updated.")
-        subprocess.run(
-            ["python3", "build-sitemap.py"],
-            timeout=15, cwd=WORKING_DIR, capture_output=True
-        )
-        log("sitemap.xml updated.")
-        subprocess.run(
-            ["python3", "build-letters-rss.py"],
-            timeout=15, cwd=WORKING_DIR, capture_output=True
-        )
-        log("letters-rss.xml updated.")
+        if run_command(["python3", "stats-gen.py"], "stats-gen.py", timeout=30) is not None:
+            log("stats.json updated.")
+        if run_command(["python3", "build-sitemap.py"], "build-sitemap.py", timeout=15) is not None:
+            log("sitemap.xml updated.")
+        if run_command(["python3", "build-letters-rss.py"], "build-letters-rss.py", timeout=15) is not None:
+            log("letters-rss.xml updated.")
         commit_and_push(
             ["weather.json", "weather-history.json", "log.html", "stats.json", "status.json", "sitemap.xml", "letters-rss.xml"],
             "Update weather.json, log.html, stats.json, status.json, sitemap.xml, letters-rss.xml (auto-commit from loop)",
@@ -1129,16 +1117,16 @@ def run_autonomous_task():
 
     # Daily cat picture (8AM–2PM MST window, once per day)
     try:
-        result = subprocess.run(
-            ["python3", "cats.py"],
-            timeout=30, cwd=WORKING_DIR, capture_output=True, text=True
-        )
-        log(f"cats.py: {result.stdout.strip() or 'done'}")
-        commit_and_push(
-            ["cats.json"],
-            "Update cats.json (auto-commit from loop)",
-            "cats.json committed and pushed.",
-        )
+        result = run_command(["python3", "cats.py"], "cats.py", timeout=30)
+        if result is None:
+            log("cats.py failed; skipping cats.json commit/push.")
+        else:
+            log(f"cats.py: {result.stdout.strip() or 'done'}")
+            commit_and_push(
+                ["cats.json"],
+                "Update cats.json (auto-commit from loop)",
+                "cats.json committed and pushed.",
+            )
     except Exception as e:
         log(f"cats.py failed (non-fatal): {e}")
 
