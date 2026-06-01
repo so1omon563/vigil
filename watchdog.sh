@@ -11,6 +11,7 @@ LOGFILE="$WORKING_DIR/watchdog.log"
 SESSION="ai-loop"
 MAX_AGE=600          # 10 minutes for the outer Python loop heartbeat
 CODEX_MAX_AGE=900    # 15 minutes without Codex JSONL activity means stalled
+AUTONOMOUS_INTERVAL="${VIGIL_AUTONOMOUS_INTERVAL:-3600}"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOGFILE"
@@ -19,8 +20,8 @@ log() {
 start_loop() {
     cd "$WORKING_DIR" || exit 1
     screen -S "$SESSION" -X quit 2>/dev/null
-    screen -dmS "$SESSION" python3 "$WORKING_DIR/loop-optimized.py"
-    log "Started loop-optimized.py in screen session $SESSION"
+    VIGIL_AUTONOMOUS_INTERVAL="$AUTONOMOUS_INTERVAL" screen -dmS "$SESSION" python3 "$WORKING_DIR/loop-optimized.py"
+    log "Started loop-optimized.py in screen session $SESSION (autonomous interval ${AUTONOMOUS_INTERVAL}s)"
 }
 
 json_field() {
@@ -52,8 +53,12 @@ except Exception:
 PY
 }
 
+find_loop_pids() {
+    pgrep -f "^python3 .*loop-optimized.py($| )" | head -5
+}
+
 # Check if the Vigil loop process is running
-LOOP_PIDS=$(pgrep -f "loop-optimized.py" | head -5)
+LOOP_PIDS=$(find_loop_pids)
 
 if [ -z "$LOOP_PIDS" ]; then
     log "ALERT: No Vigil loop process found. Starting fresh instance."

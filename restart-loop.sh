@@ -9,9 +9,10 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SESSION="ai-loop"
+LOOP_PATTERN="^python3 .*loop-optimized.py($| )"
 
 echo "Stopping existing loop..."
-pkill -f "python3 loop-optimized.py" 2>/dev/null
+pgrep -f "$LOOP_PATTERN" | xargs -r kill
 screen -S "$SESSION" -X quit 2>/dev/null
 sleep 1
 
