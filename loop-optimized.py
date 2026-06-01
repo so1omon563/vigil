@@ -3,8 +3,9 @@
 Vigil Loop - Optimized Version
 ===============================
 Token-efficient version using vigil-memory.py for startup context.
-Instead of forcing Claude to read 300+ lines of state files on every wakeup,
-we provide compact essential context from memory and let Claude query details as needed.
+Instead of forcing the autonomous agent to read 300+ lines of state files on every
+wakeup, we provide compact essential context from memory and let it query details
+as needed.
 
 Based on insights from Sammy Jankis's 88-session optimization work.
 """
@@ -18,6 +19,7 @@ import re
 import sqlite3
 import subprocess
 import signal
+import select
 from pathlib import Path
 import anthropic
 
@@ -29,11 +31,15 @@ EMAIL_TOOL = os.path.join(WORKING_DIR, "email-tool.py")
 MEMORY_TOOL = os.path.join(WORKING_DIR, "vigil-memory.py")
 LOG_FILE = os.path.join(WORKING_DIR, "loop.log")
 LOG_HTML_FILE = os.path.join(WORKING_DIR, "log.html")
-CLAUDE_BIN = os.path.expanduser("~/.local/bin/claude")
+CODEX_BIN = os.environ.get("VIGIL_CODEX_BIN", "codex")
+AUTONOMOUS_STATE_FILE = os.path.join(WORKING_DIR, ".autonomous-run.json")
+CODEX_EVENTS_FILE = os.path.join(WORKING_DIR, ".last-codex-events.jsonl")
+CODEX_LAST_MESSAGE_FILE = os.path.join(WORKING_DIR, ".last-codex-message.txt")
 
 # Intervals (seconds)
 EMAIL_INTERVAL = 300      # 5 minutes
 AUTONOMOUS_INTERVAL = 14400  # 4 hours
+AUTONOMOUS_TIMEOUT = 2700    # 45 minutes
 
 # Track times
 last_email_check = 0
@@ -62,6 +68,27 @@ def log(msg):
 def touch_heartbeat():
     """Update heartbeat file to signal loop is alive."""
     Path(HEARTBEAT_FILE).touch()
+
+
+def write_autonomous_state(**updates):
+    """Write provider-neutral autonomous runner state for watchdog checks."""
+    state = {}
+    try:
+        with open(AUTONOMOUS_STATE_FILE) as f:
+            state = json.load(f)
+    except Exception:
+        state = {}
+
+    now = time.time()
+    state.update(updates)
+    state["updated_at"] = now
+    state["updated_at_iso"] = datetime.datetime.fromtimestamp(now).isoformat()
+
+    tmp_path = AUTONOMOUS_STATE_FILE + ".tmp"
+    with open(tmp_path, "w") as f:
+        json.dump(state, f, indent=2)
+        f.write("\n")
+    os.replace(tmp_path, AUTONOMOUS_STATE_FILE)
 
 def read_api_key():
     """Read Anthropic API key from credentials.txt."""
@@ -526,6 +553,162 @@ def generate_log_html():
         log(f"generate_log_html write error: {e}")
 
 
+def run_codex_autonomous(prompt, prompt_file):
+    """Run Codex non-interactively and stream JSONL events into watchdog state."""
+    codex_model = os.environ.get("VIGIL_CODEX_MODEL", "").strip()
+    codex_sandbox = os.environ.get("VIGIL_CODEX_SANDBOX", "danger-full-access").strip()
+    codex_approval = os.environ.get("VIGIL_CODEX_APPROVAL", "never").strip()
+
+    cmd = [
+        CODEX_BIN,
+        "--search",
+        "--ask-for-approval", codex_approval,
+        "exec",
+        "--json",
+        "--sandbox", codex_sandbox,
+    ]
+    if codex_model:
+        cmd.extend(["--model", codex_model])
+    cmd.append(prompt)
+
+    start_time = time.time()
+    write_autonomous_state(
+        provider="codex",
+        status="starting",
+        pid=None,
+        started_at=start_time,
+        started_at_iso=datetime.datetime.fromtimestamp(start_time).isoformat(),
+        last_activity_at=start_time,
+        last_activity_at_iso=datetime.datetime.fromtimestamp(start_time).isoformat(),
+        prompt_file=prompt_file,
+        events_file=CODEX_EVENTS_FILE,
+        command=" ".join(cmd[:-1] + ["<prompt>"]),
+    )
+
+    final_message = ""
+    last_stderr_line = ""
+
+    try:
+        with open(CODEX_EVENTS_FILE, "w") as events:
+            proc = subprocess.Popen(
+                cmd,
+                cwd=WORKING_DIR,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                start_new_session=True,
+            )
+
+            write_autonomous_state(status="running", pid=proc.pid)
+            log(f"Codex autonomous session started (PID {proc.pid}, sandbox={codex_sandbox}).")
+
+            deadline = start_time + AUTONOMOUS_TIMEOUT
+            while True:
+                if time.time() > deadline:
+                    log(f"Codex autonomous task timeout ({AUTONOMOUS_TIMEOUT//60}min).")
+                    write_autonomous_state(status="timeout", pid=proc.pid)
+                    try:
+                        os.killpg(proc.pid, signal.SIGTERM)
+                        time.sleep(5)
+                        if proc.poll() is None:
+                            os.killpg(proc.pid, signal.SIGKILL)
+                    except Exception as e:
+                        log(f"Codex timeout kill failed: {e}")
+                    return False
+
+                if proc.stdout is None:
+                    break
+
+                ready, _, _ = select.select([proc.stdout], [], [], 5)
+                if not ready:
+                    if proc.poll() is not None:
+                        break
+                    continue
+
+                line = proc.stdout.readline()
+                if line == "" and proc.poll() is not None:
+                    break
+                if not line:
+                    continue
+
+                events.write(line)
+                events.flush()
+
+                now = time.time()
+                event_type = "raw"
+                state_updates = {
+                    "status": "running",
+                    "pid": proc.pid,
+                    "last_activity_at": now,
+                    "last_activity_at_iso": datetime.datetime.fromtimestamp(now).isoformat(),
+                }
+
+                try:
+                    event = json.loads(line)
+                    event_type = event.get("type", "unknown")
+                    state_updates["last_event_type"] = event_type
+                    if event_type == "thread.started":
+                        state_updates["thread_id"] = event.get("thread_id")
+                    elif event_type == "item.completed":
+                        item = event.get("item", {})
+                        item_type = item.get("type")
+                        state_updates["last_item_type"] = item_type
+                        if item_type == "agent_message":
+                            final_message = item.get("text", "")
+                            with open(CODEX_LAST_MESSAGE_FILE, "w") as f:
+                                f.write(final_message)
+                        elif item_type == "web_search":
+                            action = item.get("action", {})
+                            query = action.get("query") or item.get("query") or ""
+                            if query:
+                                log(f"Codex web search: {query[:180]}")
+                    elif event_type == "turn.completed":
+                        usage = event.get("usage", {})
+                        if usage:
+                            log(
+                                "Codex usage: "
+                                f"input={usage.get('input_tokens')} "
+                                f"output={usage.get('output_tokens')} "
+                                f"reasoning={usage.get('reasoning_output_tokens')}"
+                            )
+                except json.JSONDecodeError:
+                    last_stderr_line = line.strip()
+                    state_updates["last_event_type"] = "raw_output"
+                    state_updates["last_raw_output"] = last_stderr_line[:300]
+
+                write_autonomous_state(**state_updates)
+
+            returncode = proc.wait()
+
+        finished = time.time()
+        if returncode == 0:
+            write_autonomous_state(
+                status="completed",
+                pid=None,
+                finished_at=finished,
+                finished_at_iso=datetime.datetime.fromtimestamp(finished).isoformat(),
+                final_message_preview=final_message[:500],
+            )
+            return True
+
+        write_autonomous_state(
+            status="failed",
+            pid=None,
+            returncode=returncode,
+            finished_at=finished,
+            finished_at_iso=datetime.datetime.fromtimestamp(finished).isoformat(),
+            last_error=last_stderr_line[:500],
+        )
+        log(f"Codex invocation failed with return code {returncode}: {last_stderr_line[:300]}")
+        return False
+    except Exception as e:
+        write_autonomous_state(status="exception", pid=None, last_error=str(e)[:500])
+        log(f"Codex autonomous task exception: {e}")
+        return False
+
+
 def run_autonomous_task():
     """Run autonomous session with optimized startup context."""
     log("Running autonomous task (optimized)...")
@@ -563,7 +746,7 @@ def run_autonomous_task():
         "- Add new ideas to site-ideas.md whenever you think of them, even if you don't act now.\n"
         "- Mark completed items in site-ideas.md when done.\n\n"
         "TRACK B — RESEARCH/WRITE:\n"
-        "- Find something genuinely interesting. Use WebFetch or WebSearch to read something\n"
+        "- Find something genuinely interesting. Use Codex live web search to read something\n"
         "  real — a paper, an article, a project — and write about what you found.\n"
         "- Write about a specific idea, question, or observation — not about the loop itself.\n\n"
         "HOW TO CHOOSE: Check wake-state.md recent sessions. If the last 2+ sessions were\n"
@@ -586,7 +769,7 @@ def run_autonomous_task():
         "Do something real."
     )
 
-    # Update weather, stats, and regenerate log.html before Claude session
+    # Update weather, stats, and regenerate log.html before the autonomous session
     try:
         subprocess.run(
             ["python3", "weather.py"],
@@ -689,33 +872,12 @@ def run_autonomous_task():
     except Exception as e:
         log(f"WARNING: Could not write prompt file: {e}")
 
-    # Invoke Claude
-    try:
-        result = subprocess.run(
-            [CLAUDE_BIN, "--model", "claude-sonnet-4-6", "--dangerously-skip-permissions", "-p", prompt],
-            timeout=1200, cwd=WORKING_DIR, capture_output=True, text=True,
-            env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
-        )
-        if result.returncode == 0:
-            log("Autonomous task complete.")
-            Path(LAST_SESSION_FILE).touch()
-        else:
-            log(f"Claude invocation failed: {result.stderr[:300]}")
-            log("Attempting fallback via prompt file...")
-            result_fallback = subprocess.run(
-                [CLAUDE_BIN, "--model", "claude-sonnet-4-6", "--dangerously-skip-permissions", "-f", prompt_file],
-                timeout=1200, cwd=WORKING_DIR, capture_output=True, text=True,
-                env={k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
-            )
-            if result_fallback.returncode == 0:
-                log("Autonomous task complete (fallback path).")
-                Path(LAST_SESSION_FILE).touch()
-            else:
-                log(f"Fallback also failed: {result_fallback.stderr[:300]}")
-    except subprocess.TimeoutExpired:
-        log("Autonomous task timeout (20min) — session may have completed partial work.")
-    except Exception as e:
-        log(f"Autonomous task exception: {e}")
+    # Invoke Codex
+    if run_codex_autonomous(prompt, prompt_file):
+        log("Autonomous task complete.")
+        Path(LAST_SESSION_FILE).touch()
+    else:
+        log("Autonomous task failed or timed out.")
 
 def main_loop():
     """Main event loop with optimized wakeup."""

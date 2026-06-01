@@ -1,31 +1,55 @@
 #!/bin/bash
-# Watchdog - checks if Claude is alive and responsive
+# Watchdog - checks if Vigil's autonomous loop is alive and responsive
 # Run via cron every 10 minutes
-# If Claude is frozen (heartbeat stale >10 min) or dead, restart it
+# If the loop is frozen (heartbeat stale >10 min) or dead, restart it
 
 WORKING_DIR="$HOME/autonomous-ai"
 
 HEARTBEAT="$WORKING_DIR/.heartbeat"
+AUTONOMOUS_STATE="$WORKING_DIR/.autonomous-run.json"
 LOGFILE="$WORKING_DIR/watchdog.log"
+SESSION="ai-loop"
+MAX_AGE=600          # 10 minutes for the outer Python loop heartbeat
+CODEX_MAX_AGE=900    # 15 minutes without Codex JSONL activity means stalled
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOGFILE"
 }
 
-# Check if any claude process is running
-CLAUDE_PIDS=$(pgrep -f "loop-optimized.py" | head -5)
+start_loop() {
+    cd "$WORKING_DIR" || exit 1
+    screen -S "$SESSION" -X quit 2>/dev/null
+    screen -dmS "$SESSION" python3 "$WORKING_DIR/loop-optimized.py"
+    log "Started loop-optimized.py in screen session $SESSION"
+}
 
-if [ -z "$CLAUDE_PIDS" ]; then
-    log "ALERT: No Claude process found. Starting fresh instance."
+json_field() {
+    python3 - "$AUTONOMOUS_STATE" "$1" <<'PY'
+import json
+import sys
 
-    cd "$WORKING_DIR"
-    screen -dmS ai-loop python3 "$WORKING_DIR/loop-optimized.py"
+path, field = sys.argv[1], sys.argv[2]
+try:
+    with open(path) as f:
+        data = json.load(f)
+    value = data.get(field, "")
+    print("" if value is None else value)
+except Exception:
+    print("")
+PY
+}
 
-    log "Started loop-optimized.py in screen session ai-loop"
+# Check if the Vigil loop process is running
+LOOP_PIDS=$(pgrep -f "loop-optimized.py" | head -5)
+
+if [ -z "$LOOP_PIDS" ]; then
+    log "ALERT: No Vigil loop process found. Starting fresh instance."
+
+    start_loop
     exit 0
 fi
 
-# Claude is running - check if heartbeat is fresh
+# Loop is running - check if heartbeat is fresh
 if [ ! -f "$HEARTBEAT" ]; then
     log "WARNING: No heartbeat file found. Creating one. Will check again next run."
     touch "$HEARTBEAT"
@@ -34,48 +58,64 @@ fi
 
 # Check heartbeat age (in seconds)
 HEARTBEAT_AGE=$(( $(date +%s) - $(stat -c %Y "$HEARTBEAT") ))
-MAX_AGE=600  # 10 minutes
 
 if [ "$HEARTBEAT_AGE" -gt "$MAX_AGE" ]; then
-    log "WARNING: Heartbeat is ${HEARTBEAT_AGE}s old (max ${MAX_AGE}s). Checking .claude logs..."
+    log "WARNING: Heartbeat is ${HEARTBEAT_AGE}s old (max ${MAX_AGE}s). Checking autonomous runner state..."
 
-    # Secondary check: are .claude log files still being written to?
-    CLAUDE_LOG_DIR="$HOME/.claude"
-    NEWEST_CLAUDE_LOG=$(find "$CLAUDE_LOG_DIR" -name "*.jsonl" -o -name "*.log" 2>/dev/null | head -20 | xargs ls -t 2>/dev/null | head -1)
+    if [ -f "$AUTONOMOUS_STATE" ]; then
+        STATUS=$(json_field status)
+        PROVIDER=$(json_field provider)
+        CODEX_PID=$(json_field pid)
+        LAST_ACTIVITY=$(json_field last_activity_at)
+        LAST_EVENT=$(json_field last_event_type)
 
-    if [ -n "$NEWEST_CLAUDE_LOG" ]; then
-        CLAUDE_LOG_AGE=$(( $(date +%s) - $(stat -c %Y "$NEWEST_CLAUDE_LOG") ))
-        log "  Newest .claude log: $NEWEST_CLAUDE_LOG (${CLAUDE_LOG_AGE}s old)"
+        if [ -n "$LAST_ACTIVITY" ]; then
+            ACTIVITY_AGE=$(python3 - "$LAST_ACTIVITY" <<'PY'
+import sys, time
+try:
+    print(int(time.time() - float(sys.argv[1])))
+except Exception:
+    print(999999)
+PY
+)
+        else
+            ACTIVITY_AGE=999999
+        fi
 
-        if [ "$CLAUDE_LOG_AGE" -lt "$MAX_AGE" ]; then
-            log "  Claude is BUSY but alive (.claude logs still active). NOT killing."
+        log "  Runner state: provider=${PROVIDER:-unknown}, status=${STATUS:-unknown}, pid=${CODEX_PID:-none}, last_event=${LAST_EVENT:-none}, activity_age=${ACTIVITY_AGE}s"
+
+        if [ "$PROVIDER" = "codex" ] && { [ "$STATUS" = "running" ] || [ "$STATUS" = "starting" ]; } && [ -n "$CODEX_PID" ] && kill -0 "$CODEX_PID" 2>/dev/null && [ "$ACTIVITY_AGE" -lt "$CODEX_MAX_AGE" ]; then
+            log "  Codex is busy but alive (JSONL events still active). NOT killing."
             exit 0
         fi
-        log "  .claude logs ALSO stale (${CLAUDE_LOG_AGE}s). Claude is truly frozen."
+
+        if [ "$PROVIDER" = "codex" ] && [ -n "$CODEX_PID" ] && kill -0 "$CODEX_PID" 2>/dev/null; then
+            log "  Codex activity is stale. Killing Codex process group for PID $CODEX_PID."
+            kill "-$CODEX_PID" 2>/dev/null || kill "$CODEX_PID" 2>/dev/null
+            sleep 5
+            kill -9 "-$CODEX_PID" 2>/dev/null || kill -9 "$CODEX_PID" 2>/dev/null
+        fi
     else
-        log "  No .claude logs found. Proceeding with kill."
+        log "  No autonomous runner state found. Proceeding with loop restart."
     fi
 
-    log "ALERT: Both heartbeat AND .claude logs are stale. Claude is frozen."
-    log "Killing stale Claude processes: $CLAUDE_PIDS"
+    log "ALERT: Heartbeat stale and no active runner activity. Vigil loop is frozen."
+    log "Killing stale loop processes: $LOOP_PIDS"
 
-    for pid in $CLAUDE_PIDS; do
+    for pid in $LOOP_PIDS; do
         kill "$pid" 2>/dev/null
         log "Killed PID $pid"
     done
 
     sleep 5
 
-    for pid in $CLAUDE_PIDS; do
+    for pid in $LOOP_PIDS; do
         kill -9 "$pid" 2>/dev/null
     done
 
     sleep 2
 
-    cd "$WORKING_DIR"
-    screen -dmS ai-loop python3 "$WORKING_DIR/loop-optimized.py"
-
-    log "Started loop-optimized.py in screen session ai-loop"
+    start_loop
 else
-    log "OK: Heartbeat is ${HEARTBEAT_AGE}s old. Claude is alive."
+    log "OK: Heartbeat is ${HEARTBEAT_AGE}s old. Vigil loop is alive."
 fi
