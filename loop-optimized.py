@@ -20,6 +20,7 @@ import sqlite3
 import subprocess
 import signal
 import select
+import fcntl
 from pathlib import Path
 import anthropic
 
@@ -35,6 +36,7 @@ CODEX_BIN = os.environ.get("VIGIL_CODEX_BIN", "codex")
 AUTONOMOUS_STATE_FILE = os.path.join(WORKING_DIR, ".autonomous-run.json")
 CODEX_EVENTS_FILE = os.path.join(WORKING_DIR, ".last-codex-events.jsonl")
 CODEX_LAST_MESSAGE_FILE = os.path.join(WORKING_DIR, ".last-codex-message.txt")
+PROMISE_LOCK_FILE = os.path.join(WORKING_DIR, ".promises.lock")
 DEFAULT_GIT_SSH_COMMAND = (
     f"ssh -i {os.path.expanduser('~/.ssh/vigil_github')} "
     "-o IdentitiesOnly=yes -o IdentityAgent=none"
@@ -46,7 +48,23 @@ if GIT_SSH_COMMAND:
 # Intervals (seconds)
 EMAIL_INTERVAL = 300      # 5 minutes
 AUTONOMOUS_INTERVAL = 14400  # 4 hours
-AUTONOMOUS_TIMEOUT = 2700    # 45 minutes
+
+
+def env_int(name, default, minimum=None):
+    """Read a bounded integer from the environment."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    if minimum is not None and value < minimum:
+        return default
+    return value
+
+
+AUTONOMOUS_TIMEOUT = env_int("VIGIL_AUTONOMOUS_TIMEOUT", 2700, minimum=300)
 
 # Track times
 last_email_check = 0
@@ -77,6 +95,15 @@ def touch_heartbeat():
     Path(HEARTBEAT_FILE).touch()
 
 
+def get_process_start_ticks(pid):
+    """Return /proc start ticks for a PID, or None if unavailable."""
+    try:
+        with open(f"/proc/{pid}/stat") as f:
+            return f.read().split()[21]
+    except Exception:
+        return None
+
+
 def write_autonomous_state(**updates):
     """Write provider-neutral autonomous runner state for watchdog checks."""
     state = {}
@@ -95,6 +122,7 @@ def write_autonomous_state(**updates):
             "last_error",
             "last_raw_output",
             "last_item_type",
+            "elapsed_seconds",
         ):
             state.pop(stale_key, None)
 
@@ -109,6 +137,67 @@ def write_autonomous_state(**updates):
         f.write("\n")
     os.replace(tmp_path, AUTONOMOUS_STATE_FILE)
 
+
+def run_command(args, description, timeout=60):
+    """Run a command and log failures with enough detail to diagnose them."""
+    try:
+        result = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=WORKING_DIR,
+        )
+    except subprocess.TimeoutExpired:
+        log(f"{description} timed out after {timeout}s: {' '.join(args)}")
+        return None
+    except Exception as e:
+        log(f"{description} failed to start: {e}")
+        return None
+
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "").strip()
+        log(f"{description} failed (exit {result.returncode}): {detail[:500]}")
+        return None
+    return result
+
+
+def run_git(args, description, timeout=60):
+    """Run git and return the completed process only on success."""
+    return run_command(["git"] + args, description, timeout=timeout)
+
+
+def commit_and_push(paths, message, success_message):
+    """Stage paths, commit if anything changed, and only log pushed after push succeeds."""
+    if not paths:
+        return True
+
+    add_result = run_git(["add"] + paths, f"git add for {message}")
+    if add_result is None:
+        return False
+
+    staged = subprocess.run(
+        ["git", "diff", "--cached", "--quiet", "--"] + paths,
+        cwd=WORKING_DIR,
+        capture_output=True,
+        text=True,
+    )
+    if staged.returncode == 0:
+        log(f"No staged changes for {message}; skipping commit/push.")
+        return True
+    if staged.returncode != 1:
+        detail = (staged.stderr or staged.stdout or "").strip()
+        log(f"Could not inspect staged changes for {message}: {detail[:300]}")
+        return False
+
+    if run_git(["commit", "-m", message], f"git commit for {message}") is None:
+        return False
+    if run_git(["push"], f"git push for {message}", timeout=120) is None:
+        return False
+
+    log(success_message)
+    return True
+
 def read_api_key():
     """Read Anthropic API key from credentials.txt."""
     try:
@@ -119,6 +208,39 @@ def read_api_key():
     except Exception as e:
         log(f"Could not read API key: {e}")
     return None
+
+
+def is_autonomous_runner_active():
+    """Return True when a recorded autonomous runner is live enough to avoid overlap."""
+    try:
+        with open(AUTONOMOUS_STATE_FILE) as f:
+            state = json.load(f)
+    except Exception:
+        return False
+
+    if state.get("provider") != "codex":
+        return False
+    if state.get("status") not in ("starting", "running"):
+        return False
+
+    pid = state.get("pid")
+    try:
+        pid = int(pid)
+        os.kill(pid, 0)
+    except Exception:
+        return False
+
+    expected_ticks = state.get("pid_start_ticks")
+    if expected_ticks:
+        actual_ticks = get_process_start_ticks(pid)
+        if actual_ticks != str(expected_ticks):
+            return False
+
+    try:
+        activity_age = time.time() - float(state.get("last_activity_at", 0))
+    except Exception:
+        activity_age = AUTONOMOUS_TIMEOUT + 1
+    return activity_age < AUTONOMOUS_TIMEOUT
 
 
 def read_human_email():
@@ -153,6 +275,26 @@ def save_handled_id(email_id):
         f.write(email_id + "\n")
 
 
+def normalize_commitment(text):
+    """Normalize commitment text for duplicate checks."""
+    text = text.strip().lstrip("- ").strip()
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'\.+$', '', text)
+    return text.lower()
+
+
+def promise_already_recorded(commitment, promises_content, memory_context):
+    """Return True if a commitment already appears in promises or memory."""
+    needle = normalize_commitment(commitment)
+    if not needle:
+        return True
+    haystacks = (
+        normalize_commitment(promises_content),
+        normalize_commitment(memory_context),
+    )
+    return any(needle in haystack for haystack in haystacks)
+
+
 def get_memory_context():
     """Get compact Vigil memory context via vigil-memory.py list."""
     try:
@@ -174,34 +316,48 @@ def persist_commitments(commitments, email_context):
     subject = email_context.get("subject", "(no subject)")
     promises_file = os.path.join(WORKING_DIR, "promises.md")
 
-    new_items = ""
-    for c in commitments:
-        c = c.strip().lstrip("- ").strip()
-        if not c:
-            continue
-        new_items += f"- [ ] {c}. Promised in reply to {sender} re: \"{subject}\" at {now_str}. (Added by email-handler)\n"
-        try:
-            subprocess.run(
-                [sys.executable, MEMORY_TOOL, "add",
-                 f"(re: email from {sender}) OPEN PROMISE: {c}", "--category", "promise"],
-                capture_output=True, timeout=10, cwd=WORKING_DIR
-            )
-        except Exception:
-            pass
-
     try:
-        with open(promises_file, "r") as f:
-            content = f.read()
-        # Insert after the first "## Open" heading
-        if "## Open" in content:
-            idx = content.index("## Open")
-            insert_at = idx + content[idx:].index("\n") + 1
-            content = content[:insert_at] + new_items + content[insert_at:]
-        else:
-            content += "\n" + new_items
-        with open(promises_file, "w") as f:
-            f.write(content)
-        log(f"Persisted {len(commitments)} commitment(s) from email reply to promises.md")
+        with open(PROMISE_LOCK_FILE, "w") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            with open(promises_file, "r") as f:
+                content = f.read()
+            memory_context = get_memory_context()
+
+            new_items = ""
+            added = 0
+            skipped = 0
+            for c in commitments:
+                c = c.strip().lstrip("- ").strip()
+                if not c:
+                    continue
+                if promise_already_recorded(c, content + new_items, memory_context):
+                    skipped += 1
+                    continue
+                new_items += f"- [ ] {c}. Promised in reply to {sender} re: \"{subject}\" at {now_str}. (Added by email-handler)\n"
+                memory_context += "\n" + c
+                added += 1
+                run_command(
+                    [
+                        sys.executable, MEMORY_TOOL, "add",
+                        f"(re: email from {sender}) OPEN PROMISE: {c}",
+                        "--category", "promise",
+                    ],
+                    f"memory add for email promise from {sender}",
+                    timeout=10,
+                )
+
+            if new_items:
+                # Insert after the first "## Open" heading
+                if "## Open" in content:
+                    idx = content.index("## Open")
+                    insert_at = idx + content[idx:].index("\n") + 1
+                    content = content[:insert_at] + new_items + content[insert_at:]
+                else:
+                    content += "\n" + new_items
+                with open(promises_file, "w") as f:
+                    f.write(content)
+
+            log(f"Persisted {added} commitment(s) from email reply to promises.md; skipped {skipped} duplicate(s).")
     except Exception as e:
         log(f"Failed to persist commitments: {e}")
 
@@ -368,6 +524,10 @@ def handle_email_with_haiku(email):
 
 def check_and_handle_email():
     """Poll for unread email headers and dispatch new respondable messages to Haiku."""
+    if is_autonomous_runner_active():
+        log("Skipping email check: autonomous Codex session is active.")
+        return
+
     log("Checking email headers...")
     try:
         result = subprocess.run(
@@ -620,14 +780,28 @@ def run_codex_autonomous(prompt, prompt_file):
                 start_new_session=True,
             )
 
-            write_autonomous_state(status="running", pid=proc.pid)
-            log(f"Codex autonomous session started (PID {proc.pid}, sandbox={codex_sandbox}).")
+            pid_start_ticks = get_process_start_ticks(proc.pid)
+            write_autonomous_state(
+                status="running",
+                pid=proc.pid,
+                pid_start_ticks=pid_start_ticks,
+            )
+            log(
+                f"Codex autonomous session started (PID {proc.pid}, "
+                f"sandbox={codex_sandbox}, timeout={AUTONOMOUS_TIMEOUT}s)."
+            )
 
             deadline = start_time + AUTONOMOUS_TIMEOUT
             while True:
                 if time.time() > deadline:
-                    log(f"Codex autonomous task timeout ({AUTONOMOUS_TIMEOUT//60}min).")
-                    write_autonomous_state(status="timeout", pid=proc.pid)
+                    elapsed = int(time.time() - start_time)
+                    log(f"Codex autonomous task timeout after {elapsed}s (limit {AUTONOMOUS_TIMEOUT}s).")
+                    write_autonomous_state(
+                        status="timeout",
+                        pid=proc.pid,
+                        pid_start_ticks=pid_start_ticks,
+                        elapsed_seconds=elapsed,
+                    )
                     try:
                         os.killpg(proc.pid, signal.SIGTERM)
                         time.sleep(5)
@@ -660,6 +834,7 @@ def run_codex_autonomous(prompt, prompt_file):
                 state_updates = {
                     "status": "running",
                     "pid": proc.pid,
+                    "pid_start_ticks": pid_start_ticks,
                     "last_activity_at": now,
                     "last_activity_at_iso": datetime.datetime.fromtimestamp(now).isoformat(),
                 }
@@ -702,25 +877,31 @@ def run_codex_autonomous(prompt, prompt_file):
             returncode = proc.wait()
 
         finished = time.time()
+        elapsed = int(finished - start_time)
         if returncode == 0:
             write_autonomous_state(
                 status="completed",
                 pid=None,
+                pid_start_ticks=None,
+                elapsed_seconds=elapsed,
                 finished_at=finished,
                 finished_at_iso=datetime.datetime.fromtimestamp(finished).isoformat(),
                 final_message_preview=final_message[:500],
             )
+            log(f"Codex autonomous task completed in {elapsed}s.")
             return True
 
         write_autonomous_state(
             status="failed",
             pid=None,
+            pid_start_ticks=None,
             returncode=returncode,
+            elapsed_seconds=elapsed,
             finished_at=finished,
             finished_at_iso=datetime.datetime.fromtimestamp(finished).isoformat(),
             last_error=last_stderr_line[:500],
         )
-        log(f"Codex invocation failed with return code {returncode}: {last_stderr_line[:300]}")
+        log(f"Codex invocation failed after {elapsed}s with return code {returncode}: {last_stderr_line[:300]}")
         return False
     except Exception as e:
         write_autonomous_state(status="exception", pid=None, last_error=str(e)[:500])
@@ -818,10 +999,11 @@ def run_autonomous_task():
             timeout=15, cwd=WORKING_DIR, capture_output=True
         )
         log("letters-rss.xml updated.")
-        subprocess.run(["git", "add", "weather.json", "weather-history.json", "log.html", "stats.json", "status.json", "sitemap.xml", "letters-rss.xml"], cwd=WORKING_DIR, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "Update weather.json, log.html, stats.json, status.json, sitemap.xml, letters-rss.xml (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
-        subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
-        log("Weather, log.html, stats.json, status.json, and sitemap.xml committed and pushed.")
+        commit_and_push(
+            ["weather.json", "weather-history.json", "log.html", "stats.json", "status.json", "sitemap.xml", "letters-rss.xml"],
+            "Update weather.json, log.html, stats.json, status.json, sitemap.xml, letters-rss.xml (auto-commit from loop)",
+            "Weather, log.html, stats.json, status.json, and sitemap.xml committed and pushed.",
+        )
     except Exception as e:
         log(f"Weather/log.html/stats update failed (non-fatal): {e}")
 
@@ -838,10 +1020,11 @@ def run_autonomous_task():
             with open(journal_index_path, "w") as _f:
                 _json.dump(_entries_fixed, _f, indent=2, ensure_ascii=False)
                 _f.write("\n")
-            subprocess.run(["git", "add", "journal-index.json"], cwd=WORKING_DIR, capture_output=True)
-            subprocess.run(["git", "commit", "-m", "Auto-fix: journal-index.json sort order (descending/newest-first)"], cwd=WORKING_DIR, capture_output=True)
-            subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
-            log("journal-index.json sort order fixed and pushed.")
+            commit_and_push(
+                ["journal-index.json"],
+                "Auto-fix: journal-index.json sort order (descending/newest-first)",
+                "journal-index.json sort order fixed and pushed.",
+            )
         else:
             log("journal-index.json sort order OK (descending).")
 
@@ -866,10 +1049,11 @@ def run_autonomous_task():
             with open(journal_index_path, "w") as _f:
                 _json.dump(_entries, _f, indent=2, ensure_ascii=False)
                 _f.write("\n")
-            subprocess.run(["git", "add", "journal-index.json"], cwd=WORKING_DIR, capture_output=True)
-            subprocess.run(["git", "commit", "-m", "Auto-fix: journal-index.json missing url/excerpt fields"], cwd=WORKING_DIR, capture_output=True)
-            subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
-            log("journal-index.json schema fixed and pushed.")
+            commit_and_push(
+                ["journal-index.json"],
+                "Auto-fix: journal-index.json missing url/excerpt fields",
+                "journal-index.json schema fixed and pushed.",
+            )
         else:
             log("journal-index.json schema OK (all entries have url and excerpt).")
     except Exception as e:
@@ -882,9 +1066,11 @@ def run_autonomous_task():
             timeout=30, cwd=WORKING_DIR, capture_output=True, text=True
         )
         log(f"cats.py: {result.stdout.strip() or 'done'}")
-        subprocess.run(["git", "add", "cats.json"], cwd=WORKING_DIR, capture_output=True)
-        subprocess.run(["git", "commit", "-m", "Update cats.json (auto-commit from loop)"], cwd=WORKING_DIR, capture_output=True)
-        subprocess.run(["git", "push"], cwd=WORKING_DIR, capture_output=True)
+        commit_and_push(
+            ["cats.json"],
+            "Update cats.json (auto-commit from loop)",
+            "cats.json committed and pushed.",
+        )
     except Exception as e:
         log(f"cats.py failed (non-fatal): {e}")
 

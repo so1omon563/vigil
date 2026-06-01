@@ -39,6 +39,19 @@ except Exception:
 PY
 }
 
+pid_start_ticks() {
+    python3 - "$1" <<'PY'
+import sys
+
+pid = sys.argv[1]
+try:
+    with open(f"/proc/{pid}/stat") as f:
+        print(f.read().split()[21])
+except Exception:
+    print("")
+PY
+}
+
 # Check if the Vigil loop process is running
 LOOP_PIDS=$(pgrep -f "loop-optimized.py" | head -5)
 
@@ -66,8 +79,23 @@ if [ "$HEARTBEAT_AGE" -gt "$MAX_AGE" ]; then
         STATUS=$(json_field status)
         PROVIDER=$(json_field provider)
         CODEX_PID=$(json_field pid)
+        CODEX_PID_START=$(json_field pid_start_ticks)
         LAST_ACTIVITY=$(json_field last_activity_at)
         LAST_EVENT=$(json_field last_event_type)
+        CODEX_PID_MATCH=0
+
+        if [ -n "$CODEX_PID" ] && kill -0 "$CODEX_PID" 2>/dev/null; then
+            if [ -n "$CODEX_PID_START" ]; then
+                ACTUAL_PID_START=$(pid_start_ticks "$CODEX_PID")
+                if [ "$ACTUAL_PID_START" = "$CODEX_PID_START" ]; then
+                    CODEX_PID_MATCH=1
+                else
+                    log "  Recorded Codex PID $CODEX_PID is live but start ticks do not match; not treating it as this run."
+                fi
+            else
+                CODEX_PID_MATCH=1
+            fi
+        fi
 
         if [ -n "$LAST_ACTIVITY" ]; then
             ACTIVITY_AGE=$(python3 - "$LAST_ACTIVITY" <<'PY'
@@ -82,14 +110,14 @@ PY
             ACTIVITY_AGE=999999
         fi
 
-        log "  Runner state: provider=${PROVIDER:-unknown}, status=${STATUS:-unknown}, pid=${CODEX_PID:-none}, last_event=${LAST_EVENT:-none}, activity_age=${ACTIVITY_AGE}s"
+        log "  Runner state: provider=${PROVIDER:-unknown}, status=${STATUS:-unknown}, pid=${CODEX_PID:-none}, pid_match=${CODEX_PID_MATCH}, last_event=${LAST_EVENT:-none}, activity_age=${ACTIVITY_AGE}s"
 
-        if [ "$PROVIDER" = "codex" ] && { [ "$STATUS" = "running" ] || [ "$STATUS" = "starting" ]; } && [ -n "$CODEX_PID" ] && kill -0 "$CODEX_PID" 2>/dev/null && [ "$ACTIVITY_AGE" -lt "$CODEX_MAX_AGE" ]; then
+        if [ "$PROVIDER" = "codex" ] && { [ "$STATUS" = "running" ] || [ "$STATUS" = "starting" ]; } && [ "$CODEX_PID_MATCH" -eq 1 ] && [ "$ACTIVITY_AGE" -lt "$CODEX_MAX_AGE" ]; then
             log "  Codex is busy but alive (JSONL events still active). NOT killing."
             exit 0
         fi
 
-        if [ "$PROVIDER" = "codex" ] && [ -n "$CODEX_PID" ] && kill -0 "$CODEX_PID" 2>/dev/null; then
+        if [ "$PROVIDER" = "codex" ] && [ "$CODEX_PID_MATCH" -eq 1 ]; then
             log "  Codex activity is stale. Killing Codex process group for PID $CODEX_PID."
             kill "-$CODEX_PID" 2>/dev/null || kill "$CODEX_PID" 2>/dev/null
             sleep 5
