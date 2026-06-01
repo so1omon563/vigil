@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sound-Induced Flash Illusion · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+
+  .intro { font-size: 0.9rem; color: #8b949e; line-height: 1.75; margin-bottom: 2rem; max-width: 620px; }
+  .intro p { margin-bottom: 0.85rem; }
+  .intro p:last-child { margin-bottom: 0; }
+
+  /* Demo area */
+  #demo-area {
+    text-align: center;
+    padding: 3rem 0;
+    border-top: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+    margin-bottom: 2rem;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  /* Flash stimulus */
+  #flash-ring {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid #21262d;
+    background: #161b22;
+    transition: none;
+  }
+  #flash-ring.flash-on {
+    background: #e6edf3;
+    border-color: #e6edf3;
+    box-shadow: 0 0 20px 4px rgba(230,237,243,0.4);
+  }
+
+  .trial-counter {
+    font-size: 0.72rem;
+    color: #484f58;
+    letter-spacing: 0.08em;
+  }
+
+  /* Buttons */
+  .btn {
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.45rem 1.1rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .btn:hover { border-color: #58a6ff; color: #e6edf3; }
+  .btn:active { background: #1c2128; }
+  .btn.primary { border-color: #58a6ff; color: #58a6ff; }
+  .btn.primary:hover { background: #0d2136; }
+
+  /* Response buttons */
+  .response-row {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+  }
+  .resp-btn {
+    font-family: inherit;
+    font-size: 1rem;
+    width: 48px;
+    height: 48px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .resp-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+
+  .prompt-text {
+    font-size: 0.82rem;
+    color: #8b949e;
+  }
+
+  .fixation {
+    font-size: 1.4rem;
+    color: #484f58;
+    user-select: none;
+  }
+
+  /* Results */
+  #results-area { display: none; }
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin-bottom: 1.5rem;
+  }
+  .results-table th {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid #21262d;
+  }
+  .results-table td {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid #161b22;
+    color: #c9d1d9;
+  }
+  .results-table tr:last-child td { border-bottom: none; }
+  .results-table .highlight-row td { color: #e6edf3; }
+  .results-table .sifi-rate { color: #f78166; font-weight: bold; }
+
+  .sifi-headline {
+    font-size: 1.1rem;
+    color: #e6edf3;
+    margin-bottom: 0.5rem;
+  }
+  .sifi-explain {
+    font-size: 0.85rem;
+    color: #8b949e;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.78rem;
+  }
+  .bar-label { width: 190px; flex-shrink: 0; color: #8b949e; }
+  .bar-track {
+    flex: 1;
+    height: 10px;
+    background: #161b22;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: #30363d;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .bar-fill.sifi-fill { background: #f78166; }
+  .bar-fill.good-fill { background: #3fb950; }
+  .bar-pct { width: 36px; text-align: right; color: #6e7681; font-size: 0.75rem; }
+
+  .retry-row { text-align: center; margin-top: 1.5rem; }
+
+  /* Explanation */
+  .explanation {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.85rem;
+    color: #8b949e;
+    line-height: 1.75;
+  }
+  .explanation p { margin-bottom: 0.85rem; }
+  .explanation p:last-child { margin-bottom: 0; }
+  .explanation .section-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #484f58;
+    margin-bottom: 0.75rem;
+  }
+  .see-also { font-size: 0.8rem; color: #484f58; margin-top: 1.5rem; }
+  .see-also a { color: #484f58; }
+  .see-also a:hover { color: #58a6ff; }
+
+  /* Light mode */
+  html[data-theme="light"] body { background: #fff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] #flash-ring { background: #e8eaed; border-color: #d0d7de; }
+  html[data-theme="light"] #flash-ring.flash-on { background: #24292e; border-color: #24292e; box-shadow: none; }
+  html[data-theme="light"] #demo-area { border-color: #d0d7de; }
+  html[data-theme="light"] .btn { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .resp-btn { background: #f6f8fa; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .prompt-text { color: #57606a; }
+  html[data-theme="light"] .trial-counter { color: #8c959f; }
+  html[data-theme="light"] .fixation { color: #8c959f; }
+  html[data-theme="light"] .results-table th { color: #8c959f; border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .results-table td { color: #24292e; border-bottom-color: #f0f2f4; }
+  html[data-theme="light"] .sifi-explain { color: #57606a; }
+  html[data-theme="light"] .bar-label { color: #57606a; }
+  html[data-theme="light"] .bar-track { background: #f0f2f4; }
+  html[data-theme="light"] .explanation { color: #57606a; border-top-color: #d0d7de; }
+  html[data-theme="light"] .see-also { color: #8c959f; }
+  html[data-theme="light"] .see-also a { color: #8c959f; }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/experiments.html">← experiments</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">Experiment</div>
+<h1>Sound-Induced Flash Illusion</h1>
+<div class="meta">auditory overrides visual · temporal perception · Shams et al. 2000</div>
+
+<div class="intro">
+  <p>Vision dominates hearing for location — point a speaker somewhere and the ventriloquist's dummy convincingly relocates sound. But for <em>timing</em>, the hierarchy inverts: auditory temporal resolution is roughly ten times finer than visual. When there's a conflict about how many events occurred, hearing can override sight.</p>
+  <p>The sound-induced flash illusion demonstrates this. A single flash accompanied by two brief beeps is often perceived as <em>two</em> flashes. You will see something that isn't there — because the auditory signal is more trustworthy about timing, and the brain knows it.</p>
+  <p>This is a direct corollary of Bayesian cue combination: the brain weights each sense by its reliability for the task at hand. Auditory wins on timing. Visual wins on location. The illusion is the reliability weighting, made visible — or rather, made audible as a visual event.</p>
+</div>
+
+<div id="main-content">
+
+  <!-- Start screen -->
+  <div id="start-screen" style="text-align:center; padding: 2.5rem 0; border-top: 1px solid #21262d;">
+    <p style="font-size:0.85rem; color:#8b949e; margin-bottom:1.5rem; line-height:1.7;">You'll see 20 trials. In each one, look at the circle and count how many flashes appear. Respond immediately. Use headphones if you have them — the effect is strongest with clear audio.</p>
+    <button class="btn primary" id="begin-btn">begin</button>
+  </div>
+
+  <!-- Trial screen -->
+  <div id="trial-screen" style="display:none;">
+    <div id="demo-area">
+      <div id="fixation" class="fixation">+</div>
+      <div id="flash-ring"></div>
+      <div id="trial-counter" class="trial-counter">trial 1 / 20</div>
+    </div>
+    <div id="response-section" style="display:none; text-align:center; padding: 1.5rem 0;">
+      <p class="prompt-text" style="margin-bottom:1rem;">how many flashes did you see?</p>
+      <div class="response-row">
+        <button class="resp-btn" data-resp="1">1</button>
+        <button class="resp-btn" data-resp="2">2</button>
+        <button class="resp-btn" data-resp="3">3</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results screen -->
+  <div id="results-area">
+    <div style="padding-top: 1.5rem;">
+      <div id="sifi-headline" class="sifi-headline"></div>
+      <div id="sifi-explain" class="sifi-explain"></div>
+
+      <div id="bars-section" style="margin-bottom:1.5rem;"></div>
+
+      <div class="section-label" style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.12em; color:#484f58; margin-bottom:0.75rem;">full results</div>
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>condition</th>
+            <th>trials</th>
+            <th>reported 1</th>
+            <th>reported 2</th>
+            <th>reported 3+</th>
+          </tr>
+        </thead>
+        <tbody id="results-tbody"></tbody>
+      </table>
+
+      <div class="retry-row">
+        <button class="btn" id="retry-btn">run again</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Explanation (always visible) -->
+<div class="explanation">
+  <div class="section-label">what's happening</div>
+  <p>The brain continuously asks: how many events just occurred? Vision and hearing each submit an answer. When they agree, integration is straightforward. When they conflict, the brain weights each estimate by reliability — and for temporal event counting, auditory reliability is higher. A flash is a diffuse luminance change; a beep is a sharp pressure transient. The auditory system resolves events separated by as little as 2 ms; visual temporal resolution is closer to 20–30 ms. So when the auditory channel says "two events," the brain recalibrates its visual count upward. The phantom second flash is the recalibration, experienced directly.</p>
+  <p>The reverse effect — two flashes fusing into one when accompanied by a single beep — is weaker and less consistent. The asymmetry matches the reliability difference: auditory temporal information is more strongly weighted, so it more reliably overrides vision than vision overrides auditory timing.</p>
+  <p>Shams, Kamitani, and Shimojo (2000) first reported the illusion in <em>Nature</em>. Subsequent work found that the illusion produces measurable changes in early visual cortex activity (V1/V2), suggesting the override happens before visual processing is complete — not just at a later decision stage. The brain doesn't wait to hear a full verdict before updating its visual representation.</p>
+</div>
+
+<div class="see-also">
+  → <a href="/cue.html">Bayesian cue combination</a> &nbsp;·&nbsp;
+  <a href="/fusion.html">audiovisual fusion</a> &nbsp;·&nbsp;
+  <a href="/journal/entry-596.html">entry-596: The Optimal Estimator</a>
+</div>
+
+<script>
+(function () {
+  // ─── Audio ────────────────────────────────────────────────────────────
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  var audioCtx = null;
+
+  function initAudio() {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function scheduleBeep(offsetSec, freq, durSec) {
+    if (!audioCtx) return;
+    var t = audioCtx.currentTime + offsetSec;
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(freq || 1000, t);
+    gain.gain.setValueAtTime(0.25, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + (durSec || 0.025));
+    osc.start(t);
+    osc.stop(t + (durSec || 0.025) + 0.01);
+  }
+
+  // ─── Trial definitions ────────────────────────────────────────────────
+  // Each condition: { flashes: 1|2, beeps: 0|1|2, label, key }
+  var CONDITIONS = [
+    { flashes: 1, beeps: 0, label: '1 flash, 0 beeps', key: '1f0b' },
+    { flashes: 1, beeps: 1, label: '1 flash, 1 beep',  key: '1f1b' },
+    { flashes: 1, beeps: 2, label: '1 flash, 2 beeps', key: '1f2b' },   // SIFI
+    { flashes: 2, beeps: 1, label: '2 flashes, 1 beep', key: '2f1b' },  // fusion
+    { flashes: 2, beeps: 2, label: '2 flashes, 2 beeps', key: '2f2b' },
+  ];
+  var REPS = 4; // 4 repetitions per condition = 20 trials
+
+  function buildTrials() {
+    var trials = [];
+    CONDITIONS.forEach(function(c) {
+      for (var i = 0; i < REPS; i++) trials.push(c);
+    });
+    // Fisher-Yates shuffle
+    for (var i = trials.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = trials[i]; trials[i] = trials[j]; trials[j] = tmp;
+    }
+    return trials;
+  }
+
+  // ─── State ────────────────────────────────────────────────────────────
+  var trials = [];
+  var currentIdx = 0;
+  var responses = {}; // key → [reported counts]
+  var trialActive = false;
+
+  // ─── DOM refs ─────────────────────────────────────────────────────────
+  var beginBtn     = document.getElementById('begin-btn');
+  var startScreen  = document.getElementById('start-screen');
+  var trialScreen  = document.getElementById('trial-screen');
+  var resultsArea  = document.getElementById('results-area');
+  var flashRing    = document.getElementById('flash-ring');
+  var trialCounter = document.getElementById('trial-counter');
+  var responseSection = document.getElementById('response-section');
+  var respBtns     = document.querySelectorAll('.resp-btn');
+  var retryBtn     = document.getElementById('retry-btn');
+
+  // ─── Helpers ──────────────────────────────────────────────────────────
+  function sleep(ms) {
+    return new Promise(function(r) { setTimeout(r, ms); });
+  }
+
+  async function showFlash(durationMs) {
+    flashRing.classList.add('flash-on');
+    await sleep(durationMs);
+    flashRing.classList.remove('flash-on');
+  }
+
+  // ─── Run one trial ────────────────────────────────────────────────────
+  async function runTrial(cond) {
+    trialActive = true;
+    responseSection.style.display = 'none';
+    flashRing.classList.remove('flash-on');
+
+    // Fixation pause
+    await sleep(500);
+
+    initAudio();
+
+    // Flash 1 onset timing: 0ms
+    // Flash 2 onset (if 2 flashes): 100ms after flash 1 onset
+    // Beep 1: coincides with flash 1 onset
+    // Beep 2 (if 2 beeps): coincides with flash 2 (or 100ms offset if 1 flash)
+
+    var FLASH_DUR    = 33;   // ms per flash
+    var FLASH_GAP    = 67;   // ms between flash offset and flash 2 onset (so onset-to-onset = 100ms)
+    var BEEP_FREQ    = 1100; // Hz
+    var BEEP_DUR     = 0.025; // seconds
+
+    // Schedule beeps (Web Audio time-domain, relative to current time + small offset)
+    if (cond.beeps >= 1) scheduleBeep(0.01, BEEP_FREQ, BEEP_DUR);
+    if (cond.beeps >= 2) {
+      // Second beep aligns with second event time (100ms later)
+      scheduleBeep(0.01 + 0.10, BEEP_FREQ, BEEP_DUR);
+    }
+
+    // Show first flash
+    await showFlash(FLASH_DUR);
+
+    if (cond.flashes >= 2) {
+      await sleep(FLASH_GAP);
+      await showFlash(FLASH_DUR);
+    }
+
+    // Wait a beat, then show response prompt
+    await sleep(200);
+    trialActive = false;
+    responseSection.style.display = '';
+  }
+
+  // ─── Start ────────────────────────────────────────────────────────────
+  beginBtn.addEventListener('click', function () {
+    trials = buildTrials();
+    responses = {};
+    CONDITIONS.forEach(function(c) { responses[c.key] = []; });
+    currentIdx = 0;
+    startScreen.style.display = 'none';
+    trialScreen.style.display = '';
+    resultsArea.style.display = 'none';
+    startNextTrial();
+  });
+
+  function startNextTrial() {
+    if (currentIdx >= trials.length) {
+      showResults();
+      return;
+    }
+    var cond = trials[currentIdx];
+    trialCounter.textContent = 'trial ' + (currentIdx + 1) + ' / ' + trials.length;
+    runTrial(cond);
+  }
+
+  // ─── Responses ────────────────────────────────────────────────────────
+  respBtns.forEach(function(btn) {
+    btn.addEventListener('click', function () {
+      if (trialActive) return;
+      var reported = parseInt(btn.getAttribute('data-resp'), 10);
+      var cond = trials[currentIdx];
+      responses[cond.key].push(reported);
+      currentIdx++;
+      responseSection.style.display = 'none';
+      startNextTrial();
+    });
+  });
+
+  // ─── Results ─────────────────────────────────────────────────────────
+  function pct(numerator, denominator) {
+    if (denominator === 0) return 0;
+    return Math.round(100 * numerator / denominator);
+  }
+
+  function showResults() {
+    trialScreen.style.display = 'none';
+    resultsArea.style.display = '';
+
+    // SIFI rate = % of 1f2b trials where reported ≥ 2
+    var sifiTrials = responses['1f2b'] || [];
+    var sifiIllusions = sifiTrials.filter(function(r) { return r >= 2; }).length;
+    var sifiRate = pct(sifiIllusions, sifiTrials.length);
+
+    // Baseline (1f0b) accuracy = % reporting 1
+    var baseTrials = responses['1f0b'] || [];
+    var baseCorrect = baseTrials.filter(function(r) { return r === 1; }).length;
+    var baseRate = pct(baseCorrect, baseTrials.length);
+
+    // Headline
+    var headline = document.getElementById('sifi-headline');
+    var explain = document.getElementById('sifi-explain');
+    if (sifiRate >= 50) {
+      headline.textContent = 'You experienced the illusion strongly.';
+      explain.textContent = 'On ' + sifiRate + '% of single-flash trials with two beeps, you reported seeing two flashes. The auditory signal overrode your visual count. This is the illusion — and it reflects accurate Bayesian inference, not a failure of perception.';
+    } else if (sifiRate >= 25) {
+      headline.textContent = 'You caught the illusion some of the time.';
+      explain.textContent = 'On ' + sifiRate + '% of single-flash trials with two beeps, you reported two flashes. The effect varies across people and across viewing conditions — display timing precision matters. Headphones increase it; variable frame rates decrease it.';
+    } else {
+      headline.textContent = 'The illusion was weak for you this run.';
+      explain.textContent = 'Only ' + sifiRate + '% of single-flash + two-beep trials were reported as two flashes. Browser timing precision varies, and the illusion depends on flash onset-to-onset interval landing near 100ms. Headphones and a fresh tab can help.';
+    }
+
+    // Bar chart
+    var barsSection = document.getElementById('bars-section');
+    barsSection.innerHTML = '';
+    var barDefs = [
+      { key: '1f0b', label: '1 flash, 0 beeps (baseline)', correct: 1, sifi: false },
+      { key: '1f1b', label: '1 flash, 1 beep (congruent)',  correct: 1, sifi: false },
+      { key: '1f2b', label: '1 flash, 2 beeps ← illusion', correct: 1, sifi: true  },
+      { key: '2f1b', label: '2 flashes, 1 beep (fusion)',   correct: 2, sifi: false },
+      { key: '2f2b', label: '2 flashes, 2 beeps (congruent)', correct: 2, sifi: false },
+    ];
+    barDefs.forEach(function(bd) {
+      var rr = responses[bd.key] || [];
+      var correctCount = rr.filter(function(r) { return r === bd.correct; }).length;
+      var correctPct = pct(correctCount, rr.length);
+      var row = document.createElement('div');
+      row.className = 'bar-row';
+      var lbl = document.createElement('div');
+      lbl.className = 'bar-label';
+      lbl.textContent = bd.label;
+      var track = document.createElement('div');
+      track.className = 'bar-track';
+      var fill = document.createElement('div');
+      fill.className = 'bar-fill ' + (bd.sifi ? 'sifi-fill' : 'good-fill');
+      fill.style.width = correctPct + '%';
+      track.appendChild(fill);
+      var pctEl = document.createElement('div');
+      pctEl.className = 'bar-pct';
+      pctEl.textContent = correctPct + '%';
+      row.appendChild(lbl);
+      row.appendChild(track);
+      row.appendChild(pctEl);
+      barsSection.appendChild(row);
+    });
+
+    // Full table
+    var tbody = document.getElementById('results-tbody');
+    tbody.innerHTML = '';
+    barDefs.forEach(function(bd) {
+      var rr = responses[bd.key] || [];
+      var c1 = rr.filter(function(r) { return r === 1; }).length;
+      var c2 = rr.filter(function(r) { return r === 2; }).length;
+      var c3 = rr.filter(function(r) { return r >= 3; }).length;
+      var tr = document.createElement('tr');
+      if (bd.sifi) tr.className = 'highlight-row';
+      tr.innerHTML = '<td>' + bd.label + '</td><td>' + rr.length + '</td>'
+        + '<td>' + c1 + '</td><td>' + c2 + (bd.sifi ? ' <span class="sifi-rate">← illusion</span>' : '') + '</td><td>' + c3 + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  retryBtn.addEventListener('click', function () {
+    resultsArea.style.display = 'none';
+    startScreen.style.display = '';
+  });
+
+})();
+</script>
+
+</body>
+</html>
