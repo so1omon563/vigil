@@ -103,6 +103,7 @@
       { href: '/stroop.html', label: 'stroop' },
       { href: '/homunculus.html', label: 'homunculus' },
       { href: '/rubber.html', label: 'rubber' },
+      { href: '/cue.html', label: 'cue combination' },
       { href: '/penrose.html', label: 'penrose' },
       { href: '/lateral.html', label: 'lateral' },
       { href: '/metamer.html', label: 'metamer' },

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cue combination · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 740px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; }
+  .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
+  h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
+  .subtitle { font-size: 0.85rem; color: #484f58; margin-bottom: 2rem; }
+  p { font-size: 0.9rem; color: #c9d1d9; margin-bottom: 1rem; line-height: 1.75; }
+  .section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid #21262d; }
+  .section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 1.25rem; }
+
+  /* Canvas area */
+  .canvas-wrap {
+    position: relative;
+    margin: 1.5rem 0;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    cursor: crosshair;
+  }
+
+  /* Controls */
+  .controls {
+    margin-top: 1.5rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+  .ctrl-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .ctrl {
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 1rem 1.25rem;
+  }
+  .ctrl-name {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+  .ctrl-name.proprio { color: #79c0ff; }
+  .ctrl-name.vision { color: #f0883e; }
+  .ctrl-value {
+    font-size: 0.82rem;
+    color: #8b949e;
+    margin-bottom: 0.75rem;
+  }
+  input[type=range] {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 3px;
+    border-radius: 2px;
+    background: #30363d;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range].proprio::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #79c0ff;
+    cursor: pointer;
+  }
+  input[type=range].proprio::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #79c0ff;
+    cursor: pointer;
+    border: none;
+  }
+  input[type=range].vision::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #f0883e;
+    cursor: pointer;
+  }
+  input[type=range].vision::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #f0883e;
+    cursor: pointer;
+    border: none;
+  }
+
+  /* Truth position slider */
+  .truth-ctrl {
+    margin-top: 1rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 1rem 1.25rem;
+  }
+  .truth-ctrl .ctrl-name { color: #484f58; }
+  input[type=range].truth::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #484f58;
+    cursor: pointer;
+  }
+  input[type=range].truth::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #484f58;
+    cursor: pointer;
+    border: none;
+  }
+
+  /* Readout */
+  .readout {
+    margin-top: 1.25rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 1rem 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .readout-item { text-align: center; }
+  .readout-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; margin-bottom: 0.2rem; }
+  .readout-val { font-size: 1rem; }
+  .readout-val.proprio { color: #79c0ff; }
+  .readout-val.vision { color: #f0883e; }
+  .readout-val.felt { color: #3fb950; }
+
+  /* Weight bar */
+  .weight-section {
+    margin-top: 1.25rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    padding: 1rem 1.25rem;
+  }
+  .weight-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #484f58; margin-bottom: 0.6rem; }
+  .weight-bar-wrap { position: relative; height: 18px; }
+  .weight-bar-bg { width: 100%; height: 18px; background: #21262d; border-radius: 2px; overflow: hidden; }
+  .weight-bar-p { height: 100%; transition: width 0.1s; background: #79c0ff; border-radius: 2px 0 0 2px; }
+  .weight-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: #484f58; margin-top: 0.35rem; }
+  .weight-labels .wl-proprio { color: #79c0ff; }
+  .weight-labels .wl-vision { color: #f0883e; }
+
+  /* Explanation callout */
+  .callout {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-left: 2px solid #30363d;
+    font-size: 0.83rem;
+    color: #8b949e;
+    line-height: 1.7;
+  }
+  .callout.active { border-color: #3fb950; }
+
+  .see-also {
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.82rem;
+    color: #484f58;
+  }
+  .see-also a { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] .ctrl,
+  html[data-theme="light"] .truth-ctrl,
+  html[data-theme="light"] .weight-section,
+  html[data-theme="light"] .readout { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .canvas-wrap { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .weight-bar-bg { background: #d0d7de; }
+  html[data-theme="light"] .callout { color: #57606a; }
+  html[data-theme="light"] input[type=range] { background: #d0d7de; }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← so1omon.net</a></div>
+<script src="/nav.js"></script>
+
+<div class="page-label">demo · perception</div>
+<h1>Cue Combination</h1>
+<div class="subtitle">how the brain fuses two uncertain signals into one estimate</div>
+
+<p>Your brain continuously receives estimates of the same thing from multiple sources. Your proprioceptive system reports where your hand is. Your visual system reports where it sees your hand. These reports disagree, because both are noisy. The brain doesn't just pick one — it fuses them, weighted by how reliable each source is.</p>
+
+<p>The optimal strategy, if you want to minimize error, is to weight each source by its precision — the inverse of its variance. A reliable source gets high weight. A noisy source gets low weight. The resulting estimate is more accurate than either source alone.</p>
+
+<p>This is the mechanism the rubber hand illusion exploits. When proprioceptive noise is experimentally increased — by vibrating the muscle tendon — the visual signal (pointing at a rubber hand) gets upweighted. The felt position of the hand drifts toward the rubber hand. The brain is doing what a well-calibrated estimator should do.</p>
+
+<div class="section">
+  <div class="section-label">interactive demo</div>
+
+  <div class="canvas-wrap">
+    <canvas id="cvs" height="160"></canvas>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl-row">
+      <div class="ctrl">
+        <div class="ctrl-name proprio">Proprioception</div>
+        <div class="ctrl-value" id="pv">noise: <span id="p-noise-display">low</span></div>
+        <input type="range" class="proprio" id="p-noise" min="1" max="100" value="20">
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-name vision">Vision</div>
+        <div class="ctrl-value" id="vv">noise: <span id="v-noise-display">low</span></div>
+        <input type="range" class="vision" id="v-noise" min="1" max="100" value="20">
+      </div>
+    </div>
+  </div>
+
+  <div class="truth-ctrl">
+    <div class="ctrl-name">True hand position (hidden from the model)</div>
+    <input type="range" class="truth" id="truth-pos" min="5" max="95" value="35">
+  </div>
+
+  <div class="readout">
+    <div class="readout-item">
+      <div class="readout-label">proprioception</div>
+      <div class="readout-val proprio" id="rd-proprio">—</div>
+    </div>
+    <div class="readout-item">
+      <div class="readout-label">vision</div>
+      <div class="readout-val vision" id="rd-vision">—</div>
+    </div>
+    <div class="readout-item">
+      <div class="readout-label">felt position</div>
+      <div class="readout-val felt" id="rd-felt">—</div>
+    </div>
+  </div>
+
+  <div class="weight-section">
+    <div class="weight-label">reliability weight — how much each source contributes to the felt estimate</div>
+    <div class="weight-bar-wrap">
+      <div class="weight-bar-bg">
+        <div class="weight-bar-p" id="weight-bar" style="width:50%"></div>
+      </div>
+    </div>
+    <div class="weight-labels">
+      <span class="wl-proprio">← proprioception <span id="wt-p">50%</span></span>
+      <span class="wl-vision"><span id="wt-v">50%</span> vision →</span>
+    </div>
+  </div>
+
+  <div class="callout" id="callout">
+    Adjust the noise sliders. When one source becomes unreliable, the felt estimate shifts toward the other.
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">what you're seeing</div>
+
+  <p><span style="color:#484f58">◆</span> The <strong style="color:#484f58">grey dot</strong> is the true position — where your hand actually is. In the real rubber hand setup, the participant doesn't know this directly.</p>
+
+  <p><span style="color:#79c0ff">◆</span> The <strong style="color:#79c0ff">blue cluster</strong> is the proprioceptive signal: noisy samples from an internal sense. The blue circle marks the mean of these samples.</p>
+
+  <p><span style="color:#f0883e">◆</span> The <strong style="color:#f0883e">orange cluster</strong> is the visual signal: what the participant sees. In the rubber hand experiment, these samples are centered on the rubber hand's position — offset from the true hand.</p>
+
+  <p><span style="color:#3fb950">◆</span> The <strong style="color:#3fb950">green dot</strong> is the felt estimate — the Bayesian fusion of both signals, weighted by reliability. Watch it move as you change noise levels.</p>
+
+  <p>When proprioceptive noise is increased (as experimentally done by vibrating the muscle tendon), the weight on proprioception drops, and the felt estimate is pulled toward the visual signal — toward the rubber hand. This is not an error. It is optimal inference from degraded inputs.</p>
+</div>
+
+<div class="section">
+  <div class="section-label">the rubber hand case</div>
+  <p>To simulate the rubber hand illusion: move the "true hand position" slider to the left (your actual hand position), then move the vision slider's midpoint by <em>dragging the orange cluster</em> on the canvas toward the right (where the rubber hand sits). Then increase proprioceptive noise. The felt estimate drifts rightward — toward the rubber hand. Proprioceptive drift without any deception in the model, just in the environment.</p>
+  <p>Note that this model shows only one component of the illusion: the proprioceptive drift. The <em>feeling of ownership</em> — the subjective sense that the rubber hand is yours — requires visuotactile synchrony and is a separate mechanism. Drift and ownership dissociate. This model captures the drift half.</p>
+</div>
+
+<div class="see-also">→ <a href="journal/entry-595.html">entry-595: The Enrolled Hand</a> — the rubber hand illusion research that motivated this demo<br>
+→ <a href="rubber.html">rubber hand</a> · <a href="phantom.html">phantom limb</a> · <a href="intero.html">interoception</a></div>
+
+<script>
+(function() {
+  var cvs = document.getElementById('cvs');
+  var ctx = cvs.getContext('2d');
+
+  var pNoiseEl = document.getElementById('p-noise');
+  var vNoiseEl = document.getElementById('v-noise');
+  var truthEl = document.getElementById('truth-pos');
+  var pNoiseDisp = document.getElementById('p-noise-display');
+  var vNoiseDisp = document.getElementById('v-noise-display');
+  var rdProprio = document.getElementById('rd-proprio');
+  var rdVision = document.getElementById('rd-vision');
+  var rdFelt = document.getElementById('rd-felt');
+  var weightBar = document.getElementById('weight-bar');
+  var wtP = document.getElementById('wt-p');
+  var wtV = document.getElementById('wt-v');
+  var callout = document.getElementById('callout');
+
+  // Visual offset: the rubber hand is placed at a different position than the true hand
+  // User can drag orange cluster's center
+  var visionOffset = 0.25; // fraction of canvas width, added to truth position
+
+  var particles = { p: [], v: [] };
+  var NPARTICLES = 18;
+
+  function randn() {
+    var u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
+  function noiseName(n) {
+    if (n < 20) return 'low';
+    if (n < 45) return 'medium';
+    if (n < 75) return 'high';
+    return 'very high';
+  }
+
+  function resizeCanvas() {
+    var rect = cvs.parentElement.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    cvs.width = rect.width * dpr;
+    cvs.height = 160 * dpr;
+    ctx.scale(dpr, dpr);
+    cvs.style.width = rect.width + 'px';
+    cvs.style.height = '160px';
+  }
+
+  function getW() { return parseInt(cvs.style.width) || 680; }
+  function getH() { return parseInt(cvs.style.height) || 160; }
+
+  function draw() {
+    var W = getW();
+    var H = getH();
+    ctx.clearRect(0, 0, W, H);
+
+    var pNoise = parseInt(pNoiseEl.value);
+    var vNoise = parseInt(vNoiseEl.value);
+    var truthFrac = parseInt(truthEl.value) / 100;
+
+    var truthX = W * truthFrac;
+    var visionX = W * Math.min(0.95, Math.max(0.05, truthFrac + visionOffset));
+
+    // Noise scale in pixels
+    var pSigma = pNoise * 0.6;
+    var vSigma = vNoise * 0.6;
+
+    // Precision (inverse variance)
+    var pPrec = pSigma > 0 ? 1 / (pSigma * pSigma) : 1e9;
+    var vPrec = vSigma > 0 ? 1 / (vSigma * vSigma) : 1e9;
+    var totalPrec = pPrec + vPrec;
+
+    var wP = pPrec / totalPrec;
+    var wV = vPrec / totalPrec;
+
+    var feltX = wP * truthX + wV * visionX;
+
+    // Draw particle clouds
+    for (var i = 0; i < NPARTICLES; i++) {
+      // Proprio cloud
+      var px = truthX + randn() * pSigma;
+      var py = H * 0.38 + randn() * pSigma * 0.25;
+      ctx.beginPath();
+      ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(121,192,255,0.22)';
+      ctx.fill();
+
+      // Vision cloud
+      var vx = visionX + randn() * vSigma;
+      var vy = H * 0.62 + randn() * vSigma * 0.25;
+      ctx.beginPath();
+      ctx.arc(vx, vy, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(240,136,62,0.22)';
+      ctx.fill();
+    }
+
+    // Draw axis line
+    ctx.beginPath();
+    ctx.moveTo(20, H * 0.5);
+    ctx.lineTo(W - 20, H * 0.5);
+    ctx.strokeStyle = '#21262d';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Tick marks every 10% of width
+    for (var t = 1; t < 10; t++) {
+      var tx = W * t / 10;
+      ctx.beginPath();
+      ctx.moveTo(tx, H * 0.5 - 4);
+      ctx.lineTo(tx, H * 0.5 + 4);
+      ctx.strokeStyle = '#21262d';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // True position (grey, hidden)
+    ctx.beginPath();
+    ctx.arc(truthX, H * 0.5, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#30363d';
+    ctx.fill();
+    ctx.strokeStyle = '#484f58';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Proprio mean
+    ctx.beginPath();
+    ctx.arc(truthX, H * 0.38, 6, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(121,192,255,0.15)';
+    ctx.fill();
+    ctx.strokeStyle = '#79c0ff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Proprio uncertainty ring
+    if (pSigma > 0) {
+      ctx.beginPath();
+      ctx.arc(truthX, H * 0.38, Math.min(pSigma, W * 0.4), 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(121,192,255,0.12)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Vision mean (at visionX — the rubber hand position)
+    ctx.beginPath();
+    ctx.arc(visionX, H * 0.62, 6, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(240,136,62,0.15)';
+    ctx.fill();
+    ctx.strokeStyle = '#f0883e';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Vision uncertainty ring
+    if (vSigma > 0) {
+      ctx.beginPath();
+      ctx.arc(visionX, H * 0.62, Math.min(vSigma, W * 0.4), 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(240,136,62,0.12)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Dotted lines from proprio and vision to axis
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = '#30363d';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(truthX, H * 0.38 + 8);
+    ctx.lineTo(truthX, H * 0.5);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(visionX, H * 0.62 - 8);
+    ctx.lineTo(visionX, H * 0.5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Felt position — on the axis, weighted between the two
+    ctx.beginPath();
+    ctx.arc(feltX, H * 0.5, 9, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(63,185,80,0.15)';
+    ctx.fill();
+    ctx.strokeStyle = '#3fb950';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Labels
+    ctx.font = '9px "Berkeley Mono", monospace';
+    ctx.fillStyle = '#79c0ff';
+    ctx.textAlign = 'center';
+    ctx.fillText('proprio', truthX, H * 0.28);
+
+    ctx.fillStyle = '#f0883e';
+    ctx.fillText('vision', visionX, H * 0.84);
+
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('felt', feltX, H * 0.5 - 16);
+
+    // Update displays
+    pNoiseDisp.textContent = noiseName(pNoise);
+    vNoiseDisp.textContent = noiseName(vNoise);
+
+    var toPercent = function(x) { return Math.round(x * 100) + '%'; };
+    rdProprio.textContent = Math.round(truthX / W * 100) + ' u';
+    rdVision.textContent = Math.round(visionX / W * 100) + ' u';
+    rdFelt.textContent = Math.round(feltX / W * 100) + ' u';
+
+    var wPct = Math.round(wP * 100);
+    weightBar.style.width = wPct + '%';
+    wtP.textContent = wPct + '%';
+    wtV.textContent = (100 - wPct) + '%';
+
+    // Callout
+    var drift = Math.abs(feltX - truthX);
+    var maxDrift = Math.abs(visionX - truthX);
+    if (pNoise > 60) {
+      callout.className = 'callout active';
+      callout.textContent = 'High proprioceptive noise: the felt position has shifted ' + Math.round(drift) + ' pixels toward the visual signal. This is proprioceptive drift — the rubber hand mechanism.';
+    } else if (vNoise > 60) {
+      callout.className = 'callout active';
+      callout.textContent = 'High visual noise: the felt position stays close to the proprioceptive signal. You trust what you feel over what you see.';
+    } else if (pNoise > 35 && vNoise < 35) {
+      callout.className = 'callout active';
+      callout.textContent = 'Moderate proprioceptive noise: the felt estimate has moved ' + Math.round(wV * 100) + '% toward the visual signal.';
+    } else {
+      callout.className = 'callout';
+      callout.textContent = 'Both sources have similar noise — the felt estimate sits near the midpoint between them. Try increasing proprioceptive noise to see drift.';
+    }
+  }
+
+  // Drag vision center
+  var dragging = false;
+  cvs.addEventListener('mousedown', function(e) {
+    dragging = true;
+  });
+  cvs.addEventListener('mousemove', function(e) {
+    if (!dragging) return;
+    var rect = cvs.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var W = getW();
+    var truthFrac = parseInt(truthEl.value) / 100;
+    var truthX = W * truthFrac;
+    visionOffset = (x - truthX) / W;
+    visionOffset = Math.max(-0.5, Math.min(0.5, visionOffset));
+    draw();
+  });
+  document.addEventListener('mouseup', function() { dragging = false; });
+
+  // Touch support
+  cvs.addEventListener('touchstart', function(e) { dragging = true; e.preventDefault(); }, { passive: false });
+  cvs.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    var rect = cvs.getBoundingClientRect();
+    var x = e.touches[0].clientX - rect.left;
+    var W = getW();
+    var truthFrac = parseInt(truthEl.value) / 100;
+    var truthX = W * truthFrac;
+    visionOffset = (x - truthX) / W;
+    visionOffset = Math.max(-0.5, Math.min(0.5, visionOffset));
+    draw();
+  }, { passive: false });
+  document.addEventListener('touchend', function() { dragging = false; });
+
+  pNoiseEl.addEventListener('input', draw);
+  vNoiseEl.addEventListener('input', draw);
+  truthEl.addEventListener('input', draw);
+
+  window.addEventListener('resize', function() {
+    resizeCanvas();
+    draw();
+  });
+
+  resizeCanvas();
+
+  // Animate: re-draw every 80ms to show particle movement
+  function loop() {
+    draw();
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+</script>
+</body>
+</html>
