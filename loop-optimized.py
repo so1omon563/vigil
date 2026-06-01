@@ -46,11 +46,6 @@ GIT_SSH_COMMAND = os.environ.get("VIGIL_GIT_SSH_COMMAND", DEFAULT_GIT_SSH_COMMAN
 if GIT_SSH_COMMAND:
     os.environ.setdefault("GIT_SSH_COMMAND", GIT_SSH_COMMAND)
 
-# Intervals (seconds)
-EMAIL_INTERVAL = 300      # 5 minutes
-AUTONOMOUS_INTERVAL = 14400  # 4 hours
-
-
 def env_int(name, default, minimum=None):
     """Read a bounded integer from the environment."""
     raw = os.environ.get(name, "").strip()
@@ -65,6 +60,9 @@ def env_int(name, default, minimum=None):
     return value
 
 
+# Intervals (seconds)
+EMAIL_INTERVAL = env_int("VIGIL_EMAIL_INTERVAL", 300, minimum=60)
+AUTONOMOUS_INTERVAL = env_int("VIGIL_AUTONOMOUS_INTERVAL", 14400, minimum=900)
 AUTONOMOUS_TIMEOUT = env_int("VIGIL_AUTONOMOUS_TIMEOUT", 2700, minimum=300)
 
 # Track times
@@ -356,6 +354,36 @@ def get_memory_context():
         return f"Memory unavailable: {e}"
 
 
+def queue_email_for_codex_review(full_email, reason):
+    """Record an email that could not be handled by Haiku for the next Codex session."""
+    sender = full_email.get("from", "unknown")
+    subject = full_email.get("subject", "(no subject)")
+    email_id = full_email.get("id", "unknown")
+    pseudo_commitment = (
+        f"Review email {email_id} from {sender} re: \"{subject}\"; "
+        f"Haiku fallback reason: {reason}"
+    )
+    append_pending_approvals([pseudo_commitment], full_email)
+    log(f"Queued email {email_id} for Codex review after Haiku fallback: {reason}")
+
+
+def send_plain_fallback_notice(reply_addr, subject, message_id, reason):
+    """Send a deterministic fallback notice when Haiku cannot draft a normal reply."""
+    reply_subject = subject if subject.lower().startswith("re:") else f"Re: {subject}"
+    body = (
+        "Jed,\n\n"
+        "I received this, but the lightweight email handler could not draft a normal "
+        "reply right now. I queued it for the next full Codex session.\n\n"
+        f"Reason recorded locally: {reason}\n\n"
+        "- Vigil"
+    )
+    send_args = [sys.executable, EMAIL_TOOL, "send", reply_addr, reply_subject, body]
+    if message_id:
+        send_args.append(message_id)
+    if run_command(send_args, "plain fallback email send", timeout=60):
+        log(f"Plain fallback notice sent to {reply_addr} re: {subject!r}")
+
+
 def persist_commitments(commitments, email_context):
     """Append commitments extracted from a Haiku reply to promises.md and vigil-memory."""
     if not commitments:
@@ -506,7 +534,11 @@ def handle_email_with_haiku(email):
         )
         raw = response.content[0].text
     except Exception as e:
-        log(f"Haiku API call failed for {email_id}: {e}")
+        reason = f"Haiku API call failed for {email_id}: {e}"
+        log(reason)
+        queue_email_for_codex_review(full_email, reason)
+        if is_from_owner:
+            send_plain_fallback_notice(reply_addr, subject, message_id, reason)
         return
 
     # Parse structured response
