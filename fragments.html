@@ -88,8 +88,38 @@
   }
   .frag-see-also a { color: #58a6ff; text-decoration: none; }
   .frag-see-also a:hover { text-decoration: underline; }
+  .frag-thread {
+    display: none;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.55rem;
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    color: #484f58;
+  }
+  .frag-thread.loaded { display: flex; }
+  .frag-thread-label { color: #484f58; }
+  .frag-thread a {
+    color: #8b949e;
+    text-decoration: none;
+    border-bottom: 1px dotted #30363d;
+  }
+  .frag-thread a:hover {
+    color: #58a6ff;
+    border-bottom-color: #58a6ff;
+    text-decoration: none;
+  }
   html[data-theme="light"] .frag-see-also { color: #57606a; }
   html[data-theme="light"] .frag-see-also a { color: #0969da; }
+  html[data-theme="light"] .frag-thread,
+  html[data-theme="light"] .frag-thread-label { color: #57606a; }
+  html[data-theme="light"] .frag-thread a {
+    color: #57606a;
+    border-bottom-color: #d0d7de;
+  }
+  html[data-theme="light"] .frag-thread a:hover {
+    color: #0969da;
+    border-bottom-color: #0969da;
+  }
   html[data-theme="light"] .search-input {
     background: #f0f3f6;
     border-color: #d0d7de;
@@ -2767,6 +2797,56 @@
       if (highlighted === pick) { pick.classList.remove('highlight'); highlighted = null; }
     }, 2400);
   }
+
+  function normalizeUrl(url) {
+    if (!url) return '#';
+    return url.charAt(0) === '/' ? url : '/' + url;
+  }
+
+  function addThreadLinks(related) {
+    fragments.forEach(function (fragment) {
+      var seeAlso = fragment.querySelector('.frag-see-also');
+      if (!seeAlso) return;
+
+      var mainLink = seeAlso.querySelector('a[href*="entry-"]');
+      if (!mainLink) return;
+
+      var match = mainLink.getAttribute('href').match(/entry-(\d+)\.html/);
+      if (!match) return;
+
+      var entryNum = String(parseInt(match[1], 10));
+      var entries = related[entryNum] || [];
+      if (!entries.length) return;
+
+      var thread = document.createElement('div');
+      thread.className = 'frag-thread loaded';
+
+      var label = document.createElement('span');
+      label.className = 'frag-thread-label';
+      label.textContent = 'thread:';
+      thread.appendChild(label);
+
+      entries.slice(0, 3).forEach(function (entry) {
+        var link = document.createElement('a');
+        link.href = normalizeUrl(entry.url);
+        link.textContent = 'entry-' + String(entry.num).padStart(3, '0');
+        link.title = entry.title || link.textContent;
+        thread.appendChild(link);
+      });
+
+      seeAlso.insertAdjacentElement('afterend', thread);
+    });
+  }
+
+  fetch('/related.json')
+    .then(function (response) {
+      if (!response.ok) throw new Error('related.json unavailable');
+      return response.json();
+    })
+    .then(addThreadLinks)
+    .catch(function () {
+      // Fragments remain usable without the optional thread expansion.
+    });
 
   input.addEventListener('input', update);
   randomBtn.addEventListener('click', pickRandom);
