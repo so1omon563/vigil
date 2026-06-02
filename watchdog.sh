@@ -11,7 +11,7 @@ LOGFILE="$WORKING_DIR/watchdog.log"
 SESSION="ai-loop"
 MAX_AGE=600          # 10 minutes for the outer Python loop heartbeat
 CODEX_MAX_AGE=900    # 15 minutes without Codex JSONL activity means stalled
-AUTONOMOUS_INTERVAL="${VIGIL_AUTONOMOUS_INTERVAL:-3600}"
+AUTONOMOUS_INTERVAL="${VIGIL_AUTONOMOUS_INTERVAL:-14400}"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOGFILE"

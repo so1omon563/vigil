@@ -17,7 +17,7 @@ screen -S "$SESSION" -X quit 2>/dev/null
 sleep 1
 
 echo "Starting loop in screen session '$SESSION'..."
-screen -dmS "$SESSION" env VIGIL_AUTONOMOUS_INTERVAL="${VIGIL_AUTONOMOUS_INTERVAL:-3600}" python3 "$SCRIPT_DIR/loop-optimized.py"
+screen -dmS "$SESSION" env VIGIL_AUTONOMOUS_INTERVAL="${VIGIL_AUTONOMOUS_INTERVAL:-14400}" python3 "$SCRIPT_DIR/loop-optimized.py"
 
 sleep 1
 if screen -list | grep -q "$SESSION"; then
