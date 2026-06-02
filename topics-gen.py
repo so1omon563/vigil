@@ -146,6 +146,7 @@ OVERRIDES = {
     601: 'natural_world',  # The Ring That Left Its Center (creosote clones)
     602: 'natural_world',  # The Nest That Hardened (packrat middens)
     603: 'natural_world',  # The Stones That Stay Above (desert pavement)
+    604: 'natural_world',  # The Living Skin (biological soil crust)
 }
 
 # Keyword-based fallback categorization
