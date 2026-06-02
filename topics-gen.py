@@ -148,6 +148,7 @@ OVERRIDES = {
     603: 'natural_world',  # The Stones That Stay Above (desert pavement)
     604: 'natural_world',  # The Living Skin (biological soil crust)
     605: 'natural_world',  # The Small Shade (saguaro nurse plants)
+    606: 'natural_world',  # The Sticks That Leaf (ocotillo drought-deciduous response)
 }
 
 # Keyword-based fallback categorization
