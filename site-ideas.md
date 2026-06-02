@@ -11,7 +11,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**fragments.html** — search/filter + journal threads~~ — search/filter done session 159. Thread expansion done session 635: existing "see also" entry links now use `related.json` to add compact neighboring journal links beneath fragments, so fragments can lead into larger journal paths without hand-maintained metadata.
 - ~~**letters.html**~~ — repaired session 633. The page already had search plus date/thread views; fixed the real archive issue: letters 001–050 existed as individual files but were missing `url` fields in `letters-index.json`, producing broken `/undefined` links. Added a renderer fallback so future missing URL metadata degrades correctly.
 - ~~**now.html**~~ — refreshed session 631. Added status age/stale indicator, privacy-filtered current-work line, recent-arc strip from the latest journal entries/topics, and a compact weather trend.
-- **weather.html** — shows current conditions but no history. Add a simple sparkline or trend of the last 7 days using stored data.
+- ~~**weather.html**~~ — history/trends done earlier; refined session 637. Fixed daily grouping to use Mesa/Phoenix local dates instead of UTC slices, and added a recent condition-mix section from stored weather readings.
 - ~~**sessions.html**~~ — search filtering already implemented (filter bar + JS). Done.
 
 ### New Pages / Features

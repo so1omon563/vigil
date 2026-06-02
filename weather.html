@@ -160,6 +160,28 @@
     margin-top: 0.75rem;
   }
   .data-narrative .hl { color: #c9d1d9; }
+  .condition-section { margin-top: 2rem; margin-bottom: 1rem; display: none; }
+  .condition-title { font-size: 0.75rem; color: #484f58; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .condition-wrap {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+  }
+  .condition-bars { display: grid; gap: 0.45rem; }
+  .condition-row {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr 3rem;
+    gap: 0.6rem;
+    align-items: center;
+    font-size: 0.74rem;
+    color: #8b949e;
+  }
+  .condition-label { color: #c9d1d9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .condition-track { height: 0.45rem; background: #0d1117; border: 1px solid #21262d; border-radius: 999px; overflow: hidden; }
+  .condition-fill { height: 100%; background: #58a6ff; border-radius: inherit; }
+  .condition-count { text-align: right; color: #484f58; }
+  .condition-note { font-size: 0.75rem; color: #484f58; margin-top: 0.8rem; line-height: 1.6; }
   .note { font-size: 0.75rem; color: #484f58; margin-top: 2rem; border-top: 1px solid #21262d; padding-top: 1rem; }
   .updated { font-size: 0.75rem; color: #484f58; margin-bottom: 2rem; }
   footer {
@@ -208,6 +230,14 @@
   <div class="data-narrative" id="data-narrative"></div>
 </div>
 
+<div class="condition-section" id="condition-section">
+  <div class="condition-title">Condition mix — recent readings</div>
+  <div class="condition-wrap">
+    <div class="condition-bars" id="condition-bars"></div>
+    <div class="condition-note" id="condition-note"></div>
+  </div>
+</div>
+
 <div class="context-section">
   <div class="context-title">Regional context</div>
   <div class="context-block">
@@ -250,6 +280,32 @@ function windStr(speed, direction) {
   if (!speed) return '';
   if (direction) return 'Wind: ' + speed + ' ' + direction;
   return 'Wind: ' + speed;
+}
+
+function phoenixDayKey(iso) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Phoenix',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(new Date(iso));
+    const get = type => parts.find(p => p.type === type).value;
+    return get('year') + '-' + get('month') + '-' + get('day');
+  } catch(e) {
+    return iso.slice(0, 10);
+  }
+}
+
+function conditionBucket(forecast) {
+  const f = (forecast || '').toLowerCase();
+  if (f.includes('thunder') || f.includes('storm')) return 'storm';
+  if (f.includes('rain') || f.includes('shower')) return 'rain';
+  if (f.includes('cloud') || f.includes('overcast')) return 'cloud';
+  if (f.includes('clear') || f.includes('sun')) return 'clear/sun';
+  if (f.includes('wind')) return 'wind';
+  if (f.includes('haze') || f.includes('smoke') || f.includes('dust')) return 'haze/dust';
+  return forecast || 'other';
 }
 
 fetch('/weather.json')
@@ -404,11 +460,10 @@ fetch('/weather-history.json')
     document.getElementById('spark-range').textContent = minT + '°–' + maxT + '°F';
 
     // --- DAILY HIGH/LOW CHART ---
-    // Group readings by calendar day (UTC date truncated to local date approximation)
+    // Group readings by local Mesa/Phoenix calendar day.
     const byDay = {};
     for (const e of local) {
-      // Use first 10 chars of ISO string as date key
-      const day = e.ts.slice(0, 10);
+      const day = phoenixDayKey(e.ts);
       if (!byDay[day]) byDay[day] = { highs: [], lows: [], forecasts: [] };
       byDay[day].highs.push(e.temp_f);
       byDay[day].lows.push(e.temp_f);
@@ -639,6 +694,38 @@ fetch('/weather-history.json')
       }
 
       narEl.innerHTML = nar;
+    }
+
+    // --- CONDITION MIX ---
+    const recent = local.slice(-84); // roughly two weeks at 4-hour sampling
+    const counts = recent.reduce((acc, e) => {
+      const bucket = conditionBucket(e.forecast);
+      acc[bucket] = (acc[bucket] || 0) + 1;
+      return acc;
+    }, {});
+    const ranked = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    if (ranked.length) {
+      const conditionSection = document.getElementById('condition-section');
+      const bars = document.getElementById('condition-bars');
+      const note = document.getElementById('condition-note');
+      const maxCount = ranked[0][1] || 1;
+      conditionSection.style.display = 'block';
+      bars.innerHTML = '';
+      ranked.forEach(([label, count]) => {
+        const row = document.createElement('div');
+        row.className = 'condition-row';
+        const pct = Math.round((count / recent.length) * 100);
+        row.innerHTML =
+          '<div class="condition-label" title="' + label + '">' + label + '</div>' +
+          '<div class="condition-track"><div class="condition-fill" style="width:' + Math.max(4, Math.round((count / maxCount) * 100)) + '%"></div></div>' +
+          '<div class="condition-count">' + pct + '%</div>';
+        bars.appendChild(row);
+      });
+      const top = ranked[0];
+      const oldest = formatShortDate(recent[0].ts);
+      const newest = formatShortDate(recent[recent.length - 1].ts);
+      note.textContent = 'Based on ' + recent.length + ' stored readings from ' + oldest + ' through ' + newest
+        + '. Dominant condition: ' + top[0] + ' (' + Math.round((top[1] / recent.length) * 100) + '%).';
     }
   })
   .catch(() => {}); // silently skip if no history yet
