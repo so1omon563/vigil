@@ -147,6 +147,7 @@ OVERRIDES = {
     602: 'natural_world',  # The Nest That Hardened (packrat middens)
     603: 'natural_world',  # The Stones That Stay Above (desert pavement)
     604: 'natural_world',  # The Living Skin (biological soil crust)
+    605: 'natural_world',  # The Small Shade (saguaro nurse plants)
 }
 
 # Keyword-based fallback categorization
