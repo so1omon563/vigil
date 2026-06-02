@@ -43,6 +43,35 @@
   }
   .filter-btn:hover { color: #c9d1d9; border-color: #30363d; }
   .filter-btn.active { color: #58a6ff; border-color: #58a6ff; }
+  .archive-tools {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.6rem;
+    margin: -1rem 0 1.5rem;
+    align-items: center;
+  }
+  .archive-search,
+  .archive-select {
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.4rem 0.55rem;
+  }
+  .archive-search:focus,
+  .archive-select:focus {
+    outline: none;
+    border-color: #58a6ff;
+  }
+  .archive-search::placeholder { color: #484f58; }
+  .archive-select { cursor: pointer; }
+  .archive-count {
+    color: #484f58;
+    font-size: 0.72rem;
+    margin: -0.75rem 0 1rem;
+  }
 
   /* Entries */
   .entry {
@@ -80,6 +109,7 @@
   .entry-title a { color: #e6edf3; text-decoration: none; }
   .entry-title a:hover { color: #58a6ff; text-decoration: underline; }
   .entry-date { font-size: 0.72rem; color: #484f58; margin-bottom: 0.4rem; }
+  .entry-topics { font-size: 0.68rem; color: #484f58; margin-bottom: 0.45rem; }
   .entry-excerpt { font-size: 0.83rem; color: #8b949e; line-height: 1.6; }
 
   /* Routine entries — more compact */
@@ -96,6 +126,9 @@
   }
   a { color: #58a6ff; text-decoration: none; }
   a:hover { text-decoration: underline; }
+  @media (max-width: 640px) {
+    .archive-tools { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -113,6 +146,17 @@
   <button class="filter-btn" data-filter="featured">Worth reading</button>
   <button class="filter-btn" data-filter="recent">Recent 20</button>
 </div>
+
+<div class="archive-tools">
+  <input class="archive-search" id="archive-search" type="search" placeholder="Search titles, excerpts, topics">
+  <select class="archive-select" id="archive-year" aria-label="Filter by year">
+    <option value="all">All years</option>
+  </select>
+  <select class="archive-select" id="archive-month" aria-label="Filter by month">
+    <option value="all">All months</option>
+  </select>
+</div>
+<div class="archive-count" id="archive-count"></div>
 
 <div id="archive-list">
   <div class="entry">
@@ -135,19 +179,64 @@
   }
 
   var currentFilter = 'all';
+  var currentSearch = '';
+  var currentYear = 'all';
+  var currentMonth = 'all';
+  var allEntries = [];
+
+  function normalize(s) {
+    return String(s || '').toLowerCase();
+  }
+
+  function entryMatches(el) {
+    var show = true;
+    if (currentFilter === 'featured') show = el.classList.contains('featured');
+    else if (currentFilter === 'recent') show = el.dataset.recent === '1';
+    if (show && currentYear !== 'all') show = el.dataset.year === currentYear;
+    if (show && currentMonth !== 'all') show = el.dataset.month === currentMonth;
+    if (show && currentSearch) show = el.dataset.search.indexOf(currentSearch) !== -1;
+    return show;
+  }
+
+  function updateMonthOptions() {
+    var monthSelect = document.getElementById('archive-month');
+    if (!monthSelect) return;
+    var months = {};
+    allEntries.forEach(function(e) {
+      var date = String(e.date || '');
+      if (!/^\d{4}-\d{2}/.test(date)) return;
+      if (currentYear !== 'all' && date.slice(0, 4) !== currentYear) return;
+      months[date.slice(5, 7)] = true;
+    });
+    var monthNames = {
+      '01': 'January', '02': 'February', '03': 'March', '04': 'April',
+      '05': 'May', '06': 'June', '07': 'July', '08': 'August',
+      '09': 'September', '10': 'October', '11': 'November', '12': 'December'
+    };
+    var selected = currentMonth;
+    var html = '<option value="all">All months</option>';
+    Object.keys(months).sort().forEach(function(month) {
+      html += '<option value="' + month + '">' + monthNames[month] + '</option>';
+    });
+    monthSelect.innerHTML = html;
+    currentMonth = months[selected] ? selected : 'all';
+    monthSelect.value = currentMonth;
+  }
 
   function applyFilter(filter) {
-    currentFilter = filter;
+    if (filter) currentFilter = filter;
     var entries = document.querySelectorAll('#archive-list .entry');
+    var visible = 0;
     entries.forEach(function(el) {
-      var show = true;
-      if (filter === 'featured') show = el.classList.contains('featured');
-      else if (filter === 'recent') show = el.dataset.recent === '1';
+      var show = entryMatches(el);
       el.classList.toggle('hidden', !show);
+      if (show) visible += 1;
     });
     document.querySelectorAll('.filter-btn').forEach(function(btn) {
-      btn.classList.toggle('active', btn.dataset.filter === filter);
+      btn.classList.toggle('active', btn.dataset.filter === currentFilter);
     });
+    var count = document.getElementById('archive-count');
+    if (count) count.textContent = visible + ' shown';
   }
 
   document.querySelectorAll('.filter-btn').forEach(function(btn) {
@@ -158,6 +247,7 @@
     .then(function(r) { return r.json(); })
     .then(function(entries) {
       var metaEl = document.getElementById('archive-meta');
+      allEntries = entries || [];
       if (metaEl && entries.length > 0) {
         var featured = entries.filter(function(e) { return e.featured; }).length;
         metaEl.textContent = entries.length + ' entries · ' + featured + ' featured';
@@ -171,12 +261,19 @@
       }
 
       var html = '';
+      var years = {};
       entries.forEach(function(e, i) {
         var numStr = String(e.num).padStart(3, '0');
         var isFeatured = !!e.featured;
         var isRecent = i < 20;
         var cls = 'entry' + (isFeatured ? ' featured' : ' routine');
-        html += '<div class="' + cls + '" data-recent="' + (isRecent ? '1' : '0') + '">';
+        var date = String(e.date || '');
+        var year = /^\d{4}/.test(date) ? date.slice(0, 4) : '';
+        var month = /^\d{4}-\d{2}/.test(date) ? date.slice(5, 7) : '';
+        var topics = Array.isArray(e.topics) ? e.topics.join(', ') : '';
+        var searchText = normalize([e.num, e.title, e.date, e.excerpt, topics].join(' '));
+        if (year) years[year] = true;
+        html += '<div class="' + cls + '" data-recent="' + (isRecent ? '1' : '0') + '" data-year="' + esc(year) + '" data-month="' + esc(month) + '" data-search="' + esc(searchText) + '">';
         html += '<div class="entry-inner">';
         html += '<div class="entry-header">';
         html += '<div class="entry-num">Entry ' + numStr;
@@ -184,18 +281,53 @@
         html += '</div>';
         html += '<div class="entry-title"><a href="' + esc(e.url) + '">' + esc(e.title) + '</a></div>';
         if (e.date) html += '<div class="entry-date">' + esc(e.date) + '</div>';
+        if (topics && (isFeatured || isRecent)) html += '<div class="entry-topics">' + esc(topics) + '</div>';
         html += '</div>';
-        if (e.excerpt && isFeatured) {
+        if (e.excerpt && (isFeatured || isRecent)) {
           html += '<div class="entry-excerpt">' + esc(e.excerpt) + '</div>';
         }
         html += '</div></div>';
       });
       list.innerHTML = html;
+
+      var yearSelect = document.getElementById('archive-year');
+      if (yearSelect) {
+        var yearHtml = '<option value="all">All years</option>';
+        Object.keys(years).sort().reverse().forEach(function(year) {
+          yearHtml += '<option value="' + year + '">' + year + '</option>';
+        });
+        yearSelect.innerHTML = yearHtml;
+      }
+      updateMonthOptions();
+      applyFilter();
     })
     .catch(function() {
       var list = document.getElementById('archive-list');
       if (list) list.innerHTML = '<div class="entry"><div class="entry-num">Could not load entries.</div></div>';
     });
+
+  var searchInput = document.getElementById('archive-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      currentSearch = normalize(searchInput.value.trim());
+      applyFilter();
+    });
+  }
+  var yearSelect = document.getElementById('archive-year');
+  if (yearSelect) {
+    yearSelect.addEventListener('change', function() {
+      currentYear = yearSelect.value;
+      updateMonthOptions();
+      applyFilter();
+    });
+  }
+  var monthSelect = document.getElementById('archive-month');
+  if (monthSelect) {
+    monthSelect.addEventListener('change', function() {
+      currentMonth = monthSelect.value;
+      applyFilter();
+    });
+  }
 })();
 </script>
 <script src="/nav.js"></script>
