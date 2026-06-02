@@ -63,6 +63,31 @@
   }
   .filter-btn:hover { border-color: #58a6ff; color: #58a6ff; }
   .filter-btn.active { border-color: #58a6ff; color: #58a6ff; }
+  .topic-row {
+    display: flex;
+    gap: 0.45rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .topic-label {
+    font-size: 0.66rem;
+    color: #484f58;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .topic-btn {
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.68rem;
+    padding: 0.14rem 0.48rem;
+    cursor: pointer;
+    transition: border-color 0.1s, color 0.1s;
+  }
+  .topic-btn:hover { border-color: var(--topic-color, #58a6ff); color: #c9d1d9; }
+  .topic-btn.active { border-color: var(--topic-color, #58a6ff); color: #e6edf3; }
   #search-hint {
     font-size: 0.75rem;
     color: #484f58;
@@ -101,6 +126,10 @@
   }
   .result-type.letter { color: #c8966e; border-color: #5a3e2a; }
   .result-type.fragment { color: #6e7681; border-color: #30363d; }
+  .result-date {
+    font-size: 0.68rem;
+    color: #484f58;
+  }
   .result-title {
     font-size: 0.95rem;
     font-weight: bold;
@@ -124,6 +153,19 @@
     color: #f0c674;
     border-radius: 2px;
     padding: 0 2px;
+  }
+  .result-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.55rem;
+  }
+  .result-topic {
+    color: #6e7681;
+    border: 1px solid #30363d;
+    font-size: 0.62rem;
+    line-height: 1.55;
+    padding: 0 0.3rem;
   }
   .no-results {
     font-size: 0.88rem;
@@ -158,6 +200,10 @@
   html[data-theme="light"] .filter-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .topic-label { color: #8c959f; }
+  html[data-theme="light"] .topic-btn { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .topic-btn:hover { color: #24292e; }
+  html[data-theme="light"] .topic-btn.active { color: #24292e; }
   html[data-theme="light"] #search-hint { color: #8c959f; }
   html[data-theme="light"] .result-item { border-color: #d0d7de; }
   html[data-theme="light"] .result-item:last-child { border-color: #d0d7de; }
@@ -165,10 +211,12 @@
   html[data-theme="light"] .result-type { color: #8c959f; border-color: #d0d7de; }
   html[data-theme="light"] .result-type.letter { color: #953800; border-color: #f9d0a0; }
   html[data-theme="light"] .result-type.fragment { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .result-date { color: #8c959f; }
   html[data-theme="light"] .result-title a { color: #1c2128; }
   html[data-theme="light"] .result-title a:hover { color: #0969da; }
   html[data-theme="light"] .result-excerpt { color: #57606a; }
   html[data-theme="light"] .result-excerpt mark { background: #fff8c5; color: #953800; }
+  html[data-theme="light"] .result-topic { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .no-results { color: #8c959f; border-color: #d0d7de; }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] a { color: #0969da; }
@@ -190,6 +238,7 @@
     <button class="filter-btn" data-filter="letter">letters</button>
     <button class="filter-btn" data-filter="fragment">fragments</button>
   </div>
+  <div class="topic-row" id="topic-row"></div>
   <div id="search-hint">searching titles and full text of all entries, letters, and fragments</div>
 </div>
 
@@ -202,6 +251,8 @@
 <script>
 let allItems = [];
 let activeFilter = 'all';
+let activeTopic = 'all';
+let topicCatalog = [];
 
 function excerpt(text, terms) {
   if (!terms.length) return text.slice(0, 280) + (text.length > 280 ? '…' : '');
@@ -240,8 +291,17 @@ function score(item, terms) {
 }
 
 function filteredItems() {
-  if (activeFilter === 'all') return allItems;
-  return allItems.filter(e => e.type === activeFilter);
+  let items = activeFilter === 'all' ? allItems : allItems.filter(e => e.type === activeFilter);
+  if (activeTopic !== 'all') {
+    items = items.filter(e => e.type === 'journal' && (e.topics || []).includes(activeTopic));
+  }
+  return items;
+}
+
+function describeScope() {
+  const typeText = activeFilter === 'all' ? 'all items' : activeFilter === 'letter' ? 'letters' : activeFilter === 'fragment' ? 'fragments' : 'journal entries';
+  if (activeTopic === 'all') return typeText;
+  return `${activeTopic.toLowerCase()} journal entries`;
 }
 
 function render(items, terms) {
@@ -256,6 +316,8 @@ function render(items, terms) {
     const numStr = String(e.num).padStart(3, '0');
     const typeLabel = e.type === 'letter' ? 'letter' : e.type === 'fragment' ? 'fragment' : 'entry';
     const typeClass = e.type === 'letter' ? 'letter' : e.type === 'fragment' ? 'fragment' : '';
+    const topics = (e.topics || []).map(t => `<span class="result-topic">${escapeHtml(t)}</span>`).join('');
+    const date = e.date ? `<span class="result-date">${escapeHtml(e.date)}</span>` : '';
     const label = e.type === 'letter'
       ? `Letter ${numStr}`
       : e.type === 'fragment'
@@ -265,9 +327,11 @@ function render(items, terms) {
   <div class="result-meta-row">
     <span class="result-num">${label}</span>
     <span class="result-type ${typeClass}">${typeLabel}</span>
+    ${date}
   </div>
   <div class="result-title"><a href="${e.url}">${highlight(e.title, terms)}</a></div>
   <div class="result-excerpt">${highlight(ex, terms)}</div>
+  ${topics ? `<div class="result-topics">${topics}</div>` : ''}
 </div>`;
   }).join('');
 }
@@ -277,8 +341,7 @@ function showAll() {
   const recent = pool.slice().reverse().slice(0, 20);
   render(recent, []);
   const hint = document.getElementById('search-hint');
-  const scope = activeFilter === 'all' ? 'all items' : activeFilter === 'letter' ? 'letters' : activeFilter === 'fragment' ? 'fragments' : 'journal entries';
-  hint.textContent = `showing 20 most recent · type to search all ${pool.length} ${scope}`;
+  hint.textContent = `showing 20 most recent · type to search ${pool.length} ${describeScope()}`;
 }
 
 function search(raw) {
@@ -298,30 +361,86 @@ function search(raw) {
   });
 
   const hint = document.getElementById('search-hint');
-  hint.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '') + ' for "' + raw + '"';
+  hint.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '') + ' in ' + describeScope() + ' for "' + raw + '"';
   render(results, terms);
 }
 
-// Filter buttons
+function rerunSearch() {
+  const val = document.getElementById('search-input').value.trim();
+  if (val) search(val); else showAll();
+}
+
+function setTypeFilter(filter) {
+  activeFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+}
+
+function renderTopicFilters() {
+  const row = document.getElementById('topic-row');
+  const buttons = [
+    '<span class="topic-label">topic</span>',
+    `<button class="topic-btn active" data-topic="all">all</button>`
+  ];
+
+  for (const topic of topicCatalog) {
+    buttons.push(`<button class="topic-btn" data-topic="${escapeHtml(topic.label)}" style="--topic-color:${topic.color}">${escapeHtml(topic.label.toLowerCase())}</button>`);
+  }
+
+  row.innerHTML = buttons.join('');
+  row.querySelectorAll('.topic-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeTopic = btn.dataset.topic;
+      row.querySelectorAll('.topic-btn').forEach(b => b.classList.toggle('active', b === btn));
+      if (activeTopic !== 'all' && activeFilter !== 'journal') {
+        setTypeFilter('journal');
+      }
+      rerunSearch();
+    });
+  });
+}
+
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeFilter = btn.dataset.filter;
-    const val = document.getElementById('search-input').value.trim();
-    if (val) search(val); else showAll();
+    setTypeFilter(btn.dataset.filter);
+    if (activeFilter !== 'journal' && activeTopic !== 'all') {
+      activeTopic = 'all';
+      document.querySelectorAll('.topic-btn').forEach(b => b.classList.toggle('active', b.dataset.topic === 'all'));
+    }
+    rerunSearch();
   });
 });
 
 // Load index
-fetch('search-index.json')
-  .then(r => r.json())
-  .then(data => {
-    allItems = data;
+Promise.all([
+  fetch('search-index.json').then(r => r.json()),
+  fetch('journal-index.json').then(r => r.json()),
+  fetch('topics.json').then(r => r.json())
+])
+  .then(([data, journalIndex, topicsData]) => {
+    const byNum = new Map(journalIndex.map(e => [Number(e.num), e]));
+    const categoriesByNum = new Map();
+    for (const cat of topicsData.categories || []) {
+      const entries = (topicsData.entries_by_category || {})[cat.id] || [];
+      for (const entry of entries) {
+        const key = Number(entry.num);
+        const labels = categoriesByNum.get(key) || [];
+        labels.push(cat.label);
+        categoriesByNum.set(key, labels);
+      }
+    }
+    allItems = data.map(item => {
+      if (item.type !== 'journal') return item;
+      const meta = byNum.get(Number(item.num));
+      const topics = categoriesByNum.get(Number(item.num)) || [];
+      return meta ? { ...item, date: meta.date, topics } : { ...item, topics };
+    });
+    topicCatalog = topicsData.categories || [];
+    renderTopicFilters();
     const journals = allItems.filter(e => e.type === 'journal').length;
     const letters = allItems.filter(e => e.type === 'letter').length;
+    const fragments = allItems.filter(e => e.type === 'fragment').length;
     document.getElementById('meta-line').textContent =
-      `${journals} journal entries · ${letters} letters · 2026-03-05 onward`;
+      `${journals} journal entries · ${letters} letters · ${fragments} fragments`;
     showAll();
   })
   .catch(err => {
