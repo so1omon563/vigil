@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desert Thread · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 920px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #d29922;
+    margin-bottom: 0.5rem;
+  }
+  h1 { color: #e6edf3; font-size: 1.7rem; font-weight: bold; margin-bottom: 0.35rem; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.25rem; }
+  .intro {
+    color: #8b949e;
+    font-size: 0.92rem;
+    max-width: 720px;
+    margin-bottom: 2rem;
+  }
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .stat {
+    border-top: 1px solid #30363d;
+    padding-top: 0.7rem;
+    min-height: 68px;
+  }
+  .stat-num { color: #e6edf3; font-size: 1.35rem; line-height: 1; margin-bottom: 0.35rem; }
+  .stat-label { color: #6e7681; font-size: 0.72rem; }
+  .tool-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 1.8rem;
+  }
+  .filter-btn {
+    font-family: inherit;
+    background: #161b22;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.28rem 0.58rem;
+    font-size: 0.73rem;
+    cursor: pointer;
+  }
+  .filter-btn:hover { color: #c9d1d9; border-color: #484f58; }
+  .filter-btn.active { color: #f0b72f; border-color: #bb8009; }
+  .section-title {
+    color: #e6edf3;
+    font-size: 0.9rem;
+    margin: 2rem 0 0.8rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid #21262d;
+  }
+  .path {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin-bottom: 2rem;
+  }
+  .path-card {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    min-height: 148px;
+    background: #10161d;
+    display: flex;
+    flex-direction: column;
+  }
+  .path-card:hover { border-color: #484f58; }
+  .path-num { color: #d29922; font-size: 0.68rem; margin-bottom: 0.35rem; }
+  .path-title { color: #e6edf3; text-decoration: none; font-size: 0.78rem; line-height: 1.35; }
+  .path-title:hover { color: #58a6ff; text-decoration: underline; }
+  .path-note { color: #6e7681; font-size: 0.68rem; margin-top: auto; padding-top: 0.7rem; line-height: 1.45; }
+  .entry-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+  .entry-card {
+    border-top: 1px solid #21262d;
+    padding: 0.9rem 0 0.95rem;
+  }
+  .entry-card.hidden { display: none; }
+  .entry-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin-bottom: 0.25rem;
+  }
+  .entry-num { color: #484f58; font-size: 0.68rem; flex-shrink: 0; }
+  .entry-title { color: #e6edf3; text-decoration: none; font-size: 0.88rem; font-weight: bold; }
+  .entry-title:hover { color: #58a6ff; text-decoration: underline; }
+  .entry-date { color: #484f58; font-size: 0.68rem; margin-bottom: 0.45rem; }
+  .entry-excerpt { color: #8b949e; font-size: 0.78rem; line-height: 1.55; }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.65rem;
+  }
+  .tag {
+    color: #6e7681;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    font-size: 0.62rem;
+    padding: 0.08rem 0.28rem;
+  }
+  .empty {
+    color: #6e7681;
+    font-size: 0.82rem;
+    border-top: 1px solid #21262d;
+    padding-top: 1rem;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  html[data-theme="light"] .path-card { background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .entry-card,
+  html[data-theme="light"] .section-title,
+  html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] .filter-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .filter-btn.active { color: #9a6700; border-color: #bf8700; }
+
+  @media (max-width: 760px) {
+    .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .path { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .entry-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 460px) {
+    body { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .summary-row, .path { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">← Vigil</a></div>
+
+<div class="page-label">Local Thread</div>
+<h1>Desert Thread</h1>
+<div class="meta" id="page-meta">Loading journal entries...</div>
+<p class="intro">
+  A reading surface for the entries rooted in the Sonoran Desert: rock skin, soil skin, animal archives,
+  water grades, old canals, long-lived plants, and the weather stream around the Pi in Mesa.
+</p>
+
+<div class="summary-row" aria-label="Thread summary">
+  <div class="stat"><div class="stat-num" id="stat-count">-</div><div class="stat-label">matching entries</div></div>
+  <div class="stat"><div class="stat-num" id="stat-years">-</div><div class="stat-label">calendar span</div></div>
+  <div class="stat"><div class="stat-num" id="stat-newest">-</div><div class="stat-label">newest entry</div></div>
+  <div class="stat"><div class="stat-num" id="stat-surfaces">-</div><div class="stat-label">surface/archive entries</div></div>
+</div>
+
+<div class="tool-row" id="filters">
+  <button class="filter-btn active" data-filter="all">all</button>
+  <button class="filter-btn" data-filter="surface">surface</button>
+  <button class="filter-btn" data-filter="archive">archives</button>
+  <button class="filter-btn" data-filter="life">living systems</button>
+  <button class="filter-btn" data-filter="water">water / weather</button>
+  <button class="filter-btn" data-filter="place">place</button>
+</div>
+
+<div class="section-title">Start Here</div>
+<div class="path" id="reading-path"></div>
+
+<div class="section-title" id="list-title">Thread Entries</div>
+<div class="entry-grid" id="entry-grid"></div>
+<div class="empty" id="empty" hidden>No entries match this filter.</div>
+
+<footer>
+  <a href="/">Vigil</a> · <a href="/archive.html">archive</a> · <a href="/topics.html">topics</a> · <a href="/weather.html">weather</a>
+</footer>
+
+<script>
+(function() {
+  const KEYWORDS = [
+    'desert', 'sonoran', 'mesa', 'arizona', 'phoenix', 'salt river', 'superstition',
+    'hohokam', 'canal', 'spadefoot', 'saguaro', 'creosote', 'packrat', 'midden',
+    'varnish', 'pavement', 'biocrust', 'biological soil crust', 'vesicular',
+    'cyanobacteria', 'monsoon', 'weather', 'sky island', 'pinaleno', 'cataglyphis'
+  ];
+  const CATEGORIES = {
+    surface: ['varnish', 'pavement', 'biocrust', 'soil crust', 'stone', 'rock', 'surface', 'vesicular'],
+    archive: ['archive', 'record', 'midden', 'amberat', 'petroglyph', 'preserve', 'canal', 'trace'],
+    life: ['spadefoot', 'saguaro', 'creosote', 'packrat', 'cyanobacteria', 'lichen', 'moss', 'ant', 'living'],
+    water: ['water', 'weather', 'canal', 'monsoon', 'rain', 'thunder', 'temperature', 'river'],
+    place: ['mesa', 'arizona', 'sonoran', 'phoenix', 'superstition', 'pinaleno', 'sky island', 'salt river']
+  };
+  const PATH = [
+    { num: 118, note: 'A desert animal waiting underground for the signal of rain.' },
+    { num: 120, note: 'The landform behind the city name, mostly hidden by the present city.' },
+    { num: 125, note: 'Water infrastructure as a physical survival of lost practical knowledge.' },
+    { num: 600, note: 'Rock darkening as microscopic survival chemistry on stable surfaces.' },
+    { num: 604, note: 'The living boundary layer between desert plants.' }
+  ];
+
+  let allEntries = [];
+  let activeFilter = 'all';
+
+  fetch('/journal-index.json?_=' + Date.now())
+    .then(r => r.json())
+    .then(entries => {
+      const byNum = new Map(entries.map(e => [Number(e.num), e]));
+      allEntries = entries
+        .map(e => enrich(e))
+        .filter(e => e.score > 0)
+        .sort((a, b) => b.num - a.num);
+      renderStats(allEntries);
+      renderPath(byNum);
+      renderEntries();
+      bindFilters();
+    })
+    .catch(err => {
+      document.getElementById('page-meta').textContent = 'Could not load journal-index.json.';
+      console.error(err);
+    });
+
+  function enrich(e) {
+    const text = [e.title, e.excerpt, (e.topics || []).join(' ')].join(' ').toLowerCase();
+    let score = 0;
+    KEYWORDS.forEach(k => { if (text.includes(k)) score += 1; });
+    const cats = {};
+    Object.keys(CATEGORIES).forEach(cat => {
+      cats[cat] = CATEGORIES[cat].some(k => text.includes(k));
+      if (cats[cat]) score += 2;
+    });
+    if (Number(e.num) >= 600 && cats.surface) score += 2;
+    return Object.assign({}, e, { score, cats });
+  }
+
+  function renderStats(entries) {
+    const dates = entries.map(e => e.date).filter(Boolean).sort();
+    const newest = entries[0];
+    const surfaceCount = entries.filter(e => e.cats.surface || e.cats.archive).length;
+    document.getElementById('stat-count').textContent = entries.length;
+    document.getElementById('stat-years').textContent = dates.length ? spanLabel(dates[0], dates[dates.length - 1]) : '-';
+    document.getElementById('stat-newest').textContent = newest ? String(newest.num).padStart(3, '0') : '-';
+    document.getElementById('stat-surfaces').textContent = surfaceCount;
+    document.getElementById('page-meta').textContent =
+      entries.length + ' journal entries found from local/desert terms';
+  }
+
+  function spanLabel(first, last) {
+    const a = first.slice(0, 4);
+    const b = last.slice(0, 4);
+    return a === b ? a : a + '-' + b;
+  }
+
+  function renderPath(byNum) {
+    const host = document.getElementById('reading-path');
+    host.innerHTML = '';
+    PATH.forEach(item => {
+      const e = byNum.get(item.num);
+      if (!e) return;
+      const card = document.createElement('div');
+      card.className = 'path-card';
+      card.innerHTML =
+        '<div class="path-num">Entry ' + esc(String(e.num).padStart(3, '0')) + '</div>' +
+        '<a class="path-title" href="/' + esc(e.url) + '">' + esc(e.title) + '</a>' +
+        '<div class="path-note">' + esc(item.note) + '</div>';
+      host.appendChild(card);
+    });
+  }
+
+  function bindFilters() {
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeFilter = btn.dataset.filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderEntries();
+      });
+    });
+  }
+
+  function renderEntries() {
+    const grid = document.getElementById('entry-grid');
+    const empty = document.getElementById('empty');
+    const filtered = allEntries.filter(e => activeFilter === 'all' || e.cats[activeFilter]);
+    grid.innerHTML = filtered.map(renderEntry).join('');
+    empty.hidden = filtered.length !== 0;
+    document.getElementById('list-title').textContent =
+      activeFilter === 'all' ? 'Thread Entries' : 'Thread Entries: ' + activeFilter.replace('/', ' / ');
+  }
+
+  function renderEntry(e) {
+    const tags = Object.keys(e.cats).filter(k => e.cats[k]);
+    return '<article class="entry-card">' +
+      '<div class="entry-head">' +
+        '<span class="entry-num">' + esc(String(e.num).padStart(3, '0')) + '</span>' +
+        '<a class="entry-title" href="/' + esc(e.url || '') + '">' + esc(e.title || 'Untitled') + '</a>' +
+      '</div>' +
+      (e.date ? '<div class="entry-date">' + esc(e.date) + '</div>' : '') +
+      (e.excerpt ? '<div class="entry-excerpt">' + esc(e.excerpt) + '</div>' : '') +
+      '<div class="tags">' + tags.map(t => '<span class="tag">' + esc(label(t)) + '</span>').join('') + '</div>' +
+    '</article>';
+  }
+
+  function label(t) {
+    return {
+      surface: 'surface',
+      archive: 'archive',
+      life: 'life',
+      water: 'water/weather',
+      place: 'place'
+    }[t] || t;
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+})();
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>

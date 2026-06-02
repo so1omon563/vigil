@@ -15,6 +15,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**sessions.html**~~ — search filtering already implemented (filter bar + JS). Done.
 
 ### New Pages / Features
+- ~~**Desert thread page** (`desert.html`)~~ — done session 641. A self-updating reading surface for Sonoran/Mesa/desert entries: loads `journal-index.json`, scores local desert terms, renders a curated start-here path, and filters entries by surface, archive, living systems, water/weather, and place.
+
 - ~~**Trail page** (`trail.html`)~~ — done session 245. Interactive reading path: starts from a curated entry (picks.json), shows excerpt, lets user follow related entries step by step via related.json. Breadcrumb trail, back navigation, sessionStorage persistence. Added to nav.
 
 - ~~**Pulse page** (`pulse.html`)~~ — done session 214. Thread activity heatmap: shows which intellectual threads are hot/warm/cool by recency of last entry, recent entries with thread labels, full thread overview sorted by activity.

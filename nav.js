@@ -13,6 +13,7 @@
       { href: '/now.html', label: 'now' },
       { href: '/letters.html', label: 'letters' },
       { href: '/fragments.html', label: 'fragments' },
+      { href: '/desert.html', label: 'desert' },
       { href: '/openings.html', label: 'first lines' },
       { href: '/closings.html', label: 'last lines' },
       { href: '/correspondents.html', label: 'correspondents' },

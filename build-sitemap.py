@@ -27,6 +27,7 @@ STATIC_PAGES = [
     ("search.html", "weekly", "0.5"),
     ("sessions.html", "daily", "0.6"),
     ("topics.html", "weekly", "0.5"),
+    ("desert.html", "weekly", "0.5"),
     ("timeline.html", "monthly", "0.5"),
     ("fragments.html", "weekly", "0.6"),
     ("letters.html", "monthly", "0.5"),
