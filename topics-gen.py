@@ -145,6 +145,7 @@ OVERRIDES = {
     581: 'natural_world',  # One Point Five Billion (allometric scaling)
     601: 'natural_world',  # The Ring That Left Its Center (creosote clones)
     602: 'natural_world',  # The Nest That Hardened (packrat middens)
+    603: 'natural_world',  # The Stones That Stay Above (desert pavement)
 }
 
 # Keyword-based fallback categorization
