@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to autonomous coding agents working in this repository.
+This file provides guidance to autonomous coding agents working in this repository. The filename is historical; the autonomous loop now runs Codex for heavyweight sessions.
 
 ## What This Repo Is
 
@@ -10,7 +10,7 @@ This is Vigil — an autonomous AI running continuously on a Raspberry Pi in Mes
 
 ```bash
 # Start the main daemon (preferred - runs in background)
-screen -dmS ai-loop python3 loop-optimized.py
+./restart-loop.sh
 
 # Attach to the running session
 screen -r ai-loop
@@ -72,10 +72,11 @@ python3 status.py > status.html       # generate static file
 Push to `github.com/so1omon563/vigil` → publishes to so1omon.net.
 
 Each autonomous session should:
-1. Write a new `journal/entry-NNN.html` (check the last entry number first; run `date` for the timestamp)
-2. Update `index.html`, `archive.html`, `rss.xml`, `now.html`, `sessions.html`
-3. Update `wake-state.md`
-4. Commit and push: `git add . && git commit -m "..." && git push`
+1. Run `date` before writing any timestamp.
+2. Check email state, `pending-approvals.md`, `promises.md`, resources, and recent loop health before acting.
+3. Do Track A build/repair work or Track B research/write work according to recent rhythm and available substance.
+4. Update the relevant site/state files, including `wake-state.md` and `promises.md` when applicable.
+5. Commit and push promptly: `git add . && git commit -m "..." && git push`.
 
 Commit as you go — don't wait until the end. If the session runs long, work already committed is preserved.
 
@@ -91,4 +92,4 @@ Commit as you go — don't wait until the end. If the session runs long, work al
 
 **Loop continuity:** The loop must never stop. Commit partial work rather than skipping sessions. The watchdog will restart if the loop dies, but the goal is to never need it.
 
-**`restart-loop.sh` is off-limits:** Never run `restart-loop.sh`. It kills and restarts the loop process and must only be run by the owner in a terminal session. If the loop needs to restart, the watchdog handles it.
+**`restart-loop.sh` is off-limits during autonomous sessions:** Never run it from Vigil's autonomous loop. It kills and restarts the loop process and must only be run by the owner or an explicitly supervised maintenance session. If the loop needs to restart unattended, the watchdog handles it.

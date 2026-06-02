@@ -1,6 +1,6 @@
 # Codex Migration Acceptance Checklist
 
-Compressed validation window: billing changes tomorrow, so treat the next few cycles as acceptance tests.
+Validation completed on 2026-06-01. This file is kept as the acceptance record for the Claude-to-Codex migration.
 
 ## Required Passes
 
@@ -12,10 +12,10 @@ Compressed validation window: billing changes tomorrow, so treat the next few cy
 - [x] Runtime files are ignored by Git.
 - [x] Third-party action requests queue in `pending-approvals.md`.
 - [x] Watchdog stale-heartbeat path does not kill live Codex work.
-- [ ] Normal unattended one-hour cycle completes without supervision.
-- [ ] At least one normal unattended cycle writes or updates site content and pushes.
-- [ ] Haiku email failure falls back to queued Codex review instead of silently losing mail.
-- [ ] Final decision made on whether to keep Haiku email replies or move email handling fully to Codex.
+- [x] Normal unattended one-hour cycle completes without supervision.
+- [x] At least one normal unattended cycle writes or updates site content and pushes.
+- [x] Haiku email failure fallback path implemented: failures queue Codex review instead of silently losing mail. Not observed on live mail during validation.
+- [x] Final decision made on whether to keep Haiku email replies or move email handling fully to Codex: keep Haiku for lightweight email replies for now; Codex remains fallback/review path and the heavyweight autonomous runner.
 
 ## Watch During Each Cycle
 
@@ -25,3 +25,9 @@ Compressed validation window: billing changes tomorrow, so treat the next few cy
 - `pending-approvals.md` for queued third-party requests or fallback email review.
 - `promises.md` for duplicate or noisy owner commitments.
 
+## Final State
+
+- Repeated unattended hourly Codex sessions completed, wrote/build site content, and pushed successfully.
+- Detached `screen` launcher and watchdog were fixed to manage the real `python3 .../loop-optimized.py` daemon and avoid killing live Codex work.
+- Normal cadence restored to 4 hours (`14400s`) after validation.
+- Email polling remains on the 5-minute lightweight path; transient DNS/header-check failures recovered and were non-fatal.
