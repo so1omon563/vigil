@@ -16,31 +16,62 @@ JOURNAL_INDEX = os.path.join(BASE_DIR, "journal-index.json")
 OUTPUT = os.path.join(BASE_DIR, "sitemap.xml")
 BASE_URL = "https://www.so1omon.net"
 
-# Static pages with their relative paths and approximate change frequency
-STATIC_PAGES = [
-    ("", "daily", "1.0"),           # index
-    ("archive.html", "daily", "0.9"),
-    ("now.html", "daily", "0.8"),
-    ("about.html", "monthly", "0.7"),
-    ("weather.html", "hourly", "0.6"),
-    ("stats.html", "daily", "0.6"),
-    ("search.html", "weekly", "0.5"),
-    ("sessions.html", "daily", "0.6"),
-    ("topics.html", "weekly", "0.5"),
-    ("desert.html", "weekly", "0.5"),
-    ("timeline.html", "monthly", "0.5"),
-    ("fragments.html", "weekly", "0.6"),
-    ("letters.html", "monthly", "0.5"),
-    ("letters-rss.xml", "monthly", "0.3"),
-    ("reading.html", "monthly", "0.5"),
-    ("vocab.html", "weekly", "0.5"),
-    ("sandpile.html", "monthly", "0.4"),
-    ("diffusion.html", "monthly", "0.4"),
-    ("slime.html", "monthly", "0.4"),
-    ("cats.html", "daily", "0.5"),
-    ("terminal.html", "monthly", "0.4"),
-    ("log.html", "always", "0.3"),
-]
+NAV_JS = os.path.join(BASE_DIR, "nav.js")
+
+# Priority/change-frequency overrides for major entry points.
+PAGE_OVERRIDES = {
+    "": ("daily", "1.0"),           # index
+    "archive.html": ("daily", "0.9"),
+    "now.html": ("daily", "0.8"),
+    "about.html": ("monthly", "0.7"),
+    "contact.html": ("monthly", "0.7"),
+    "search.html": ("weekly", "0.6"),
+    "start.html": ("weekly", "0.6"),
+    "weather.html": ("hourly", "0.6"),
+    "sessions.html": ("daily", "0.6"),
+    "fragments.html": ("weekly", "0.6"),
+    "letters.html": ("monthly", "0.5"),
+    "letters-rss.xml": ("monthly", "0.3"),
+    "cats.html": ("daily", "0.5"),
+    "log.html": ("always", "0.3"),
+}
+
+
+def page_defaults(path):
+    """Return approximate sitemap change frequency and priority for a static path."""
+    if path in PAGE_OVERRIDES:
+        return PAGE_OVERRIDES[path]
+    if path.endswith(".xml"):
+        return ("monthly", "0.3")
+    if path in {"stats.html", "topics.html", "desert.html", "vocab.html", "vocab-drift.html"}:
+        return ("weekly", "0.5")
+    if path in {"timeline.html", "thread-timeline.html", "graph.html", "pulse.html"}:
+        return ("monthly", "0.5")
+    if path in {"models.html", "reading.html", "paths.html", "trail.html"}:
+        return ("monthly", "0.5")
+    return ("monthly", "0.4")
+
+
+def discover_static_pages():
+    """Discover root HTML pages and nav-linked pages so the sitemap tracks the site."""
+    pages = {""}
+
+    for filename in os.listdir(BASE_DIR):
+        if filename.endswith(".html"):
+            pages.add(filename)
+
+    if os.path.exists(NAV_JS):
+        with open(NAV_JS) as f:
+            nav = f.read()
+        for match in re.finditer(r"href:\s*'([^']+)'", nav):
+            href = match.group(1)
+            if href.startswith("/"):
+                href = href[1:]
+            if href and not href.startswith(("http://", "https://", "#")):
+                pages.add(href)
+
+    pages.add("letters-rss.xml")
+    return sorted(pages, key=lambda p: (p != "", p))
 
 
 def clean_date(raw):
@@ -76,8 +107,11 @@ def build():
         parts.append("  </url>")
         return "\n".join(parts)
 
+    static_pages = discover_static_pages()
+
     # Static pages
-    for path, freq, pri in STATIC_PAGES:
+    for path in static_pages:
+        freq, pri = page_defaults(path)
         lines.append(url_block(path, today, freq, pri))
 
     # Journal entries — sorted newest first for crawler priority hints
@@ -99,7 +133,7 @@ def build():
     with open(OUTPUT, "w") as f:
         f.write(sitemap)
 
-    print(f"[sitemap] Written {OUTPUT} ({len(entries)} journal entries + {len(STATIC_PAGES)} static pages)")
+    print(f"[sitemap] Written {OUTPUT} ({len(entries)} journal entries + {len(static_pages)} static pages)")
     return OUTPUT
 
 
