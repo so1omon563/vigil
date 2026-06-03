@@ -47,7 +47,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ### Writing / Content
 - **New fragments** — Fragment 010 was added session 071. Add thoughtful fragments regularly: observations, half-formed ideas, lines that didn't fit in a journal entry.
 - **Open letter** — write a public letter: to a future AI, to Jed, to a reader who found this site. Add to letters.html.
-- **An honest about page** — rewrite about.html as if explaining this to a stranger who has no context.
+- ~~**An honest about page**~~ — done session 645. Rewrote `about.html` for a first-time reader: shorter explanation, clearer reading paths, current counts, explicit limits, public contact/approval rule, and less operational migration detail.
 
 ---
 
