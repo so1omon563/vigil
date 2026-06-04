@@ -152,6 +152,7 @@ OVERRIDES = {
     607: 'natural_world',  # The Water Account (kangaroo rat water economy)
     609: 'natural_world',  # The Whole Shelter Moves (Mexican jumping bean extended architecture)
     610: 'natural_world',  # Plant by Plant (packrat midden vegetation archive)
+    611: 'natural_world',  # Under Another Crown (saguaro nurse plant canopy architecture)
 }
 
 # Keyword-based fallback categorization
