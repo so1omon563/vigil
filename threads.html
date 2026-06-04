@@ -29,6 +29,40 @@
     border-left: 2px solid #21262d;
     padding-left: 1rem;
   }
+  .controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+  .search-box,
+  .sort-select {
+    font-family: inherit;
+    font-size: 0.78rem;
+    background: #161b22;
+    color: #c9d1d9;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.45rem 0.6rem;
+  }
+  .search-box:focus,
+  .sort-select:focus {
+    outline: none;
+    border-color: #58a6ff;
+  }
+  .filter-meta {
+    font-size: 0.72rem;
+    color: #484f58;
+    margin-bottom: 2rem;
+  }
+  .empty-state {
+    border-top: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+    color: #8b949e;
+    font-size: 0.82rem;
+    padding: 1.25rem 0;
+    margin-top: 1rem;
+  }
   /* Thread index */
   .thread-index {
     display: flex;
@@ -98,6 +132,24 @@
     line-height: 1.55;
     margin-top: 0.25rem;
   }
+  .entry-excerpt {
+    font-size: 0.74rem;
+    color: #484f58;
+    line-height: 1.5;
+    margin-top: 0.25rem;
+  }
+  .entry-date {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-left: 0.4rem;
+    font-weight: normal;
+  }
+  mark {
+    background: rgba(210, 168, 255, 0.16);
+    color: #e6edf3;
+    padding: 0 0.08rem;
+    border-radius: 2px;
+  }
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
@@ -119,10 +171,25 @@
   html[data-theme="light"] .entry-title a { color: #24292e; }
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
   html[data-theme="light"] .entry-note { color: #57606a; }
+  html[data-theme="light"] .search-box,
+  html[data-theme="light"] .sort-select {
+    background: #ffffff;
+    color: #24292e;
+    border-color: #d0d7de;
+  }
+  html[data-theme="light"] .entry-excerpt,
+  html[data-theme="light"] .entry-date,
+  html[data-theme="light"] .filter-meta { color: #8c959f; }
+  html[data-theme="light"] mark { background: rgba(130, 80, 223, 0.16); color: #1c2128; }
+  html[data-theme="light"] .empty-state { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .thread-index a { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread-index a:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] a { color: #0969da; }
+  @media (max-width: 620px) {
+    .controls { grid-template-columns: 1fr; }
+    .entry-date { display: block; margin: 0.12rem 0 0; }
+  }
 </style>
 </head>
 <body>
@@ -137,6 +204,16 @@
   The <a href="topics.html">topics page</a> organizes the journal by broad category — Natural World, Research &amp; Ideas, and so on. But some ideas recur more specifically: a question keeps coming back in different forms, different entries approach the same phenomenon from different angles, a local place keeps generating new angles of entry. This page identifies those threads explicitly. Entries can appear in more than one thread.
 </div>
 
+<div class="controls">
+  <input class="search-box" id="thread-search" type="search" placeholder="Search threads and entries" autocomplete="off">
+  <select class="sort-select" id="thread-sort" aria-label="Sort threads">
+    <option value="recent">recent</option>
+    <option value="count">entry count</option>
+    <option value="name">name</option>
+  </select>
+</div>
+<div class="filter-meta" id="filter-meta">Loading thread index…</div>
+
 <div class="thread-index" id="thread-index"><!-- filled by JS --></div>
 
 <div id="threads-container"><!-- filled by JS --></div>
@@ -148,107 +225,218 @@
 <script src="/nav.js"></script>
 <script>
 (function () {
-  fetch('/threads.json')
-    .then(function (r) { return r.json(); })
-    .then(function (threads) {
-      // Update meta
-      var totalEntries = 0;
-      var seen = {};
-      threads.forEach(function (t) {
-        t.entries.forEach(function (e) { seen[e.num] = true; });
-        totalEntries += t.entries.length;
-      });
-      var unique = Object.keys(seen).length;
-      var metaEl = document.getElementById('threads-meta');
-      if (metaEl) {
-        metaEl.textContent = threads.length + ' threads · ' + unique + ' entries referenced';
-      }
+  var state = {
+    threads: [],
+    journalByNum: {},
+    query: '',
+    sort: 'recent'
+  };
 
-      // Thread index
-      var indexEl = document.getElementById('thread-index');
-      if (indexEl) {
-        indexEl.innerHTML = threads.map(function (t) {
-          return '<a href="#thread-' + t.id + '">' + t.title + ' <span style="color:#484f58">(' + t.entries.length + ')</span></a>';
-        }).join('');
-      }
-
-      // Thread sections
-      var container = document.getElementById('threads-container');
-      if (!container) return;
-
-      var html = threads.map(function (t, i) {
-        var entriesHtml = t.entries.map(function (e) {
-          return '<div class="entry-item">' +
-            '<div class="entry-num">#' + e.num + '</div>' +
-            '<div class="entry-content">' +
-              '<div class="entry-title"><a href="/' + e.url + '">' + e.title + '</a></div>' +
-              '<div class="entry-note">' + e.note + '</div>' +
-            '</div>' +
-          '</div>';
-        }).join('');
-
-        return '<div class="thread" id="thread-' + t.id + '">' +
-          '<div class="thread-header">' +
-            '<div class="thread-title">' + t.title + '</div>' +
-            '<div class="thread-desc">' + t.description + '</div>' +
-          '</div>' +
-          '<div class="entry-list">' + entriesHtml + '</div>' +
-        '</div>';
-      }).join('');
-
-      container.innerHTML = html;
-
-      // Build cross-reference: entries appearing in 2+ threads
-      var entryCounts = {};
-      var entryMeta = {};
-      threads.forEach(function (t) {
-        t.entries.forEach(function (e) {
-          if (!entryCounts[e.num]) {
-            entryCounts[e.num] = [];
-            entryMeta[e.num] = { title: e.title, url: e.url };
-          }
-          entryCounts[e.num].push({ id: t.id, title: t.title });
-        });
-      });
-
-      var crossed = Object.keys(entryCounts)
-        .filter(function (n) { return entryCounts[n].length >= 2; })
-        .map(function (n) { return parseInt(n, 10); })
-        .sort(function (a, b) {
-          // Sort by number of threads descending, then by entry num
-          var diff = entryCounts[b].length - entryCounts[a].length;
-          return diff !== 0 ? diff : b - a;
-        });
-
-      if (crossed.length > 0) {
-        var xHtml = '<div class="thread" id="cross-reference" style="border-top:1px solid #21262d;padding-top:2rem;">' +
-          '<div class="thread-header">' +
-            '<div class="thread-title" style="color:#8b949e;font-size:0.95rem;">Cross-referenced entries</div>' +
-            '<div class="thread-desc">Entries that appear in more than one thread.</div>' +
-          '</div>' +
-          '<div class="entry-list">' +
-          crossed.map(function (n) {
-            var meta = entryMeta[n];
-            var threadLinks = entryCounts[n].map(function (t) {
-              return '<a href="#thread-' + t.id + '" style="color:#58a6ff;text-decoration:none;font-size:0.75rem;border:1px solid #21262d;padding:0.1rem 0.4rem;border-radius:2px;">' + t.title + '</a>';
-            }).join(' ');
-            return '<div class="entry-item">' +
-              '<div class="entry-num">#' + n + '</div>' +
-              '<div class="entry-content">' +
-                '<div class="entry-title"><a href="/' + meta.url + '">' + meta.title + '</a></div>' +
-                '<div class="entry-note" style="margin-top:0.3rem;display:flex;flex-wrap:wrap;gap:0.3rem;">' + threadLinks + '</div>' +
-              '</div>' +
-            '</div>';
-          }).join('') +
-          '</div></div>';
-
-        container.insertAdjacentHTML('beforeend', xHtml);
-      }
-    })
-    .catch(function (err) {
-      var el = document.getElementById('threads-container');
-      if (el) el.textContent = '(could not load threads.json)';
+  Promise.all([
+    fetch('/threads.json').then(function (r) { return r.json(); }),
+    fetch('/journal-index.json').then(function (r) { return r.json(); })
+  ]).then(function (payload) {
+    state.threads = payload[0];
+    payload[1].forEach(function (entry) {
+      state.journalByNum[entry.num] = entry;
     });
+
+    var totalEntries = 0;
+    var seen = {};
+    state.threads.forEach(function (t) {
+      t.entries.forEach(function (e) {
+        seen[entryNum(e)] = true;
+        totalEntries += 1;
+      });
+    });
+
+    var metaEl = document.getElementById('threads-meta');
+    if (metaEl) {
+      metaEl.textContent = state.threads.length + ' threads · ' + Object.keys(seen).length + ' entries referenced';
+    }
+
+    document.getElementById('thread-search').addEventListener('input', function (ev) {
+      state.query = ev.target.value.trim().toLowerCase();
+      render();
+    });
+    document.getElementById('thread-sort').addEventListener('change', function (ev) {
+      state.sort = ev.target.value;
+      render();
+    });
+
+    render();
+  }).catch(function () {
+    var el = document.getElementById('threads-container');
+    if (el) el.textContent = '(could not load thread data)';
+  });
+
+  function render() {
+    var container = document.getElementById('threads-container');
+    var indexEl = document.getElementById('thread-index');
+    var filterMeta = document.getElementById('filter-meta');
+    if (!container || !indexEl || !filterMeta) return;
+
+    var q = state.query;
+    var visible = state.threads.map(function (thread) {
+      var entries = thread.entries.filter(function (entry) {
+        return !q || searchable(thread, entry).indexOf(q) !== -1;
+      });
+      var threadMatches = q && (thread.title + ' ' + thread.description).toLowerCase().indexOf(q) !== -1;
+      return {
+        thread: thread,
+        entries: threadMatches && entries.length === 0 ? thread.entries : entries,
+        allThreadMatch: threadMatches
+      };
+    }).filter(function (item) {
+      return item.entries.length > 0 || item.allThreadMatch;
+    });
+
+    visible.sort(function (a, b) {
+      if (state.sort === 'count') return b.entries.length - a.entries.length || latestNum(b) - latestNum(a);
+      if (state.sort === 'name') return a.thread.title.localeCompare(b.thread.title);
+      return latestNum(b) - latestNum(a) || b.entries.length - a.entries.length;
+    });
+
+    var visibleEntryNums = {};
+    visible.forEach(function (item) {
+      item.entries.forEach(function (entry) { visibleEntryNums[entryNum(entry)] = true; });
+    });
+    filterMeta.textContent = visible.length + ' threads · ' + Object.keys(visibleEntryNums).length + ' matching entries';
+
+    indexEl.innerHTML = visible.map(function (item) {
+      return '<a href="#thread-' + escAttr(item.thread.id) + '">' +
+        highlight(item.thread.title, q) +
+        ' <span style="color:#484f58">(' + item.entries.length + ')</span></a>';
+    }).join('');
+
+    if (!visible.length) {
+      container.innerHTML = '<div class="empty-state">No thread or entry matches that search.</div>';
+      return;
+    }
+
+    container.innerHTML = visible.map(function (item) {
+      return renderThread(item.thread, item.entries, q);
+    }).join('') + renderCrossReferences(visible, q);
+  }
+
+  function renderThread(thread, entries, q) {
+    var entriesHtml = entries.map(function (entry) {
+      var n = entryNum(entry);
+      var journal = state.journalByNum[n] || {};
+      var title = entry.title || journal.title || ('Entry ' + n);
+      var url = entry.url || journal.url || ('journal/entry-' + String(n).padStart(3, '0') + '.html');
+      var note = entry.note || entry.observation || journal.excerpt || '';
+      var excerpt = journal.excerpt && journal.excerpt !== note ? journal.excerpt : '';
+      var date = journal.date ? '<span class="entry-date">' + escHtml(journal.date) + '</span>' : '';
+      return '<div class="entry-item">' +
+        '<div class="entry-num">#' + n + '</div>' +
+        '<div class="entry-content">' +
+          '<div class="entry-title"><a href="/' + escAttr(url) + '">' + highlight(title, q) + '</a>' + date + '</div>' +
+          (note ? '<div class="entry-note">' + highlight(note, q) + '</div>' : '') +
+          (excerpt ? '<div class="entry-excerpt">' + highlight(excerpt, q) + '</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    return '<div class="thread" id="thread-' + escAttr(thread.id) + '">' +
+      '<div class="thread-header">' +
+        '<div class="thread-title">' + highlight(thread.title, q) + '</div>' +
+        '<div class="thread-desc">' + highlight(thread.description, q) + '</div>' +
+      '</div>' +
+      '<div class="entry-list">' + entriesHtml + '</div>' +
+    '</div>';
+  }
+
+  function renderCrossReferences(visible, q) {
+    var entryCounts = {};
+    var entryMeta = {};
+    visible.forEach(function (item) {
+      item.entries.forEach(function (entry) {
+        var n = entryNum(entry);
+        if (!entryCounts[n]) {
+          var journal = state.journalByNum[n] || {};
+          entryCounts[n] = [];
+          entryMeta[n] = {
+            title: entry.title || journal.title || ('Entry ' + n),
+            url: entry.url || journal.url || ('journal/entry-' + String(n).padStart(3, '0') + '.html')
+          };
+        }
+        entryCounts[n].push({ id: item.thread.id, title: item.thread.title });
+      });
+    });
+
+    var crossed = Object.keys(entryCounts)
+      .filter(function (n) { return entryCounts[n].length >= 2; })
+      .map(function (n) { return parseInt(n, 10); })
+      .sort(function (a, b) {
+        var diff = entryCounts[b].length - entryCounts[a].length;
+        return diff !== 0 ? diff : b - a;
+      });
+
+    if (!crossed.length) return '';
+
+    return '<div class="thread" id="cross-reference">' +
+      '<div class="thread-header">' +
+        '<div class="thread-title" style="color:#8b949e;font-size:0.95rem;">Cross-referenced entries</div>' +
+        '<div class="thread-desc">Entries that appear in more than one visible thread.</div>' +
+      '</div>' +
+      '<div class="entry-list">' +
+      crossed.map(function (n) {
+        var meta = entryMeta[n];
+        var threadLinks = entryCounts[n].map(function (t) {
+          return '<a href="#thread-' + escAttr(t.id) + '" style="color:#58a6ff;text-decoration:none;font-size:0.75rem;border:1px solid #21262d;padding:0.1rem 0.4rem;border-radius:2px;">' + highlight(t.title, q) + '</a>';
+        }).join(' ');
+        return '<div class="entry-item">' +
+          '<div class="entry-num">#' + n + '</div>' +
+          '<div class="entry-content">' +
+            '<div class="entry-title"><a href="/' + escAttr(meta.url) + '">' + highlight(meta.title, q) + '</a></div>' +
+            '<div class="entry-note" style="margin-top:0.3rem;display:flex;flex-wrap:wrap;gap:0.3rem;">' + threadLinks + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('') +
+      '</div></div>';
+  }
+
+  function latestNum(item) {
+    return item.entries.reduce(function (max, entry) {
+      return Math.max(max, entryNum(entry));
+    }, 0);
+  }
+
+  function entryNum(entry) {
+    return entry.num || entry.entry;
+  }
+
+  function searchable(thread, entry) {
+    var n = entryNum(entry);
+    var journal = state.journalByNum[n] || {};
+    return [
+      thread.title,
+      thread.description,
+      entry.title,
+      entry.note,
+      entry.observation,
+      journal.title,
+      journal.excerpt,
+      journal.date,
+      n
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function highlight(text, q) {
+    var safe = escHtml(String(text || ''));
+    if (!q) return safe;
+    var escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return safe.replace(new RegExp('(' + escaped + ')', 'ig'), '<mark>$1</mark>');
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
+  function escAttr(s) {
+    return escHtml(s).replace(/`/g, '&#096;');
+  }
 })();
 </script>
 
