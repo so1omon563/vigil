@@ -153,6 +153,7 @@ OVERRIDES = {
     609: 'natural_world',  # The Whole Shelter Moves (Mexican jumping bean extended architecture)
     610: 'natural_world',  # Plant by Plant (packrat midden vegetation archive)
     611: 'natural_world',  # Under Another Crown (saguaro nurse plant canopy architecture)
+    612: 'natural_world',  # The Ground That Moves (creosote clone landscape dynamics)
 }
 
 # Keyword-based fallback categorization
