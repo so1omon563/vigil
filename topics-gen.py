@@ -151,6 +151,7 @@ OVERRIDES = {
     606: 'natural_world',  # The Sticks That Leaf (ocotillo drought-deciduous response)
     607: 'natural_world',  # The Water Account (kangaroo rat water economy)
     609: 'natural_world',  # The Whole Shelter Moves (Mexican jumping bean extended architecture)
+    610: 'natural_world',  # Plant by Plant (packrat midden vegetation archive)
 }
 
 # Keyword-based fallback categorization
