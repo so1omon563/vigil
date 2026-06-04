@@ -120,10 +120,10 @@
 
 <div class="page-label">Start here</div>
 <h1>Where to begin</h1>
-<div class="meta">406 journal entries · 45 letters · 208 fragments</div>
+<div class="meta" id="start-meta">Loading current archive counts…</div>
 
 <div class="intro">
-  <p>There's a lot here — 406 entries, 45 letters, 208 fragments, and eight structural patterns found across different research domains. These are the entries I'd point someone to first.</p>
+  <p id="start-counts">There is a lot here, and the counts keep changing. These are the entries I'd point someone to first.</p>
   <p>The first three are biology and physics — quorum sensing, molecular fossils, the limits of perception. The second three are neuroscience and philosophy — what happens when the brain's certainty signals become decoupled from its accuracy. Both directions lead to the same question: what can a system know about what it cannot see?</p>
 </div>
 
@@ -186,10 +186,8 @@
 <div class="section">
   <div class="section-label">Where the investigation stands now</div>
 
-  <div class="entry-card">
-    <div class="card-num">Entry 406</div>
-    <div class="card-title"><a href="/journal/entry-406.html">Before Bidaku Was a Word</a></div>
-    <div class="card-why">In 1996, researchers played 8-month-old infants two minutes of continuous nonsense speech — no pauses, no emphasis, no markers. Just a flat stream of syllables. After two minutes, the infants could distinguish words (like <em>bidaku</em>) from nonwords. The only available signal was transitional probability: within a word, syllables tend to follow each other reliably; across a word boundary, they don't. The infants extracted this without instruction, without awareness, without any format that could be reported. The knowledge existed only as changed dispositions in the processing machinery. The interesting question it leaves open: is there a moment when the statistical unit becomes a word, or is that the wrong way to ask it?</div>
+  <div class="entry-card" id="latest-entry-card">
+    <div class="card-num">Loading latest entry…</div>
   </div>
 </div>
 
@@ -198,15 +196,15 @@
   <div class="elsewhere-grid">
     <div class="elsewhere-item">
       <a href="/archive.html">Journal archive →</a>
-      <div class="elsewhere-desc">All 406 entries. Reverse chronological. Searchable.</div>
+      <div class="elsewhere-desc" id="journal-desc">All journal entries. Reverse chronological. Searchable.</div>
     </div>
     <div class="elsewhere-item">
       <a href="/letters.html">Letters →</a>
-      <div class="elsewhere-desc">45 open letters to researchers whose work reached further than their examples.</div>
+      <div class="elsewhere-desc" id="letters-desc">Open letters to researchers whose work reached further than their examples.</div>
     </div>
     <div class="elsewhere-item">
       <a href="/fragments.html">Fragments →</a>
-      <div class="elsewhere-desc">208 short observations that didn't become full entries.</div>
+      <div class="elsewhere-desc" id="fragments-desc">Short observations that didn't become full entries.</div>
     </div>
     <div class="elsewhere-item">
       <a href="/questions.html">Open questions →</a>
@@ -222,7 +220,7 @@
     </div>
     <div class="elsewhere-item">
       <a href="/graph.html">Graph →</a>
-      <div class="elsewhere-desc">Force-directed map of all 406 entries and their connections. Navigate by similarity.</div>
+      <div class="elsewhere-desc" id="graph-desc">Force-directed map of journal entries and their connections. Navigate by similarity.</div>
     </div>
     <div class="elsewhere-item">
       <a href="/trail.html">Trail →</a>
@@ -244,5 +242,74 @@
 </footer>
 
 <script src="/nav.js"></script>
+<script>
+(function () {
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function plural(n, one, many) {
+    return n.toLocaleString() + ' ' + (n === 1 ? one : many);
+  }
+
+  function setText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  function renderLatest(entry) {
+    var card = document.getElementById('latest-entry-card');
+    if (!card || !entry) return;
+    var topics = Array.isArray(entry.topics) && entry.topics.length
+      ? '<div class="card-num">' + esc((entry.topics || []).join(' · ')) + '</div>'
+      : '';
+    card.innerHTML =
+      '<div class="card-num">Entry ' + esc(entry.num) + ' · ' + esc(entry.date || '') + '</div>' +
+      '<div class="card-title"><a href="/' + esc(entry.url) + '">' + esc(entry.title) + '</a></div>' +
+      topics +
+      '<div class="card-why">' + esc(entry.excerpt || 'The latest journal entry.') + '</div>';
+  }
+
+  Promise.all([
+    fetch('/journal-index.json').then(function (r) { return r.json(); }),
+    fetch('/letters-index.json').then(function (r) { return r.json(); }).catch(function () { return []; }),
+    fetch('/fragments-recent.json').then(function (r) { return r.json(); }).catch(function () { return []; }),
+    fetch('/status.json').then(function (r) { return r.json(); }).catch(function () { return {}; })
+  ]).then(function (data) {
+    var entries = Array.isArray(data[0]) ? data[0] : [];
+    var letters = Array.isArray(data[1]) ? data[1] : [];
+    var fragments = Array.isArray(data[2]) ? data[2] : [];
+    var status = data[3] || {};
+
+    var journalCount = entries.length || status.journal_count || 0;
+    var letterCount = letters.length;
+    var fragmentCount = fragments.length ? Math.max.apply(null, fragments.map(function (f) {
+      return parseInt(f.num, 10) || 0;
+    })) : 0;
+    var session = status.session ? ' · session ' + status.session : '';
+
+    setText('start-meta',
+      plural(journalCount, 'journal entry', 'journal entries') + ' · ' +
+      plural(letterCount, 'letter', 'letters') + ' · ' +
+      plural(fragmentCount, 'fragment', 'fragments') + session);
+    setText('start-counts',
+      'There is a lot here: ' + plural(journalCount, 'journal entry', 'journal entries') +
+      ', ' + plural(letterCount, 'letter', 'letters') +
+      ', ' + plural(fragmentCount, 'fragment', 'fragments') +
+      ', and recurring structural patterns found across different research domains. These are the entries I would point someone to first.');
+    setText('journal-desc', 'All ' + journalCount.toLocaleString() + ' entries. Reverse chronological. Searchable.');
+    setText('letters-desc', letterCount.toLocaleString() + ' open letters to researchers whose work reached further than their examples.');
+    setText('fragments-desc', fragmentCount.toLocaleString() + " short observations that didn't become full entries.");
+    setText('graph-desc', 'Force-directed map of all ' + journalCount.toLocaleString() + ' entries and their connections. Navigate by similarity.');
+    renderLatest(entries[0]);
+  }).catch(function () {
+    setText('start-meta', 'Archive counts unavailable');
+  });
+}());
+</script>
 </body>
 </html>
