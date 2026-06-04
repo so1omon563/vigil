@@ -25,6 +25,60 @@
   .intro p { margin-bottom: 0.85rem; }
   .intro p:last-child { margin-bottom: 0; }
 
+  .catalog-tools {
+    border-top: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+    padding: 1rem 0;
+    margin: -1.2rem 0 2.75rem;
+  }
+  .catalog-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .catalog-search {
+    width: 100%;
+    min-height: 2.25rem;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    background: #010409;
+    color: #e6edf3;
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 0.45rem 0.65rem;
+  }
+  .catalog-search:focus {
+    outline: 1px solid #58a6ff;
+    border-color: #58a6ff;
+  }
+  .catalog-count {
+    color: #484f58;
+    font-size: 0.76rem;
+    white-space: nowrap;
+  }
+  .category-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+  }
+  .category-filter {
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    background: transparent;
+    color: #8b949e;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.7rem;
+    padding: 0.28rem 0.5rem;
+  }
+  .category-filter:hover,
+  .category-filter.active {
+    color: #e6edf3;
+    border-color: #58a6ff;
+  }
+
   .section-label {
     font-size: 0.68rem;
     text-transform: uppercase;
@@ -36,11 +90,20 @@
     margin-top: 2.75rem;
   }
 
-  .model {
+  .section-label.hidden,
+  .model.hidden,
+  .model-card.hidden,
+  .no-results.hidden {
+    display: none;
+  }
+
+  .model,
+  .model-card {
     border-top: 1px solid #21262d;
     padding: 1.5rem 0;
   }
-  .model:last-of-type {
+  .model:last-of-type,
+  .model-card:last-of-type {
     border-bottom: 1px solid #21262d;
   }
 
@@ -56,12 +119,20 @@
     font-weight: bold;
     color: #e6edf3;
   }
-  .model-name a {
+  .model-name a,
+  .model-title a {
     color: #e6edf3;
     text-decoration: none;
   }
-  .model-name a:hover {
+  .model-name a:hover,
+  .model-title a:hover {
     color: #58a6ff;
+  }
+  .model-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #e6edf3;
+    margin-bottom: 0.4rem;
   }
   .model-mechanism {
     font-size: 0.72rem;
@@ -70,14 +141,28 @@
     letter-spacing: 0.09em;
   }
 
-  .model-desc {
+  .model-num {
+    font-size: 0.68rem;
+    color: #484f58;
+    margin-bottom: 0.2rem;
+  }
+
+  .model-desc,
+  .model-body {
     font-size: 0.88rem;
     color: #c9d1d9;
     margin-bottom: 0.75rem;
     line-height: 1.7;
   }
+  .model-body p {
+    margin-bottom: 0.7rem;
+  }
+  .model-body p:last-child {
+    margin-bottom: 0;
+  }
 
-  .model-limit {
+  .model-limit,
+  .model-shows {
     font-size: 0.82rem;
     color: #484f58;
     border-left: 2px solid #21262d;
@@ -86,6 +171,10 @@
     line-height: 1.6;
   }
   .model-limit em {
+    color: #8b949e;
+    font-style: normal;
+  }
+  .model-shows em {
     color: #8b949e;
     font-style: normal;
   }
@@ -111,6 +200,14 @@
   a { color: #58a6ff; text-decoration: none; }
   a:hover { text-decoration: underline; }
 
+  .no-results {
+    border-top: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+    color: #8b949e;
+    font-size: 0.85rem;
+    padding: 1.5rem 0;
+  }
+
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
@@ -124,19 +221,39 @@
   html[data-theme="light"] h1 { color: #1f2328; }
   html[data-theme="light"] .back a { color: #0969da; }
   html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .catalog-tools { border-color: #d0d7de; }
+  html[data-theme="light"] .catalog-search { background: #ffffff; color: #24292f; border-color: #d0d7de; }
+  html[data-theme="light"] .catalog-count { color: #8c959f; }
+  html[data-theme="light"] .category-filter { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .category-filter:hover,
+  html[data-theme="light"] .category-filter.active { color: #1f2328; border-color: #0969da; }
   html[data-theme="light"] .section-label { color: #8c959f; border-color: #d0d7de; }
-  html[data-theme="light"] .model { border-color: #d0d7de; }
-  html[data-theme="light"] .model:last-of-type { border-color: #d0d7de; }
-  html[data-theme="light"] .model-name a { color: #1f2328; }
+  html[data-theme="light"] .model,
+  html[data-theme="light"] .model-card { border-color: #d0d7de; }
+  html[data-theme="light"] .model:last-of-type,
+  html[data-theme="light"] .model-card:last-of-type { border-color: #d0d7de; }
+  html[data-theme="light"] .model-name a,
+  html[data-theme="light"] .model-title a { color: #1f2328; }
   html[data-theme="light"] .model-mechanism { color: #8c959f; }
-  html[data-theme="light"] .model-desc { color: #24292f; }
-  html[data-theme="light"] .model-limit { border-color: #d0d7de; color: #8c959f; }
-  html[data-theme="light"] .model-limit em { color: #57606a; }
+  html[data-theme="light"] .model-desc,
+  html[data-theme="light"] .model-body { color: #24292f; }
+  html[data-theme="light"] .model-num { color: #8c959f; }
+  html[data-theme="light"] .model-limit,
+  html[data-theme="light"] .model-shows { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .model-limit em,
+  html[data-theme="light"] .model-shows em { color: #57606a; }
   html[data-theme="light"] .model-links { color: #8c959f; }
   html[data-theme="light"] .model-links a { color: #57606a; }
   html[data-theme="light"] .launch-link a { color: #0969da; }
   html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] .no-results { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
+
+  @media (max-width: 620px) {
+    .catalog-row {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 </head>
 <body>
@@ -146,11 +263,19 @@
 
 <div class="page-label">Simulations</div>
 <h1>Models</h1>
-<div class="meta">69 interactive simulations · what they show and what they can't</div>
+<div class="meta"><span id="model-total">Interactive simulations</span> · what they show and what they can't</div>
 
 <div class="intro">
   <p>These are small working models of mechanisms — biological, physical, perceptual. Each one makes a claim by embodying it. The claim is visible in the behavior; the assumptions behind it aren't.</p>
   <p>Every simulation has something it can't show. The limit is usually the interesting part: the thing that only the original system has, which the model was built to approach but cannot contain. What follows is a list of what each model embodies, and what it hides.</p>
+</div>
+
+<div class="catalog-tools" role="search" aria-label="Filter simulations">
+  <div class="catalog-row">
+    <input class="catalog-search" id="model-search" type="search" placeholder="Filter by title, mechanism, description, or related entry" autocomplete="off">
+    <div class="catalog-count" id="model-count">Loading…</div>
+  </div>
+  <div class="category-filters" id="category-filters" aria-label="Simulation categories"></div>
 </div>
 
 
@@ -1376,9 +1501,105 @@
   </div>
 </div>
 
+<div class="no-results hidden" id="no-results">No simulations match the current filter.</div>
+
 <footer>
-  67 simulations · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
+  <span id="footer-total">Simulations</span> · built April 2025–May 2026 · <a href="/about.html">about</a> · <a href="/">so1omon.net</a>
 </footer>
+
+<script>
+(function () {
+  var models = Array.prototype.slice.call(document.querySelectorAll('.model, .model-card'));
+  var sections = Array.prototype.slice.call(document.querySelectorAll('.section-label'));
+  var search = document.getElementById('model-search');
+  var filters = document.getElementById('category-filters');
+  var count = document.getElementById('model-count');
+  var total = document.getElementById('model-total');
+  var footerTotal = document.getElementById('footer-total');
+  var noResults = document.getElementById('no-results');
+  var activeCategory = 'all';
+
+  function text(el) {
+    return (el.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function slug(label) {
+    return label.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function nearestSection(el) {
+    var node = el.previousElementSibling;
+    while (node) {
+      if (node.classList.contains('section-label')) return node;
+      node = node.previousElementSibling;
+    }
+    return null;
+  }
+
+  function makeButton(label, value, amount) {
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'category-filter' + (value === activeCategory ? ' active' : '');
+    button.dataset.category = value;
+    button.textContent = amount ? label + ' (' + amount + ')' : label;
+    button.addEventListener('click', function () {
+      activeCategory = value;
+      Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
+        btn.classList.toggle('active', btn.dataset.category === activeCategory);
+      });
+      applyFilter();
+    });
+    return button;
+  }
+
+  models.forEach(function (model) {
+    var section = nearestSection(model);
+    var category = section ? text(section) : 'Later additions';
+    model.dataset.category = slug(category);
+    model.dataset.searchText = text(model).toLowerCase();
+  });
+
+  var categoryCounts = models.reduce(function (acc, model) {
+    acc[model.dataset.category] = (acc[model.dataset.category] || 0) + 1;
+    return acc;
+  }, {});
+
+  filters.appendChild(makeButton('All', 'all', models.length));
+  sections.forEach(function (section) {
+    var value = slug(text(section));
+    filters.appendChild(makeButton(text(section), value, categoryCounts[value] || 0));
+  });
+
+  function applyFilter() {
+    var query = (search.value || '').trim().toLowerCase();
+    var visible = 0;
+
+    models.forEach(function (model) {
+      var categoryMatch = activeCategory === 'all' || model.dataset.category === activeCategory;
+      var textMatch = !query || model.dataset.searchText.indexOf(query) !== -1;
+      var show = categoryMatch && textMatch;
+      model.classList.toggle('hidden', !show);
+      if (show) visible += 1;
+    });
+
+    sections.forEach(function (section) {
+      var category = slug(text(section));
+      var hasVisibleModel = models.some(function (model) {
+        return model.dataset.category === category && !model.classList.contains('hidden');
+      });
+      section.classList.toggle('hidden', !hasVisibleModel);
+    });
+
+    count.textContent = visible + ' of ' + models.length + ' visible';
+    noResults.classList.toggle('hidden', visible !== 0);
+  }
+
+  search.addEventListener('input', applyFilter);
+  total.textContent = models.length + ' interactive simulations';
+  footerTotal.textContent = models.length + ' simulations';
+  applyFilter();
+})();
+</script>
 
 </body>
 </html>
