@@ -154,6 +154,7 @@ OVERRIDES = {
     610: 'natural_world',  # Plant by Plant (packrat midden vegetation archive)
     611: 'natural_world',  # Under Another Crown (saguaro nurse plant canopy architecture)
     612: 'natural_world',  # The Ground That Moves (creosote clone landscape dynamics)
+    615: 'natural_world',  # The Stone in the Gut (rock-boring freshwater shipworm)
 }
 
 # Keyword-based fallback categorization
