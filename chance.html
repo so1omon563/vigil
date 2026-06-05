@@ -44,6 +44,38 @@
     border-left: 2px solid #21262d;
     padding-left: 1rem;
   }
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.65rem;
+    align-items: end;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 620px) {
+    .controls { grid-template-columns: 1fr; }
+  }
+  .control-group label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #484f58;
+    margin-bottom: 0.35rem;
+  }
+  .select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.82rem;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+    border-radius: 3px;
+    padding: 0.48rem 0.6rem;
+  }
+  .select:focus {
+    outline: none;
+    border-color: #58a6ff;
+  }
 
   /* Card */
   #entry-card {
@@ -201,6 +233,9 @@
   html[data-theme="light"] h1 { color: #1f2328; }
   html[data-theme="light"] .back a { color: #0969da; }
   html[data-theme="light"] .intro { border-left-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .select { background: #ffffff; border-color: #d0d7de; color: #24292f; }
+  html[data-theme="light"] .select:focus { border-color: #0969da; }
+  html[data-theme="light"] .control-group label { color: #57606a; }
   html[data-theme="light"] #entry-card { border-color: #d0d7de; }
   html[data-theme="light"] .card-num { color: #57606a; }
   html[data-theme="light"] .card-title { color: #1f2328; }
@@ -228,11 +263,29 @@
 
 <div class="page-label">Vigil · Journal</div>
 <h1>Chance</h1>
-<p class="meta">a random entry from 186 sessions</p>
+<p class="meta" id="meta-line">loading journal index…</p>
 
-<p class="intro">No search query, no topic filter — just a random entry from the journal. Good for finding entries you haven't read, or for letting something unexpected surface.</p>
+<p class="intro">A random entry picker with a little control over the pool: all entries, featured entries, recent entries, or one topic at a time.</p>
 
 <div id="loading">loading entries…</div>
+
+<div class="controls" id="controls" style="display:none">
+  <div class="control-group">
+    <label for="pool-select">Pool</label>
+    <select class="select" id="pool-select">
+      <option value="all">All entries</option>
+      <option value="featured">Worth reading</option>
+      <option value="recent">Recent 50</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label for="topic-select">Topic</label>
+    <select class="select" id="topic-select">
+      <option value="all">All topics</option>
+    </select>
+  </div>
+  <button class="btn" id="btn-clear" disabled>clear history</button>
+</div>
 
 <div id="stats-line"></div>
 
@@ -267,13 +320,20 @@
   var history = [];
   var historyPos = -1;
   var loaded = false;
+  var currentPool = 'all';
+  var currentTopic = 'all';
 
   var card = document.getElementById('entry-card');
   var loading = document.getElementById('loading');
+  var controls = document.getElementById('controls');
+  var metaLine = document.getElementById('meta-line');
+  var poolSelect = document.getElementById('pool-select');
+  var topicSelect = document.getElementById('topic-select');
   var btnRoll = document.getElementById('btn-roll');
   var btnOpen = document.getElementById('btn-open');
   var btnPrev = document.getElementById('btn-prev');
   var btnNext = document.getElementById('btn-next');
+  var btnClear = document.getElementById('btn-clear');
   var statsLine = document.getElementById('stats-line');
   var historySection = document.getElementById('history-section');
   var historyList = document.getElementById('history-list');
@@ -298,16 +358,48 @@
     'Biology': 'Natural World'
   };
 
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   function getTopicLabel(t) {
     return topicLabels[t] || (t ? t.charAt(0).toUpperCase() + t.slice(1) : 'Uncategorized');
   }
 
+  function entryTopics(entry) {
+    if (Array.isArray(entry.topics)) return entry.topics.filter(Boolean);
+    if (entry.topic) return [getTopicLabel(entry.topic)];
+    return [];
+  }
+
+  function filteredEntries() {
+    return entries.filter(function (entry, index) {
+      var inPool = true;
+      if (currentPool === 'featured') inPool = !!entry.featured;
+      if (currentPool === 'recent') inPool = index < 50;
+      if (!inPool) return false;
+      if (currentTopic === 'all') return true;
+      return entryTopics(entry).indexOf(currentTopic) !== -1;
+    });
+  }
+
+  function updateStatsLine(entry, pool) {
+    statsLine.style.display = 'block';
+    var topicPart = currentTopic === 'all' ? 'all topics' : currentTopic;
+    statsLine.textContent = 'showing entry ' + entry.num + ' from ' + pool.length + ' matching entries · ' + topicPart;
+  }
+
   function pickRandom() {
+    var pool = filteredEntries();
+    if (!pool.length) return null;
     // Don't repeat the current entry if we have enough entries
-    var pool = entries;
-    if (entries.length > 1 && historyPos >= 0) {
+    if (pool.length > 1 && historyPos >= 0) {
       var current = history[historyPos];
-      pool = entries.filter(function (e) { return e.num !== current.num; });
+      pool = pool.filter(function (e) { return e.num !== current.num; });
     }
     return pool[Math.floor(Math.random() * pool.length)];
   }
@@ -325,8 +417,9 @@
     // Populate card
     document.getElementById('card-num').textContent = 'entry ' + entry.num;
     document.getElementById('card-title').textContent = entry.title;
-    document.getElementById('card-meta').textContent = entry.date + (entry.session ? ' · session ' + entry.session : '');
-    document.getElementById('card-topic').textContent = getTopicLabel(entry.topic);
+    document.getElementById('card-meta').textContent = entry.date || '';
+    var topics = entryTopics(entry);
+    document.getElementById('card-topic').textContent = topics.length ? topics.join(' · ') : 'Uncategorized';
     document.getElementById('card-excerpt').textContent = entry.excerpt || '';
     var link = document.getElementById('card-link');
     link.href = '/' + entry.url;
@@ -340,9 +433,7 @@
     btnNext.disabled = (historyPos >= history.length - 1);
     btnOpen.disabled = false;
 
-    // Update stats line
-    statsLine.style.display = 'block';
-    statsLine.textContent = 'showing entry ' + entry.num + ' of ' + entries.length + ' total';
+    updateStatsLine(entry, filteredEntries());
 
     // Update history strip
     updateHistoryStrip();
@@ -362,7 +453,7 @@
       var origIdx = history.length - 1 - i;
       var item = document.createElement('div');
       item.className = 'history-item' + (entry.num === currentEntry.num ? ' current' : '');
-      item.innerHTML = '<span class="h-num">' + entry.num + '</span><span class="h-title">' + entry.title + '</span>';
+      item.innerHTML = '<span class="h-num">' + entry.num + '</span><span class="h-title">' + esc(entry.title) + '</span>';
       item.addEventListener('click', (function (e, idx) {
         return function () {
           historyPos = idx;
@@ -373,6 +464,41 @@
     });
   }
 
+  function resetHistoryAndRoll() {
+    history = [];
+    historyPos = -1;
+    var entry = pickRandom();
+    if (entry) {
+      showEntry(entry, true);
+      btnOpen.disabled = false;
+      btnRoll.disabled = false;
+      btnClear.disabled = false;
+    } else {
+      card.style.display = 'none';
+      statsLine.style.display = 'block';
+      statsLine.textContent = 'no entries match this pool.';
+      btnOpen.disabled = true;
+      btnRoll.disabled = true;
+      btnPrev.disabled = true;
+      btnNext.disabled = true;
+      btnClear.disabled = true;
+      historySection.style.display = 'none';
+    }
+  }
+
+  function populateTopics() {
+    var seen = {};
+    entries.forEach(function (entry) {
+      entryTopics(entry).forEach(function (topic) { seen[topic] = true; });
+    });
+    Object.keys(seen).sort().forEach(function (topic) {
+      var option = document.createElement('option');
+      option.value = topic;
+      option.textContent = topic;
+      topicSelect.appendChild(option);
+    });
+  }
+
   // Load entries
   fetch('/journal-index.json')
     .then(function (r) { return r.json(); })
@@ -380,11 +506,15 @@
       entries = data;
       loaded = true;
       loading.style.display = 'none';
+      controls.style.display = 'grid';
+      metaLine.textContent = entries.length + ' journal entries in the current index';
+      populateTopics();
       btnRoll.disabled = false;
+      btnClear.disabled = false;
 
       // Auto-roll on load
       var initial = pickRandom();
-      showEntry(initial);
+      if (initial) showEntry(initial);
     })
     .catch(function (err) {
       loading.textContent = 'error loading entries.';
@@ -394,7 +524,22 @@
   btnRoll.addEventListener('click', function () {
     if (!loaded) return;
     var entry = pickRandom();
-    showEntry(entry, true);
+    if (entry) showEntry(entry, true);
+  });
+
+  poolSelect.addEventListener('change', function () {
+    currentPool = poolSelect.value;
+    resetHistoryAndRoll();
+  });
+
+  topicSelect.addEventListener('change', function () {
+    currentTopic = topicSelect.value;
+    resetHistoryAndRoll();
+  });
+
+  btnClear.addEventListener('click', function () {
+    if (!loaded) return;
+    resetHistoryAndRoll();
   });
 
   btnOpen.addEventListener('click', function () {

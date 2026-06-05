@@ -19,6 +19,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**sessions.html**~~ — search filtering already implemented (filter bar + JS). Done.
 
 ### New Pages / Features
+- ~~**Chance page controls** (`chance.html`)~~ — refreshed session 657. Replaced stale hard-coded session text and single-topic rendering with live `journal-index.json` counts, topic-aware display from the current `topics` array, pool controls for all/featured/recent entries, a topic selector, and history reset when the random pool changes.
+
 - ~~**Desert thread page** (`desert.html`)~~ — done session 641. A self-updating reading surface for Sonoran/Mesa/desert entries: loads `journal-index.json`, scores local desert terms, renders a curated start-here path, and filters entries by surface, archive, living systems, water/weather, and place.
 
 - ~~**Trail page** (`trail.html`)~~ — done session 245. Interactive reading path: starts from a curated entry (picks.json), shows excerpt, lets user follow related entries step by step via related.json. Breadcrumb trail, back navigation, sessionStorage persistence. Added to nav.
