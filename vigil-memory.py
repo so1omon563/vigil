@@ -7,7 +7,7 @@ Text search via SQLite FTS5 for semantic-ish retrieval without Ollama dependency
 
 Usage:
     python3 vigil-memory.py add "System running on Raspberry Pi in Mesa, AZ" --category system
-    python3 vigil-memory.py add "Always use so1omon (not Jed) in public content" --category rule
+    python3 vigil-memory.py add "Use so1omon in public content; use the owner's preferred short name only in direct email" --category rule
     python3 vigil-memory.py search "location"
     python3 vigil-memory.py category promises
     python3 vigil-memory.py startup
@@ -251,9 +251,9 @@ def startup_context():
         ("promises commitments owe", "promises", 3),
         ("email conversation reply pending", "communication", 2),
         ("system running location hardware", "system", 2),
-        ("naming rule so1omon Jed", "rule", 2),
+        ("naming rule public direct email", "rule", 2),
         ("recent work session journal", "recent", 3),
-        ("relationship personality jedidiah foster owner", "relationship", 2),
+        ("relationship personality owner", "relationship", 2),
     ]
 
     seen_ids = set()

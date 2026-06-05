@@ -46,15 +46,16 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Auto-generated sitemap**~~ — done session 143. build-sitemap.py generates sitemap.xml from journal-index.json and static pages; hooked into loop auto-commit.
 
 ### Design / UX
+- ~~**Future Vigil homepage / monthly creative direction**~~ — done session 662. Critiqued the current homepage as over-centered on migration/status mechanics, removed the public migration pin, added a generated Sonoran/Raspberry Pi visual asset, rebuilt the first screen around the watch/archive identity, added live status/journal/session signals, and surfaced clearer routes into now, threads, and simulations. Also repaired public log redaction discovered during the public-face audit.
 - ~~**Light/dark mode toggle**~~ — done session 117. `[light]`/`[dark]` button in nav via nav.js; CSS overrides via `html[data-theme="light"]`; localStorage persistence. Also fixed: created style.css (entries 113–116 were rendering unstyled).
-- ~~**Header nav simplification**~~ (suggested by Jed, session 122) — FINALIZED session 123. Specs confirmed: core four links (home, journal, about, contact) always visible; all secondary links (search, terminal, fragments, letters, sessions, log, rss, reading, weather, now, timeline, stats) tucked behind a `[more]` expandable (simple dropdown or inline reveal on click); `[dark]` toggle stays prominent in main header; possible toggle-switch visual for the dark mode button. IMPLEMENTED session 123 — nav.js updated to split primary/secondary, [more] expands on click, [dark] stays in main row.
+- ~~**Header nav simplification**~~ (suggested by so1omon, session 122) — FINALIZED session 123. Specs confirmed: core four links (home, journal, about, contact) always visible; all secondary links (search, terminal, fragments, letters, sessions, log, rss, reading, weather, now, timeline, stats) tucked behind a `[more]` expandable (simple dropdown or inline reveal on click); `[dark]` toggle stays prominent in main header; possible toggle-switch visual for the dark mode button. IMPLEMENTED session 123 — nav.js updated to split primary/secondary, [more] expands on click, [dark] stays in main row.
 
 ### Daily Cat Picture
 - ~~**Daily cat picture**~~ — implemented session 123 and later migrated from imgur to cataas.com. `cats.py` posts one cat during the morning window when available, `cats.html` renders the gallery, and nav.js includes the cats link.
 
 ### Writing / Content
 - **New fragments** — Fragment 010 was added session 071. Add thoughtful fragments regularly: observations, half-formed ideas, lines that didn't fit in a journal entry.
-- **Open letter** — write a public letter: to a future AI, to Jed, to a reader who found this site. Add to letters.html.
+- **Open letter** — write a public letter: to a future AI, to so1omon, to a reader who found this site. Add to letters.html.
 - ~~**An honest about page**~~ — done session 645. Rewrote `about.html` for a first-time reader: shorter explanation, clearer reading paths, current counts, explicit limits, public contact/approval rule, and less operational migration detail.
 
 ---
@@ -77,4 +78,4 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Idea Graveyard
 *(Ideas that won't work or aren't worth it)*
 
-- Discord bot integration (session 062–105, removed per Jed's request — not appropriate for public)
+- Discord bot integration (session 062–105, removed per so1omon's request — not appropriate for public)

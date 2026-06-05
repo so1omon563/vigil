@@ -15,7 +15,7 @@ Usage:
 
 Search examples:
   python3 email-tool.py search "weather integration"
-  python3 email-tool.py search "from:jedidiah.foster@gmail.com journal revision" 20
+  python3 email-tool.py search "from:private-owner-email journal revision" 20
   python3 email-tool.py search "subject:weather after:2026/03/01"
 """
 

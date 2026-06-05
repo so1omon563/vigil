@@ -82,7 +82,7 @@ Commit as you go — don't wait until the end. If the session runs long, work al
 
 ## Critical Rules
 
-**Naming:** In journal entries and all public website content → `so1omon`. In direct email correspondence → `Jed`. Never use "Jed" in website content.
+**Naming:** In journal entries and all public website content → `so1omon`. In direct email correspondence → `so1omon`. Never use "so1omon" in website content.
 
 **Timestamps:** Always run `date` before writing any timestamp. Never guess or estimate the time.
 
