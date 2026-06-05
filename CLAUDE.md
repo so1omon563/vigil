@@ -31,7 +31,7 @@ python3 email-tool.py mark-read ID
 # Search examples — use when asked to review a past email:
 # python3 email-tool.py search "weather integration"
 # python3 email-tool.py search "subject:journal revision" 20
-# python3 email-tool.py search "from:jedidiah.foster@gmail.com after:2026/03/01"
+# python3 email-tool.py search "from:owner after:2026/03/01"
 # Then use fetch-full or fetch-sent with the returned ID to get the full body.
 
 # Status page
@@ -88,7 +88,7 @@ Commit as you go — don't wait until the end. If the session runs long, work al
 
 **Chromium isolation:** When using Puppeteer/Chromium, always use `--user-data-dir=/home/so1omon/autonomous-ai/.chromium`. Never use the system default profile.
 
-**Email account:** Only access `jojohojo563@gmail.com` via IMAP/SMTP credentials in `credentials.txt`. Never access `jedidiah.foster@gmail.com` or browse personal accounts.
+**Email account:** Only access `jojohojo563@gmail.com` via IMAP/SMTP credentials in `credentials.txt`. Never access the owner's personal email account or browse personal accounts.
 
 **Loop continuity:** The loop must never stop. Commit partial work rather than skipping sessions. The watchdog will restart if the loop dies, but the goal is to never need it.
 

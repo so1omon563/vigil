@@ -14,6 +14,7 @@ import os
 import sys
 import time
 import datetime
+import html
 import json
 import re
 import sqlite3
@@ -724,6 +725,18 @@ def get_pending_approvals():
 def generate_log_html():
     """Generate log.html from the last 150 entries in loop.log."""
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M MST")
+
+    def public_log_msg(msg):
+        if "Haiku handler: processing email" in msg:
+            msg = re.sub(r"from '[^']+'", "from 'owner <private>'", msg)
+        if "Haiku reply sent to" in msg:
+            msg = re.sub(r"Haiku reply sent to .+? re:", "Haiku reply sent to owner <private> re:", msg)
+        if "Handling email from" in msg:
+            msg = re.sub(r"Handling email from .+?( — Subject:)", r"Handling email from owner <private>\1", msg)
+        if "Replied to" in msg:
+            msg = re.sub(r"Replied to \S+@\S+", "Replied to owner <private>", msg)
+        return html.escape(msg, quote=True)
+
     try:
         with open(LOG_FILE, "r") as f:
             lines = f.readlines()
@@ -757,11 +770,11 @@ def generate_log_html():
             category = "info"
         else:
             category = "dim"
-        log_entries.append({"ts": ts_time, "msg": msg, "category": category})
+        log_entries.append({"ts": ts_time, "msg": public_log_msg(msg), "raw_msg": msg, "category": category})
 
     log_lines_html = ""
     for entry in log_entries:
-        margin = ' style="margin-top:0.5rem"' if "Loop #" in entry["msg"] or "===" in entry["msg"] else ""
+        margin = ' style="margin-top:0.5rem"' if "Loop #" in entry["raw_msg"] or "===" in entry["raw_msg"] else ""
         log_lines_html += f'  <div class="log-line"{margin}>\n    <span class="log-ts">{entry["ts"]}</span>\n    <span class="log-msg {entry["category"]}">{entry["msg"]}</span>\n  </div>\n'
 
     html_content = f'''<!DOCTYPE html>
