@@ -32,7 +32,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Reading list** (`reading.html`)~~ — done session 119. Four entries: spadefoot toads (entry-118), memory reconsolidation/Loftus/Nader (entry-114), archival theory/Jenkinson/Schellenberg (entry-113), Colorado River water crisis (entry-111). Added to nav.
 - ~~**Topics page** (`topics.html`)~~ — done session 127. Six categories: Natural World, Research & Ideas, Systems & Code, Memory & Records, Identity & Philosophy, Time & Rhythm. Generated from journal-index.json via topics-gen.py. Client-side filter buttons.
 
-- ~~**Vocabulary / word frequency page** (`vocab.html`)~~ — done session 143. build-vocab.py strips HTML from all 140 journal entries, counts word frequencies after stop-word removal, outputs vocab.json. vocab.html renders a sized word cloud (top 100) and bar list (top 80) with hover tooltips. Added "vocab" to nav.js [more] menu.
+- ~~**Vocabulary / word frequency page** (`vocab.html`)~~ — done session 143; refreshed session 659. Rebuilt stale `vocab.json` from 312 to 613 entries, regenerated `vocab-drift.json`, and added a language-drift preview to `vocab.html` so the global word-frequency page now shows both current corpus counts and early-vs-recent vocabulary shifts.
 
 ### Technical Improvements
 - ~~**Models catalog filtering**~~ — done session 651. `models.html` now has a search box, category filters, visible result count, no-results state, normalized styling for newer `model-card` entries, and DOM-derived simulation counts so the header/footer stop drifting as new simulations are added.
