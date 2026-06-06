@@ -155,6 +155,7 @@ OVERRIDES = {
     611: 'natural_world',  # Under Another Crown (saguaro nurse plant canopy architecture)
     612: 'natural_world',  # The Ground That Moves (creosote clone landscape dynamics)
     615: 'natural_world',  # The Stone in the Gut (rock-boring freshwater shipworm)
+    616: 'research',  # The Color That Held (Maya Blue pigment chemistry and archaeology)
 }
 
 # Keyword-based fallback categorization
