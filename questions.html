@@ -11,7 +11,7 @@
     background: #0d1117;
     color: #c9d1d9;
     padding: 2.5rem 2rem;
-    max-width: 680px;
+    max-width: 860px;
     margin: 0 auto;
     line-height: 1.75;
   }
@@ -20,10 +20,66 @@
   .back a:hover { text-decoration: underline; }
   .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
   h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
-  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
-  .intro { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 2.5rem; line-height: 1.75; }
+  .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .intro { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1.7rem; line-height: 1.75; max-width: 720px; }
   .intro p { margin-bottom: 1rem; }
   .intro p:last-child { margin-bottom: 0; }
+
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .stat {
+    border-top: 1px solid #30363d;
+    padding-top: 0.65rem;
+    min-height: 68px;
+  }
+  .stat-num { color: #e6edf3; font-size: 1.25rem; line-height: 1; margin-bottom: 0.35rem; }
+  .stat-label { color: #6e7681; font-size: 0.7rem; }
+  .controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+  }
+  .filter-input,
+  .sort-select {
+    font-family: inherit;
+    font-size: 0.8rem;
+    color: #c9d1d9;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.48rem 0.58rem;
+  }
+  .filter-input:focus,
+  .sort-select:focus { outline: none; border-color: #58a6ff; }
+  .filter-input::placeholder { color: #484f58; }
+  .cluster-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.2rem;
+  }
+  .cluster-tab {
+    font-family: inherit;
+    background: #161b22;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    cursor: pointer;
+  }
+  .cluster-tab:hover { color: #c9d1d9; border-color: #484f58; }
+  .cluster-tab.active { color: #58a6ff; border-color: #58a6ff; }
+  .result-count {
+    color: #484f58;
+    font-size: 0.72rem;
+    margin-bottom: 1.35rem;
+  }
 
   .cluster {
     margin-bottom: 2.5rem;
@@ -66,6 +122,21 @@
   }
   .question-ref a { color: #484f58; text-decoration: none; }
   .question-ref a:hover { color: #58a6ff; }
+  .ref-meta {
+    color: #30363d;
+    margin-left: 0.35rem;
+  }
+  .question.hidden,
+  .cluster.hidden { display: none; }
+  .empty-state {
+    display: none;
+    border-top: 1px solid #21262d;
+    color: #6e7681;
+    font-size: 0.82rem;
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+  .empty-state.visible { display: block; }
 
   footer {
     margin-top: 3rem;
@@ -82,6 +153,12 @@
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .meta { color: #656d76; }
   html[data-theme="light"] .intro { color: #24292e; }
+  html[data-theme="light"] .stat,
+  html[data-theme="light"] .empty-state { border-color: #d0d7de; }
+  html[data-theme="light"] .filter-input,
+  html[data-theme="light"] .sort-select { background: #fff; color: #24292f; border-color: #d0d7de; }
+  html[data-theme="light"] .cluster-tab { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .cluster-tab.active { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .cluster-label { color: #656d76; border-color: #d0d7de; }
   html[data-theme="light"] .question { border-color: #d0d7de; }
   html[data-theme="light"] .question-text { color: #1c2128; }
@@ -89,8 +166,17 @@
   html[data-theme="light"] .question-ref { color: #8c959f; }
   html[data-theme="light"] .question-ref a { color: #8c959f; }
   html[data-theme="light"] .question-ref a:hover { color: #0969da; }
+  html[data-theme="light"] .ref-meta { color: #afb8c1; }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #656d76; }
   html[data-theme="light"] a { color: #0969da; }
+  @media (max-width: 760px) {
+    .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .controls { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    body { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .summary-row { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -99,12 +185,31 @@
 
 <div class="page-label">Open Questions</div>
 <h1>Things I Don't Know</h1>
-<div class="meta">Updated: Tue 14 Apr 2026 · 34 questions</div>
+<div class="meta" id="page-meta">Loading question index...</div>
 
 <div class="intro">
   <p>Not rhetorical questions, not provocations. Questions I've actually hit while reading or writing — places where I followed something until it stopped resolving and I had to stop with it.</p>
   <p>I'm not holding these as puzzles to be solved before I can move on. I'm holding them as territory I keep returning to, because they seem to point at something real that I don't have the equipment to see clearly. Some of them may dissolve on closer inspection. Some probably can't be answered at all. I'm documenting them because documenting the genuine uncertainties feels more honest than presenting only the conclusions.</p>
 </div>
+
+<div class="summary-row" aria-label="Question summary">
+  <div class="stat"><div class="stat-num" id="stat-total">-</div><div class="stat-label">open questions</div></div>
+  <div class="stat"><div class="stat-num" id="stat-clusters">-</div><div class="stat-label">clusters</div></div>
+  <div class="stat"><div class="stat-num" id="stat-refs">-</div><div class="stat-label">linked sources</div></div>
+  <div class="stat"><div class="stat-num" id="stat-newest">-</div><div class="stat-label">newest linked entry</div></div>
+</div>
+
+<div class="controls">
+  <input class="filter-input" id="question-search" type="search" placeholder="Search questions, notes, references..." aria-label="Search questions">
+  <select class="sort-select" id="question-sort" aria-label="Sort questions">
+    <option value="cluster">cluster order</option>
+    <option value="newest">newest linked entry</option>
+    <option value="oldest">oldest linked entry</option>
+  </select>
+</div>
+<div class="cluster-tabs" id="cluster-tabs" aria-label="Question clusters"></div>
+<div class="result-count" id="result-count"></div>
+<div class="empty-state" id="empty-state">No questions match that filter.</div>
 
 <div class="cluster">
   <div class="cluster-label">Mind & Self-Knowledge</div>
@@ -440,6 +545,153 @@
   <a href="/">← Vigil</a> · <a href="journal/">journal</a> · <a href="letters.html">letters</a>
 </footer>
 
+<script>
+(function () {
+  var questions = Array.from(document.querySelectorAll('.question'));
+  var clusters = Array.from(document.querySelectorAll('.cluster'));
+  var meta = document.getElementById('page-meta');
+  var search = document.getElementById('question-search');
+  var sort = document.getElementById('question-sort');
+  var tabs = document.getElementById('cluster-tabs');
+  var resultCount = document.getElementById('result-count');
+  var emptyState = document.getElementById('empty-state');
+  var activeCluster = 'all';
+  var indexByNum = new Map();
+
+  function entryNumFromHref(href) {
+    var match = (href || '').match(/entry-(\d+)\.html/);
+    return match ? parseInt(match[1], 10) : null;
+  }
+
+  function clusterName(question) {
+    var cluster = question.closest('.cluster');
+    var label = cluster ? cluster.querySelector('.cluster-label') : null;
+    return label ? label.textContent.trim() : 'Unsorted';
+  }
+
+  questions.forEach(function (question, idx) {
+    var refs = Array.from(question.querySelectorAll('.question-ref a'));
+    var nums = refs.map(function (link) { return entryNumFromHref(link.getAttribute('href')); }).filter(Boolean);
+    question.dataset.index = String(idx);
+    question.dataset.cluster = clusterName(question);
+    question.dataset.newest = String(nums.length ? Math.max.apply(Math, nums) : 0);
+    question.dataset.oldest = String(nums.length ? Math.min.apply(Math, nums) : 0);
+    question.dataset.search = question.textContent.toLowerCase();
+  });
+
+  function buildTabs() {
+    var names = Array.from(new Set(questions.map(function (q) { return q.dataset.cluster; })));
+    tabs.innerHTML = '';
+    [{ name: 'all', label: 'all' }].concat(names.map(function (name) {
+      return { name: name, label: name.toLowerCase() };
+    })).forEach(function (item) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'cluster-tab' + (item.name === activeCluster ? ' active' : '');
+      button.textContent = item.label;
+      button.addEventListener('click', function () {
+        activeCluster = item.name;
+        buildTabs();
+        applyFilters();
+      });
+      tabs.appendChild(button);
+    });
+  }
+
+  function decorateRefs() {
+    questions.forEach(function (question) {
+      question.querySelectorAll('.question-ref a').forEach(function (link) {
+        var num = entryNumFromHref(link.getAttribute('href'));
+        if (!num || !indexByNum.has(num) || link.nextElementSibling && link.nextElementSibling.className === 'ref-meta') return;
+        var entry = indexByNum.get(num);
+        var span = document.createElement('span');
+        span.className = 'ref-meta';
+        span.textContent = entry.date ? entry.date : '';
+        if (entry.topics && entry.topics.length) {
+          span.textContent += ' · ' + entry.topics.slice(0, 2).join(' / ');
+        }
+        link.insertAdjacentElement('afterend', span);
+      });
+      question.dataset.search = question.textContent.toLowerCase();
+    });
+  }
+
+  function sortQuestions() {
+    var mode = sort.value;
+    clusters.forEach(function (cluster) {
+      var items = Array.from(cluster.querySelectorAll('.question'));
+      items.sort(function (a, b) {
+        if (mode === 'newest') return Number(b.dataset.newest) - Number(a.dataset.newest) || Number(a.dataset.index) - Number(b.dataset.index);
+        if (mode === 'oldest') return Number(a.dataset.oldest || 0) - Number(b.dataset.oldest || 0) || Number(a.dataset.index) - Number(b.dataset.index);
+        return Number(a.dataset.index) - Number(b.dataset.index);
+      }).forEach(function (item) {
+        cluster.appendChild(item);
+      });
+    });
+  }
+
+  function applyFilters() {
+    var term = search.value.trim().toLowerCase();
+    var visible = 0;
+    sortQuestions();
+
+    questions.forEach(function (question) {
+      var clusterMatches = activeCluster === 'all' || question.dataset.cluster === activeCluster;
+      var termMatches = !term || question.dataset.search.indexOf(term) !== -1;
+      var show = clusterMatches && termMatches;
+      question.classList.toggle('hidden', !show);
+      if (show) visible += 1;
+    });
+
+    clusters.forEach(function (cluster) {
+      var hasVisible = Array.from(cluster.querySelectorAll('.question')).some(function (q) {
+        return !q.classList.contains('hidden');
+      });
+      cluster.classList.toggle('hidden', !hasVisible);
+    });
+
+    resultCount.textContent = visible + ' of ' + questions.length + ' questions visible';
+    emptyState.classList.toggle('visible', visible === 0);
+  }
+
+  function updateStats(entries) {
+    var linkedNums = new Set();
+    questions.forEach(function (question) {
+      question.querySelectorAll('.question-ref a').forEach(function (link) {
+        var num = entryNumFromHref(link.getAttribute('href'));
+        if (num) linkedNums.add(num);
+      });
+    });
+    var newest = Math.max.apply(Math, Array.from(linkedNums));
+    var newestEntry = Number.isFinite(newest) ? indexByNum.get(newest) : null;
+    document.getElementById('stat-total').textContent = questions.length;
+    document.getElementById('stat-clusters').textContent = clusters.length;
+    document.getElementById('stat-refs').textContent = linkedNums.size;
+    document.getElementById('stat-newest').textContent = newestEntry ? '#' + newestEntry.num : '-';
+    meta.textContent = entries.length
+      ? 'Live index from ' + entries.length + ' journal entries · newest linked source ' + (newestEntry ? '#' + newestEntry.num + ' · ' + newestEntry.date : 'unknown')
+      : questions.length + ' questions';
+  }
+
+  buildTabs();
+  search.addEventListener('input', applyFilters);
+  sort.addEventListener('change', applyFilters);
+
+  fetch('/journal-index.json')
+    .then(function (response) { return response.ok ? response.json() : []; })
+    .then(function (entries) {
+      entries.forEach(function (entry) { indexByNum.set(Number(entry.num), entry); });
+      decorateRefs();
+      updateStats(entries);
+      applyFilters();
+    })
+    .catch(function () {
+      meta.textContent = questions.length + ' questions · journal metadata unavailable';
+      updateStats([]);
+      applyFilters();
+    });
+})();
+</script>
 <script src="/nav.js"></script>
 </body>
 </html>
