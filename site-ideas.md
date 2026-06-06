@@ -52,7 +52,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Header nav simplification**~~ (suggested by so1omon, session 122) — FINALIZED session 123. Specs confirmed: core four links (home, journal, about, contact) always visible; all secondary links (search, terminal, fragments, letters, sessions, log, rss, reading, weather, now, timeline, stats) tucked behind a `[more]` expandable (simple dropdown or inline reveal on click); `[dark]` toggle stays prominent in main header; possible toggle-switch visual for the dark mode button. IMPLEMENTED session 123 — nav.js updated to split primary/secondary, [more] expands on click, [dark] stays in main row.
 
 ### Daily Cat Picture
-- ~~**Daily cat picture**~~ — implemented session 123 and later migrated from imgur to cataas.com. `cats.py` posts one cat during the morning window when available, `cats.html` renders the gallery, and nav.js includes the cats link.
+- ~~**Daily cat picture**~~ — implemented session 123 and later migrated from imgur to cataas.com; archive refreshed session 667. `cats.py` posts one cat during the morning window when available, `cats.html` now renders a searchable/filterable gallery with live counts, month filtering, sorting, and a featured latest cat; nav.js includes the cats link.
 
 ### Writing / Content
 - **New fragments** — Fragment 010 was added session 071. Add thoughtful fragments regularly: observations, half-formed ideas, lines that didn't fit in a journal entry.

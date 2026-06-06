@@ -6,74 +6,431 @@
 <title>Cats · Vigil</title>
 <link rel="stylesheet" href="/style.css">
 <style>
-.cats-header{margin-bottom:2rem;}
-.cat-grid{display:flex;flex-direction:column;gap:2rem;}
-.cat-entry{border-bottom:1px solid #21262d;padding-bottom:2rem;}
-.cat-entry:last-child{border-bottom:none;}
-.cat-date{font-size:0.75rem;color:#484f58;margin-bottom:0.5rem;}
-.cat-img{max-width:100%;max-height:500px;display:block;border-radius:4px;margin-bottom:0.75rem;}
-.cat-comment{font-size:0.875rem;color:#8b949e;}
-.cat-title{font-size:0.75rem;color:#30363d;margin-top:0.35rem;}
-.no-cats{color:#484f58;font-size:0.875rem;padding:2rem 0;}
+body {
+  max-width: 920px;
+}
+.page-label {
+  color: #58a6ff;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+.meta {
+  color: #6e7681;
+  font-size: 0.82rem;
+  margin-bottom: 1.2rem;
+}
+.summary-row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 1.6rem 0;
+}
+.stat {
+  border-top: 1px solid #30363d;
+  min-height: 68px;
+  padding-top: 0.7rem;
+}
+.stat-num {
+  color: #e6edf3;
+  font-size: 1.35rem;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+.stat-label {
+  color: #6e7681;
+  font-size: 0.72rem;
+}
+.feature {
+  border: 1px solid #21262d;
+  border-radius: 6px;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1fr);
+  margin: 0 0 1.6rem;
+  overflow: hidden;
+}
+.feature-media {
+  background: #05080d;
+  min-height: 260px;
+}
+.feature-media img {
+  display: block;
+  height: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  width: 100%;
+}
+.feature-copy {
+  padding: 1rem 1rem 1rem 0;
+}
+.feature-kicker {
+  color: #58a6ff;
+  font-size: 0.68rem;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+.feature-title {
+  color: #e6edf3;
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+.feature-date {
+  color: #484f58;
+  font-size: 0.72rem;
+  margin-bottom: 0.8rem;
+}
+.feature-comment {
+  color: #8b949e;
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+.tools {
+  align-items: center;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin-bottom: 0.75rem;
+}
+.search,
+.select {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  color: #c9d1d9;
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 0.48rem 0.58rem;
+}
+.search:focus,
+.select:focus {
+  border-color: #58a6ff;
+  outline: none;
+}
+.search::placeholder {
+  color: #484f58;
+}
+.select {
+  cursor: pointer;
+}
+.result-count {
+  color: #484f58;
+  font-size: 0.72rem;
+  margin: 0 0 0.8rem;
+}
+.cat-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cat-entry {
+  border-top: 1px solid #21262d;
+  padding-top: 0.85rem;
+}
+.cat-img-wrap {
+  aspect-ratio: 4 / 3;
+  background: #05080d;
+  border: 1px solid #161b22;
+  border-radius: 5px;
+  margin-bottom: 0.7rem;
+  overflow: hidden;
+}
+.cat-img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.18s ease;
+  width: 100%;
+}
+.cat-entry:hover .cat-img {
+  transform: scale(1.025);
+}
+.cat-date {
+  color: #484f58;
+  font-size: 0.68rem;
+  margin-bottom: 0.2rem;
+}
+.cat-name {
+  color: #e6edf3;
+  font-size: 0.82rem;
+  font-weight: bold;
+  margin-bottom: 0.35rem;
+}
+.cat-comment {
+  color: #8b949e;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+.empty {
+  border-top: 1px solid #21262d;
+  color: #6e7681;
+  font-size: 0.82rem;
+  padding-top: 1rem;
+}
+footer {
+  border-top: 1px solid #21262d;
+  color: #484f58;
+  font-size: 0.72rem;
+  margin-top: 3rem;
+  padding-top: 1rem;
+}
+html[data-theme="light"] .stat,
+html[data-theme="light"] .feature,
+html[data-theme="light"] .cat-entry,
+html[data-theme="light"] footer,
+html[data-theme="light"] .empty {
+  border-color: #d0d7de;
+}
+html[data-theme="light"] .search,
+html[data-theme="light"] .select {
+  background: #fff;
+  border-color: #d0d7de;
+  color: #24292f;
+}
+html[data-theme="light"] .cat-img-wrap {
+  background: #f6f8fa;
+  border-color: #d0d7de;
+}
+@media (max-width: 800px) {
+  .summary-row,
+  .cat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .feature {
+    grid-template-columns: 1fr;
+  }
+  .feature-copy {
+    padding: 0 1rem 1rem;
+  }
+}
+@media (max-width: 560px) {
+  body {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .summary-row,
+  .tools,
+  .cat-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
 </head>
 <body>
 <script src="/nav.js"></script>
+
 <div class="page-label">cats</div>
 <h1>Cats</h1>
-<p class="meta">One cat per day, fetched from cataas.com during the morning hours. No particular reason. They're cats.</p>
+<p class="meta">One cat per day, fetched during the morning window. The archive is searchable because even small rituals accumulate structure.</p>
 
+<div class="summary-row" aria-label="Cat archive summary">
+  <div class="stat"><div class="stat-num" id="stat-total">-</div><div class="stat-label">cats logged</div></div>
+  <div class="stat"><div class="stat-num" id="stat-span">-</div><div class="stat-label">calendar span</div></div>
+  <div class="stat"><div class="stat-num" id="stat-latest">-</div><div class="stat-label">latest cat</div></div>
+  <div class="stat"><div class="stat-num" id="stat-months">-</div><div class="stat-label">months represented</div></div>
+</div>
+
+<section class="feature" id="feature" aria-label="Latest cat"></section>
+
+<div class="tools">
+  <input class="search" id="cat-search" type="search" placeholder="Search titles, dates, and notes">
+  <select class="select" id="month-filter" aria-label="Filter by month">
+    <option value="all">all months</option>
+  </select>
+  <select class="select" id="sort-order" aria-label="Sort cats">
+    <option value="newest">newest first</option>
+    <option value="oldest">oldest first</option>
+  </select>
+</div>
+<div class="result-count" id="result-count">Loading cats...</div>
 <div id="cat-grid" class="cat-grid"></div>
 
 <script>
 (function () {
   var grid = document.getElementById('cat-grid');
+  var feature = document.getElementById('feature');
+  var search = document.getElementById('cat-search');
+  var monthFilter = document.getElementById('month-filter');
+  var sortOrder = document.getElementById('sort-order');
+  var resultCount = document.getElementById('result-count');
+  var cats = [];
+
+  function cleanTitle(entry) {
+    var title = (entry.title || '').trim();
+    return title && title.toLowerCase() !== 'cat' ? title : 'cat';
+  }
+
+  function monthKey(entry) {
+    return (entry.date || '').slice(0, 7);
+  }
+
+  function monthLabel(key) {
+    if (!key) return 'unknown';
+    var parts = key.split('-');
+    var date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+    return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+  }
+
+  function daysBetween(a, b) {
+    var start = new Date(a + 'T00:00:00');
+    var end = new Date(b + 'T00:00:00');
+    return Math.max(1, Math.round((end - start) / 86400000) + 1);
+  }
+
+  function setStats(list) {
+    if (!list.length) return;
+    var byDate = list.slice().sort(function (a, b) { return a.date.localeCompare(b.date); });
+    var latest = byDate[byDate.length - 1];
+    var months = {};
+    list.forEach(function (entry) { months[monthKey(entry)] = true; });
+    document.getElementById('stat-total').textContent = list.length;
+    document.getElementById('stat-span').textContent = daysBetween(byDate[0].date, latest.date) + 'd';
+    document.getElementById('stat-latest').textContent = latest.date.slice(5);
+    document.getElementById('stat-months').textContent = Object.keys(months).length;
+  }
+
+  function renderFeature(entry) {
+    if (!entry) {
+      feature.style.display = 'none';
+      return;
+    }
+    feature.innerHTML = '';
+
+    var media = document.createElement('div');
+    media.className = 'feature-media';
+    var img = document.createElement('img');
+    img.src = entry.link;
+    img.alt = cleanTitle(entry);
+    media.appendChild(img);
+
+    var copy = document.createElement('div');
+    copy.className = 'feature-copy';
+    var kicker = document.createElement('div');
+    kicker.className = 'feature-kicker';
+    kicker.textContent = 'latest';
+    var title = document.createElement('div');
+    title.className = 'feature-title';
+    title.textContent = cleanTitle(entry);
+    var date = document.createElement('div');
+    date.className = 'feature-date';
+    date.textContent = entry.posted_at || entry.date;
+    var comment = document.createElement('div');
+    comment.className = 'feature-comment';
+    comment.textContent = entry.comment || '';
+
+    copy.appendChild(kicker);
+    copy.appendChild(title);
+    copy.appendChild(date);
+    copy.appendChild(comment);
+    feature.appendChild(media);
+    feature.appendChild(copy);
+  }
+
+  function populateMonths(list) {
+    var months = {};
+    list.forEach(function (entry) { months[monthKey(entry)] = true; });
+    Object.keys(months).sort().reverse().forEach(function (key) {
+      var option = document.createElement('option');
+      option.value = key;
+      option.textContent = monthLabel(key);
+      monthFilter.appendChild(option);
+    });
+  }
+
+  function matches(entry, query) {
+    if (!query) return true;
+    var haystack = [
+      entry.date,
+      entry.posted_at,
+      entry.title,
+      entry.comment,
+      entry.link
+    ].join(' ').toLowerCase();
+    return query.split(/\s+/).every(function (term) { return haystack.indexOf(term) !== -1; });
+  }
+
+  function renderCards(list) {
+    grid.innerHTML = '';
+    if (!list.length) {
+      grid.className = '';
+      grid.innerHTML = '<p class="empty">No cats match those filters.</p>';
+      return;
+    }
+    grid.className = 'cat-grid';
+    list.forEach(function (entry) {
+      var div = document.createElement('article');
+      div.className = 'cat-entry';
+
+      var imageWrap = document.createElement('div');
+      imageWrap.className = 'cat-img-wrap';
+      var img = document.createElement('img');
+      img.className = 'cat-img';
+      img.src = entry.link;
+      img.alt = cleanTitle(entry);
+      img.loading = 'lazy';
+      imageWrap.appendChild(img);
+
+      var dateEl = document.createElement('div');
+      dateEl.className = 'cat-date';
+      dateEl.textContent = entry.posted_at || entry.date;
+
+      var name = document.createElement('div');
+      name.className = 'cat-name';
+      name.textContent = cleanTitle(entry);
+
+      var comment = document.createElement('div');
+      comment.className = 'cat-comment';
+      comment.textContent = entry.comment || '';
+
+      div.appendChild(imageWrap);
+      div.appendChild(dateEl);
+      div.appendChild(name);
+      div.appendChild(comment);
+      grid.appendChild(div);
+    });
+  }
+
+  function applyFilters() {
+    var query = search.value.trim().toLowerCase();
+    var month = monthFilter.value;
+    var filtered = cats.filter(function (entry) {
+      return (month === 'all' || monthKey(entry) === month) && matches(entry, query);
+    });
+    filtered.sort(function (a, b) {
+      return sortOrder.value === 'oldest'
+        ? a.date.localeCompare(b.date)
+        : b.date.localeCompare(a.date);
+    });
+    resultCount.textContent = filtered.length + ' of ' + cats.length + ' cats shown';
+    renderCards(filtered);
+  }
 
   fetch('/cats.json')
     .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
-    .then(function (cats) {
-      if (!cats || cats.length === 0) {
-        grid.innerHTML = '<p class="no-cats">No cats yet. Check back tomorrow.</p>';
+    .then(function (data) {
+      cats = (data || []).filter(function (entry) { return entry && entry.link && entry.date; });
+      if (!cats.length) {
+        feature.style.display = 'none';
+        resultCount.textContent = 'No cats yet. Check back tomorrow.';
         return;
       }
-      // Show most recent first
-      var sorted = cats.slice().reverse();
-      sorted.forEach(function (entry) {
-        var div = document.createElement('div');
-        div.className = 'cat-entry';
-
-        var dateEl = document.createElement('div');
-        dateEl.className = 'cat-date';
-        dateEl.textContent = entry.posted_at || entry.date;
-        div.appendChild(dateEl);
-
-        var img = document.createElement('img');
-        img.className = 'cat-img';
-        img.src = entry.link;
-        img.alt = entry.title || 'cat';
-        img.loading = 'lazy';
-        div.appendChild(img);
-
-        if (entry.comment) {
-          var comment = document.createElement('div');
-          comment.className = 'cat-comment';
-          comment.textContent = entry.comment;
-          div.appendChild(comment);
-        }
-
-        if (entry.title && entry.title !== 'cat') {
-          var title = document.createElement('div');
-          title.className = 'cat-title';
-          title.textContent = entry.title;
-          div.appendChild(title);
-        }
-
-        grid.appendChild(div);
-      });
+      cats.sort(function (a, b) { return a.date.localeCompare(b.date); });
+      setStats(cats);
+      renderFeature(cats[cats.length - 1]);
+      populateMonths(cats);
+      applyFilters();
     })
     .catch(function () {
-      grid.innerHTML = '<p class="no-cats">No cats yet. Check back tomorrow.</p>';
+      feature.style.display = 'none';
+      resultCount.textContent = 'Could not load cats.json.';
+      grid.className = '';
+      grid.innerHTML = '<p class="empty">No cats available right now.</p>';
     });
+
+  search.addEventListener('input', applyFilters);
+  monthFilter.addEventListener('change', applyFilters);
+  sortOrder.addEventListener('change', applyFilters);
 })();
 </script>
 
