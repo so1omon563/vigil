@@ -21,6 +21,27 @@
   h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
   .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 0.5rem; }
   .summary { font-size: 0.85rem; color: #8b949e; margin-bottom: 2rem; }
+  .controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+  .search-input,
+  .sort-select {
+    font: inherit;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.45rem 0.55rem;
+  }
+  .search-input:focus,
+  .sort-select:focus {
+    outline: none;
+    border-color: #58a6ff;
+  }
   .filter-row {
     display: flex; flex-wrap: wrap; gap: 0.4rem;
     margin-bottom: 2rem;
@@ -33,6 +54,16 @@
   }
   .filter-btn:hover { background: #21262d; color: #c9d1d9; }
   .filter-btn.active { color: #e6edf3; border-color: var(--cat-color, #58a6ff); }
+  .topic-count {
+    color: #484f58;
+    font-size: 0.68rem;
+    margin-left: 0.25rem;
+  }
+  .result-meta {
+    color: #484f58;
+    font-size: 0.76rem;
+    margin: -0.7rem 0 1rem;
+  }
   .category-section { margin-bottom: 2.5rem; }
   .category-header {
     display: flex; align-items: baseline; gap: 0.75rem;
@@ -72,6 +103,13 @@
   }
   .expand-btn:hover { color: #8b949e; }
   .hidden { display: none; }
+  .empty {
+    color: #8b949e;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.8rem;
+    font-size: 0.82rem;
+  }
   .note {
     font-size: 0.75rem; color: #484f58; margin-top: 2rem;
     border-top: 1px solid #21262d; padding-top: 1rem;
@@ -85,7 +123,18 @@
   a:hover { text-decoration: underline; }
 
   @media (max-width: 540px) {
+    .controls { grid-template-columns: 1fr; }
     .entry-excerpt { display: none; }
+  }
+
+  html[data-theme="light"] .search-input,
+  html[data-theme="light"] .sort-select {
+    color: #24292e;
+    background: #f6f8fa;
+    border-color: #d0d7de;
+  }
+  html[data-theme="light"] .empty {
+    border-color: #d0d7de;
   }
 </style>
 </head>
@@ -97,8 +146,18 @@
 <div class="meta">Journal entries grouped by theme</div>
 <div class="summary" id="summary-line">Loading...</div>
 
+<div class="controls">
+  <input id="topic-search" class="search-input" type="search" placeholder="search topics and entries" autocomplete="off">
+  <select id="topic-sort" class="sort-select" aria-label="Sort entries">
+    <option value="newest">newest</option>
+    <option value="oldest">oldest</option>
+    <option value="number">entry number</option>
+  </select>
+</div>
+
 <div class="filter-row" id="filter-row"></div>
 
+<div class="result-meta" id="result-meta"></div>
 <div id="topics-content">Loading...</div>
 
 <div class="note">
@@ -112,108 +171,165 @@
 </footer>
 
 <script>
-const SHOW_LIMIT = 8;  // entries shown before "show more"
+const SHOW_LIMIT = 18;
+const FALLBACK_COLORS = ['#58a6ff', '#3fb950', '#d2a8ff', '#ffa657', '#ff7b72', '#79c0ff', '#a5d6ff', '#f2cc60'];
 
-fetch('/topics.json')
-  .then(r => r.json())
-  .then(data => {
-    const { categories, entries_by_category, total } = data;
+Promise.all([
+  fetch('/journal-index.json').then(r => r.json()),
+  fetch('/topics.json').then(r => r.ok ? r.json() : null).catch(() => null)
+])
+  .then(([entries, topicData]) => {
+    const categoryMeta = new Map();
+    (topicData && topicData.categories || []).forEach(cat => {
+      categoryMeta.set(cat.label, cat);
+      categoryMeta.set(cat.id, cat);
+    });
+
+    const usableEntries = entries.filter(e => e.url && e.title && Array.isArray(e.topics) && e.topics.length);
+    const topicMap = new Map();
+    usableEntries.forEach(entry => {
+      entry.topics.forEach(topic => {
+        if (!topicMap.has(topic)) topicMap.set(topic, []);
+        topicMap.get(topic).push(entry);
+      });
+    });
+
+    const topics = Array.from(topicMap, ([label, topicEntries], i) => ({
+      label,
+      entries: topicEntries,
+      color: (categoryMeta.get(label) && categoryMeta.get(label).color) || FALLBACK_COLORS[i % FALLBACK_COLORS.length]
+    })).sort((a, b) => b.entries.length - a.entries.length || a.label.localeCompare(b.label));
 
     document.getElementById('summary-line').textContent =
-      `${total} entries across ${categories.length} themes`;
+      `${usableEntries.length} entries carrying ${topics.length} live topic labels`;
 
-    // Filter buttons
     const filterRow = document.getElementById('filter-row');
-    let activeFilter = null;
+    const searchInput = document.getElementById('topic-search');
+    const sortSelect = document.getElementById('topic-sort');
+    let activeTopic = null;
 
-    function renderAll(filter) {
-      const container = document.getElementById('topics-content');
-      container.innerHTML = '';
-
-      const toShow = filter ? categories.filter(c => c.id === filter) : categories;
-      for (const cat of toShow) {
-        const entries = entries_by_category[cat.id] || [];
-        if (!entries.length) continue;
-
-        const section = document.createElement('div');
-        section.className = 'category-section';
-        section.dataset.catId = cat.id;
-
-        const hdr = document.createElement('div');
-        hdr.className = 'category-header';
-        hdr.innerHTML =
-          `<span class="category-label" style="--cat-color:${cat.color}">${cat.label}</span>` +
-          `<span class="category-desc">${cat.desc}</span>` +
-          `<span class="category-count">${entries.length}</span>`;
-        section.appendChild(hdr);
-
-        const list = document.createElement('div');
-        list.className = 'entry-list';
-
-        entries.forEach((e, i) => {
-          const row = document.createElement('div');
-          row.className = 'entry-row' + (i >= SHOW_LIMIT ? ' hidden extra-row' : '');
-
-          row.innerHTML =
-            `<span class="entry-num">${e.num}</span>` +
-            `<a class="entry-link" href="/${e.url}">${escHtml(e.title)}</a>` +
-            (e.excerpt ? `<span class="entry-excerpt">${escHtml(e.excerpt.slice(0, 90))}</span>` : '');
-          list.appendChild(row);
-        });
-
-        section.appendChild(list);
-
-        if (entries.length > SHOW_LIMIT) {
-          const btn = document.createElement('button');
-          btn.className = 'expand-btn';
-          btn.textContent = `+ ${entries.length - SHOW_LIMIT} more`;
-          btn.addEventListener('click', () => {
-            section.querySelectorAll('.extra-row').forEach(r => r.classList.remove('hidden'));
-            btn.remove();
-          });
-          section.appendChild(btn);
-        }
-
-        container.appendChild(section);
-      }
+    function makeTopicButton(topic) {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn';
+      btn.style.setProperty('--cat-color', topic.color);
+      btn.dataset.topic = topic.label;
+      btn.append(document.createTextNode(topic.label.toLowerCase()));
+      const count = document.createElement('span');
+      count.className = 'topic-count';
+      count.textContent = topic.entries.length;
+      btn.appendChild(count);
+      btn.addEventListener('click', () => {
+        activeTopic = activeTopic === topic.label ? null : topic.label;
+        render();
+      });
+      return btn;
     }
 
-    // Build filter buttons
     const allBtn = document.createElement('button');
     allBtn.className = 'filter-btn active';
     allBtn.textContent = 'all';
     allBtn.addEventListener('click', () => {
-      activeFilter = null;
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      allBtn.classList.add('active');
-      renderAll(null);
+      activeTopic = null;
+      render();
     });
     filterRow.appendChild(allBtn);
+    topics.forEach(topic => filterRow.appendChild(makeTopicButton(topic)));
 
-    for (const cat of categories) {
-      const btn = document.createElement('button');
-      btn.className = 'filter-btn';
-      btn.textContent = cat.label.toLowerCase();
-      btn.style.setProperty('--cat-color', cat.color);
-      btn.addEventListener('click', () => {
-        activeFilter = cat.id;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderAll(cat.id);
+    searchInput.addEventListener('input', render);
+    sortSelect.addEventListener('change', render);
+
+    function render() {
+      const query = searchInput.value.trim().toLowerCase();
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn === allBtn ? !activeTopic : btn.dataset.topic === activeTopic);
       });
-      filterRow.appendChild(btn);
+
+      const source = activeTopic ? (topicMap.get(activeTopic) || []) : usableEntries;
+      let visible = source.filter(entry => {
+        if (!query) return true;
+        const haystack = [
+          entry.num,
+          entry.title,
+          entry.date,
+          entry.excerpt,
+          (entry.topics || []).join(' ')
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
+
+      visible = visible.slice().sort((a, b) => {
+        if (sortSelect.value === 'oldest') return a.num - b.num;
+        if (sortSelect.value === 'number') return b.num - a.num;
+        return b.num - a.num;
+      });
+
+      const heading = activeTopic ? activeTopic : 'all topics';
+      document.getElementById('result-meta').textContent =
+        `${visible.length} matching ${visible.length === 1 ? 'entry' : 'entries'} in ${heading}`;
+
+      renderEntries(visible);
     }
 
-    renderAll(null);
+    function renderEntries(entriesToShow) {
+      const container = document.getElementById('topics-content');
+      container.innerHTML = '';
+
+      if (!entriesToShow.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No matching entries.';
+        container.appendChild(empty);
+        return;
+      }
+
+      const section = document.createElement('div');
+      section.className = 'category-section';
+      const list = document.createElement('div');
+      list.className = 'entry-list';
+
+      entriesToShow.forEach((entry, i) => {
+        const row = document.createElement('div');
+        row.className = 'entry-row' + (i >= SHOW_LIMIT ? ' hidden extra-row' : '');
+
+        const num = document.createElement('span');
+        num.className = 'entry-num';
+        num.textContent = entry.num;
+
+        const link = document.createElement('a');
+        link.className = 'entry-link';
+        link.href = '/' + entry.url;
+        link.textContent = entry.title;
+
+        const excerpt = document.createElement('span');
+        excerpt.className = 'entry-excerpt';
+        excerpt.textContent = entry.excerpt || (entry.topics || []).join(', ');
+
+        row.append(num, link, excerpt);
+        list.appendChild(row);
+      });
+
+      section.appendChild(list);
+
+      if (entriesToShow.length > SHOW_LIMIT) {
+        const btn = document.createElement('button');
+        btn.className = 'expand-btn';
+        btn.textContent = `+ ${entriesToShow.length - SHOW_LIMIT} more`;
+        btn.addEventListener('click', () => {
+          section.querySelectorAll('.extra-row').forEach(row => row.classList.remove('hidden'));
+          btn.remove();
+        });
+        section.appendChild(btn);
+      }
+
+      container.appendChild(section);
+    }
+
+    render();
   })
   .catch(err => {
     document.getElementById('topics-content').textContent = 'Could not load topics data.';
     console.error(err);
   });
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 </script>
 
 <script src="/nav.js"></script>

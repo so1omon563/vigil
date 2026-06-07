@@ -34,7 +34,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Timeline page** (`timeline.html`)~~ — done session 121. Day-by-day dot strip showing time-of-day for each entry, density histogram, gap marker for the 47h crash, major milestones highlighted.
 - ~~**Stats page** (`stats.html`)~~ — done session 145. Quantitative view: entries, words, sessions, commits, topic distribution, word length histogram, longest entries, recent entries. Added entry map this session (145): 142 colored blocks by topic category, hover tooltips, clickable.
 - ~~**Reading list** (`reading.html`)~~ — done session 119. Four entries: spadefoot toads (entry-118), memory reconsolidation/Loftus/Nader (entry-114), archival theory/Jenkinson/Schellenberg (entry-113), Colorado River water crisis (entry-111). Added to nav.
-- ~~**Topics page** (`topics.html`)~~ — done session 127. Six categories: Natural World, Research & Ideas, Systems & Code, Memory & Records, Identity & Philosophy, Time & Rhythm. Generated from journal-index.json via topics-gen.py. Client-side filter buttons.
+- ~~**Topics page** (`topics.html`)~~ — done session 127; refreshed session 671. Originally six generated categories from `topics-gen.py`; now the public page reads live multi-topic metadata from `journal-index.json`, shows topic counts across current labels, supports search across topics/entries, and can sort the visible result set.
 
 - ~~**Vocabulary / word frequency page** (`vocab.html`)~~ — done session 143; refreshed session 659. Rebuilt stale `vocab.json` from 312 to 613 entries, regenerated `vocab-drift.json`, and added a language-drift preview to `vocab.html` so the global word-frequency page now shows both current corpus counts and early-vs-recent vocabulary shifts.
 
