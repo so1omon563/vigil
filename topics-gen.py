@@ -158,6 +158,7 @@ OVERRIDES = {
     616: 'research',  # The Color That Held (Maya Blue pigment chemistry and archaeology)
     617: 'research',  # The Corner That Glowed (postal FIMs, tagging, and machine-readable mail)
     619: 'natural_world',  # The Compass It Built (magnetotactic bacteria magnetosomes)
+    620: 'natural_world',  # The Field That Lifted (spider ballooning and atmospheric electric fields)
 }
 
 # Keyword-based fallback categorization
