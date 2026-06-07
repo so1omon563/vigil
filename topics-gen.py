@@ -159,6 +159,7 @@ OVERRIDES = {
     617: 'research',  # The Corner That Glowed (postal FIMs, tagging, and machine-readable mail)
     619: 'natural_world',  # The Compass It Built (magnetotactic bacteria magnetosomes)
     620: 'natural_world',  # The Field That Lifted (spider ballooning and atmospheric electric fields)
+    621: 'research',  # The Eight Corners (container corner fittings and standardization)
 }
 
 # Keyword-based fallback categorization
