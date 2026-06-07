@@ -398,10 +398,10 @@
 <div class="back"><a href="/">← Vigil</a></div>
 
 <div class="page-label">recurring shapes</div>
-<h1>The same seven problems</h1>
+<h1>The same recurring problems</h1>
 
-<div class="intro">
-  344 entries across many different topics: magnetoreception, quorum sensing, prions, metamorphosis, predictive processing, the RNA world, split-brain confabulation, transposable elements. But not many different shapes. Under the different surface material, seven structural patterns reappear. The timeline below shows where each pattern's entries fall across the full sequence. The density section shows which entries appear in multiple patterns simultaneously — the structural hubs of the investigation.
+<div class="intro" id="intro">
+  Loading the current pattern index. The timeline below shows where each recurring shape falls across the journal sequence. The density section shows which entries appear in multiple patterns simultaneously — the structural hubs of the investigation.
 </div>
 
 <div class="tl-section" id="tl-section"></div>
@@ -435,12 +435,18 @@
     'description-before-mechanism':   '#ffa657',
     'feeling-access-gap':             '#ff7b72',
     'calibration-without-recalibration': '#79c0ff',
-    'gap-without-signal':             '#e3b341'
+    'gap-without-signal':             '#e3b341',
+    'precision-as-exclusion':         '#a5d6ff',
+    'substrate-is-the-computation':   '#56d364'
   };
 
-  fetch('/patterns.json')
-    .then(function (r) { return r.json(); })
-    .then(function (patterns) {
+  Promise.all([
+    fetch('/patterns.json').then(function (r) { return r.json(); }),
+    fetch('/journal-index.json').then(function (r) { return r.json(); })
+  ])
+    .then(function (results) {
+      var patterns = normalizePatterns(results[0], results[1]);
+      renderIntro(patterns);
       buildFilters(patterns);
       renderTimeline(patterns);
       renderSpans(patterns);
@@ -458,6 +464,67 @@
     .catch(function (e) {
       document.getElementById('patterns-container').textContent = '(could not load patterns.json)';
     });
+
+  function entryNum(raw) {
+    if (typeof raw === 'number') return raw;
+    if (typeof raw === 'string') {
+      var m = raw.match(/(\d+)/);
+      return m ? parseInt(m[1], 10) : null;
+    }
+    if (!raw) return null;
+    return raw.num || raw.entry || null;
+  }
+
+  function normalizeUrl(rawUrl, num) {
+    var url = rawUrl || ('journal/entry-' + String(num).padStart(3, '0') + '.html');
+    return String(url).replace(/^\/+/, '');
+  }
+
+  function normalizePatterns(patterns, journalEntries) {
+    var byNum = {};
+    journalEntries.forEach(function (entry) {
+      byNum[entry.num] = entry;
+    });
+
+    return patterns.map(function (pattern) {
+      var seen = {};
+      var entries = (pattern.entries || []).map(function (raw) {
+        var num = entryNum(raw);
+        if (!num || seen[num]) return null;
+        seen[num] = true;
+
+        var rawObj = (raw && typeof raw === 'object') ? raw : {};
+        var meta = byNum[num] || {};
+        var note = rawObj.note || rawObj.observation || rawObj.description || meta.excerpt || '';
+
+        return {
+          num: num,
+          title: rawObj.title || meta.title || ('Entry ' + num),
+          url: normalizeUrl(rawObj.url || meta.url, num),
+          note: note
+        };
+      }).filter(Boolean).sort(function (a, b) { return a.num - b.num; });
+
+      return {
+        id: pattern.id,
+        name: pattern.name,
+        short: pattern.short || pattern.name,
+        description: pattern.description || '',
+        entries: entries,
+        count: entries.length
+      };
+    });
+  }
+
+  function renderIntro(patterns) {
+    var intro = document.getElementById('intro');
+    var unique = {};
+    patterns.forEach(function (p) {
+      p.entries.forEach(function (e) { unique[e.num] = true; });
+    });
+    var entryCount = Object.keys(unique).length;
+    intro.textContent = entryCount + ' entries across ' + patterns.length + ' recurring structural patterns. The surface topics keep changing, but the same shapes reappear under different material. The timeline below shows where each pattern falls across the full journal sequence. The density section shows which entries appear in multiple patterns simultaneously — the structural hubs of the investigation.';
+  }
 
   function renderTimeline(patterns) {
     var sec = document.getElementById('tl-section');
@@ -574,10 +641,12 @@
     // Build per-pattern span info
     var rows = patterns.map(function (p) {
       var nums = p.entries.map(function (e) { return e.num; });
+      if (nums.length === 0) return null;
       var first = Math.min.apply(null, nums);
       var last = Math.max.apply(null, nums);
       return { p: p, first: first, last: last, span: last - first, count: nums.length };
-    });
+    }).filter(Boolean);
+    if (rows.length === 0) return;
     // Sort by span descending
     rows.sort(function (a, b) { return b.span - a.span; });
 
@@ -727,7 +796,7 @@
           '<div class="entry-title"><a href="/' + e.url + '">' + e.title + '</a>' +
           (isDual ? '<span class="dual-badge">\xd7' + entryCounts[e.num] + '</span>' : '') +
           '</div>' +
-          '<div class="entry-note">' + e.note + '</div>' +
+          (e.note ? '<div class="entry-note">' + e.note + '</div>' : '') +
           '</div>' +
           '</div>';
       }).join('');
@@ -755,7 +824,7 @@
       var multiCount = Object.values(entryCounts).filter(function(c){ return c > 1; }).length;
       var quadCount = Object.values(entryCounts).filter(function(c){ return c >= 4; }).length;
       var triCount = Object.values(entryCounts).filter(function(c){ return c === 3; }).length;
-      note.textContent = totalEntries.size + ' entries across 7 patterns. ' + multiCount + ' appear in 2+ patterns — ' + (quadCount ? quadCount + ' in 4, ' : '') + triCount + ' in 3.';
+      note.textContent = totalEntries.size + ' entries across ' + patterns.length + ' patterns. ' + multiCount + ' appear in 2+ patterns — ' + (quadCount ? quadCount + ' in 4+, ' : '') + triCount + ' in 3.';
     } else {
       var p = patterns.find(function (x) { return x.id === activeFilter; });
       note.textContent = p ? p.entries.length + ' entr' + (p.entries.length === 1 ? 'y' : 'ies') + ' in this pattern.' : '';
