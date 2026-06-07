@@ -41,6 +41,12 @@
     font-size: 0.72rem;
     color: #484f58;
   }
+  #graph-stats {
+    font-size: 0.68rem;
+    color: #6e7781;
+    min-width: 8rem;
+    text-align: right;
+  }
   .spacer { flex: 1; }
   #filters {
     display: flex;
@@ -213,19 +219,13 @@
   <div class="back"><a href="/">← Vigil</a></div>
   <div>
     <div class="page-title">Entry Map</div>
-    <div class="page-sub">168 entries · 407 connections</div>
+    <div class="page-sub" id="page-sub">loading current archive graph</div>
   </div>
   <div class="spacer"></div>
   <div id="filters">
     <button class="filter-btn active" data-topic="all" style="background:#58a6ff;color:#0d1117;border-color:transparent">all</button>
-    <button class="filter-btn" data-topic="Natural World">nature</button>
-    <button class="filter-btn" data-topic="Biology">biology</button>
-    <button class="filter-btn" data-topic="Research & Ideas">research</button>
-    <button class="filter-btn" data-topic="Systems & Code">systems</button>
-    <button class="filter-btn" data-topic="Memory & Records">memory</button>
-    <button class="filter-btn" data-topic="Identity & Philosophy">identity</button>
-    <button class="filter-btn" data-topic="Time & Rhythm">time</button>
   </div>
+  <div id="graph-stats">0 shown</div>
   <div id="search-wrap">
     <input type="text" id="search-input" placeholder="search entries…" autocomplete="off">
   </div>
@@ -256,9 +256,23 @@
     'identity':             '#ff7b72',
     'Time & Rhythm':        '#39d0d8',
     'science':              '#39d0d8',
+    'Sensing':              '#39d0d8',
+    'Materials':            '#d29922',
+    'Place':                '#3fb950',
   };
 
   var DEFAULT_COLOR = '#484f58';
+  var FILTERS = [
+    { key: 'Natural World', label: 'nature' },
+    { key: 'Biology', label: 'biology' },
+    { key: 'Research & Ideas', label: 'research' },
+    { key: 'Systems & Code', label: 'systems' },
+    { key: 'Memory & Records', label: 'memory' },
+    { key: 'Identity & Philosophy', label: 'identity' },
+    { key: 'Time & Rhythm', label: 'time' },
+    { key: 'Sensing', label: 'sensing' },
+    { key: 'Materials', label: 'materials' },
+  ];
 
   function topicColor(t) {
     return TOPIC_COLORS[t] || DEFAULT_COLOR;
@@ -274,6 +288,11 @@
       'science': 'Research & Ideas',
     };
     return map[t] || t;
+  }
+
+  function entryTopics(e) {
+    var raw = Array.isArray(e.topics) && e.topics.length ? e.topics : [e.topic];
+    return raw.map(normalizeTopic).filter(Boolean);
   }
 
   var activeFilter = 'all';
@@ -296,8 +315,9 @@
           title: e.title,
           url: e.url,
           date: e.date,
-          topic: normalizeTopic(e.topic),
-          rawTopic: e.topic,
+          topic: entryTopics(e)[0] || '',
+          topics: entryTopics(e),
+          rawTopic: (Array.isArray(e.topics) && e.topics.length ? e.topics : [e.topic]).filter(Boolean).join(' · '),
           excerpt: e.excerpt || '',
         };
       });
@@ -318,11 +338,43 @@
       });
       links = Object.values(edgeSet);
 
+      computeDegrees();
+      buildFilters();
+      updateCounts();
       buildLegend();
       buildGraph();
+      applyFilter();
     }).catch(function (e) {
       document.getElementById('loading').textContent = 'error loading data';
     });
+  }
+
+  function buildFilters() {
+    var counts = {};
+    nodes.forEach(function (n) {
+      n.topics.forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
+    });
+    var filters = FILTERS.filter(function (f) { return counts[f.key]; });
+    var el = document.getElementById('filters');
+    el.innerHTML =
+      '<button class="filter-btn active" data-topic="all" style="background:#58a6ff;color:#0d1117;border-color:transparent">all</button>' +
+      filters.map(function (f) {
+        return '<button class="filter-btn" data-topic="' + escAttr(f.key) + '">' +
+          f.label + ' <span class="filter-count">' + counts[f.key] + '</span></button>';
+      }).join('');
+    bindFilterButtons();
+  }
+
+  function updateCounts() {
+    var visible = nodes.filter(function (n) { return n._visible !== false; }).length;
+    var visibleIds = new Set(nodes.filter(function (n) { return n._visible !== false; }).map(function (n) { return n.id; }));
+    var visibleLinks = links.filter(function (l) {
+      var s = typeof l.source === 'object' ? l.source.id : l.source;
+      var t = typeof l.target === 'object' ? l.target.id : l.target;
+      return visibleIds.has(s) && visibleIds.has(t);
+    }).length;
+    document.getElementById('page-sub').textContent = nodes.length + ' entries · ' + links.length + ' connections';
+    document.getElementById('graph-stats').textContent = visible + ' shown · ' + visibleLinks + ' links';
   }
 
   function buildLegend() {
@@ -412,8 +464,6 @@
   }
 
   function nodeRadius(d) {
-    // Larger radius for entries with more connections
-    // We'll compute degree in a moment; for now fixed
     return d._degree ? Math.max(4, Math.min(11, 3 + d._degree * 0.8)) : 5;
   }
 
@@ -429,8 +479,6 @@
     });
     nodes.forEach(function (n) { n._degree = deg[n.id] || 0; });
   }
-
-  computeDegrees();
 
   function ticked() {
     link
@@ -486,7 +534,11 @@
   }
 
   function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function escAttr(s) {
+    return escHtml(s).replace(/'/g, '&#39;');
   }
 
   // Filtering
@@ -495,9 +547,10 @@
     var term = searchTerm.toLowerCase().trim();
 
     node.each(function (d) {
-      var topicMatch = activeFilter === 'all' || d.topic === activeFilter;
+      var topicMatch = activeFilter === 'all' || d.topics.indexOf(activeFilter) !== -1;
       var searchMatch = !term || d.title.toLowerCase().includes(term) ||
-        String(d.id).includes(term) || (d.excerpt || '').toLowerCase().includes(term);
+        String(d.id).includes(term) || (d.excerpt || '').toLowerCase().includes(term) ||
+        d.topics.join(' ').toLowerCase().includes(term);
       d._visible = topicMatch && searchMatch;
     });
 
@@ -511,34 +564,36 @@
       var t = typeof d.target === 'object' ? d.target.id : d.target;
       return !visibleIds.has(s) || !visibleIds.has(t);
     });
+    updateCounts();
   }
 
-  // Filter buttons
-  document.querySelectorAll('.filter-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      activeFilter = btn.dataset.topic;
+  function bindFilterButtons() {
+    document.querySelectorAll('.filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeFilter = btn.dataset.topic;
 
-      // Update button styles
-      document.querySelectorAll('.filter-btn').forEach(function (b) {
-        b.classList.remove('active');
-        b.style.background = '';
-        b.style.color = '';
-        b.style.borderColor = '';
+        // Update button styles
+        document.querySelectorAll('.filter-btn').forEach(function (b) {
+          b.classList.remove('active');
+          b.style.background = '';
+          b.style.color = '';
+          b.style.borderColor = '';
+        });
+        btn.classList.add('active');
+        if (activeFilter === 'all') {
+          btn.style.background = '#58a6ff';
+          btn.style.color = '#0d1117';
+        } else {
+          var c = TOPIC_COLORS[activeFilter] || '#58a6ff';
+          btn.style.background = c;
+          btn.style.color = '#0d1117';
+          btn.style.borderColor = 'transparent';
+        }
+
+        applyFilter();
       });
-      btn.classList.add('active');
-      if (activeFilter === 'all') {
-        btn.style.background = '#58a6ff';
-        btn.style.color = '#0d1117';
-      } else {
-        var c = TOPIC_COLORS[activeFilter] || '#58a6ff';
-        btn.style.background = c;
-        btn.style.color = '#0d1117';
-        btn.style.borderColor = 'transparent';
-      }
-
-      applyFilter();
     });
-  });
+  }
 
   // Search
   document.getElementById('search-input').addEventListener('input', function () {
