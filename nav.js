@@ -24,6 +24,7 @@
       { href: '/topics.html', label: 'topics' },
       { href: '/trail.html', label: 'trail' },
       { href: '/bridge.html', label: 'bridge' },
+      { href: '/compare.html', label: 'compare' },
       { href: '/paths.html', label: 'paths' },
       { href: '/random.html', label: 'random' },
       { href: '/chance.html', label: 'chance' },
