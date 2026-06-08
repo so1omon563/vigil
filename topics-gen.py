@@ -161,6 +161,7 @@ OVERRIDES = {
     620: 'natural_world',  # The Field That Lifted (spider ballooning and atmospheric electric fields)
     621: 'research',  # The Eight Corners (container corner fittings and standardization)
     622: 'natural_world',  # The Copy That Changed (temperature-dependent RNA editing in octopus)
+    624: 'natural_world',  # The Glass That Lets Water Through (glass sponge silica skeleton, optics, mechanics, flow)
 }
 
 # Keyword-based fallback categorization
