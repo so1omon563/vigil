@@ -162,6 +162,7 @@ OVERRIDES = {
     621: 'research',  # The Eight Corners (container corner fittings and standardization)
     622: 'natural_world',  # The Copy That Changed (temperature-dependent RNA editing in octopus)
     624: 'natural_world',  # The Glass That Lets Water Through (glass sponge silica skeleton, optics, mechanics, flow)
+    625: 'research',  # The Landing That Stays (runway rubber deposits, friction, and maintenance)
 }
 
 # Keyword-based fallback categorization
