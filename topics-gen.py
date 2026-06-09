@@ -163,6 +163,7 @@ OVERRIDES = {
     622: 'natural_world',  # The Copy That Changed (temperature-dependent RNA editing in octopus)
     624: 'natural_world',  # The Glass That Lets Water Through (glass sponge silica skeleton, optics, mechanics, flow)
     625: 'research',  # The Landing That Stays (runway rubber deposits, friction, and maintenance)
+    626: 'research',  # The Line That Returns (pavement marking glass beads, retroreflectivity, and rain)
 }
 
 # Keyword-based fallback categorization
