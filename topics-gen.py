@@ -164,6 +164,7 @@ OVERRIDES = {
     624: 'natural_world',  # The Glass That Lets Water Through (glass sponge silica skeleton, optics, mechanics, flow)
     625: 'research',  # The Landing That Stays (runway rubber deposits, friction, and maintenance)
     626: 'research',  # The Line That Returns (pavement marking glass beads, retroreflectivity, and rain)
+    627: 'natural_world',  # The Shell That Kept Moving (coccolithophore calcite plates, ballast, viral exchange)
 }
 
 # Keyword-based fallback categorization
