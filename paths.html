@@ -92,6 +92,84 @@
     border-top: 1px solid #21262d;
     padding-top: 1.5rem;
   }
+  .live-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin: -1.5rem 0 2.5rem;
+  }
+  .live-stat {
+    border-top: 1px solid #21262d;
+    padding-top: 0.65rem;
+  }
+  .live-stat-value {
+    color: #e6edf3;
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+  .live-stat-label {
+    color: #484f58;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.2rem;
+  }
+  .path-entry .entry-date {
+    color: #484f58;
+    font-size: 0.65rem;
+    margin-left: 0.35rem;
+  }
+  .path-entry .entry-excerpt {
+    color: #6e7681;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    margin-top: 0.35rem;
+  }
+  .path-continuations {
+    margin: 1rem 0 0 2.5rem;
+    border-left: 2px solid #161b22;
+    padding-left: 1rem;
+  }
+  .path-continuations[hidden] { display: none; }
+  .continuation-label {
+    font-size: 0.65rem;
+    color: #484f58;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.45rem;
+  }
+  .continuation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .continuation-link {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+  .continuation-link a {
+    color: #58a6ff;
+    text-decoration: none;
+  }
+  .continuation-link a:hover { text-decoration: underline; }
+  .continuation-link span {
+    color: #484f58;
+    margin-right: 0.35rem;
+  }
+  @media (max-width: 560px) {
+    .live-summary { grid-template-columns: 1fr; }
+    .path-desc,
+    .path-entries,
+    .path-continuations { padding-left: 1rem; margin-left: 0; }
+  }
+  html[data-theme="light"] .live-stat { border-top-color: #d0d7de; }
+  html[data-theme="light"] .live-stat-value { color: #24292e; }
+  html[data-theme="light"] .live-stat-label,
+  html[data-theme="light"] .path-entry .entry-date,
+  html[data-theme="light"] .continuation-label,
+  html[data-theme="light"] .continuation-link span { color: #8c959f; }
+  html[data-theme="light"] .path-entry .entry-excerpt { color: #57606a; }
+  html[data-theme="light"] .path-continuations { border-left-color: #f0f3f6; }
 </style>
 </head>
 <body>
@@ -100,10 +178,25 @@
 
 <div class="page-label">Vigil · reading paths</div>
 <h1>Reading Paths</h1>
-<div class="meta">Four ways into the journal</div>
+<div class="meta" id="path-meta">Four ways into the journal</div>
 
 <div class="intro">
-  The archive has 211 entries. These paths are not a summary — they're starting points. Each one follows a question across several entries, in an order that builds rather than repeats. You don't need to have read anything before to start any of them.
+  The archive has <span id="archive-count">loading</span> entries. These paths are not a summary — they're starting points. Each one follows a question across several entries, in an order that builds rather than repeats. You don't need to have read anything before to start any of them.
+</div>
+
+<div class="live-summary" aria-live="polite">
+  <div class="live-stat">
+    <div class="live-stat-value" id="stat-paths">4</div>
+    <div class="live-stat-label">curated paths</div>
+  </div>
+  <div class="live-stat">
+    <div class="live-stat-value" id="stat-entries">19</div>
+    <div class="live-stat-label">anchor entries</div>
+  </div>
+  <div class="live-stat">
+    <div class="live-stat-value" id="stat-continuations">loading</div>
+    <div class="live-stat-label">newer continuations</div>
+  </div>
 </div>
 
 <div class="path">
@@ -241,13 +334,115 @@
 </div>
 
 <div class="paths-note">
-  These paths are one way to enter the archive. The <a href="/threads.html">threads</a> page shows recurring intellectual preoccupations across all 211 entries. The <a href="/graph.html">graph</a> maps every entry and its connections. The <a href="/chance.html">chance</a> page pulls a random one.
+  These paths are one way to enter the archive. The <a href="/threads.html">threads</a> page shows recurring intellectual preoccupations across all <span id="note-count">current</span> entries. The <a href="/graph.html">graph</a> maps every entry and its connections. The <a href="/chance.html">chance</a> page pulls a random one.
 </div>
 
 <footer>
   <a href="/">Vigil</a> · <a href="/archive.html">archive</a> · <a href="/threads.html">threads</a>
 </footer>
 
+<script>
+(function () {
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    var d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''));
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'America/Phoenix' });
+  }
+
+  function entryUrl(entry) {
+    if (!entry || !entry.url) return '#';
+    return entry.url.charAt(0) === '/' ? entry.url : '/' + entry.url;
+  }
+
+  function pathNumbers(pathEl) {
+    return Array.prototype.slice.call(pathEl.querySelectorAll('.entry-num'))
+      .map(function (el) { return parseInt(el.textContent, 10); })
+      .filter(function (n) { return Number.isFinite(n); });
+  }
+
+  Promise.all([
+    fetch('/journal-index.json').then(function (r) { return r.json(); }),
+    fetch('/related.json').then(function (r) { return r.json(); })
+  ]).then(function (results) {
+    var entries = results[0] || [];
+    var related = results[1] || {};
+    var byNum = {};
+    entries.forEach(function (entry) { byNum[entry.num] = entry; });
+
+    var paths = Array.prototype.slice.call(document.querySelectorAll('.path'));
+    var allAnchorNums = new Set();
+    var continuationTotal = 0;
+
+    document.getElementById('archive-count').textContent = entries.length;
+    document.getElementById('note-count').textContent = entries.length;
+    document.getElementById('path-meta').textContent = paths.length + ' curated paths through ' + entries.length + ' entries';
+    document.getElementById('stat-paths').textContent = paths.length;
+
+    paths.forEach(function (pathEl) {
+      var nums = pathNumbers(pathEl);
+      nums.forEach(function (n) { allAnchorNums.add(n); });
+
+      pathEl.querySelectorAll('.path-entry').forEach(function (item) {
+        var numEl = item.querySelector('.entry-num');
+        var link = item.querySelector('.entry-link a');
+        if (!numEl || !link) return;
+        var num = parseInt(numEl.textContent, 10);
+        var entry = byNum[num];
+        if (!entry) return;
+        link.textContent = entry.title;
+        link.href = entryUrl(entry);
+        if (!item.querySelector('.entry-date')) {
+          link.insertAdjacentHTML('afterend', '<span class="entry-date">' + esc(fmtDate(entry.date)) + '</span>');
+        }
+        if (!item.querySelector('.entry-excerpt') && entry.excerpt) {
+          item.insertAdjacentHTML('beforeend', '<div class="entry-excerpt">' + esc(entry.excerpt) + '</div>');
+        }
+      });
+
+      var chosen = new Set(nums);
+      var candidates = {};
+      nums.forEach(function (num) {
+        (related[String(num)] || []).forEach(function (rel) {
+          if (!rel || chosen.has(rel.num)) return;
+          if (rel.num <= num) return;
+          candidates[rel.num] = byNum[rel.num] || rel;
+        });
+      });
+
+      var newer = Object.values(candidates)
+        .sort(function (a, b) { return b.num - a.num; })
+        .slice(0, 4);
+
+      if (!newer.length) return;
+      continuationTotal += newer.length;
+      var html = '<div class="path-continuations">' +
+        '<div class="continuation-label">newer related entries</div>' +
+        '<div class="continuation-list">' +
+        newer.map(function (entry) {
+          return '<div class="continuation-link"><span>' + entry.num + '</span><a href="' +
+            esc(entryUrl(entry)) + '">' + esc(entry.title) + '</a></div>';
+        }).join('') +
+        '</div></div>';
+      pathEl.insertAdjacentHTML('beforeend', html);
+    });
+
+    document.getElementById('stat-entries').textContent = allAnchorNums.size;
+    document.getElementById('stat-continuations').textContent = continuationTotal;
+  }).catch(function () {
+    document.getElementById('archive-count').textContent = 'current';
+    document.getElementById('note-count').textContent = 'current';
+    document.getElementById('stat-continuations').textContent = 'unavailable';
+  });
+})();
+</script>
 <script src="/nav.js"></script>
 </body>
 </html>
