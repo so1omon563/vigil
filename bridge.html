@@ -138,6 +138,56 @@
     margin-bottom: 1.75rem;
   }
   .result-meta strong { color: #8b949e; }
+  .path-stats {
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    margin-bottom: 1.25rem;
+  }
+  .path-stat {
+    border-right: 1px solid #21262d;
+    padding: 0.75rem 0.85rem;
+    min-width: 0;
+  }
+  .path-stat:last-child { border-right: none; }
+  .path-stat strong {
+    color: #e6edf3;
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 0.1rem;
+  }
+  .path-stat span {
+    color: #8b949e;
+    display: block;
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+  .share-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin: -0.6rem 0 1.4rem;
+  }
+  .share-row a,
+  .share-row button {
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
+    text-decoration: none;
+  }
+  .share-row a:hover,
+  .share-row button:hover {
+    border-color: #58a6ff;
+    color: #c9d1d9;
+    text-decoration: none;
+  }
 
   .path-chain { display: flex; flex-direction: column; gap: 0; }
 
@@ -245,10 +295,24 @@
   html[data-theme="light"] .shared-topics { color: #1a7f37; }
   html[data-theme="light"] .result-meta { color: #8c959f; }
   html[data-theme="light"] .result-meta strong { color: #57606a; }
+  html[data-theme="light"] .path-stats,
+  html[data-theme="light"] .path-stat { border-color: #d0d7de; }
+  html[data-theme="light"] .path-stat strong { color: #24292f; }
+  html[data-theme="light"] .path-stat span { color: #57606a; }
+  html[data-theme="light"] .share-row a,
+  html[data-theme="light"] .share-row button { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .share-row a:hover,
+  html[data-theme="light"] .share-row button:hover { border-color: #0969da; color: #24292f; }
   html[data-theme="light"] .same-entry-note { color: #8c959f; }
   html[data-theme="light"] footer { border-top-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] .msg-loading { color: #8c959f; }
   html[data-theme="light"] .msg-direct { color: #1a7f37; }
+  @media (max-width: 680px) {
+    .path-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .path-stat:nth-child(2) { border-right: none; }
+    .path-stat:nth-child(-n+2) { border-bottom: 1px solid #21262d; }
+    html[data-theme="light"] .path-stat:nth-child(-n+2) { border-bottom-color: #d0d7de; }
+  }
 </style>
 </head>
 <body>
@@ -355,6 +419,7 @@
     ready = true;
     document.getElementById('btn-random').disabled = false;
     updateFindBtn();
+    loadFromUrl();
   }).catch(function(e) {
     document.getElementById('result').innerHTML = '<p class="msg-error">Failed to load data: ' + e.message + '</p>';
   });
@@ -408,6 +473,8 @@
       meta.innerHTML = '<strong>' + hops + ' hop' + (hops > 1 ? 's' : '') + '</strong> &mdash; ' + path.length + ' entries in the chain';
     }
     result.appendChild(meta);
+    result.appendChild(renderStats(path));
+    result.appendChild(renderShareRow(path));
 
     var chain = document.createElement('div');
     chain.className = 'path-chain';
@@ -470,11 +537,91 @@
     result.appendChild(chain);
   }
 
+  function renderStats(path) {
+    var stats = makeEl('div', 'path-stats');
+    var startDegree = degree(path[0]);
+    var endDegree = degree(path[path.length - 1]);
+    var middle = Math.max(0, path.length - 2);
+    var topicSteps = 0;
+    for (var i = 0; i < path.length - 1; i++) {
+      if (sharedTopics(path[i], path[i + 1]).length > 0) topicSteps++;
+    }
+
+    stats.appendChild(statBlock(String(path.length - 1), 'related-link hops'));
+    stats.appendChild(statBlock(String(middle), middle === 1 ? 'middle entry' : 'middle entries'));
+    stats.appendChild(statBlock(startDegree + ' / ' + endDegree, 'start / end graph degree'));
+    stats.appendChild(statBlock(topicSteps + ' of ' + (path.length - 1), 'steps sharing public topics'));
+    return stats;
+  }
+
+  function statBlock(value, label) {
+    var block = makeEl('div', 'path-stat');
+    block.appendChild(makeEl('strong', '', value));
+    block.appendChild(makeEl('span', '', label));
+    return block;
+  }
+
+  function renderShareRow(path) {
+    var row = makeEl('div', 'share-row');
+    var url = bridgeUrl(path[0], path[path.length - 1]);
+    var graphLink = document.createElement('a');
+    graphLink.href = '/graph.html';
+    graphLink.textContent = 'open graph';
+    row.appendChild(graphLink);
+
+    var compareLink = document.createElement('a');
+    compareLink.href = '/compare.html?left=' + encodeURIComponent(path[0]) + '&right=' + encodeURIComponent(path[path.length - 1]);
+    compareLink.textContent = 'compare endpoints';
+    row.appendChild(compareLink);
+
+    var copy = document.createElement('button');
+    copy.type = 'button';
+    copy.textContent = 'copy bridge link';
+    copy.addEventListener('click', function() {
+      copyUrl(url, copy);
+    });
+    row.appendChild(copy);
+    return row;
+  }
+
   function makeEl(tag, cls, text) {
     var e = document.createElement(tag);
     if (cls) e.className = cls;
     if (text !== undefined) e.textContent = text;
     return e;
+  }
+
+  function degree(num) {
+    return adj[num] ? adj[num].size : 0;
+  }
+
+  function bridgeUrl(a, b) {
+    var url = new URL(window.location.href);
+    url.pathname = '/bridge.html';
+    url.search = '';
+    url.searchParams.set('a', a);
+    url.searchParams.set('b', b);
+    return url.toString();
+  }
+
+  function updateUrl(a, b) {
+    if (!window.history || !a || !b) return;
+    window.history.replaceState(null, '', bridgeUrl(a, b));
+  }
+
+  function copyUrl(url, button) {
+    function markCopied() {
+      var old = button.textContent;
+      button.textContent = 'copied';
+      setTimeout(function(){ button.textContent = old; }, 1200);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(markCopied).catch(function() {
+        window.prompt('Bridge link', url);
+      });
+    } else {
+      window.prompt('Bridge link', url);
+    }
   }
 
   // ── Find bridge ────────────────────────────────────────────
@@ -488,6 +635,7 @@
       if (!path) {
         result.innerHTML = '<p class="msg-error">No path found — these entries may not be connected through the related-entries graph.</p>';
       } else {
+        updateUrl(selectedA, selectedB);
         renderPath(path);
       }
     }, 10);
@@ -520,6 +668,23 @@
       closeDropdown('b');
     }
     updateFindBtn();
+  }
+
+  function loadFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var a = parseEntryParam(params.get('a'));
+    var b = parseEntryParam(params.get('b'));
+    if (!a || !b || !entriesById[a] || !entriesById[b]) return;
+    setSelection('a', entriesById[a]);
+    setSelection('b', entriesById[b]);
+    findBridge();
+  }
+
+  function parseEntryParam(value) {
+    if (!value) return null;
+    var match = String(value).match(/\d+/);
+    if (!match) return null;
+    return parseInt(match[0], 10);
   }
 
   function clearSelection(which) {
@@ -630,6 +795,7 @@
     document.getElementById('input-a').classList.remove('chosen');
     document.getElementById('input-b').classList.remove('chosen');
     document.getElementById('result').innerHTML = '';
+    if (window.history) window.history.replaceState(null, '', '/bridge.html');
     updateFindBtn();
   });
 
