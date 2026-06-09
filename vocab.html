@@ -186,6 +186,45 @@
     color: #484f58;
     margin-bottom: 1rem;
   }
+  .controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.6rem;
+    align-items: center;
+    margin: -0.5rem 0 1.25rem;
+  }
+  .controls input,
+  .controls select {
+    width: 100%;
+    min-height: 36px;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    background: #0d1117;
+    color: #c9d1d9;
+    font: inherit;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.5rem;
+  }
+  .controls select { width: auto; }
+  .result-line {
+    font-size: 0.76rem;
+    color: #484f58;
+    margin-bottom: 0.8rem;
+  }
+  .coverage {
+    color: #6e7681;
+    width: 58px;
+    font-size: 0.72rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .empty-state {
+    color: #6e7681;
+    font-size: 0.82rem;
+    padding: 1rem 0;
+    border-top: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+  }
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
@@ -204,6 +243,11 @@
   html[data-theme="light"] .bar-label { color: #24292e; }
   html[data-theme="light"] .bar-docs { color: #8c959f; }
   html[data-theme="light"] .bar-count { color: #57606a; }
+  html[data-theme="light"] .coverage { color: #8c959f; }
+  html[data-theme="light"] .controls input,
+  html[data-theme="light"] .controls select { background: #ffffff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .result-line { color: #57606a; }
+  html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .note { border-color: #d0d7de; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] a { color: #0969da; }
@@ -217,6 +261,8 @@
   html[data-theme="light"] .drift-half { background: #e8ecf0; }
   @media (max-width: 620px) {
     .drift-grid { grid-template-columns: 1fr; }
+    .controls { grid-template-columns: 1fr; }
+    .controls select { width: 100%; }
   }
 </style>
 </head>
@@ -250,6 +296,22 @@
 <div class="drift-key"><span>early frequency</span><span>recent frequency</span></div>
 
 <div class="section-label">Top 80 by frequency</div>
+<div class="controls" aria-label="Vocabulary controls">
+  <input id="word-filter" type="search" placeholder="filter words…" autocomplete="off">
+  <select id="word-sort" aria-label="Sort words">
+    <option value="count">frequency</option>
+    <option value="docs">entry spread</option>
+    <option value="coverage">coverage %</option>
+    <option value="alpha">alphabetical</option>
+  </select>
+  <select id="word-limit" aria-label="Visible word count">
+    <option value="40">40</option>
+    <option value="80" selected>80</option>
+    <option value="160">160</option>
+    <option value="all">all</option>
+  </select>
+</div>
+<div class="result-line" id="result-line">Loading...</div>
 <div id="bar-list">Loading...</div>
 
 <div class="note">
@@ -343,34 +405,70 @@
 
       renderDrift(drift);
 
-      // Bar list — top 80
-      var barWords = words.slice(0, 80);
-      var maxBarCount = barWords[0] ? barWords[0].count : 1;
+      // Inspectable word list
       var listEl = document.getElementById('bar-list');
-      listEl.innerHTML = '';
+      var filterEl = document.getElementById('word-filter');
+      var sortEl = document.getElementById('word-sort');
+      var limitEl = document.getElementById('word-limit');
+      var resultEl = document.getElementById('result-line');
 
-      // Column headers
-      var header = document.createElement('div');
-      header.className = 'bar-row';
-      header.style.marginBottom = '0.8rem';
-      header.innerHTML =
-        '<div class="bar-label" style="color:#484f58;font-size:0.7rem">word</div>' +
-        '<div class="bar-track" style="background:transparent"></div>' +
-        '<div class="bar-count" style="color:#484f58;font-size:0.7rem">total</div>' +
-        '<div class="bar-docs" style="color:#484f58;font-size:0.7rem">entries</div>';
-      listEl.appendChild(header);
+      function renderWordList() {
+        var query = filterEl.value.trim().toLowerCase();
+        var sort = sortEl.value;
+        var limit = limitEl.value;
+        var filtered = words.filter(function(w) {
+          return !query || w.word.toLowerCase().indexOf(query) !== -1;
+        });
 
-      barWords.forEach(function(w) {
-        var pct = Math.round(100 * w.count / maxBarCount);
-        var row = document.createElement('div');
-        row.className = 'bar-row';
-        row.innerHTML =
-          '<div class="bar-label">' + escHtml(w.word) + '</div>' +
-          '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
-          '<div class="bar-count">' + w.count.toLocaleString() + '</div>' +
-          '<div class="bar-docs">' + w.doc_freq + '/' + entryCount + '</div>';
-        listEl.appendChild(row);
-      });
+        filtered.sort(function(a, b) {
+          if (sort === 'docs') return b.doc_freq - a.doc_freq || b.count - a.count || a.word.localeCompare(b.word);
+          if (sort === 'coverage') return (b.doc_freq / entryCount) - (a.doc_freq / entryCount) || b.count - a.count || a.word.localeCompare(b.word);
+          if (sort === 'alpha') return a.word.localeCompare(b.word);
+          return b.count - a.count || b.doc_freq - a.doc_freq || a.word.localeCompare(b.word);
+        });
+
+        var visible = limit === 'all' ? filtered : filtered.slice(0, parseInt(limit, 10));
+        var maxBarCount = visible.reduce(function(max, w) { return Math.max(max, w.count); }, 1);
+        listEl.innerHTML = '';
+
+        resultEl.textContent = filtered.length.toLocaleString() + ' matching words · showing ' +
+          visible.length.toLocaleString() + (query ? ' · filter "' + query + '"' : '');
+
+        if (visible.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">No matching words.</div>';
+          return;
+        }
+
+        var header = document.createElement('div');
+        header.className = 'bar-row';
+        header.style.marginBottom = '0.8rem';
+        header.innerHTML =
+          '<div class="bar-label" style="color:#484f58;font-size:0.7rem">word</div>' +
+          '<div class="bar-track" style="background:transparent"></div>' +
+          '<div class="bar-count" style="color:#484f58;font-size:0.7rem">total</div>' +
+          '<div class="bar-docs" style="color:#484f58;font-size:0.7rem">entries</div>' +
+          '<div class="coverage" style="color:#484f58;font-size:0.7rem">coverage</div>';
+        listEl.appendChild(header);
+
+        visible.forEach(function(w) {
+          var pct = Math.round(100 * w.count / maxBarCount);
+          var coverage = entryCount ? Math.round(100 * w.doc_freq / entryCount) : 0;
+          var row = document.createElement('div');
+          row.className = 'bar-row';
+          row.innerHTML =
+            '<div class="bar-label">' + escHtml(w.word) + '</div>' +
+            '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>' +
+            '<div class="bar-count">' + w.count.toLocaleString() + '</div>' +
+            '<div class="bar-docs">' + w.doc_freq + '/' + entryCount + '</div>' +
+            '<div class="coverage">' + coverage + '%</div>';
+          listEl.appendChild(row);
+        });
+      }
+
+      filterEl.addEventListener('input', renderWordList);
+      sortEl.addEventListener('change', renderWordList);
+      limitEl.addEventListener('change', renderWordList);
+      renderWordList();
 
       // Footer
       if (data.generated_at) {

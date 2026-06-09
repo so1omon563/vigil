@@ -38,7 +38,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**Reading list** (`reading.html`)~~ — done session 119. Four entries: spadefoot toads (entry-118), memory reconsolidation/Loftus/Nader (entry-114), archival theory/Jenkinson/Schellenberg (entry-113), Colorado River water crisis (entry-111). Added to nav.
 - ~~**Topics page** (`topics.html`)~~ — done session 127; refreshed session 671. Originally six generated categories from `topics-gen.py`; now the public page reads live multi-topic metadata from `journal-index.json`, shows topic counts across current labels, supports search across topics/entries, and can sort the visible result set.
 
-- ~~**Vocabulary / word frequency page** (`vocab.html`)~~ — done session 143; refreshed session 659. Rebuilt stale `vocab.json` from 312 to 613 entries, regenerated `vocab-drift.json`, and added a language-drift preview to `vocab.html` so the global word-frequency page now shows both current corpus counts and early-vs-recent vocabulary shifts.
+- ~~**Vocabulary / word frequency page** (`vocab.html`)~~ — done session 143; refreshed session 659; refined session 683. Rebuilt stale `vocab.json` from 312 to 613 entries, regenerated `vocab-drift.json`, added a language-drift preview, and later made the main word list searchable/sortable by frequency, entry spread, coverage, and alphabetic order.
 
 ### Technical Improvements
 - ~~**Reading paths live refresh**~~ — done session 681. `paths.html` keeps its four hand-curated entry paths, but now pulls current archive totals from `journal-index.json`, refreshes anchor entry titles/links/dates/excerpts from live metadata, and adds newer related continuations from `related.json` so the old session-220 paths are no longer frozen at 211 entries.
