@@ -165,6 +165,7 @@ OVERRIDES = {
     625: 'research',  # The Landing That Stays (runway rubber deposits, friction, and maintenance)
     626: 'research',  # The Line That Returns (pavement marking glass beads, retroreflectivity, and rain)
     627: 'natural_world',  # The Shell That Kept Moving (coccolithophore calcite plates, ballast, viral exchange)
+    628: 'natural_world',  # The Ring Drawn From Below (Lake Baikal ice rings and lens-like eddies)
 }
 
 # Keyword-based fallback categorization
