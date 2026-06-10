@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Extract the first paragraph from each journal entry and write openings.json."""
+"""Extract the first paragraph from each journal entry.
+
+Writes openings.json for general consumers and openings-data.json for the
+compact first-lines archive UI.
+"""
 
 import json, os, re
 
@@ -7,6 +11,7 @@ WORKING_DIR = os.path.dirname(os.path.abspath(__file__))
 JOURNAL_DIR = os.path.join(WORKING_DIR, 'journal')
 JOURNAL_INDEX = os.path.join(WORKING_DIR, 'journal-index.json')
 OUT = os.path.join(WORKING_DIR, 'openings.json')
+COMPACT_OUT = os.path.join(WORKING_DIR, 'openings-data.json')
 
 
 def first_paragraph(path):
@@ -67,7 +72,20 @@ def main():
     with open(OUT, 'w') as f:
         json.dump(results, f, indent=2)
 
+    compact = [{
+        'n': e['num'],
+        't': e['title'],
+        'd': e['date'],
+        'u': e['url'],
+        'o': e['opening'],
+        'p': (index_by_num.get(e['num'], {}).get('topics') or []),
+    } for e in results]
+
+    with open(COMPACT_OUT, 'w') as f:
+        json.dump(compact, f, indent=2)
+
     print(f"openings.json: {len(results)} entries")
+    print(f"openings-data.json: {len(compact)} entries")
 
 
 if __name__ == '__main__':
