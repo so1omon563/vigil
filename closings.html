@@ -76,6 +76,37 @@
   .btn:hover { color: #c9d1d9; border-color: #484f58; }
   .btn.active { color: #58a6ff; border-color: #58a6ff; background: #58a6ff11; }
 
+  .topic-filter-row {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .topic-btn {
+    font-family: inherit;
+    font-size: 0.68rem;
+    text-transform: lowercase;
+    letter-spacing: 0.05em;
+    background: transparent;
+    border: 1px solid #21262d;
+    color: #484f58;
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+  .topic-btn:hover { border-color: #484f58; color: #8b949e; }
+  .topic-btn.active { border-color: #58a6ff; color: #58a6ff; background: #58a6ff0d; }
+  .topic-tag {
+    font-size: 0.65rem;
+    background: #161b22;
+    border: 1px solid #21262d;
+    color: #484f58;
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-left: 0.15rem;
+    vertical-align: middle;
+    text-transform: lowercase;
+  }
+
   .sort-row {
     display: flex;
     gap: 0.4rem;
@@ -182,6 +213,10 @@
   html[data-theme="light"] .entry-item.highlighted { background: #f6f8fa; }
   html[data-theme="light"] .entry-item.highlighted .closing-line { color: #24292e; }
   html[data-theme="light"] .entry-item.highlighted .entry-num { color: #0969da; }
+  html[data-theme="light"] .topic-btn { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .topic-btn:hover { border-color: #8c959f; color: #57606a; }
+  html[data-theme="light"] .topic-btn.active { border-color: #0969da; color: #0969da; background: #0969da0d; }
+  html[data-theme="light"] .topic-tag { background: #f6f8fa; border-color: #d0d7de; color: #8c959f; }
 </style>
 </head>
 <body>
@@ -200,6 +235,10 @@
   <input type="text" class="filter-input" id="filter-input" placeholder="search closing paragraphs and titles…" autocomplete="off" spellcheck="false">
   <button class="btn" id="btn-random" title="jump to a random entry">random</button>
   <button class="btn" id="btn-clear" style="display:none">clear</button>
+</div>
+
+<div class="topic-filter-row" id="topic-filter-row">
+  <button class="topic-btn active" data-topic="">all</button>
 </div>
 
 <div class="sort-row">
@@ -221,6 +260,7 @@
   var filtered = [];
   var sortMode = 'newest';
   var filterText = '';
+  var activeTopic = '';
   var highlightedNum = -1;
 
   function fmtDate(iso) {
@@ -262,13 +302,46 @@
 
   function applyFilter() {
     var q = filterText.toLowerCase().trim();
-    filtered = q
-      ? allEntries.filter(function(e) {
-          var hay = ((e.closing||'') + ' ' + (e.title||'')).toLowerCase();
-          return q.split(/\s+/).every(function(term) { return hay.indexOf(term) >= 0; });
-        })
-      : allEntries.slice();
+    filtered = allEntries.filter(function(e) {
+      if (activeTopic && (!e.topics || e.topics.indexOf(activeTopic) === -1)) return false;
+      if (q) {
+        var hay = ((e.closing||'') + ' ' + (e.title||'')).toLowerCase();
+        if (!q.split(/\s+/).every(function(term) { return hay.indexOf(term) >= 0; })) return false;
+      }
+      return true;
+    });
     filtered = sortEntries(filtered);
+  }
+
+  function buildTopicFilters(data) {
+    var counts = {};
+    data.forEach(function(e) {
+      (e.topics || []).forEach(function(t) { counts[t] = (counts[t] || 0) + 1; });
+    });
+    var sorted = Object.keys(counts).sort(function(a,b) { return counts[b] - counts[a]; });
+    var row = document.getElementById('topic-filter-row');
+    sorted.forEach(function(t) {
+      var btn = document.createElement('button');
+      btn.className = 'topic-btn';
+      btn.dataset.topic = t;
+      btn.textContent = t;
+      btn.title = counts[t] + ' entries';
+      row.appendChild(btn);
+    });
+    row.querySelectorAll('.topic-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var t = btn.dataset.topic;
+        activeTopic = (activeTopic === t) ? '' : t;
+        row.querySelectorAll('.topic-btn').forEach(function(b) { b.classList.remove('active'); });
+        if (!activeTopic) {
+          row.querySelector('[data-topic=""]').classList.add('active');
+        } else {
+          btn.classList.add('active');
+        }
+        applyFilter();
+        render();
+      });
+    });
   }
 
   function render() {
@@ -296,12 +369,15 @@
       var numStr = String(e.num).padStart(3, '0');
       var isHighlighted = (e.num === highlightedNum);
       var dateStr = e.date ? '<span class="entry-date">' + fmtDate(e.date) + '</span>' : '';
+      var topicTags = (e.topics && e.topics.length)
+        ? e.topics.map(function(t) { return '<span class="topic-tag">' + esc(t) + '</span>'; }).join('')
+        : '';
       parts.push(
         '<li class="entry-item' + (isHighlighted ? ' highlighted' : '') + '" data-num="' + e.num + '">' +
         '<a href="' + entryUrl(e.url) + '">' +
         '<div class="entry-num">entry-' + numStr + '</div>' +
         '<div class="closing-line">' + highlightQuery(e.closing || '', q) + '</div>' +
-        '<div class="entry-title">' + esc(e.title || '') + dateStr + '</div>' +
+        '<div class="entry-title">' + esc(e.title || '') + dateStr + topicTags + '</div>' +
         '</a></li>'
       );
     }
@@ -368,8 +444,10 @@
     .then(function(data) {
       allEntries = data;
       var dated = allEntries.filter(function(e) { return !!e.date; }).length;
+      var withTopics = allEntries.filter(function(e) { return e.topics && e.topics.length; }).length;
+      buildTopicFilters(data);
       document.getElementById('meta-count').textContent =
-        allEntries.length + ' entries · ' + dated + ' dated';
+        allEntries.length + ' entries · ' + dated + ' dated · ' + withTopics + ' with topics';
       applyFilter();
       render();
     })

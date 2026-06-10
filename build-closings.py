@@ -78,6 +78,7 @@ def main():
                 num = int(m.group(1))
         title = entry.get('title', '')
         date = entry.get('date', '')
+        topics = entry.get('topics') or []
 
         # Build file path from URL
         filepath = url.lstrip('/')
@@ -93,6 +94,7 @@ def main():
                 'date': date,
                 'url': url,
                 'closing': closing,
+                'topics': topics,
             })
         else:
             missing.append(num)
