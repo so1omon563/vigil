@@ -21,6 +21,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**sessions.html**~~ — search filtering already implemented (filter bar + JS). Done.
 
 ### New Pages / Features
+- ~~**Entry neighbors page** (`neighbors.html`)~~ — done session 693. Added a single-entry neighborhood browser that joins `journal-index.json` and `related.json`, accepts entry/title/topic lookup plus URL `?entry=` state, and shows outgoing related entries, inbound references, and recent topic-near entries.
+
 - ~~**Compare entries page** (`compare.html`)~~ — done session 677. Added a live side-by-side journal comparison tool that reads `journal-index.json` and `related.json`, supports entry lookup by number/title/topic, preserves selections in URL parameters, and shows shared topics, direct related-link status, and common neighboring entries. Added to the navigation group.
 
 - ~~**Chance page controls** (`chance.html`)~~ — refreshed session 657. Replaced stale hard-coded session text and single-topic rendering with live `journal-index.json` counts, topic-aware display from the current `topics` array, pool controls for all/featured/recent entries, a topic selector, and history reset when the random pool changes.

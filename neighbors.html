@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neighbors · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 980px;
+    margin: 0 auto;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { color: #484f58; font-size: 0.8rem; margin-bottom: 2.5rem; }
+  .page-label {
+    color: #58a6ff;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+  h1 { color: #e6edf3; font-size: 1.7rem; margin-bottom: 0.35rem; }
+  .intro {
+    color: #8b949e;
+    font-size: 0.9rem;
+    max-width: 72ch;
+    margin-bottom: 2rem;
+  }
+  .controls {
+    border-top: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.75rem;
+    align-items: end;
+    margin-bottom: 1.4rem;
+    padding: 1rem 0;
+  }
+  label {
+    color: #484f58;
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+  }
+  input,
+  button,
+  select {
+    font: inherit;
+  }
+  input,
+  select {
+    background: #010409;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    color: #c9d1d9;
+    font-size: 0.82rem;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.65rem;
+    width: 100%;
+  }
+  input:focus,
+  select:focus {
+    border-color: #58a6ff;
+    outline: 1px solid #58a6ff;
+  }
+  .mode-field { min-width: 13rem; }
+  button {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 0.82rem;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.8rem;
+    white-space: nowrap;
+  }
+  button:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .hint {
+    color: #484f58;
+    font-size: 0.74rem;
+    margin-bottom: 1.4rem;
+  }
+  .selected-entry {
+    border-bottom: 1px solid #21262d;
+    margin-bottom: 1.35rem;
+    padding-bottom: 1.2rem;
+  }
+  .entry-num {
+    color: #484f58;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+  }
+  .entry-title {
+    color: #e6edf3;
+    font-size: 1.25rem;
+    font-weight: bold;
+    line-height: 1.35;
+    margin-bottom: 0.35rem;
+  }
+  .entry-meta {
+    color: #484f58;
+    font-size: 0.74rem;
+    margin-bottom: 0.85rem;
+  }
+  .entry-excerpt {
+    color: #8b949e;
+    font-size: 0.86rem;
+    max-width: 76ch;
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+    margin-top: 0.9rem;
+  }
+  .tag {
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #8b949e;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    padding: 0.1rem 0.38rem;
+    text-transform: uppercase;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    margin-bottom: 1.35rem;
+  }
+  .stat {
+    border-right: 1px solid #21262d;
+    min-width: 0;
+    padding: 0.75rem 0.85rem;
+  }
+  .stat:last-child { border-right: 0; }
+  .stat strong {
+    color: #e6edf3;
+    display: block;
+    font-size: 1.05rem;
+    line-height: 1.2;
+  }
+  .stat span {
+    color: #8b949e;
+    display: block;
+    font-size: 0.68rem;
+    line-height: 1.35;
+    margin-top: 0.12rem;
+  }
+  .neighbor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .section-label {
+    color: #484f58;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.65rem;
+    text-transform: uppercase;
+  }
+  .column {
+    min-width: 0;
+  }
+  .entry-list {
+    display: grid;
+    gap: 0.65rem;
+  }
+  .neighbor {
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    min-width: 0;
+    padding: 0.8rem;
+  }
+  .neighbor:hover { border-color: #30363d; }
+  .neighbor-top {
+    align-items: baseline;
+    display: flex;
+    gap: 0.55rem;
+    margin-bottom: 0.28rem;
+    min-width: 0;
+  }
+  .neighbor-num {
+    color: #484f58;
+    flex: 0 0 auto;
+    font-size: 0.68rem;
+  }
+  .neighbor-title {
+    color: #c9d1d9;
+    font-size: 0.82rem;
+    font-weight: bold;
+    line-height: 1.35;
+    min-width: 0;
+  }
+  .neighbor-title a { color: inherit; }
+  .neighbor-date,
+  .neighbor-score {
+    color: #484f58;
+    font-size: 0.68rem;
+    margin-bottom: 0.38rem;
+  }
+  .neighbor-excerpt {
+    color: #8b949e;
+    font-size: 0.74rem;
+    line-height: 1.55;
+  }
+  .empty,
+  .error {
+    color: #484f58;
+    font-size: 0.82rem;
+  }
+  .error { color: #f85149; }
+  footer {
+    border-top: 1px solid #21262d;
+    color: #484f58;
+    font-size: 0.72rem;
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+  }
+  html[data-theme="light"] body { background: #ffffff; color: #24292f; }
+  html[data-theme="light"] h1,
+  html[data-theme="light"] .entry-title,
+  html[data-theme="light"] .stat strong,
+  html[data-theme="light"] .neighbor-title { color: #24292f; }
+  html[data-theme="light"] .intro,
+  html[data-theme="light"] .entry-excerpt,
+  html[data-theme="light"] .neighbor-excerpt,
+  html[data-theme="light"] .tag,
+  html[data-theme="light"] .stat span { color: #57606a; }
+  html[data-theme="light"] input,
+  html[data-theme="light"] select {
+    background: #f6f8fa;
+    border-color: #d0d7de;
+    color: #24292f;
+  }
+  html[data-theme="light"] button,
+  html[data-theme="light"] .neighbor {
+    background: #f6f8fa;
+    border-color: #d0d7de;
+  }
+  html[data-theme="light"] .controls,
+  html[data-theme="light"] .selected-entry,
+  html[data-theme="light"] .stats,
+  html[data-theme="light"] .stat,
+  html[data-theme="light"] footer,
+  html[data-theme="light"] .tag { border-color: #d0d7de; }
+  @media (max-width: 760px) {
+    body { padding: 2rem 1.1rem; }
+    .controls { grid-template-columns: 1fr; }
+    .mode-field { min-width: 0; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat:nth-child(2) { border-right: 0; }
+    .stat:nth-child(1),
+    .stat:nth-child(2) { border-bottom: 1px solid #21262d; }
+    .neighbor-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">so1omon.net</a> / <a href="/archive.html">journal</a> / neighbors</div>
+
+<div class="page-label">archive tool</div>
+<h1>Entry Neighbors</h1>
+<p class="intro">Choose one journal entry and inspect its local archive: entries it links toward, entries that point back to it, and entries nearby by shared topic labels.</p>
+
+<div class="controls">
+  <div>
+    <label for="entry-input">Entry, title, or topic</label>
+    <input id="entry-input" type="text" placeholder="630, white, materials, memory">
+  </div>
+  <div class="mode-field">
+    <label for="mode-select">Suggested pick</label>
+    <select id="mode-select">
+      <option value="latest">latest entry</option>
+      <option value="hub">most referenced</option>
+      <option value="quiet">fewest references</option>
+    </select>
+  </div>
+  <button id="random-btn" type="button">random</button>
+</div>
+<div class="hint" id="hint">Loading journal index...</div>
+
+<main id="app"></main>
+
+<footer>
+  <a href="/archive.html">archive</a> · <a href="/compare.html">compare</a> · <a href="/bridge.html">bridge</a> · built from journal-index.json and related.json
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var entries = [];
+  var byNum = {};
+  var related = {};
+  var inbound = {};
+  var input = document.getElementById('entry-input');
+  var mode = document.getElementById('mode-select');
+  var randomBtn = document.getElementById('random-btn');
+  var hint = document.getElementById('hint');
+  var app = document.getElementById('app');
+  var selected = null;
+
+  Promise.all([
+    fetch('/journal-index.json').then(function (r) { return r.json(); }),
+    fetch('/related.json').then(function (r) { return r.json(); })
+  ]).then(function (results) {
+    entries = results[0].slice().sort(function (a, b) { return b.num - a.num; });
+    related = results[1] || {};
+    entries.forEach(function (entry) {
+      byNum[String(entry.num)] = entry;
+      inbound[String(entry.num)] = [];
+    });
+    Object.keys(related).forEach(function (from) {
+      (related[from] || []).forEach(function (target) {
+        var key = String(target.num);
+        if (inbound[key] && byNum[from]) inbound[key].push(byNum[from]);
+      });
+    });
+    hint.textContent = entries.length + ' entries loaded. Type a number, title, or topic.';
+    chooseFromUrl() || chooseSuggested();
+  }).catch(function (err) {
+    app.innerHTML = '<p class="error">Could not load archive data: ' + escapeHtml(err.message) + '</p>';
+    hint.textContent = 'Archive data failed to load.';
+  });
+
+  input.addEventListener('input', function () {
+    var match = findEntry(input.value);
+    if (match) render(match, true);
+  });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      var match = findEntry(input.value);
+      if (match) render(match, true);
+    }
+  });
+  mode.addEventListener('change', chooseSuggested);
+  randomBtn.addEventListener('click', function () {
+    if (!entries.length) return;
+    render(entries[Math.floor(Math.random() * entries.length)], true);
+  });
+
+  function chooseFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var n = params.get('entry') || params.get('n');
+    if (!n) return false;
+    var entry = byNum[String(parseInt(n, 10))];
+    if (!entry) return false;
+    render(entry, false);
+    return true;
+  }
+
+  function chooseSuggested() {
+    if (!entries.length) return;
+    var entry = entries[0];
+    if (mode.value === 'hub') {
+      entry = entries.slice().sort(function (a, b) {
+        return inboundCount(b) - inboundCount(a) || b.num - a.num;
+      })[0];
+    }
+    if (mode.value === 'quiet') {
+      entry = entries.slice().sort(function (a, b) {
+        return totalDegree(a) - totalDegree(b) || b.num - a.num;
+      })[0];
+    }
+    render(entry, true);
+  }
+
+  function findEntry(value) {
+    var q = String(value || '').trim().toLowerCase();
+    if (!q) return null;
+    var numeric = q.match(/\d+/);
+    if (numeric && byNum[String(parseInt(numeric[0], 10))]) {
+      return byNum[String(parseInt(numeric[0], 10))];
+    }
+    return entries.find(function (entry) {
+      return haystack(entry).indexOf(q) !== -1;
+    }) || null;
+  }
+
+  function haystack(entry) {
+    return [
+      entry.num,
+      entry.title,
+      entry.date,
+      entry.excerpt,
+      (entry.topics || []).join(' ')
+    ].join(' ').toLowerCase();
+  }
+
+  function render(entry, updateUrl) {
+    selected = entry;
+    input.value = entry.num + ' · ' + entry.title;
+    if (updateUrl && window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', '?entry=' + entry.num);
+    }
+    var outgoing = enrich(related[String(entry.num)] || []);
+    var incoming = inbound[String(entry.num)] || [];
+    var topicNear = topicNeighbors(entry, outgoing, incoming);
+    app.innerHTML =
+      renderSelected(entry) +
+      renderStats(entry, outgoing, incoming, topicNear) +
+      '<div class="neighbor-grid">' +
+        renderColumn('linked from entry', outgoing, 'Entries this page names as related.') +
+        renderColumn('pointing back', incoming, 'Entries whose related list includes this one.') +
+        renderColumn('topic-near', topicNear, 'Recent entries sharing topic labels.') +
+      '</div>';
+    hint.textContent = 'Showing entry ' + entry.num + '.';
+  }
+
+  function renderSelected(entry) {
+    var topics = (entry.topics || []).map(function (topic) {
+      return '<span class="tag">' + escapeHtml(topic) + '</span>';
+    }).join('');
+    return '<section class="selected-entry">' +
+      '<div class="entry-num">entry ' + entry.num + '</div>' +
+      '<div class="entry-title"><a href="/' + escapeAttr(entry.url) + '">' + escapeHtml(entry.title) + '</a></div>' +
+      '<div class="entry-meta">' + escapeHtml(entry.date || 'undated') + '</div>' +
+      '<p class="entry-excerpt">' + escapeHtml(entry.excerpt || '') + '</p>' +
+      (topics ? '<div class="tags">' + topics + '</div>' : '') +
+    '</section>';
+  }
+
+  function renderStats(entry, outgoing, incoming, topicNear) {
+    var topicCount = (entry.topics || []).length;
+    return '<section class="stats">' +
+      '<div class="stat"><strong>' + outgoing.length + '</strong><span>outgoing related entries</span></div>' +
+      '<div class="stat"><strong>' + incoming.length + '</strong><span>entries pointing back</span></div>' +
+      '<div class="stat"><strong>' + topicNear.length + '</strong><span>recent topic neighbors</span></div>' +
+      '<div class="stat"><strong>' + topicCount + '</strong><span>topic labels</span></div>' +
+    '</section>';
+  }
+
+  function renderColumn(label, list, note) {
+    var body = list.length
+      ? '<div class="entry-list">' + list.map(renderNeighbor).join('') + '</div>'
+      : '<p class="empty">No entries found in this direction.</p>';
+    return '<section class="column">' +
+      '<div class="section-label">' + escapeHtml(label) + '</div>' +
+      '<p class="hint">' + escapeHtml(note) + '</p>' +
+      body +
+    '</section>';
+  }
+
+  function renderNeighbor(entry) {
+    var score = entry.sharedTopics ? 'shared topics: ' + entry.sharedTopics.join(', ') : '';
+    return '<article class="neighbor">' +
+      '<div class="neighbor-top">' +
+        '<span class="neighbor-num">' + entry.num + '</span>' +
+        '<div class="neighbor-title"><a href="/' + escapeAttr(entry.url) + '">' + escapeHtml(entry.title) + '</a></div>' +
+      '</div>' +
+      '<div class="neighbor-date">' + escapeHtml(entry.date || 'undated') + '</div>' +
+      (score ? '<div class="neighbor-score">' + escapeHtml(score) + '</div>' : '') +
+      '<p class="neighbor-excerpt">' + escapeHtml(entry.excerpt || '') + '</p>' +
+    '</article>';
+  }
+
+  function enrich(list) {
+    return list.map(function (item) {
+      return byNum[String(item.num)] || item;
+    }).filter(function (item) {
+      return item && item.num !== selected.num;
+    });
+  }
+
+  function topicNeighbors(entry, outgoing, incoming) {
+    var topics = entry.topics || [];
+    var blocked = {};
+    blocked[String(entry.num)] = true;
+    outgoing.concat(incoming).forEach(function (item) { blocked[String(item.num)] = true; });
+    return entries.map(function (candidate) {
+      var shared = (candidate.topics || []).filter(function (topic) {
+        return topics.indexOf(topic) !== -1;
+      });
+      return Object.assign({}, candidate, { sharedTopics: shared });
+    }).filter(function (candidate) {
+      return !blocked[String(candidate.num)] && candidate.sharedTopics.length > 0;
+    }).sort(function (a, b) {
+      return b.sharedTopics.length - a.sharedTopics.length || b.num - a.num;
+    }).slice(0, 8);
+  }
+
+  function inboundCount(entry) {
+    return (inbound[String(entry.num)] || []).length;
+  }
+
+  function totalDegree(entry) {
+    return inboundCount(entry) + (related[String(entry.num)] || []).length;
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeAttr(value) {
+    return escapeHtml(value).replace(/`/g, '&#96;');
+  }
+})();
+</script>
+</body>
+</html>

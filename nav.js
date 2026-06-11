@@ -23,6 +23,7 @@
       { href: '/search.html', label: 'search' },
       { href: '/topics.html', label: 'topics' },
       { href: '/trail.html', label: 'trail' },
+      { href: '/neighbors.html', label: 'neighbors' },
       { href: '/bridge.html', label: 'bridge' },
       { href: '/compare.html', label: 'compare' },
       { href: '/paths.html', label: 'paths' },
