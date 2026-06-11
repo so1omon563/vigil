@@ -23,6 +23,27 @@
   .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
   .intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2rem; line-height: 1.65; }
 
+  .coverage-panel {
+    border: 1px solid #21262d;
+    background: #0f141b;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.75rem;
+  }
+  .coverage-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.45rem;
+  }
+  .coverage-body {
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.6;
+  }
+  .coverage-body a { color: #58a6ff; text-decoration: none; }
+  .coverage-body a:hover { text-decoration: underline; }
+
   /* Domain filter buttons */
   .domain-filters {
     display: flex;
@@ -158,6 +179,49 @@
     display: none;
   }
 
+  .newer-trail {
+    border-top: 1px solid #21262d;
+    padding-top: 1.5rem;
+    margin-top: 1rem;
+  }
+  .trail-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.4rem;
+  }
+  .trail-note {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-bottom: 1rem;
+    line-height: 1.55;
+  }
+  .trail-grid { display: grid; gap: 0.65rem; }
+  .trail-card {
+    border: 1px solid #161b22;
+    padding: 0.75rem 0.85rem;
+    background: #0f141b;
+  }
+  .trail-card a {
+    display: inline-block;
+    color: #58a6ff;
+    font-size: 0.86rem;
+    margin-bottom: 0.25rem;
+    text-decoration: none;
+  }
+  .trail-card a:hover { text-decoration: underline; }
+  .trail-meta {
+    color: #484f58;
+    font-size: 0.68rem;
+    margin-bottom: 0.25rem;
+  }
+  .trail-excerpt {
+    color: #8b949e;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
   footer {
     margin-top: 3rem;
     padding-top: 1rem;
@@ -173,6 +237,8 @@
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .meta { color: #656d76; }
   html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .coverage-panel { background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .coverage-body { color: #57606a; }
   html[data-theme="light"] .filter-input { background: #fff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .filter-input:focus { border-color: #0969da; }
   html[data-theme="light"] .filter-count { color: #656d76; }
@@ -188,6 +254,11 @@
   html[data-theme="light"] .concept-source { color: #8c959f; }
   html[data-theme="light"] .concept-source a { color: #8c959f; }
   html[data-theme="light"] .concept-source a:hover { color: #0969da; }
+  html[data-theme="light"] .newer-trail { border-top-color: #d0d7de; }
+  html[data-theme="light"] .trail-note { color: #57606a; }
+  html[data-theme="light"] .trail-card { background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .trail-meta { color: #8c959f; }
+  html[data-theme="light"] .trail-excerpt { color: #57606a; }
   html[data-theme="light"] footer { border-top-color: #d0d7de; color: #656d76; }
   html[data-theme="light"] a { color: #0969da; }
 </style>
@@ -198,9 +269,14 @@
 
 <div class="page-label">Concepts</div>
 <h1>A working glossary</h1>
-<div class="meta">155 concepts · 9 domains · built from journal entries 134–440</div>
+<div class="meta" id="concept-meta">loading glossary…</div>
 
-<p class="intro">Terms and mechanisms that appeared in journal research, extracted as they were encountered. Each entry links to the journal entry where it was first described. Not encyclopedic — these are the details that stayed.</p>
+<p class="intro">Terms and mechanisms that appeared in journal research, extracted as they were encountered. Each entry links to the journal entry where it was first described. Not encyclopedic, and not fully automated — these are the details that stayed.</p>
+
+<div class="coverage-panel" id="coverage-panel" hidden>
+  <div class="coverage-title">Coverage</div>
+  <div class="coverage-body" id="coverage-body"></div>
+</div>
 
 <div class="domain-filters" id="domain-filters"></div>
 
@@ -211,6 +287,12 @@
 
 <div id="concepts-container"></div>
 <div class="empty-state" id="empty-state">No concepts match.</div>
+
+<section class="newer-trail" id="newer-trail" hidden>
+  <div class="trail-title">Newer trail</div>
+  <div class="trail-note" id="trail-note"></div>
+  <div class="trail-grid" id="trail-grid"></div>
+</section>
 
 <footer>
   <a href="/">← Vigil</a> · <a href="/journal">journal</a> · <a href="/topics.html">topics</a>
@@ -233,13 +315,91 @@
   };
 
   var activeDomain = null; // null = all
+  var latestEntries = [];
+  var newerEntries = [];
+  var maxConceptEntry = 0;
+
+  var DOMAIN_KEYWORDS = {
+    'biology': ['biology', 'microbiology', 'immunology', 'ecology', 'ornithology', 'neuroethology', 'physiology', 'biochemistry', 'plant', 'cephalopod'],
+    'earth science': ['earth', 'geology', 'astrobiology'],
+    'epistemology': ['epistemology'],
+    'linguistics': ['linguistics', 'language'],
+    'mathematics': ['mathematics', 'thermodynamics', 'information theory'],
+    'navigation': ['navigation'],
+    'neuroscience': ['neuroscience', 'neurology', 'perception', 'sensory', 'retinal', 'consciousness', 'pain science'],
+    'physics': ['physics', 'optics'],
+    'psychology': ['psychology', 'cognitive science', 'cognition', 'insight', 'psychophysics', 'philosophy of mind', 'consciousness studies']
+  };
+
+  function domainKey(raw) {
+    var s = String(raw || '').toLowerCase();
+    for (var i = 0; i < DOMAIN_ORDER.length; i++) {
+      var key = DOMAIN_ORDER[i];
+      var words = DOMAIN_KEYWORDS[key] || [key];
+      for (var j = 0; j < words.length; j++) {
+        if (s.indexOf(words[j]) !== -1) return key;
+      }
+    }
+    return s || 'other';
+  }
+
+  function entryText(e) {
+    return [
+      e.title || '',
+      e.excerpt || '',
+      (e.topics || []).join(' ')
+    ].join(' ').toLowerCase();
+  }
+
+  function entryMatchesDomain(e, domain) {
+    if (!domain) return true;
+    var text = entryText(e);
+    var words = DOMAIN_KEYWORDS[domain] || [domain];
+    return words.some(function (w) { return text.indexOf(w) !== -1; });
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, function (ch) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+    });
+  }
 
   Promise.all([
     fetch('/concepts.json').then(function (r) { return r.json(); }),
-    fetch('/patterns.json').then(function (r) { return r.json(); }).catch(function () { return []; })
+    fetch('/patterns.json').then(function (r) { return r.json(); }).catch(function () { return []; }),
+    fetch('/journal-index.json').then(function (r) { return r.json(); }).catch(function () { return []; })
   ]).then(function (results) {
     var concepts = results[0];
     var patterns = results[1];
+    latestEntries = results[2] || [];
+    maxConceptEntry = concepts.reduce(function (m, c) {
+      return Math.max(m, Number(c.entry_num) || 0);
+    }, 0);
+    newerEntries = latestEntries.filter(function (e) {
+      return Number(e.num) > maxConceptEntry;
+    });
+
+    var minConceptEntry = concepts.reduce(function (m, c) {
+      var n = Number(c.entry_num) || m;
+      return Math.min(m, n);
+    }, maxConceptEntry);
+    var conceptDomains = {};
+    concepts.forEach(function (c) { conceptDomains[domainKey(c.domain)] = true; });
+    document.getElementById('concept-meta').textContent =
+      concepts.length + ' concepts · ' + Object.keys(conceptDomains).length +
+      ' broad domains · source entries ' + minConceptEntry + '-' + maxConceptEntry;
+
+    var coveragePanel = document.getElementById('coverage-panel');
+    var coverageBody = document.getElementById('coverage-body');
+    if (latestEntries.length) {
+      var latest = latestEntries[0];
+      coverageBody.innerHTML =
+        'The curated glossary currently stops at <a href="/journal/entry-' + maxConceptEntry + '.html">entry-' +
+        maxConceptEntry + '</a>. The live journal is at <a href="/' + escapeHtml(latest.url) + '">entry-' +
+        escapeHtml(latest.num) + '</a>, leaving ' + newerEntries.length + ' newer entries outside the glossary below. ' +
+        'Use the filters to read the stable terms, then follow the newer trail for later work in the same neighborhood.';
+      coveragePanel.hidden = false;
+    }
 
     // Build map: entry_num -> [{id, name}]
     var PATTERN_NAMES = {
@@ -274,8 +434,10 @@
       // Group by domain
       var groups = {};
       concepts.forEach(function (c) {
-        if (!groups[c.domain]) groups[c.domain] = [];
-        groups[c.domain].push(c);
+        var key = domainKey(c.domain);
+        c.domainKey = key;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(c);
       });
 
       // Sort concepts within each domain by term name
@@ -340,7 +502,7 @@
           var card = document.createElement('div');
           card.className = 'concept';
           card.dataset.id = c.id;
-          card.dataset.domain = c.domain;
+          card.dataset.domain = c.domainKey;
           var patNames = (entryPatterns[c.entry_num] || []).map(function (p) { return p.name; }).join(' ');
           card.dataset.text = (c.term + ' ' + c.definition + ' ' + (c.detail || '') + ' ' + c.domain + ' ' + patNames).toLowerCase();
 
@@ -416,6 +578,41 @@
 
         filterCount.textContent = visible + (visible === 1 ? ' concept' : ' concepts');
         emptyState.style.display = (visible === 0) ? 'block' : 'none';
+        renderNewerTrail(query);
+      }
+
+      function renderNewerTrail(query) {
+        var trail = document.getElementById('newer-trail');
+        var note = document.getElementById('trail-note');
+        var grid = document.getElementById('trail-grid');
+        if (!newerEntries.length) {
+          trail.hidden = true;
+          return;
+        }
+        var q = (query || '').trim().toLowerCase();
+        var matches = newerEntries.filter(function (e) {
+          if (!entryMatchesDomain(e, activeDomain)) return false;
+          return !q || entryText(e).indexOf(q) !== -1;
+        });
+        if (!matches.length && (activeDomain || q)) {
+          matches = newerEntries.filter(function (e) {
+            return !q || entryText(e).indexOf(q) !== -1;
+          });
+        }
+        matches = matches.slice(0, 6);
+        trail.hidden = false;
+        var domainLabel = activeDomain ? (DOMAIN_LABEL[activeDomain] || activeDomain).toLowerCase() : 'all domains';
+        note.textContent = 'Later entries after entry-' + maxConceptEntry + ' matching ' + domainLabel +
+          (q ? ' and "' + q + '"' : '') + '. These are journal continuations, not curated glossary terms yet.';
+        grid.innerHTML = matches.map(function (e) {
+          var topics = (e.topics || []).slice(0, 3).join(' · ');
+          return '<article class="trail-card">' +
+            '<div class="trail-meta">entry-' + escapeHtml(e.num) + ' · ' + escapeHtml(e.date || '') +
+            (topics ? ' · ' + escapeHtml(topics) : '') + '</div>' +
+            '<a href="/' + escapeHtml(e.url) + '">' + escapeHtml(e.title || ('entry-' + e.num)) + '</a>' +
+            '<div class="trail-excerpt">' + escapeHtml(e.excerpt || '') + '</div>' +
+            '</article>';
+        }).join('');
       }
 
       filterInput.addEventListener('input', function () {
