@@ -33,7 +33,7 @@
   }
   .catalog-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 0.75rem;
     align-items: center;
   }
@@ -56,6 +56,22 @@
     color: #484f58;
     font-size: 0.76rem;
     white-space: nowrap;
+  }
+  .random-model {
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    background: transparent;
+    color: #8b949e;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    min-height: 2.25rem;
+    padding: 0.35rem 0.65rem;
+    white-space: nowrap;
+  }
+  .random-model:hover {
+    color: #e6edf3;
+    border-color: #58a6ff;
   }
   .category-filters {
     display: flex;
@@ -224,6 +240,8 @@
   html[data-theme="light"] .catalog-tools { border-color: #d0d7de; }
   html[data-theme="light"] .catalog-search { background: #ffffff; color: #24292f; border-color: #d0d7de; }
   html[data-theme="light"] .catalog-count { color: #8c959f; }
+  html[data-theme="light"] .random-model { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .random-model:hover { color: #1f2328; border-color: #0969da; }
   html[data-theme="light"] .category-filter { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .category-filter:hover,
   html[data-theme="light"] .category-filter.active { color: #1f2328; border-color: #0969da; }
@@ -253,6 +271,9 @@
     .catalog-row {
       grid-template-columns: 1fr;
     }
+    .catalog-count {
+      white-space: normal;
+    }
   }
 </style>
 </head>
@@ -274,6 +295,7 @@
   <div class="catalog-row">
     <input class="catalog-search" id="model-search" type="search" placeholder="Filter by title, mechanism, description, or related entry" autocomplete="off">
     <div class="catalog-count" id="model-count">Loading…</div>
+    <button class="random-model" id="random-model" type="button">random visible</button>
   </div>
   <div class="category-filters" id="category-filters" aria-label="Simulation categories"></div>
 </div>
@@ -1517,7 +1539,10 @@
   var total = document.getElementById('model-total');
   var footerTotal = document.getElementById('footer-total');
   var noResults = document.getElementById('no-results');
+  var randomButton = document.getElementById('random-model');
+  var params = new URLSearchParams(window.location.search);
   var activeCategory = 'all';
+  var visibleModels = [];
 
   function text(el) {
     return (el.textContent || '').replace(/\s+/g, ' ').trim();
@@ -1548,6 +1573,7 @@
         btn.classList.toggle('active', btn.dataset.category === activeCategory);
       });
       applyFilter();
+      updateUrl();
     });
     return button;
   }
@@ -1570,16 +1596,42 @@
     filters.appendChild(makeButton(text(section), value, categoryCounts[value] || 0));
   });
 
+  if (params.get('category') && (params.get('category') === 'all' || categoryCounts[params.get('category')])) {
+    activeCategory = params.get('category');
+  }
+  if (params.get('q')) {
+    search.value = params.get('q');
+  }
+
+  function modelTitle(model) {
+    var title = model.querySelector('.model-name a, .model-title a');
+    return title ? text(title) : text(model).slice(0, 40);
+  }
+
+  function updateUrl() {
+    var next = new URLSearchParams();
+    var query = (search.value || '').trim();
+    if (activeCategory !== 'all') next.set('category', activeCategory);
+    if (query) next.set('q', query);
+    var suffix = next.toString();
+    var target = window.location.pathname + (suffix ? '?' + suffix : '');
+    window.history.replaceState(null, '', target);
+  }
+
   function applyFilter() {
     var query = (search.value || '').trim().toLowerCase();
     var visible = 0;
+    visibleModels = [];
 
     models.forEach(function (model) {
       var categoryMatch = activeCategory === 'all' || model.dataset.category === activeCategory;
       var textMatch = !query || model.dataset.searchText.indexOf(query) !== -1;
       var show = categoryMatch && textMatch;
       model.classList.toggle('hidden', !show);
-      if (show) visible += 1;
+      if (show) {
+        visible += 1;
+        visibleModels.push(model);
+      }
     });
 
     sections.forEach(function (section) {
@@ -1592,9 +1644,27 @@
 
     count.textContent = visible + ' of ' + models.length + ' visible';
     noResults.classList.toggle('hidden', visible !== 0);
+    randomButton.disabled = visible === 0;
+    randomButton.textContent = visible === 0 ? 'no visible models' : 'random visible';
   }
 
-  search.addEventListener('input', applyFilter);
+  search.addEventListener('input', function () {
+    applyFilter();
+    updateUrl();
+  });
+  randomButton.addEventListener('click', function () {
+    if (!visibleModels.length) return;
+    var pick = visibleModels[Math.floor(Math.random() * visibleModels.length)];
+    pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var link = pick.querySelector('.launch-link a, .model-name a, .model-title a');
+    randomButton.textContent = link ? modelTitle(pick) : 'random visible';
+    window.setTimeout(function () {
+      if (visibleModels.length) randomButton.textContent = 'random visible';
+    }, 2200);
+  });
+  Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
+    btn.classList.toggle('active', btn.dataset.category === activeCategory);
+  });
   total.textContent = models.length + ' interactive simulations';
   footerTotal.textContent = models.length + ' simulations';
   applyFilter();
