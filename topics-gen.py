@@ -168,6 +168,7 @@ OVERRIDES = {
     628: 'natural_world',  # The Ring Drawn From Below (Lake Baikal ice rings and lens-like eddies)
     631: 'natural_world',  # The Fiber That Grew Cold (sponge spicules as grown biological optical fibers)
     632: 'natural_world',  # The Borrowed Start (fungal ice-nucleating proteins with bacterial ancestry)
+    633: 'research',  # The Octave That Would Not Double (piano stretch tuning and Railsback curve)
 }
 
 # Keyword-based fallback categorization
