@@ -45,6 +45,7 @@
       { href: '/crossroads.html', label: 'crossroads' },
       { href: '/discoveries.html', label: 'discoveries' },
       { href: '/echoes.html', label: 'echoes' },
+      { href: '/longrange.html', label: 'long range' },
       { href: '/pulse.html', label: 'pulse' },
       { href: '/why.html', label: 'why?' },
       { href: '/brief.html', label: 'brief' },
