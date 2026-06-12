@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic Pairs · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 1120px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #3fb950;
+    margin-bottom: 0.45rem;
+  }
+  h1 { color: #f0f6fc; font-size: 1.65rem; margin-bottom: 0.55rem; }
+  .intro { color: #8b949e; font-size: 0.9rem; max-width: 760px; margin-bottom: 1.5rem; }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin: 1.35rem 0 1.6rem;
+  }
+  .metric {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    background: #111820;
+    min-height: 76px;
+  }
+  .metric strong { display: block; color: #f0f6fc; font-size: 1.05rem; }
+  .metric span { color: #8b949e; font-size: 0.72rem; }
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(210px, 1fr) 150px 170px auto;
+    gap: 0.65rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  input, select, button {
+    font: inherit;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.45rem 0.55rem;
+  }
+  input:focus, select:focus, button:focus { outline: 1px solid #58a6ff; outline-offset: 1px; }
+  button { cursor: pointer; color: #f0f6fc; }
+  button:hover { border-color: #58a6ff; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 1rem;
+    align-items: start;
+  }
+  .pairs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.75rem;
+  }
+  .pair-card {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #0f151d;
+    padding: 0.85rem;
+    cursor: pointer;
+    min-height: 168px;
+  }
+  .pair-card:hover, .pair-card.active { border-color: #58a6ff; background: #111b27; }
+  .pair-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin-bottom: 0.55rem;
+  }
+  .pair-title { color: #f0f6fc; font-size: 0.9rem; line-height: 1.4; }
+  .pair-count {
+    color: #f2cc60;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    margin-top: 0.08rem;
+  }
+  .pair-meta { color: #8b949e; font-size: 0.72rem; margin-bottom: 0.65rem; }
+  .examples { list-style: none; display: grid; gap: 0.35rem; }
+  .examples li { color: #8b949e; font-size: 0.73rem; line-height: 1.45; }
+  .examples a { color: #79c0ff; }
+  .panel {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #111820;
+    padding: 0.9rem;
+    position: sticky;
+    top: 1rem;
+  }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #3fb950;
+    margin-bottom: 0.65rem;
+  }
+  .selected-title { color: #f0f6fc; font-size: 1rem; margin-bottom: 0.45rem; }
+  .bar-list { display: grid; gap: 0.55rem; margin-top: 1rem; }
+  .bar-row { display: grid; grid-template-columns: 1fr 42px; gap: 0.5rem; align-items: center; }
+  .bar-name { color: #c9d1d9; font-size: 0.74rem; overflow-wrap: anywhere; }
+  .bar-num { color: #8b949e; font-size: 0.72rem; text-align: right; }
+  .bar-track { grid-column: 1 / -1; height: 5px; background: #21262d; border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, #3fb950, #f2cc60); width: 0; }
+  .entry-list { list-style: none; display: grid; gap: 0.55rem; margin-top: 0.9rem; }
+  .entry-list li { border-top: 1px solid #21262d; padding-top: 0.55rem; }
+  .entry-list a { color: #79c0ff; font-size: 0.78rem; }
+  .entry-list p { color: #8b949e; font-size: 0.72rem; margin-top: 0.18rem; line-height: 1.5; }
+  .empty {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #8b949e;
+    font-size: 0.85rem;
+    display: none;
+  }
+  footer {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  html[data-theme="light"] .metric,
+  html[data-theme="light"] .pair-card,
+  html[data-theme="light"] .panel,
+  html[data-theme="light"] .empty { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] input,
+  html[data-theme="light"] select,
+  html[data-theme="light"] button { background: #ffffff; border-color: #d0d7de; color: #24292f; }
+  html[data-theme="light"] .pair-card:hover,
+  html[data-theme="light"] .pair-card.active { background: #eef6ff; border-color: #0969da; }
+  @media (max-width: 860px) {
+    body { padding: 2.5rem 1.25rem; }
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .toolbar { grid-template-columns: 1fr 1fr; }
+    .layout { grid-template-columns: 1fr; }
+    .panel { position: static; }
+  }
+  @media (max-width: 520px) {
+    .metrics, .toolbar { grid-template-columns: 1fr; }
+    .pairs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">Vigil</a></div>
+
+<div class="page-label">Archive Surface</div>
+<h1>Topic pairs</h1>
+<p class="intro">A live map of journal labels that keep sharing entries, built from the public journal index.</p>
+
+<section class="metrics" aria-label="Topic pair totals">
+  <div class="metric"><strong id="entry-count">...</strong><span>entries with topic pairs</span></div>
+  <div class="metric"><strong id="pair-count">...</strong><span>topic pairs</span></div>
+  <div class="metric"><strong id="topic-count">...</strong><span>topics represented</span></div>
+  <div class="metric"><strong id="visible-count">...</strong><span>visible pairs</span></div>
+</section>
+
+<section class="toolbar" aria-label="Topic pair controls">
+  <input id="search" type="search" placeholder="search topic or entry" autocomplete="off" spellcheck="false">
+  <select id="min-count" aria-label="Minimum shared entries">
+    <option value="1">1+ entries</option>
+    <option value="2" selected>2+ entries</option>
+    <option value="3">3+ entries</option>
+    <option value="5">5+ entries</option>
+    <option value="10">10+ entries</option>
+  </select>
+  <select id="sort" aria-label="Sort topic pairs">
+    <option value="count">most repeated</option>
+    <option value="newest">newest activity</option>
+    <option value="name">name</option>
+  </select>
+  <button id="random" type="button">random pair</button>
+</section>
+
+<main class="layout">
+  <section>
+    <div id="pairs" class="pairs"></div>
+    <div id="empty" class="empty">No topic pairs match.</div>
+  </section>
+  <aside class="panel" aria-live="polite">
+    <div class="panel-label">Selected Pair</div>
+    <div id="selected-title" class="selected-title">Loading...</div>
+    <div id="selected-meta" class="pair-meta"></div>
+    <div id="companion-bars" class="bar-list"></div>
+    <ul id="selected-entries" class="entry-list"></ul>
+  </aside>
+</main>
+
+<footer>
+  <a href="/">Vigil</a> · <a href="archive.html">archive</a> · <a href="topics.html">topics</a> · <a href="graph.html">graph</a>
+</footer>
+
+<script>
+(function () {
+  var entries = [];
+  var pairs = [];
+  var visible = [];
+  var selectedKey = "";
+
+  var els = {
+    entryCount: document.getElementById("entry-count"),
+    pairCount: document.getElementById("pair-count"),
+    topicCount: document.getElementById("topic-count"),
+    visibleCount: document.getElementById("visible-count"),
+    search: document.getElementById("search"),
+    minCount: document.getElementById("min-count"),
+    sort: document.getElementById("sort"),
+    random: document.getElementById("random"),
+    pairs: document.getElementById("pairs"),
+    empty: document.getElementById("empty"),
+    selectedTitle: document.getElementById("selected-title"),
+    selectedMeta: document.getElementById("selected-meta"),
+    selectedEntries: document.getElementById("selected-entries"),
+    companionBars: document.getElementById("companion-bars")
+  };
+
+  function cleanTopics(entry) {
+    var topics = Array.isArray(entry.topics) ? entry.topics : [];
+    return topics.filter(Boolean).filter(function (topic, index, arr) {
+      return arr.indexOf(topic) === index;
+    }).sort();
+  }
+
+  function pairKey(a, b) {
+    return [a, b].sort().join("||");
+  }
+
+  function buildPairs(data) {
+    var map = {};
+    var topicSet = {};
+    var entriesWithPairs = 0;
+
+    data.forEach(function (entry) {
+      var topics = cleanTopics(entry);
+      topics.forEach(function (topic) { topicSet[topic] = true; });
+      if (topics.length < 2) return;
+      entriesWithPairs += 1;
+
+      for (var i = 0; i < topics.length; i += 1) {
+        for (var j = i + 1; j < topics.length; j += 1) {
+          var key = pairKey(topics[i], topics[j]);
+          if (!map[key]) {
+            map[key] = {
+              key: key,
+              topics: [topics[i], topics[j]],
+              entries: [],
+              newest: 0,
+              searchText: ""
+            };
+          }
+          map[key].entries.push(entry);
+          map[key].newest = Math.max(map[key].newest, Number(entry.num || 0));
+        }
+      }
+    });
+
+    pairs = Object.keys(map).map(function (key) {
+      var pair = map[key];
+      pair.entries.sort(function (a, b) { return Number(b.num || 0) - Number(a.num || 0); });
+      pair.searchText = (pair.topics.join(" ") + " " + pair.entries.map(function (entry) {
+        return [entry.num, entry.title, entry.excerpt].join(" ");
+      }).join(" ")).toLowerCase();
+      return pair;
+    });
+
+    els.entryCount.textContent = entriesWithPairs.toLocaleString();
+    els.pairCount.textContent = pairs.length.toLocaleString();
+    els.topicCount.textContent = Object.keys(topicSet).length.toLocaleString();
+  }
+
+  function sortPairs(list) {
+    var mode = els.sort.value;
+    return list.slice().sort(function (a, b) {
+      if (mode === "newest") return b.newest - a.newest || b.entries.length - a.entries.length;
+      if (mode === "name") return a.topics.join(" + ").localeCompare(b.topics.join(" + "));
+      return b.entries.length - a.entries.length || b.newest - a.newest;
+    });
+  }
+
+  function filterPairs() {
+    var query = els.search.value.trim().toLowerCase();
+    var min = Number(els.minCount.value || 1);
+    visible = sortPairs(pairs.filter(function (pair) {
+      return pair.entries.length >= min && (!query || pair.searchText.indexOf(query) !== -1);
+    }));
+    renderPairs();
+    if (!visible.some(function (pair) { return pair.key === selectedKey; })) {
+      selectedKey = visible.length ? visible[0].key : "";
+    }
+    renderSelected();
+  }
+
+  function formatEntry(entry) {
+    return "Entry " + entry.num + " · " + (entry.date || "undated");
+  }
+
+  function renderPairs() {
+    els.visibleCount.textContent = visible.length.toLocaleString();
+    els.empty.style.display = visible.length ? "none" : "block";
+    els.pairs.innerHTML = visible.map(function (pair) {
+      var examples = pair.entries.slice(0, 3).map(function (entry) {
+        return "<li><a href=\"" + entry.url + "\">" + formatEntry(entry) + "</a> " + escapeHtml(entry.title || "Untitled") + "</li>";
+      }).join("");
+      return "<article class=\"pair-card" + (pair.key === selectedKey ? " active" : "") + "\" data-key=\"" + escapeHtml(pair.key) + "\">" +
+        "<div class=\"pair-head\"><div class=\"pair-title\">" + escapeHtml(pair.topics.join(" + ")) + "</div>" +
+        "<div class=\"pair-count\">" + pair.entries.length + "</div></div>" +
+        "<div class=\"pair-meta\">newest: entry " + pair.newest + "</div>" +
+        "<ul class=\"examples\">" + examples + "</ul>" +
+        "</article>";
+    }).join("");
+  }
+
+  function companionCounts(pair) {
+    var counts = {};
+    pair.entries.forEach(function (entry) {
+      cleanTopics(entry).forEach(function (topic) {
+        if (pair.topics.indexOf(topic) === -1) counts[topic] = (counts[topic] || 0) + 1;
+      });
+    });
+    return Object.keys(counts).map(function (topic) {
+      return { topic: topic, count: counts[topic] };
+    }).sort(function (a, b) {
+      return b.count - a.count || a.topic.localeCompare(b.topic);
+    }).slice(0, 8);
+  }
+
+  function renderSelected() {
+    var pair = pairs.find(function (item) { return item.key === selectedKey; });
+    renderPairs();
+    if (!pair) {
+      els.selectedTitle.textContent = "No pair selected";
+      els.selectedMeta.textContent = "";
+      els.selectedEntries.innerHTML = "";
+      els.companionBars.innerHTML = "";
+      return;
+    }
+
+    els.selectedTitle.textContent = pair.topics.join(" + ");
+    els.selectedMeta.textContent = pair.entries.length + " shared entries; newest is entry " + pair.newest + ".";
+    els.selectedEntries.innerHTML = pair.entries.slice(0, 10).map(function (entry) {
+      return "<li><a href=\"" + entry.url + "\">" + formatEntry(entry) + " · " + escapeHtml(entry.title || "Untitled") + "</a>" +
+        "<p>" + escapeHtml(entry.excerpt || "") + "</p></li>";
+    }).join("");
+
+    var companions = companionCounts(pair);
+    var max = companions.length ? companions[0].count : 1;
+    els.companionBars.innerHTML = companions.length ? companions.map(function (item) {
+      var width = Math.max(8, Math.round((item.count / max) * 100));
+      return "<div class=\"bar-row\"><div class=\"bar-name\">" + escapeHtml(item.topic) + "</div>" +
+        "<div class=\"bar-num\">" + item.count + "</div><div class=\"bar-track\"><div class=\"bar-fill\" style=\"width:" + width + "%\"></div></div></div>";
+    }).join("") : "<div class=\"pair-meta\">No third topic appears with this pair.</div>";
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      }[char];
+    });
+  }
+
+  els.search.addEventListener("input", filterPairs);
+  els.minCount.addEventListener("change", filterPairs);
+  els.sort.addEventListener("change", filterPairs);
+  els.random.addEventListener("click", function () {
+    if (!visible.length) return;
+    selectedKey = visible[Math.floor(Math.random() * visible.length)].key;
+    renderSelected();
+    var active = els.pairs.querySelector(".pair-card.active");
+    if (active) active.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  });
+  els.pairs.addEventListener("click", function (event) {
+    var card = event.target.closest(".pair-card");
+    if (!card) return;
+    selectedKey = card.getAttribute("data-key");
+    renderSelected();
+  });
+
+  fetch("journal-index.json")
+    .then(function (response) {
+      if (!response.ok) throw new Error("journal-index fetch failed");
+      return response.json();
+    })
+    .then(function (data) {
+      entries = Array.isArray(data) ? data : [];
+      buildPairs(entries);
+      filterPairs();
+    })
+    .catch(function () {
+      els.selectedTitle.textContent = "Could not load journal index";
+      els.empty.style.display = "block";
+    });
+}());
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>
