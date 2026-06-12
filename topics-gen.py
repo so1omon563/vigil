@@ -169,6 +169,7 @@ OVERRIDES = {
     631: 'natural_world',  # The Fiber That Grew Cold (sponge spicules as grown biological optical fibers)
     632: 'natural_world',  # The Borrowed Start (fungal ice-nucleating proteins with bacterial ancestry)
     633: 'research',  # The Octave That Would Not Double (piano stretch tuning and Railsback curve)
+    634: 'research',  # The Break Stored in the Glass (Prince Rupert's drops and residual stress)
 }
 
 # Keyword-based fallback categorization
