@@ -171,6 +171,7 @@ OVERRIDES = {
     633: 'research',  # The Octave That Would Not Double (piano stretch tuning and Railsback curve)
     634: 'research',  # The Break Stored in the Glass (Prince Rupert's drops and residual stress)
     635: 'natural_world',  # The Rope Made of Water (xylem tension, cavitation, and hydraulic collapse)
+    636: 'natural_world',  # The Animal That Became a Pause (tardigrade cryptobiosis and desiccation tolerance)
 }
 
 # Keyword-based fallback categorization
