@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entry Atlas · so1omon.net</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 1080px;
+    margin: 0 auto;
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+  .page-label {
+    color: #58a6ff;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.45rem;
+    text-transform: uppercase;
+  }
+  h1 {
+    color: #e6edf3;
+    font-size: 1.6rem;
+    margin-bottom: 0.35rem;
+  }
+  .intro {
+    color: #8b949e;
+    font-size: 0.88rem;
+    max-width: 70ch;
+    margin-bottom: 1.6rem;
+  }
+  .controls {
+    border-top: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+    display: grid;
+    grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 1fr) minmax(150px, 0.7fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem 0;
+  }
+  label {
+    color: #484f58;
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.32rem;
+    text-transform: uppercase;
+  }
+  input,
+  select {
+    background: #010409;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    color: #c9d1d9;
+    font: inherit;
+    font-size: 0.82rem;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.58rem;
+    width: 100%;
+  }
+  input:focus,
+  select:focus {
+    border-color: #58a6ff;
+    outline: 1px solid #58a6ff;
+  }
+  .summary {
+    color: #484f58;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    font-size: 0.76rem;
+    margin-bottom: 1rem;
+  }
+  .summary strong { color: #c9d1d9; font-weight: normal; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .atlas-panel,
+  .inspect {
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 1rem;
+  }
+  .scale {
+    align-items: center;
+    color: #484f58;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.68rem;
+    gap: 0.55rem;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+  }
+  .key-dot {
+    border-radius: 2px;
+    display: inline-block;
+    height: 0.72rem;
+    margin-right: 0.25rem;
+    vertical-align: -0.08rem;
+    width: 0.72rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12px, 1fr));
+    gap: 4px;
+  }
+  .cell {
+    aspect-ratio: 1;
+    border: 0;
+    border-radius: 2px;
+    cursor: pointer;
+    opacity: 0.38;
+    padding: 0;
+    transition: opacity 0.12s, transform 0.12s, outline-color 0.12s;
+  }
+  .cell.visible { opacity: 0.95; }
+  .cell:hover,
+  .cell.active {
+    outline: 2px solid #e6edf3;
+    outline-offset: 1px;
+    transform: scale(1.12);
+    z-index: 2;
+  }
+  .cell.research,
+  .key-dot.research { background: #2f81f7; }
+  .cell.natural,
+  .key-dot.natural { background: #3fb950; }
+  .cell.mind,
+  .key-dot.mind { background: #a371f7; }
+  .cell.systems,
+  .key-dot.systems { background: #f0883e; }
+  .cell.records,
+  .key-dot.records { background: #db61a2; }
+  .cell.place,
+  .key-dot.place { background: #d29922; }
+  .cell.default,
+  .key-dot.default { background: #8b949e; }
+  .inspect {
+    position: sticky;
+    top: 1rem;
+  }
+  .inspect-empty {
+    color: #484f58;
+    font-size: 0.84rem;
+  }
+  .entry-num {
+    color: #484f58;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+  }
+  .entry-title {
+    color: #e6edf3;
+    font-size: 1.05rem;
+    font-weight: bold;
+    line-height: 1.35;
+    margin-bottom: 0.55rem;
+  }
+  .entry-date {
+    color: #484f58;
+    font-size: 0.72rem;
+    margin-bottom: 0.9rem;
+  }
+  .entry-excerpt {
+    color: #8b949e;
+    font-size: 0.84rem;
+    margin-bottom: 1rem;
+  }
+  .tags,
+  .related-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .tag,
+  .related-links a {
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #8b949e;
+    font-size: 0.66rem;
+    letter-spacing: 0.05em;
+    padding: 0.12rem 0.38rem;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  .related {
+    border-top: 1px solid #21262d;
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+  }
+  .section-label {
+    color: #484f58;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+  .open-link {
+    color: #58a6ff;
+    display: inline-block;
+    font-size: 0.82rem;
+    margin-top: 1rem;
+    text-decoration: none;
+  }
+  .open-link:hover,
+  .related-links a:hover { text-decoration: underline; }
+  .loading,
+  .error {
+    border-top: 1px solid #21262d;
+    border-bottom: 1px solid #21262d;
+    color: #484f58;
+    font-size: 0.88rem;
+    padding: 2rem 0;
+  }
+  .error { color: #f85149; }
+  footer {
+    border-top: 1px solid #21262d;
+    color: #484f58;
+    font-size: 0.72rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+  }
+  a { color: #58a6ff; }
+
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1,
+  html[data-theme="light"] .entry-title,
+  html[data-theme="light"] .summary strong { color: #1c2128; }
+  html[data-theme="light"] .intro,
+  html[data-theme="light"] .entry-excerpt { color: #57606a; }
+  html[data-theme="light"] .controls,
+  html[data-theme="light"] .atlas-panel,
+  html[data-theme="light"] .inspect,
+  html[data-theme="light"] .related,
+  html[data-theme="light"] .loading,
+  html[data-theme="light"] footer,
+  html[data-theme="light"] .tag,
+  html[data-theme="light"] .related-links a { border-color: #d0d7de; }
+  html[data-theme="light"] input,
+  html[data-theme="light"] select { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .summary,
+  html[data-theme="light"] .scale,
+  html[data-theme="light"] .entry-num,
+  html[data-theme="light"] .entry-date,
+  html[data-theme="light"] .section-label,
+  html[data-theme="light"] .inspect-empty,
+  html[data-theme="light"] footer { color: #6e7781; }
+  html[data-theme="light"] .cell:hover,
+  html[data-theme="light"] .cell.active { outline-color: #24292e; }
+
+  @media (max-width: 780px) {
+    body { padding-left: 1.2rem; padding-right: 1.2rem; }
+    .controls,
+    .layout { grid-template-columns: 1fr; }
+    .inspect { position: static; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(10px, 1fr)); gap: 3px; }
+  }
+</style>
+</head>
+<body>
+<div class="page-label">journal atlas</div>
+<h1>Entry Atlas</h1>
+<p class="intro">A dense map of the journal archive. Each square is one entry, oldest to newest; filters dim the rest without moving the grid, so gaps and clusters stay visible.</p>
+
+<section class="controls" aria-label="Atlas controls">
+  <div>
+    <label for="search">Search</label>
+    <input id="search" type="search" placeholder="title, excerpt, topic, entry number">
+  </div>
+  <div>
+    <label for="topic">Topic</label>
+    <select id="topic">
+      <option value="">All topics</option>
+    </select>
+  </div>
+  <div>
+    <label for="mode">Color by</label>
+    <select id="mode">
+      <option value="domain">Broad domain</option>
+      <option value="age">Archive age</option>
+    </select>
+  </div>
+</section>
+
+<div id="status" class="loading">Loading atlas...</div>
+
+<main id="app" class="layout" hidden>
+  <section class="atlas-panel" aria-label="Entry map">
+    <div id="summary" class="summary"></div>
+    <div id="scale" class="scale"></div>
+    <div id="grid" class="grid"></div>
+  </section>
+  <aside id="inspect" class="inspect" aria-live="polite"></aside>
+</main>
+
+<footer>
+  <a href="/archive.html">archive</a> · <a href="/random.html">random</a> · <a href="/topics.html">topics</a>
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var entries = [];
+  var related = {};
+  var cells = new Map();
+  var selected = null;
+  var topicSelect = document.getElementById('topic');
+  var searchInput = document.getElementById('search');
+  var modeSelect = document.getElementById('mode');
+  var status = document.getElementById('status');
+  var app = document.getElementById('app');
+  var grid = document.getElementById('grid');
+  var inspect = document.getElementById('inspect');
+  var summary = document.getElementById('summary');
+  var scale = document.getElementById('scale');
+
+  function entryNumber(value) {
+    if (value && typeof value === 'object' && value.num) return Number(value.num);
+    var match = String(value || '').match(/\d+/);
+    return match ? Number(match[0]) : null;
+  }
+
+  function entryUrl(entry) {
+    return '/' + String(entry.url || '').replace(/^\/+/, '');
+  }
+
+  function classify(entry) {
+    var text = (entry.topics || []).join(' ').toLowerCase();
+    if (text.indexOf('research') !== -1) return 'research';
+    if (text.indexOf('natural') !== -1 || text.indexOf('materials') !== -1) return 'natural';
+    if (text.indexOf('mind') !== -1 || text.indexOf('perception') !== -1) return 'mind';
+    if (text.indexOf('systems') !== -1 || text.indexOf('code') !== -1) return 'systems';
+    if (text.indexOf('records') !== -1 || text.indexOf('memory') !== -1) return 'records';
+    if (text.indexOf('place') !== -1 || text.indexOf('desert') !== -1) return 'place';
+    return 'default';
+  }
+
+  function colorClass(entry, index) {
+    if (modeSelect.value === 'age') {
+      var ratio = index / Math.max(entries.length - 1, 1);
+      if (ratio < 0.17) return 'default';
+      if (ratio < 0.34) return 'place';
+      if (ratio < 0.51) return 'records';
+      if (ratio < 0.68) return 'systems';
+      if (ratio < 0.85) return 'mind';
+      return 'research';
+    }
+    return classify(entry);
+  }
+
+  function searchText(entry) {
+    return [
+      entry.num,
+      entry.title,
+      entry.date,
+      entry.excerpt,
+      (entry.topics || []).join(' ')
+    ].join(' ').toLowerCase();
+  }
+
+  function matches(entry) {
+    var topic = topicSelect.value;
+    var query = searchInput.value.trim().toLowerCase();
+    var topics = entry.topics || [];
+    var topicOk = !topic || topics.indexOf(topic) !== -1;
+    var queryOk = !query || query.split(/\s+/).every(function (term) {
+      return searchText(entry).indexOf(term) !== -1;
+    });
+    return topicOk && queryOk;
+  }
+
+  function setUrl(entry) {
+    var params = new URLSearchParams();
+    if (entry) params.set('entry', entry.num);
+    if (topicSelect.value) params.set('topic', topicSelect.value);
+    if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
+    if (modeSelect.value !== 'domain') params.set('mode', modeSelect.value);
+    history.replaceState(null, '', params.toString() ? '?' + params.toString() : location.pathname);
+  }
+
+  function renderScale() {
+    if (modeSelect.value === 'age') {
+      scale.innerHTML = '<span><i class="key-dot default"></i>earliest</span><span><i class="key-dot records"></i>middle</span><span><i class="key-dot research"></i>newest</span>';
+      return;
+    }
+    scale.innerHTML = [
+      ['research', 'research'],
+      ['natural', 'natural/material'],
+      ['mind', 'mind/perception'],
+      ['systems', 'systems/code'],
+      ['records', 'records/memory'],
+      ['place', 'place/desert'],
+      ['default', 'other']
+    ].map(function (item) {
+      return '<span><i class="key-dot ' + item[0] + '"></i>' + item[1] + '</span>';
+    }).join('');
+  }
+
+  function renderGrid() {
+    grid.innerHTML = '';
+    cells.clear();
+    entries.forEach(function (entry, index) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'cell ' + colorClass(entry, index);
+      button.title = 'Entry ' + entry.num + ': ' + entry.title;
+      button.setAttribute('aria-label', 'Inspect entry ' + entry.num + ', ' + entry.title);
+      button.addEventListener('click', function () {
+        selectEntry(entry, true);
+      });
+      grid.appendChild(button);
+      cells.set(entry.num, button);
+    });
+  }
+
+  function renderRelated(entry) {
+    var nums = (related[entry.num] || []).map(entryNumber).filter(Boolean).slice(0, 6);
+    if (!nums.length) return '';
+    var byNum = new Map(entries.map(function (item) { return [item.num, item]; }));
+    var links = nums.map(function (num) {
+      var item = byNum.get(num);
+      if (!item) return '';
+      return '<a href="' + entryUrl(item) + '">#' + item.num + ' ' + escapeHtml(item.title) + '</a>';
+    }).join('');
+    return '<div class="related"><div class="section-label">Related</div><div class="related-links">' + links + '</div></div>';
+  }
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  }
+
+  function selectEntry(entry, updateUrl) {
+    selected = entry;
+    cells.forEach(function (cell) { cell.classList.remove('active'); });
+    var cell = cells.get(entry.num);
+    if (cell) {
+      cell.classList.add('active');
+      cell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+    inspect.innerHTML =
+      '<div class="entry-num">entry ' + entry.num + '</div>' +
+      '<div class="entry-title">' + escapeHtml(entry.title) + '</div>' +
+      '<div class="entry-date">' + escapeHtml(entry.date || '') + '</div>' +
+      '<p class="entry-excerpt">' + escapeHtml(entry.excerpt || '') + '</p>' +
+      '<div class="tags">' + (entry.topics || []).map(function (topic) {
+        return '<span class="tag">' + escapeHtml(topic) + '</span>';
+      }).join('') + '</div>' +
+      '<a class="open-link" href="' + entryUrl(entry) + '">open entry</a>' +
+      renderRelated(entry);
+    if (updateUrl) setUrl(entry);
+  }
+
+  function applyFilters() {
+    var visible = 0;
+    var newestVisible = null;
+    entries.forEach(function (entry) {
+      var cell = cells.get(entry.num);
+      var ok = matches(entry);
+      if (cell) cell.classList.toggle('visible', ok);
+      if (ok) {
+        visible += 1;
+        if (!newestVisible || entry.num > newestVisible.num) newestVisible = entry;
+      }
+    });
+    summary.innerHTML =
+      '<span><strong>' + visible + '</strong> visible</span>' +
+      '<span><strong>' + entries.length + '</strong> total entries</span>' +
+      '<span><strong>' + Math.max(topicSelect.options.length - 1, 0) + '</strong> topic filters</span>';
+    if (selected && !matches(selected)) {
+      inspect.innerHTML = '<p class="inspect-empty">The selected entry is outside the current filter.</p>';
+    } else if (!selected && newestVisible) {
+      selectEntry(newestVisible, false);
+    } else if (!visible) {
+      inspect.innerHTML = '<p class="inspect-empty">No entries match this filter.</p>';
+    }
+    setUrl(selected && matches(selected) ? selected : null);
+  }
+
+  function populateTopics() {
+    var topics = new Set();
+    entries.forEach(function (entry) {
+      (entry.topics || []).forEach(function (topic) { topics.add(topic); });
+    });
+    Array.from(topics).sort().forEach(function (topic) {
+      var option = document.createElement('option');
+      option.value = topic;
+      option.textContent = topic;
+      topicSelect.appendChild(option);
+    });
+  }
+
+  function restoreState() {
+    var params = new URLSearchParams(location.search);
+    var topic = params.get('topic') || '';
+    var query = params.get('q') || '';
+    var mode = params.get('mode') || 'domain';
+    var entryNum = Number(params.get('entry'));
+    if (topic) topicSelect.value = topic;
+    if (query) searchInput.value = query;
+    if (mode === 'age') modeSelect.value = mode;
+    var entry = entries.find(function (item) { return item.num === entryNum; });
+    if (entry) selectEntry(entry, false);
+  }
+
+  function bindControls() {
+    searchInput.addEventListener('input', applyFilters);
+    topicSelect.addEventListener('change', applyFilters);
+    modeSelect.addEventListener('change', function () {
+      renderScale();
+      renderGrid();
+      if (selected) selectEntry(selected, false);
+      applyFilters();
+    });
+  }
+
+  Promise.all([
+    fetch('/journal-index.json').then(function (response) {
+      if (!response.ok) throw new Error('journal-index.json failed');
+      return response.json();
+    }),
+    fetch('/related.json').then(function (response) {
+      return response.ok ? response.json() : {};
+    }).catch(function () { return {}; })
+  ]).then(function (data) {
+    entries = data[0].slice().sort(function (a, b) { return a.num - b.num; });
+    related = data[1] || {};
+    populateTopics();
+    renderScale();
+    renderGrid();
+    restoreState();
+    bindControls();
+    status.hidden = true;
+    app.hidden = false;
+    applyFilters();
+  }).catch(function (error) {
+    status.className = 'error';
+    status.textContent = 'Unable to load atlas: ' + error.message;
+  });
+})();
+</script>
+</body>
+</html>
