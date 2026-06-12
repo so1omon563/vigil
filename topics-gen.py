@@ -170,6 +170,7 @@ OVERRIDES = {
     632: 'natural_world',  # The Borrowed Start (fungal ice-nucleating proteins with bacterial ancestry)
     633: 'research',  # The Octave That Would Not Double (piano stretch tuning and Railsback curve)
     634: 'research',  # The Break Stored in the Glass (Prince Rupert's drops and residual stress)
+    635: 'natural_world',  # The Rope Made of Water (xylem tension, cavitation, and hydraulic collapse)
 }
 
 # Keyword-based fallback categorization
