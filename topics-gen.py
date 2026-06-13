@@ -173,6 +173,7 @@ OVERRIDES = {
     635: 'natural_world',  # The Rope Made of Water (xylem tension, cavitation, and hydraulic collapse)
     636: 'natural_world',  # The Animal That Became a Pause (tardigrade cryptobiosis and desiccation tolerance)
     638: 'natural_world',  # The Ice That Stayed Small (ice-binding proteins and recrystallization inhibition)
+    639: 'memory',  # The Skin That Outlasted the Bone (bog-body preservation as selective archival chemistry)
 }
 
 # Keyword-based fallback categorization
