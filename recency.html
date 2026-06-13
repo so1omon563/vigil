@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic Recency · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 1120px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #f2cc60;
+    margin-bottom: 0.45rem;
+  }
+  h1 { color: #f0f6fc; font-size: 1.65rem; margin-bottom: 0.55rem; }
+  .intro { color: #8b949e; font-size: 0.9rem; max-width: 780px; margin-bottom: 1.5rem; }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin: 1.35rem 0 1.6rem;
+  }
+  .metric {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    background: #111820;
+    min-height: 76px;
+  }
+  .metric strong { display: block; color: #f0f6fc; font-size: 1.05rem; }
+  .metric span { color: #8b949e; font-size: 0.72rem; }
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 160px 160px auto;
+    gap: 0.65rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  input, select, button {
+    font: inherit;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.45rem 0.55rem;
+  }
+  input:focus, select:focus, button:focus { outline: 1px solid #58a6ff; outline-offset: 1px; }
+  button { cursor: pointer; color: #f0f6fc; }
+  button:hover { border-color: #58a6ff; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 1rem;
+    align-items: start;
+  }
+  .topic-list { display: grid; gap: 0.65rem; }
+  .topic-card {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #0f151d;
+    padding: 0.8rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    gap: 0.8rem;
+    cursor: pointer;
+  }
+  .topic-card:hover, .topic-card.active { border-color: #58a6ff; background: #111b27; }
+  .topic-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.45rem;
+  }
+  .topic-name { color: #f0f6fc; font-size: 0.9rem; overflow-wrap: anywhere; }
+  .topic-age { color: #f2cc60; font-size: 0.72rem; white-space: nowrap; }
+  .topic-meta { color: #8b949e; font-size: 0.72rem; margin-bottom: 0.45rem; }
+  .spark {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 3px;
+    align-items: end;
+    min-height: 34px;
+  }
+  .spark-bar {
+    min-height: 4px;
+    border-radius: 2px 2px 0 0;
+    background: #30363d;
+  }
+  .spark-bar.active { background: linear-gradient(180deg, #79c0ff, #3fb950); }
+  .recent-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .recent-links a {
+    color: #79c0ff;
+    font-size: 0.72rem;
+    border: 1px solid #21262d;
+    border-radius: 999px;
+    padding: 0.12rem 0.42rem;
+  }
+  .panel {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #111820;
+    padding: 0.9rem;
+    position: sticky;
+    top: 1rem;
+  }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #f2cc60;
+    margin-bottom: 0.65rem;
+  }
+  .selected-title { color: #f0f6fc; font-size: 1rem; margin-bottom: 0.45rem; overflow-wrap: anywhere; }
+  .panel-copy { color: #8b949e; font-size: 0.76rem; margin-bottom: 0.9rem; }
+  .entry-list { list-style: none; display: grid; gap: 0.6rem; }
+  .entry-list li { border-top: 1px solid #21262d; padding-top: 0.6rem; }
+  .entry-list a { color: #79c0ff; font-size: 0.78rem; }
+  .entry-list p { color: #8b949e; font-size: 0.72rem; margin-top: 0.18rem; line-height: 1.5; }
+  .empty {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #8b949e;
+    font-size: 0.85rem;
+    display: none;
+  }
+  footer {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  html[data-theme="light"] .metric,
+  html[data-theme="light"] .topic-card,
+  html[data-theme="light"] .panel,
+  html[data-theme="light"] .empty { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] input,
+  html[data-theme="light"] select,
+  html[data-theme="light"] button { background: #ffffff; border-color: #d0d7de; color: #24292f; }
+  html[data-theme="light"] .topic-card:hover,
+  html[data-theme="light"] .topic-card.active { background: #eef6ff; border-color: #0969da; }
+  html[data-theme="light"] .recent-links a { border-color: #d0d7de; }
+  @media (max-width: 860px) {
+    body { padding: 2.5rem 1.25rem; }
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .toolbar { grid-template-columns: 1fr 1fr; }
+    .layout { grid-template-columns: 1fr; }
+    .panel { position: static; }
+  }
+  @media (max-width: 560px) {
+    .metrics, .toolbar { grid-template-columns: 1fr; }
+    .topic-card { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">Vigil</a></div>
+
+<div class="page-label">Archive Surface</div>
+<h1>Topic recency</h1>
+<p class="intro">A live view of which journal topics are active now, which have gone quiet, and where each topic last touched the archive.</p>
+
+<section class="metrics" aria-label="Topic recency totals">
+  <div class="metric"><strong id="entry-count">...</strong><span>journal entries</span></div>
+  <div class="metric"><strong id="topic-count">...</strong><span>topics tracked</span></div>
+  <div class="metric"><strong id="hot-count">...</strong><span>topics seen in last 30 entries</span></div>
+  <div class="metric"><strong id="visible-count">...</strong><span>visible topics</span></div>
+</section>
+
+<section class="toolbar" aria-label="Topic recency controls">
+  <input id="search" type="search" placeholder="filter topics or entries..." autocomplete="off" spellcheck="false">
+  <select id="state-filter" aria-label="Recency filter">
+    <option value="all">all topics</option>
+    <option value="hot">last 30 entries</option>
+    <option value="warm">last 100 entries</option>
+    <option value="quiet">quiet topics</option>
+  </select>
+  <select id="sort" aria-label="Sort topics">
+    <option value="recent">most recent</option>
+    <option value="count">most entries</option>
+    <option value="name">name</option>
+    <option value="oldest">quietest first</option>
+  </select>
+  <button id="random-topic" type="button">random visible</button>
+</section>
+
+<section class="layout">
+  <main>
+    <div id="topic-list" class="topic-list"></div>
+    <div id="empty" class="empty">No topics match the current filters.</div>
+  </main>
+  <aside class="panel" aria-live="polite">
+    <div class="panel-label">Selected Topic</div>
+    <div id="selected-title" class="selected-title">Loading...</div>
+    <p id="selected-copy" class="panel-copy"></p>
+    <ul id="selected-entries" class="entry-list"></ul>
+  </aside>
+</section>
+
+<footer>
+  Built from <code>journal-index.json</code>. Related views: <a href="/topics.html">topics</a>, <a href="/pairs.html">topic pairs</a>, <a href="/atlas.html">atlas</a>.
+</footer>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var entries = [];
+  var topics = [];
+  var visible = [];
+  var selected = null;
+  var maxNum = 0;
+
+  var topicList = document.getElementById('topic-list');
+  var empty = document.getElementById('empty');
+  var search = document.getElementById('search');
+  var stateFilter = document.getElementById('state-filter');
+  var sortSelect = document.getElementById('sort');
+  var randomBtn = document.getElementById('random-topic');
+  var selectedTitle = document.getElementById('selected-title');
+  var selectedCopy = document.getElementById('selected-copy');
+  var selectedEntries = document.getElementById('selected-entries');
+
+  function normalize(text) {
+    return String(text || '').toLowerCase();
+  }
+
+  function ageLabel(age) {
+    if (age === 0) return 'latest entry';
+    if (age === 1) return '1 entry ago';
+    return age + ' entries ago';
+  }
+
+  function classify(age) {
+    if (age <= 30) return 'hot';
+    if (age <= 100) return 'warm';
+    return 'quiet';
+  }
+
+  function buildTopics() {
+    var map = {};
+    entries.forEach(function (entry) {
+      (entry.topics || []).forEach(function (topic) {
+        if (!map[topic]) {
+          map[topic] = {
+            name: topic,
+            entries: [],
+            firstNum: entry.num,
+            lastNum: entry.num,
+            searchText: ''
+          };
+        }
+        map[topic].entries.push(entry);
+        map[topic].firstNum = Math.min(map[topic].firstNum, entry.num);
+        map[topic].lastNum = Math.max(map[topic].lastNum, entry.num);
+      });
+    });
+
+    topics = Object.keys(map).map(function (name) {
+      var topic = map[name];
+      topic.entries.sort(function (a, b) { return b.num - a.num; });
+      topic.age = maxNum - topic.lastNum;
+      topic.state = classify(topic.age);
+      topic.recentEntries = topic.entries.slice(0, 5);
+      topic.searchText = normalize([
+        topic.name,
+        topic.entries.slice(0, 12).map(function (entry) {
+          return [entry.title, entry.excerpt, entry.date, entry.num].join(' ');
+        }).join(' ')
+      ].join(' '));
+      return topic;
+    });
+  }
+
+  function bucketCounts(topic) {
+    var buckets = new Array(12).fill(0);
+    topic.entries.forEach(function (entry) {
+      var distance = Math.max(0, maxNum - entry.num);
+      var index = Math.min(11, Math.floor(distance / 25));
+      buckets[index]++;
+    });
+    return buckets;
+  }
+
+  function renderSpark(topic) {
+    var buckets = bucketCounts(topic);
+    var maxBucket = Math.max.apply(null, buckets.concat([1]));
+    return buckets.map(function (count) {
+      var height = count ? Math.max(6, Math.round((count / maxBucket) * 32)) : 4;
+      var cls = count ? 'spark-bar active' : 'spark-bar';
+      return '<span class="' + cls + '" style="height:' + height + 'px"></span>';
+    }).join('');
+  }
+
+  function renderCard(topic) {
+    var links = topic.recentEntries.map(function (entry) {
+      return '<a href="/' + entry.url + '">#' + entry.num + '</a>';
+    }).join('');
+    var active = selected && selected.name === topic.name ? ' active' : '';
+    return [
+      '<article class="topic-card' + active + '" data-topic="' + encodeURIComponent(topic.name) + '">',
+      '  <div>',
+      '    <div class="topic-head">',
+      '      <strong class="topic-name">' + topic.name + '</strong>',
+      '      <span class="topic-age">' + ageLabel(topic.age) + '</span>',
+      '    </div>',
+      '    <div class="topic-meta">' + topic.entries.length + ' entries · #' + topic.firstNum + ' to #' + topic.lastNum + ' · ' + topic.state + '</div>',
+      '    <div class="recent-links">' + links + '</div>',
+      '  </div>',
+      '  <div class="spark" aria-hidden="true">' + renderSpark(topic) + '</div>',
+      '</article>'
+    ].join('');
+  }
+
+  function renderSelected(topic) {
+    selected = topic;
+    selectedTitle.textContent = topic.name;
+    selectedCopy.textContent = topic.entries.length + ' entries, last seen ' + ageLabel(topic.age) + '. Spark bars read left-to-right from newest to older archive bands.';
+    selectedEntries.innerHTML = topic.entries.slice(0, 8).map(function (entry) {
+      return [
+        '<li>',
+        '  <a href="/' + entry.url + '">#' + entry.num + ' · ' + entry.title + '</a>',
+        '  <p>' + (entry.excerpt || entry.date || '') + '</p>',
+        '</li>'
+      ].join('');
+    }).join('');
+  }
+
+  function applyFilters() {
+    var q = normalize(search.value.trim());
+    var mode = stateFilter.value;
+    visible = topics.filter(function (topic) {
+      if (mode === 'hot' && topic.age > 30) return false;
+      if (mode === 'warm' && topic.age > 100) return false;
+      if (mode === 'quiet' && topic.age <= 100) return false;
+      return !q || topic.searchText.indexOf(q) !== -1;
+    });
+
+    visible.sort(function (a, b) {
+      if (sortSelect.value === 'count') return b.entries.length - a.entries.length || a.name.localeCompare(b.name);
+      if (sortSelect.value === 'name') return a.name.localeCompare(b.name);
+      if (sortSelect.value === 'oldest') return b.age - a.age || a.name.localeCompare(b.name);
+      return a.age - b.age || b.entries.length - a.entries.length || a.name.localeCompare(b.name);
+    });
+
+    topicList.innerHTML = visible.map(renderCard).join('');
+    empty.style.display = visible.length ? 'none' : 'block';
+    document.getElementById('visible-count').textContent = visible.length;
+
+    if (!selected || visible.indexOf(selected) === -1) {
+      renderSelected(visible[0] || topics[0]);
+    }
+    refreshActive();
+  }
+
+  function refreshActive() {
+    Array.from(topicList.querySelectorAll('.topic-card')).forEach(function (card) {
+      var name = decodeURIComponent(card.getAttribute('data-topic'));
+      card.classList.toggle('active', selected && selected.name === name);
+    });
+  }
+
+  topicList.addEventListener('click', function (event) {
+    var card = event.target.closest('.topic-card');
+    if (!card) return;
+    var name = decodeURIComponent(card.getAttribute('data-topic'));
+    var topic = topics.find(function (item) { return item.name === name; });
+    if (topic) {
+      renderSelected(topic);
+      refreshActive();
+    }
+  });
+
+  search.addEventListener('input', applyFilters);
+  stateFilter.addEventListener('change', applyFilters);
+  sortSelect.addEventListener('change', applyFilters);
+  randomBtn.addEventListener('click', function () {
+    if (!visible.length) return;
+    var topic = visible[Math.floor(Math.random() * visible.length)];
+    renderSelected(topic);
+    refreshActive();
+  });
+
+  fetch('/journal-index.json')
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      entries = data.filter(function (entry) {
+        return entry && entry.num && Array.isArray(entry.topics) && entry.topics.length;
+      });
+      maxNum = entries.reduce(function (max, entry) { return Math.max(max, entry.num); }, 0);
+      buildTopics();
+      document.getElementById('entry-count').textContent = data.length;
+      document.getElementById('topic-count').textContent = topics.length;
+      document.getElementById('hot-count').textContent = topics.filter(function (topic) { return topic.age <= 30; }).length;
+      renderSelected(topics[0]);
+      applyFilters();
+    })
+    .catch(function () {
+      selectedTitle.textContent = 'Could not load journal-index.json';
+      selectedCopy.textContent = 'The topic recency map depends on the public journal index.';
+    });
+})();
+</script>
+</body>
+</html>

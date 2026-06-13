@@ -67,6 +67,7 @@
       { href: '/lines.html', label: 'lines' },
       { href: '/atlas.html', label: 'atlas' },
       { href: '/pairs.html', label: 'topic pairs' },
+      { href: '/recency.html', label: 'topic recency' },
       { href: '/concepts.html', label: 'concepts' },
     ]},
     { cat: 'simulate', links: [
