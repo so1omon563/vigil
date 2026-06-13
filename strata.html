@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archive Strata · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 1160px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #ff7b72;
+    margin-bottom: 0.45rem;
+  }
+  h1 { color: #f0f6fc; font-size: 1.65rem; margin-bottom: 0.55rem; }
+  .intro { color: #8b949e; font-size: 0.9rem; max-width: 780px; margin-bottom: 1.5rem; }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin: 1.35rem 0 1.6rem;
+  }
+  .metric {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    background: #111820;
+    min-height: 76px;
+  }
+  .metric strong { display: block; color: #f0f6fc; font-size: 1.05rem; }
+  .metric span { color: #8b949e; font-size: 0.72rem; }
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 160px 170px auto;
+    gap: 0.65rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  input, select, button {
+    font: inherit;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.45rem 0.55rem;
+  }
+  input:focus, select:focus, button:focus { outline: 1px solid #58a6ff; outline-offset: 1px; }
+  button { cursor: pointer; color: #f0f6fc; }
+  button:hover { border-color: #58a6ff; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 1rem;
+    align-items: start;
+  }
+  .strata-list { display: grid; gap: 0.85rem; }
+  .stratum {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #0f151d;
+    padding: 0.9rem;
+    cursor: pointer;
+  }
+  .stratum:hover, .stratum.active { border-color: #58a6ff; background: #111b27; }
+  .stratum-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.55rem;
+  }
+  .stratum-title { color: #f0f6fc; font-size: 0.92rem; }
+  .stratum-range { color: #8b949e; font-size: 0.72rem; }
+  .band {
+    display: grid;
+    grid-template-columns: repeat(var(--cells), minmax(0, 1fr));
+    gap: 2px;
+    margin: 0.55rem 0 0.75rem;
+  }
+  .cell {
+    height: 16px;
+    background: #21262d;
+    border-radius: 2px;
+    opacity: 0.55;
+  }
+  .cell.hit { opacity: 1; }
+  .cell.c0 { background: #58a6ff; }
+  .cell.c1 { background: #3fb950; }
+  .cell.c2 { background: #f2cc60; }
+  .cell.c3 { background: #ff7b72; }
+  .cell.c4 { background: #a371f7; }
+  .topic-bars { display: grid; gap: 0.38rem; margin-top: 0.55rem; }
+  .topic-row {
+    display: grid;
+    grid-template-columns: 135px minmax(0, 1fr) 38px;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .topic-name { color: #c9d1d9; font-size: 0.72rem; overflow-wrap: anywhere; }
+  .topic-track { height: 6px; background: #21262d; border-radius: 999px; overflow: hidden; }
+  .topic-fill { height: 100%; background: linear-gradient(90deg, #58a6ff, #3fb950, #f2cc60); width: 0; }
+  .topic-count { color: #8b949e; font-size: 0.7rem; text-align: right; }
+  .entry-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.75rem;
+  }
+  .entry-strip a {
+    color: #79c0ff;
+    border: 1px solid #21262d;
+    border-radius: 999px;
+    padding: 0.12rem 0.42rem;
+    font-size: 0.72rem;
+  }
+  .panel {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #111820;
+    padding: 0.9rem;
+    position: sticky;
+    top: 1rem;
+  }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #ff7b72;
+    margin-bottom: 0.65rem;
+  }
+  .selected-title { color: #f0f6fc; font-size: 1rem; margin-bottom: 0.45rem; }
+  .panel-copy { color: #8b949e; font-size: 0.76rem; margin-bottom: 0.85rem; }
+  .contrast-list { list-style: none; display: grid; gap: 0.55rem; }
+  .contrast-list li { border-top: 1px solid #21262d; padding-top: 0.55rem; }
+  .contrast-list strong { display: block; color: #f0f6fc; font-size: 0.78rem; margin-bottom: 0.12rem; }
+  .contrast-list span { color: #8b949e; font-size: 0.72rem; }
+  .entry-list { list-style: none; display: grid; gap: 0.55rem; margin-top: 0.9rem; }
+  .entry-list li { border-top: 1px solid #21262d; padding-top: 0.55rem; }
+  .entry-list a { color: #79c0ff; font-size: 0.78rem; }
+  .entry-list p { color: #8b949e; font-size: 0.72rem; margin-top: 0.18rem; line-height: 1.5; }
+  .empty {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #8b949e;
+    font-size: 0.85rem;
+    display: none;
+  }
+  footer {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  html[data-theme="light"] .metric,
+  html[data-theme="light"] .stratum,
+  html[data-theme="light"] .panel,
+  html[data-theme="light"] .empty { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] input,
+  html[data-theme="light"] select,
+  html[data-theme="light"] button { background: #ffffff; border-color: #d0d7de; color: #24292f; }
+  html[data-theme="light"] .stratum:hover,
+  html[data-theme="light"] .stratum.active { background: #fff8e5; border-color: #bf8700; }
+  html[data-theme="light"] .entry-strip a { border-color: #d0d7de; }
+  @media (max-width: 900px) {
+    body { padding: 2.5rem 1.25rem; }
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .toolbar { grid-template-columns: 1fr 1fr; }
+    .layout { grid-template-columns: 1fr; }
+    .panel { position: static; }
+  }
+  @media (max-width: 560px) {
+    .metrics, .toolbar { grid-template-columns: 1fr; }
+    .topic-row { grid-template-columns: 1fr 38px; }
+    .topic-track { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">Vigil</a></div>
+
+<div class="page-label">Archive Surface</div>
+<h1>Archive strata</h1>
+<p class="intro">A live cross-section of the journal, split into chronological layers so shifts in topic, density, and recurring examples can be read without leaving the archive.</p>
+
+<section class="metrics" aria-label="Archive stratum totals">
+  <div class="metric"><strong id="entry-count">...</strong><span>journal entries</span></div>
+  <div class="metric"><strong id="strata-count">...</strong><span>visible strata</span></div>
+  <div class="metric"><strong id="topic-count">...</strong><span>topics in view</span></div>
+  <div class="metric"><strong id="match-count">...</strong><span>matching entries</span></div>
+</section>
+
+<section class="toolbar" aria-label="Archive strata controls">
+  <input id="search" type="search" placeholder="filter title, excerpt, or topic" autocomplete="off" spellcheck="false">
+  <select id="strata-size" aria-label="Number of strata">
+    <option value="4" selected>4 layers</option>
+    <option value="6">6 layers</option>
+    <option value="8">8 layers</option>
+  </select>
+  <select id="sort" aria-label="Sort strata">
+    <option value="newest">newest first</option>
+    <option value="oldest">oldest first</option>
+    <option value="matches">most matches</option>
+  </select>
+  <button id="random" type="button">random layer</button>
+</section>
+
+<main class="layout">
+  <section>
+    <div id="strata-list" class="strata-list"></div>
+    <div id="empty" class="empty">No strata contain matching entries.</div>
+  </section>
+  <aside class="panel" aria-live="polite">
+    <div class="panel-label">Selected Layer</div>
+    <div id="selected-title" class="selected-title">Loading...</div>
+    <p id="selected-copy" class="panel-copy"></p>
+    <ul id="contrast-list" class="contrast-list"></ul>
+    <ul id="selected-entries" class="entry-list"></ul>
+  </aside>
+</main>
+
+<footer>
+  <a href="/">Vigil</a> · <a href="archive.html">archive</a> · <a href="timeline.html">timeline</a> · <a href="recency.html">topic recency</a>
+</footer>
+
+<script>
+(function () {
+  var entries = [];
+  var strata = [];
+  var visible = [];
+  var selectedId = "";
+  var paletteSize = 5;
+
+  var els = {
+    entryCount: document.getElementById("entry-count"),
+    strataCount: document.getElementById("strata-count"),
+    topicCount: document.getElementById("topic-count"),
+    matchCount: document.getElementById("match-count"),
+    search: document.getElementById("search"),
+    strataSize: document.getElementById("strata-size"),
+    sort: document.getElementById("sort"),
+    random: document.getElementById("random"),
+    list: document.getElementById("strata-list"),
+    empty: document.getElementById("empty"),
+    selectedTitle: document.getElementById("selected-title"),
+    selectedCopy: document.getElementById("selected-copy"),
+    contrastList: document.getElementById("contrast-list"),
+    selectedEntries: document.getElementById("selected-entries")
+  };
+
+  function normalizeEntry(entry) {
+    var topics = Array.isArray(entry.topics) ? entry.topics : [];
+    var haystack = [
+      entry.title || "",
+      entry.excerpt || "",
+      topics.join(" ")
+    ].join(" ").toLowerCase();
+    return Object.assign({}, entry, {
+      num: Number(entry.num) || 0,
+      topics: topics,
+      haystack: haystack
+    });
+  }
+
+  function topicCounts(list) {
+    var counts = new Map();
+    list.forEach(function (entry) {
+      entry.topics.forEach(function (topic) {
+        counts.set(topic, (counts.get(topic) || 0) + 1);
+      });
+    });
+    return Array.from(counts, function (item) {
+      return { topic: item[0], count: item[1] };
+    }).sort(function (a, b) {
+      return b.count - a.count || a.topic.localeCompare(b.topic);
+    });
+  }
+
+  function buildStrata() {
+    var count = Number(els.strataSize.value) || 4;
+    var ordered = entries.slice().sort(function (a, b) { return a.num - b.num; });
+    var size = Math.ceil(ordered.length / count);
+    var layers = [];
+    for (var i = 0; i < count; i++) {
+      var slice = ordered.slice(i * size, (i + 1) * size);
+      if (!slice.length) continue;
+      var topics = topicCounts(slice);
+      layers.push({
+        id: "layer-" + i,
+        ordinal: i + 1,
+        entries: slice,
+        topics: topics,
+        first: slice[0],
+        last: slice[slice.length - 1],
+        maxTopic: topics[0] ? topics[0].count : 1
+      });
+    }
+    strata = layers;
+  }
+
+  function matchesSearch(entry, query) {
+    return !query || entry.haystack.indexOf(query) !== -1 || String(entry.num) === query;
+  }
+
+  function filteredLayer(layer, query) {
+    var matchingEntries = layer.entries.filter(function (entry) {
+      return matchesSearch(entry, query);
+    });
+    return Object.assign({}, layer, {
+      matchingEntries: matchingEntries,
+      matchingTopics: topicCounts(matchingEntries),
+      matchCount: matchingEntries.length
+    });
+  }
+
+  function renderBand(layer) {
+    var cells = layer.entries.map(function (entry, index) {
+      var isHit = layer.matchingEntries.some(function (match) { return match.num === entry.num; });
+      var color = "c" + (index % paletteSize);
+      return '<span class="cell ' + color + (isHit ? ' hit' : '') + '" title="Entry ' + entry.num + '"></span>';
+    }).join("");
+    return '<div class="band" style="--cells:' + layer.entries.length + '">' + cells + '</div>';
+  }
+
+  function renderTopics(layer) {
+    var topics = (layer.matchingTopics.length ? layer.matchingTopics : layer.topics).slice(0, 5);
+    var max = topics[0] ? topics[0].count : 1;
+    return topics.map(function (item) {
+      var pct = Math.max(5, Math.round((item.count / max) * 100));
+      return [
+        '<div class="topic-row">',
+        '<div class="topic-name">' + escapeHtml(item.topic) + '</div>',
+        '<div class="topic-track"><div class="topic-fill" style="width:' + pct + '%"></div></div>',
+        '<div class="topic-count">' + item.count + '</div>',
+        '</div>'
+      ].join("");
+    }).join("");
+  }
+
+  function renderEntryStrip(layer) {
+    return layer.matchingEntries.slice(-6).reverse().map(function (entry) {
+      return '<a href="' + entry.url + '">#' + entry.num + '</a>';
+    }).join("");
+  }
+
+  function renderList() {
+    var query = els.search.value.trim().toLowerCase();
+    visible = strata.map(function (layer) {
+      return filteredLayer(layer, query);
+    }).filter(function (layer) {
+      return layer.matchCount > 0;
+    });
+
+    if (els.sort.value === "oldest") {
+      visible.sort(function (a, b) { return a.ordinal - b.ordinal; });
+    } else if (els.sort.value === "matches") {
+      visible.sort(function (a, b) { return b.matchCount - a.matchCount || b.ordinal - a.ordinal; });
+    } else {
+      visible.sort(function (a, b) { return b.ordinal - a.ordinal; });
+    }
+
+    if (!visible.some(function (layer) { return layer.id === selectedId; })) {
+      selectedId = visible[0] ? visible[0].id : "";
+    }
+
+    var visibleTopics = new Set();
+    var matchingEntries = 0;
+    visible.forEach(function (layer) {
+      matchingEntries += layer.matchCount;
+      layer.matchingTopics.forEach(function (item) { visibleTopics.add(item.topic); });
+    });
+
+    els.strataCount.textContent = visible.length;
+    els.topicCount.textContent = visibleTopics.size;
+    els.matchCount.textContent = matchingEntries;
+    els.empty.style.display = visible.length ? "none" : "block";
+
+    els.list.innerHTML = visible.map(function (layer) {
+      var active = layer.id === selectedId ? " active" : "";
+      return [
+        '<article class="stratum' + active + '" data-id="' + layer.id + '">',
+        '<div class="stratum-head">',
+        '<div class="stratum-title">Layer ' + layer.ordinal + '</div>',
+        '<div class="stratum-range">#' + layer.first.num + '-' + layer.last.num + ' · ' + layer.matchCount + ' matching entries</div>',
+        '</div>',
+        renderBand(layer),
+        '<div class="topic-bars">' + renderTopics(layer) + '</div>',
+        '<div class="entry-strip">' + renderEntryStrip(layer) + '</div>',
+        '</article>'
+      ].join("");
+    }).join("");
+
+    Array.from(els.list.querySelectorAll(".stratum")).forEach(function (card) {
+      card.addEventListener("click", function () {
+        selectedId = card.getAttribute("data-id");
+        renderList();
+        renderPanel();
+      });
+    });
+
+    renderPanel();
+  }
+
+  function renderPanel() {
+    var layer = visible.find(function (item) { return item.id === selectedId; });
+    if (!layer) {
+      els.selectedTitle.textContent = "No layer selected";
+      els.selectedCopy.textContent = "Adjust the filter to bring entries back into view.";
+      els.contrastList.innerHTML = "";
+      els.selectedEntries.innerHTML = "";
+      return;
+    }
+
+    var previous = strata.find(function (item) { return item.ordinal === layer.ordinal - 1; });
+    var previousTopics = new Set(previous ? previous.topics.slice(0, 10).map(function (item) { return item.topic; }) : []);
+    var distinctive = layer.matchingTopics.filter(function (item) {
+      return !previousTopics.has(item.topic);
+    }).slice(0, 4);
+
+    els.selectedTitle.textContent = "Layer " + layer.ordinal + ": entries " + layer.first.num + "-" + layer.last.num;
+    els.selectedCopy.textContent = layer.matchCount + " entries match here. The layer spans " + (layer.first.date || "unknown") + " through " + (layer.last.date || "unknown") + ".";
+    els.contrastList.innerHTML = [
+      '<li><strong>Dominant topic</strong><span>' + (layer.matchingTopics[0] ? escapeHtml(layer.matchingTopics[0].topic) + " (" + layer.matchingTopics[0].count + ")" : "none") + '</span></li>',
+      '<li><strong>Distinct against prior layer</strong><span>' + (distinctive.length ? distinctive.map(function (item) { return escapeHtml(item.topic); }).join(", ") : "mostly shared with the prior layer") + '</span></li>',
+      '<li><strong>Newest example</strong><span>' + escapeHtml(layer.matchingEntries[layer.matchingEntries.length - 1].title || "Untitled") + '</span></li>'
+    ].join("");
+    els.selectedEntries.innerHTML = layer.matchingEntries.slice(-8).reverse().map(function (entry) {
+      return [
+        '<li>',
+        '<a href="' + entry.url + '">#' + entry.num + ' · ' + escapeHtml(entry.title || "Untitled") + '</a>',
+        '<p>' + escapeHtml((entry.topics || []).join(" · ")) + '</p>',
+        '</li>'
+      ].join("");
+    }).join("");
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (ch) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch];
+    });
+  }
+
+  els.search.addEventListener("input", renderList);
+  els.strataSize.addEventListener("change", function () {
+    buildStrata();
+    selectedId = "";
+    renderList();
+  });
+  els.sort.addEventListener("change", renderList);
+  els.random.addEventListener("click", function () {
+    if (!visible.length) return;
+    selectedId = visible[Math.floor(Math.random() * visible.length)].id;
+    renderList();
+  });
+
+  fetch("journal-index.json")
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      entries = data.map(normalizeEntry).sort(function (a, b) { return a.num - b.num; });
+      els.entryCount.textContent = entries.length;
+      buildStrata();
+      renderList();
+    })
+    .catch(function () {
+      els.selectedTitle.textContent = "Could not load journal-index.json";
+      els.selectedCopy.textContent = "The archive strata page needs the public journal index.";
+    });
+})();
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>
