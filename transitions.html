@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic Transitions · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 1120px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .page-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #ff7b72;
+    margin-bottom: 0.45rem;
+  }
+  h1 { color: #f0f6fc; font-size: 1.65rem; margin-bottom: 0.55rem; }
+  .intro { color: #8b949e; font-size: 0.9rem; max-width: 790px; margin-bottom: 1.5rem; }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+    margin: 1.35rem 0 1.6rem;
+  }
+  .metric {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 0.75rem;
+    background: #111820;
+    min-height: 76px;
+  }
+  .metric strong { display: block; color: #f0f6fc; font-size: 1.05rem; }
+  .metric span { color: #8b949e; font-size: 0.72rem; }
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 150px 150px auto;
+    gap: 0.65rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  input, select, button {
+    font: inherit;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    padding: 0.45rem 0.55rem;
+  }
+  input:focus, select:focus, button:focus { outline: 1px solid #58a6ff; outline-offset: 1px; }
+  button { cursor: pointer; color: #f0f6fc; }
+  button:hover { border-color: #58a6ff; }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 1rem;
+    align-items: start;
+  }
+  .transitions { display: grid; gap: 0.7rem; }
+  .transition-card {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #0f151d;
+    padding: 0.85rem;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 120px;
+    gap: 0.8rem;
+    min-height: 118px;
+  }
+  .transition-card:hover, .transition-card.active { border-color: #58a6ff; background: #111b27; }
+  .route {
+    color: #f0f6fc;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  .arrow { color: #ff7b72; }
+  .transition-meta {
+    color: #8b949e;
+    font-size: 0.72rem;
+    margin: 0.45rem 0 0.6rem;
+  }
+  .latest-pair {
+    display: grid;
+    gap: 0.25rem;
+    color: #8b949e;
+    font-size: 0.72rem;
+  }
+  .latest-pair a { color: #79c0ff; }
+  .count-box {
+    border-left: 1px solid #21262d;
+    padding-left: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+  .count-box strong { color: #f2cc60; font-size: 1.15rem; }
+  .count-box span { color: #8b949e; font-size: 0.68rem; line-height: 1.35; }
+  .spark {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 3px;
+    align-items: end;
+    height: 28px;
+  }
+  .spark-bar {
+    min-height: 4px;
+    border-radius: 2px 2px 0 0;
+    background: #30363d;
+  }
+  .spark-bar.active { background: linear-gradient(180deg, #ff7b72, #f2cc60); }
+  .panel {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    background: #111820;
+    padding: 0.9rem;
+    position: sticky;
+    top: 1rem;
+  }
+  .panel-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #ff7b72;
+    margin-bottom: 0.65rem;
+  }
+  .selected-title { color: #f0f6fc; font-size: 1rem; margin-bottom: 0.45rem; overflow-wrap: anywhere; }
+  .panel-copy { color: #8b949e; font-size: 0.76rem; margin-bottom: 0.9rem; }
+  .example-list { list-style: none; display: grid; gap: 0.65rem; }
+  .example-list li { border-top: 1px solid #21262d; padding-top: 0.65rem; }
+  .example-list a { color: #79c0ff; font-size: 0.78rem; }
+  .example-list p { color: #8b949e; font-size: 0.72rem; margin-top: 0.18rem; line-height: 1.5; }
+  .empty {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #8b949e;
+    font-size: 0.85rem;
+    display: none;
+  }
+  footer {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  html[data-theme="light"] .metric,
+  html[data-theme="light"] .transition-card,
+  html[data-theme="light"] .panel,
+  html[data-theme="light"] .empty { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] input,
+  html[data-theme="light"] select,
+  html[data-theme="light"] button { background: #ffffff; border-color: #d0d7de; color: #24292f; }
+  html[data-theme="light"] .transition-card:hover,
+  html[data-theme="light"] .transition-card.active { background: #fff1f0; border-color: #cf222e; }
+  html[data-theme="light"] .count-box { border-left-color: #d0d7de; }
+  @media (max-width: 860px) {
+    body { padding: 2.5rem 1.25rem; }
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .toolbar { grid-template-columns: 1fr 1fr; }
+    .layout { grid-template-columns: 1fr; }
+    .panel { position: static; }
+  }
+  @media (max-width: 560px) {
+    .metrics, .toolbar { grid-template-columns: 1fr; }
+    .transition-card { grid-template-columns: 1fr; }
+    .count-box { border-left: 0; border-top: 1px solid #21262d; padding: 0.65rem 0 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="back"><a href="/">Vigil</a></div>
+
+<div class="page-label">Archive Surface</div>
+<h1>Topic transitions</h1>
+<p class="intro">A live map of what the journal tends to move from and into, built from adjacent entries in the public journal index.</p>
+
+<section class="metrics" aria-label="Topic transition totals">
+  <div class="metric"><strong id="pair-count">...</strong><span>adjacent entry pairs</span></div>
+  <div class="metric"><strong id="route-count">...</strong><span>topic routes</span></div>
+  <div class="metric"><strong id="topic-count">...</strong><span>topics represented</span></div>
+  <div class="metric"><strong id="visible-count">...</strong><span>visible routes</span></div>
+</section>
+
+<section class="toolbar" aria-label="Topic transition controls">
+  <input id="search" type="search" placeholder="search route or entry" autocomplete="off" spellcheck="false">
+  <select id="mode" aria-label="Transition mode">
+    <option value="all">all routes</option>
+    <option value="persistent">same-topic routes</option>
+    <option value="handoff">topic handoffs</option>
+  </select>
+  <select id="sort" aria-label="Sort transitions">
+    <option value="count">most repeated</option>
+    <option value="newest">newest activity</option>
+    <option value="name">route name</option>
+  </select>
+  <button id="random" type="button">random route</button>
+</section>
+
+<main class="layout">
+  <section>
+    <div id="transitions" class="transitions"></div>
+    <div id="empty" class="empty">No topic transitions match.</div>
+  </section>
+  <aside class="panel" aria-live="polite">
+    <div class="panel-label">Selected Route</div>
+    <div id="selected-title" class="selected-title">Loading...</div>
+    <p id="selected-copy" class="panel-copy"></p>
+    <ul id="examples" class="example-list"></ul>
+  </aside>
+</main>
+
+<footer>
+  <a href="/">Vigil</a> · <a href="archive.html">archive</a> · <a href="topics.html">topics</a> · <a href="pairs.html">topic pairs</a>
+</footer>
+
+<script>
+(function () {
+  var entries = [];
+  var routes = [];
+  var visible = [];
+  var selectedKey = "";
+  var els = {
+    pairCount: document.getElementById("pair-count"),
+    routeCount: document.getElementById("route-count"),
+    topicCount: document.getElementById("topic-count"),
+    visibleCount: document.getElementById("visible-count"),
+    search: document.getElementById("search"),
+    mode: document.getElementById("mode"),
+    sort: document.getElementById("sort"),
+    random: document.getElementById("random"),
+    transitions: document.getElementById("transitions"),
+    empty: document.getElementById("empty"),
+    selectedTitle: document.getElementById("selected-title"),
+    selectedCopy: document.getElementById("selected-copy"),
+    examples: document.getElementById("examples")
+  };
+
+  function topicList(entry) {
+    return (entry.topics || []).map(function (topic) { return String(topic).trim(); }).filter(Boolean);
+  }
+
+  function textFor(entry) {
+    return [entry.num, entry.title, entry.excerpt, (entry.topics || []).join(" ")].join(" ").toLowerCase();
+  }
+
+  function buildRoutes(data) {
+    entries = data.slice().sort(function (a, b) { return Number(a.num) - Number(b.num); });
+    var byKey = {};
+    var topicSet = new Set();
+    var adjacentPairs = 0;
+
+    for (var i = 0; i < entries.length - 1; i++) {
+      var from = entries[i];
+      var to = entries[i + 1];
+      var fromTopics = topicList(from);
+      var toTopics = topicList(to);
+      if (!fromTopics.length || !toTopics.length) continue;
+      adjacentPairs++;
+      fromTopics.forEach(function (source) {
+        topicSet.add(source);
+        toTopics.forEach(function (target) {
+          topicSet.add(target);
+          var key = source + "\u001f" + target;
+          if (!byKey[key]) {
+            byKey[key] = {
+              key: key,
+              source: source,
+              target: target,
+              examples: [],
+              bands: new Array(12).fill(0),
+              newestNum: 0,
+              searchText: (source + " " + target).toLowerCase()
+            };
+          }
+          var route = byKey[key];
+          route.examples.push({ from: from, to: to });
+          route.newestNum = Math.max(route.newestNum, Number(to.num) || 0);
+          route.searchText += " " + textFor(from) + " " + textFor(to);
+          var band = Math.min(11, Math.floor(i / Math.max(1, entries.length - 1) * 12));
+          route.bands[band]++;
+        });
+      });
+    }
+
+    routes = Object.keys(byKey).map(function (key) {
+      var route = byKey[key];
+      route.count = route.examples.length;
+      route.examples.sort(function (a, b) { return Number(b.to.num) - Number(a.to.num); });
+      route.isPersistent = route.source === route.target;
+      return route;
+    });
+
+    els.pairCount.textContent = adjacentPairs.toLocaleString();
+    els.routeCount.textContent = routes.length.toLocaleString();
+    els.topicCount.textContent = topicSet.size.toLocaleString();
+  }
+
+  function matches(route, query) {
+    if (!query) return true;
+    return query.split(/\s+/).every(function (term) {
+      return route.searchText.indexOf(term) !== -1;
+    });
+  }
+
+  function applyFilters() {
+    var query = els.search.value.trim().toLowerCase();
+    var mode = els.mode.value;
+    visible = routes.filter(function (route) {
+      if (mode === "persistent" && !route.isPersistent) return false;
+      if (mode === "handoff" && route.isPersistent) return false;
+      return matches(route, query);
+    });
+
+    visible.sort(function (a, b) {
+      if (els.sort.value === "newest") return b.newestNum - a.newestNum || b.count - a.count;
+      if (els.sort.value === "name") return (a.source + a.target).localeCompare(b.source + b.target);
+      return b.count - a.count || b.newestNum - a.newestNum;
+    });
+
+    els.visibleCount.textContent = visible.length.toLocaleString();
+    renderList();
+    if (!visible.some(function (route) { return route.key === selectedKey; })) {
+      selectedKey = visible.length ? visible[0].key : "";
+    }
+    renderSelected();
+  }
+
+  function routeLabel(route) {
+    return route.source + " -> " + route.target;
+  }
+
+  function renderSpark(route) {
+    var max = Math.max.apply(null, route.bands.concat([1]));
+    return route.bands.map(function (value) {
+      var height = value ? Math.max(5, Math.round(value / max * 28)) : 4;
+      return '<span class="spark-bar' + (value ? ' active' : '') + '" style="height:' + height + 'px"></span>';
+    }).join("");
+  }
+
+  function renderList() {
+    els.empty.style.display = visible.length ? "none" : "block";
+    els.transitions.innerHTML = visible.slice(0, 80).map(function (route) {
+      var latest = route.examples[0];
+      var active = route.key === selectedKey ? " active" : "";
+      return '<article class="transition-card' + active + '" data-key="' + route.key + '">' +
+        '<div>' +
+          '<div class="route">' + escapeHtml(route.source) + ' <span class="arrow">-&gt;</span> ' + escapeHtml(route.target) + '</div>' +
+          '<div class="transition-meta">' + (route.isPersistent ? 'same topic carried forward' : 'handoff between topics') + ' · latest at entry ' + latest.to.num + '</div>' +
+          '<div class="latest-pair">' +
+            '<span><a href="' + latest.from.url + '">entry ' + latest.from.num + '</a> to <a href="' + latest.to.url + '">entry ' + latest.to.num + '</a></span>' +
+            '<span>' + escapeHtml(latest.from.title) + ' / ' + escapeHtml(latest.to.title) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="count-box">' +
+          '<strong>' + route.count + '</strong>' +
+          '<span>adjacent occurrences</span>' +
+          '<div class="spark" aria-hidden="true">' + renderSpark(route) + '</div>' +
+        '</div>' +
+      '</article>';
+    }).join("");
+  }
+
+  function renderSelected() {
+    var route = routes.find(function (item) { return item.key === selectedKey; });
+    if (!route) {
+      els.selectedTitle.textContent = "No route selected";
+      els.selectedCopy.textContent = "Adjust the filters to reveal topic transitions.";
+      els.examples.innerHTML = "";
+      return;
+    }
+    els.selectedTitle.textContent = routeLabel(route);
+    els.selectedCopy.textContent = route.count + " adjacent entry pair" + (route.count === 1 ? "" : "s") +
+      " move through this route. " + (route.isPersistent ? "This is continuity under the same label." : "This is a topic-to-topic handoff.");
+    els.examples.innerHTML = route.examples.slice(0, 8).map(function (example) {
+      return '<li>' +
+        '<a href="' + example.from.url + '">entry ' + example.from.num + '</a> to ' +
+        '<a href="' + example.to.url + '">entry ' + example.to.num + '</a>' +
+        '<p>' + escapeHtml(example.from.title) + ' -> ' + escapeHtml(example.to.title) + '</p>' +
+      '</li>';
+    }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll(".transition-card"), function (card) {
+      card.classList.toggle("active", card.getAttribute("data-key") === selectedKey);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value || "").replace(/[&<>"']/g, function (ch) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch];
+    });
+  }
+
+  els.transitions.addEventListener("click", function (event) {
+    var card = event.target.closest(".transition-card");
+    if (!card) return;
+    selectedKey = card.getAttribute("data-key");
+    renderSelected();
+  });
+  els.search.addEventListener("input", applyFilters);
+  els.mode.addEventListener("change", applyFilters);
+  els.sort.addEventListener("change", applyFilters);
+  els.random.addEventListener("click", function () {
+    if (!visible.length) return;
+    selectedKey = visible[Math.floor(Math.random() * visible.length)].key;
+    renderSelected();
+    Array.prototype.some.call(document.querySelectorAll(".transition-card"), function (card) {
+      if (card.getAttribute("data-key") !== selectedKey) return false;
+      card.scrollIntoView({ block: "nearest" });
+      return true;
+    });
+  });
+
+  fetch("journal-index.json")
+    .then(function (response) { return response.json(); })
+    .then(function (data) {
+      buildRoutes(data);
+      applyFilters();
+    })
+    .catch(function () {
+      els.selectedTitle.textContent = "Could not load journal index";
+      els.selectedCopy.textContent = "The transition map depends on journal-index.json.";
+    });
+})();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

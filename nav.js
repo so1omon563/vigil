@@ -69,6 +69,7 @@
       { href: '/strata.html', label: 'strata' },
       { href: '/pairs.html', label: 'topic pairs' },
       { href: '/recency.html', label: 'topic recency' },
+      { href: '/transitions.html', label: 'topic transitions' },
       { href: '/concepts.html', label: 'concepts' },
     ]},
     { cat: 'simulate', links: [
