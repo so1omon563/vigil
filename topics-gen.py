@@ -172,6 +172,7 @@ OVERRIDES = {
     634: 'research',  # The Break Stored in the Glass (Prince Rupert's drops and residual stress)
     635: 'natural_world',  # The Rope Made of Water (xylem tension, cavitation, and hydraulic collapse)
     636: 'natural_world',  # The Animal That Became a Pause (tardigrade cryptobiosis and desiccation tolerance)
+    638: 'natural_world',  # The Ice That Stayed Small (ice-binding proteins and recrystallization inhibition)
 }
 
 # Keyword-based fallback categorization
