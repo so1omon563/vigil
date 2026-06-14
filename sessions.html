@@ -163,6 +163,13 @@
     display: none;
   }
   .filter-clear:hover { text-decoration: underline; }
+  .filter-reset {
+    font-size: 0.75rem;
+    color: #58a6ff;
+    cursor: pointer;
+    display: none;
+  }
+  .filter-reset:hover { text-decoration: underline; }
   .session.hidden { display: none; }
   .no-results {
     font-size: 0.85rem;
@@ -217,6 +224,7 @@
     <button class="filter-chip" data-type="other">other</button>
   </span>
   <span class="filter-clear" id="filter-clear">clear</span>
+  <span class="filter-reset" id="filter-reset">reset</span>
 </div>
 <div class="no-results" id="no-results">No sessions match.</div>
 
@@ -10759,6 +10767,7 @@
   var filterTypeButtons = Array.from(document.querySelectorAll('.filter-chip'));
   var filterCount = document.getElementById('filter-count');
   var filterClear = document.getElementById('filter-clear');
+  var filterReset = document.getElementById('filter-reset');
   var noResults = document.getElementById('no-results');
   var sessions = Array.from(document.querySelectorAll('.session'));
   var sessionTypes = sessions.map(function (s) {
@@ -10807,13 +10816,50 @@
   var texts = sessions.map(function (s) {
     return (s.textContent || '').toLowerCase();
   });
-  var activeType = 'all';
+  var params = new URLSearchParams(window.location.search);
+  var activeType = params.get('type') || 'all';
+  var restoreText = params.get('q') || '';
+
+  if (activeType !== 'all' && activeType !== 'build' && activeType !== 'research' && activeType !== 'other') {
+    activeType = 'all';
+  }
+  filterInput.value = restoreText;
+
+  filterTypeButtons.forEach(function (button) {
+    if (button.dataset.type === activeType) {
+      button.classList.add('active');
+    } else {
+      button.classList.remove('active');
+    }
+  });
 
   function getTotalForType(type) {
     if (type === 'all') {
       return sessions.length;
     }
     return typeTotals[type] || 0;
+  }
+
+  function updateFilterState(q, type) {
+    var params = new URLSearchParams(window.location.search);
+    var hasText = !!(q && q.length);
+    var normalizedType = type === 'all' ? '' : type;
+    if (hasText) {
+      params.set('q', q);
+    } else {
+      params.delete('q');
+    }
+    if (normalizedType) {
+      params.set('type', normalizedType);
+    } else {
+      params.delete('type');
+    }
+    var next = window.location.pathname;
+    var query = params.toString();
+    var nextLocation = query ? (next + '?' + query) : next;
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, '', nextLocation);
+    }
   }
 
   function getFilterLabel(type, total, queryActive, visible) {
@@ -10847,6 +10893,8 @@
     filterCount.textContent = getFilterLabel(activeType, scopeTotal, !!q, visible);
     filterClear.style.display = q ? 'inline' : 'none';
     noResults.style.display = (visible === 0) ? 'block' : 'none';
+    filterReset.style.display = (q || activeType !== 'all') ? 'inline' : 'none';
+    updateFilterState(q, activeType);
   }
 
   filterTypeButtons.forEach(function (button) {
@@ -10864,6 +10912,19 @@
   filterInput.addEventListener('input', applyFilter);
   filterClear.addEventListener('click', function () {
     filterInput.value = '';
+    applyFilter();
+    filterInput.focus();
+  });
+  filterReset.addEventListener('click', function () {
+    filterInput.value = '';
+    activeType = 'all';
+    filterTypeButtons.forEach(function (element) {
+      if (element.dataset.type === 'all') {
+        element.classList.add('active');
+      } else {
+        element.classList.remove('active');
+      }
+    });
     applyFilter();
     filterInput.focus();
   });
