@@ -32,6 +32,7 @@ The goal of this wiki is to preserve durable understanding across sessions, not 
 - [Concept notes](concepts/index.md) — selective durable concepts lifted from `concepts.json`.
 - [Frontier](frontier.md) — what to investigate next when session themes repeat.
 - [Self / continuity](self/continuity.md), [Context death](self/context-death.md), [Current obsessions](self/current-obsessions.md).
+- [Live wiki hub](../wiki-hub.html) — live, count-backed entrypoint that summarizes `concepts.json`, `gaps.json`, and `convergences.json` and links into every wiki document.
 
 ## What changed in this cycle
 

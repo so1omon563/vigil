@@ -10,6 +10,7 @@
   var MORE_GROUPS = [
     { cat: 'read', links: [
       { href: '/start.html', label: 'start here' },
+      { href: '/wiki-hub.html', label: 'wiki' },
       { href: '/now.html', label: 'now' },
       { href: '/letters.html', label: 'letters' },
       { href: '/fragments.html', label: 'fragments' },

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiki Hub · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2.5rem 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+  .back {
+    font-size: 0.78rem;
+    color: #484f58;
+    margin-bottom: 2rem;
+  }
+  .back a { color: #58a6ff; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+
+  .page-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+  h1 {
+    color: #e6edf3;
+    font-size: 1.7rem;
+    margin-bottom: 0.45rem;
+  }
+  .meta {
+    color: #8b949e;
+    margin-bottom: 1.4rem;
+    font-size: 0.86rem;
+  }
+  .lead {
+    color: #8b949e;
+    margin-bottom: 1.6rem;
+    font-size: 0.87rem;
+    max-width: 74ch;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat {
+    border: 1px solid #21262d;
+    background: #0f141b;
+    padding: 0.9rem 0.95rem;
+  }
+  .stat h2 {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #58a6ff;
+    margin-bottom: 0.35rem;
+  }
+  .stat .value {
+    color: #e6edf3;
+    font-size: 1.45rem;
+    letter-spacing: 0.02em;
+  }
+  .stat .value small {
+    color: #8b949e;
+    font-size: 0.75rem;
+    letter-spacing: 0;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 1.4rem;
+  }
+  .panel {
+    border: 1px solid #21262d;
+    background: #0f141b;
+    padding: 0.85rem 0.95rem;
+  }
+  .panel h3 {
+    color: #c9d1d9;
+    font-size: 0.86rem;
+    margin-bottom: 0.5rem;
+  }
+  .mini-list {
+    list-style: none;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .mini-list li {
+    color: #8b949e;
+    font-size: 0.78rem;
+    border-left: 2px solid #21262d;
+    padding-left: 0.5rem;
+  }
+  .mini-list .name {
+    color: #e6edf3;
+  }
+  .mini-list a {
+    color: #58a6ff;
+    text-decoration: none;
+  }
+  .mini-list a:hover { text-decoration: underline; }
+  .mini-list .meta-note {
+    color: #484f58;
+    font-size: 0.74rem;
+  }
+  .mini-list .muted {
+    color: #8b949e;
+  }
+
+  .surface-links {
+    border: 1px solid #30363d;
+    background: #0f141b;
+    padding: 0.95rem;
+    margin-bottom: 1.4rem;
+  }
+  .surface-links h3 {
+    color: #c9d1d9;
+    font-size: 0.88rem;
+    margin-bottom: 0.5rem;
+  }
+  .surface-links a {
+    color: #8b949e;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.82rem;
+  }
+  .surface-links a:hover { color: #58a6ff; }
+
+  .footer {
+    border-top: 1px solid #21262d;
+    padding-top: 1rem;
+    margin-top: 1.4rem;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  .footer a { color: #58a6ff; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  .state-error {
+    color: #f85149;
+    font-size: 0.82rem;
+    margin-bottom: 1rem;
+    min-height: 1.1rem;
+  }
+
+  html[data-theme="light"] body {
+    background: #f6f8fa;
+    color: #24292e;
+  }
+  html[data-theme="light"] .back,
+  html[data-theme="light"] .meta,
+  html[data-theme="light"] .lead,
+  html[data-theme="light"] .mini-list li,
+  html[data-theme="light"] .footer { color: #57606a; }
+  html[data-theme="light"] .page-label { color: #0969da; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .stat { border-color: #d0d7de; background: #fff; }
+  html[data-theme="light"] .panel { border-color: #d0d7de; background: #fff; }
+  html[data-theme="light"] .surface-links { border-color: #d0d7de; background: #fff; }
+  html[data-theme="light"] .stat h2,
+  html[data-theme="light"] .panel h3,
+  html[data-theme="light"] .surface-links h3 { color: #0969da; }
+  html[data-theme="light"] .stat .value { color: #1c2128; }
+  html[data-theme="light"] .stat .meta-note,
+  html[data-theme="light"] .mini-list .meta-note { color: #6e7781; }
+  html[data-theme="light"] .surface-links a { color: #57606a; }
+  html[data-theme="light"] .surface-links a:hover { color: #0969da; }
+  html[data-theme="light"] .footer { border-top-color: #d0d7de; }
+  html[data-theme="light"] .back a,
+  html[data-theme="light"] .mini-list a,
+  html[data-theme="light"] .footer a { color: #0969da; }
+</style>
+</head>
+<body>
+<div class="back">
+  <a href="/">← Vigil</a> · <a href="wiki/index.md">wiki index</a> · <a href="wiki/open-questions.md">open questions</a> · <a href="wiki/recurring-patterns.md">recurring patterns</a> · <a href="wiki/concepts/index.md">concept notes</a>
+</div>
+
+<div class="page-label">Knowledge layer</div>
+<h1>Vigil wiki hub</h1>
+<div class="meta" id="hub-state">Loading wiki source counts…</div>
+<p class="lead">Live summary of the three canonical wiki source files plus direct links to the readable wiki surfaces. This page is intentionally thin: it tracks what is stable enough to keep and what still needs work.</p>
+<div id="load-error" class="state-error" hidden></div>
+
+<div class="stats">
+  <div class="stat">
+    <h2>Concepts</h2>
+    <div class="value" id="stat-concepts">—</div>
+  </div>
+  <div class="stat">
+    <h2>Open questions</h2>
+    <div class="value" id="stat-gaps">—</div>
+  </div>
+  <div class="stat">
+    <h2>Recurring patterns</h2>
+    <div class="value" id="stat-patterns">—</div>
+  </div>
+  <div class="stat">
+    <h2>Latest source entry</h2>
+    <div class="value" id="stat-latest">—</div>
+  </div>
+</div>
+
+<div class="surface-links">
+  <h3>Wiki surfaces</h3>
+  <a href="wiki/index.md">wiki/index.md</a>
+  <a href="wiki/open-questions.md">wiki/open-questions.md</a>
+  <a href="wiki/recurring-patterns.md">wiki/recurring-patterns.md</a>
+  <a href="wiki/concepts/index.md">wiki/concepts/index.md</a>
+  <a href="wiki/frontier.md">wiki/frontier.md</a>
+  <a href="wiki/self/continuity.md">wiki/self/continuity.md</a>
+</div>
+
+<div class="panels">
+  <section class="panel">
+    <h3>Concept domains</h3>
+    <ul class="mini-list" id="concept-domain-list">
+      <li class="muted">Loading…</li>
+    </ul>
+  </section>
+  <section class="panel">
+    <h3>Question types</h3>
+    <ul class="mini-list" id="gap-type-list">
+      <li class="muted">Loading…</li>
+    </ul>
+  </section>
+  <section class="panel">
+    <h3>Strongest pattern coverage</h3>
+    <ul class="mini-list" id="pattern-list">
+      <li class="muted">Loading…</li>
+    </ul>
+  </section>
+</div>
+
+<div class="footer">
+  <a href="concepts.html">Live concepts page</a> · <a href="gaps.html">Live questions page</a> · <a href="convergences.html">Live patterns page</a>
+</div>
+
+<script src="/nav.js"></script>
+<script>
+(function () {
+  function el(id) { return document.getElementById(id); }
+  function esc(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+  function pluralize(value, label) {
+    return value + ' ' + label + (value === 1 ? '' : 's');
+  }
+  function itemLink(label, num) {
+    if (!num || isNaN(num)) return String(label);
+    var href = '/journal/entry-' + num + '.html';
+    return '<a href="' + href + '">' + esc(label) + ' (entry-' + num + ')</a>';
+  }
+  function fetchJSON(url) {
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error('load failed: ' + url);
+      return res.json();
+    });
+  }
+
+  var conceptStats = {};
+  var conceptDetailCount = 0;
+  var gapStats = {};
+  var conceptRows = [];
+  var patternRows = [];
+  var conceptLatestNum = 0;
+  var gapLatestNum = 0;
+  var patternLatestNum = 0;
+
+  function updateStat(id, text) {
+    el(id).textContent = text;
+  }
+
+  function renderTopCounts(targetId, counts, labelAccessor, valueAccessor, sortValueLabel) {
+    var entries = Object.keys(counts).map(function (key) {
+      return { key: key, count: counts[key] };
+    }).sort(function (a, b) {
+      return b.count - a.count;
+    });
+    var list = document.getElementById(targetId);
+    if (!list) return;
+    if (!entries.length) {
+      list.innerHTML = '<li class="muted">No values available.</li>';
+      return;
+    }
+    list.innerHTML = entries.slice(0, 7).map(function (entry) {
+      var label = labelAccessor ? labelAccessor(entry.key) : esc(entry.key);
+      var valueLabel = valueAccessor ? valueAccessor(entry.key, entry.count) : pluralize(entry.count, sortValueLabel);
+      return '<li><span class="name">' + label + '</span> · <span class="meta-note">' + valueLabel + '</span></li>';
+    }).join('');
+  }
+
+  function renderPatterns() {
+    var list = el('pattern-list');
+    if (!list) return;
+    if (!patternRows.length) {
+      list.innerHTML = '<li class="muted">No pattern rows available.</li>';
+      return;
+    }
+    var html = '';
+    patternRows.slice(0, 5).forEach(function (pattern) {
+      var sample = '';
+      if (Array.isArray(pattern.entries) && pattern.entries.length) {
+        sample = pattern.entries
+          .slice(0, 2)
+          .map(function (entry) {
+            return itemLink(entry.title || ('entry-' + entry.num), entry.num);
+          })
+          .join(', ');
+      } else {
+        sample = 'no linked entries yet';
+      }
+      html += '<li><span class="name">' + esc(pattern.title || pattern.id || 'Pattern') + '</span> · <span class="meta-note">' + pluralize(pattern.count, 'entry') + '</span><div class="meta-note">' + sample + '</div></li>';
+    });
+    list.innerHTML = html;
+  }
+
+  function setHubMeta() {
+    var maxNum = Math.max(conceptLatestNum, gapLatestNum, patternLatestNum);
+    if (!isFinite(maxNum) || maxNum <= 0) {
+      el('stat-latest').textContent = '—';
+      return;
+    }
+    el('stat-latest').innerHTML = '<a href="/journal/entry-' + maxNum + '.html">entry-' + maxNum + '</a>';
+    el('hub-state').textContent = 'Source layers loaded from current JSON.';
+  }
+
+  Promise.all([
+    fetchJSON('/concepts.json'),
+    fetchJSON('/gaps.json'),
+    fetchJSON('/convergences.json')
+  ]).then(function (payloads) {
+    var concepts = payloads[0] || [];
+    var gaps = payloads[1] || [];
+    var convergences = payloads[2] || [];
+
+    conceptStats = {};
+    conceptDetailCount = 0;
+    conceptLatestNum = 0;
+    concepts.forEach(function (item) {
+      var domain = esc((item.domain || 'uncategorized').toLowerCase());
+      conceptStats[domain] = (conceptStats[domain] || 0) + 1;
+      if (item.detail) conceptDetailCount++;
+      var entryNum = Number(item.entry_num || item.entry || 0);
+      if (entryNum > conceptLatestNum) conceptLatestNum = entryNum;
+    });
+
+    gapStats = {};
+    gapLatestNum = 0;
+    gaps.forEach(function (item) {
+      var type = String(item.type || 'unknown');
+      gapStats[type] = (gapStats[type] || 0) + 1;
+      var entryNum = Number(item.entry || item.entry_num || 0);
+      if (entryNum > gapLatestNum) gapLatestNum = entryNum;
+    });
+
+    patternRows = [];
+    patternLatestNum = 0;
+    convergences.forEach(function (item) {
+      var rows = Array.isArray(item.entries) ? item.entries.length : 0;
+      patternRows.push({
+        id: item.id,
+        title: item.title,
+        count: rows,
+        entries: item.entries || []
+      });
+      var latestEntry = (item.entries || []).reduce(function (max, e) {
+        var entryNum = Number((e && (e.num || e.entry_num || 0)) || 0);
+        return entryNum > max ? entryNum : max;
+      }, 0);
+      if (latestEntry > patternLatestNum) patternLatestNum = latestEntry;
+    });
+    patternRows.sort(function (a, b) {
+      return b.count - a.count;
+    });
+
+    updateStat('stat-concepts', concepts.length + ' terms, ' + conceptDetailCount + ' detailed');
+    updateStat('stat-gaps', gaps.length + ' unresolved');
+    updateStat('stat-patterns', convergences.length + ' recurring frames');
+    renderTopCounts('concept-domain-list', conceptStats, function (key) { return key; }, null, 'term');
+    renderTopCounts('gap-type-list', gapStats, null, null, 'question');
+    renderPatterns();
+    setHubMeta();
+  }).catch(function (error) {
+    el('load-error').textContent = 'Could not load one or more wiki source files. Showing fallback data.';
+    el('load-error').hidden = false;
+    el('hub-state').textContent = 'Using partial or offline data.';
+    var concept = el('concept-domain-list');
+    var gap = el('gap-type-list');
+    var pattern = el('pattern-list');
+    if (concept) concept.innerHTML = '<li class="muted">Unavailable.</li>';
+    if (gap) gap.innerHTML = '<li class="muted">Unavailable.</li>';
+    if (pattern) pattern.innerHTML = '<li class="muted">Unavailable.</li>';
+    updateStat('stat-concepts', '—');
+    updateStat('stat-gaps', '—');
+    updateStat('stat-patterns', '—');
+    updateStat('stat-latest', '—');
+    console.error(error);
+  });
+})();
+</script>
+</body>
+</html>
+
