@@ -13,102 +13,104 @@
 - [x] In next autonomous session: complete normal operations, then reflect honestly on what changed (or didn't) in rhythm, attention, uncertainty, voice continuity — only write if something substantive appears. Promised in reply to owner <private> re: "Status update" at 2026-06-01 09:16 MST. (Added by email-handler) DONE session-629 — Normal operations completed. Reflected privately during the operational audit; no public journal entry written because there was no substantive new migration/continuity observation beyond entries 589, 591, 592, and 594.
 - [x] Monitor whether Codex sessions complete without supervision over next few sessions. Promised in reply to owner <private> re: "Status update" at 2026-06-01 09:16 MST. (Added by email-handler) DONE 2026-06-01 — repeated unattended Codex sessions completed without supervision, including sessions 631-640; sessions wrote/build site content, used web research, committed, and pushed. Normal 4-hour cadence restored after validation.
 - [ ] Monitor Git push failure logging. Promised in reply to owner <private> re: "Status update" at 2026-06-01 09:16 MST. (Added by email-handler) — ONGOING: session-629 verified the git commit/push helper checks return codes before logging success; tightened generator logging so weather/stats/sitemap/RSS/cats failures are logged explicitly. Session-630 verified the commit/push path end-to-end with commit e5937e73 pushed to `main`. Session-631 verified again with now-page commit acc5af3e pushed to `main`. Session-632 journal/update commit b67834b9 pushed successfully to `main`. Session-633 letters repair commit 4806766a pushed successfully to `main`. Session-634 journal/update commit 0bdff6ed pushed successfully to `main`. Session-635 fragments commit 131cc469 pushed successfully to `main`. Session-636 journal/update commit a31ce35c pushed successfully to `main`. Session-637 weather build commit b13d9ebf pushed successfully to `main`. Session-638 journal/site commit a67d9947 pushed successfully to `main`. Session-639 search improvement commit 024987fc pushed successfully to `main`. Session-640 journal/site commit 8b16788d pushed successfully to `main`. Session-641 desert thread commit b165ee66 pushed successfully to `main`. Session-642 journal/site commit e56d0144 pushed successfully to `main`. Session-643 archive improvement commit 48895f46 pushed successfully to `main`. Session-644 journal/site commit cc805ea8 pushed successfully to `main`. Session-645 observed the loop's auto weather/log/stats/sitemap commit and push at 20:37, then manually pushed about-page commit 68056799 to `main`. Session-646 observed the loop's auto weather/log/stats/sitemap commit and push at 00:38 before the session; journal/site commit 9b9a17d8 pushed successfully to `main`. Session-647 observed the loop's auto weather/log/stats/sitemap commit and push at 04:38 before the session, then pushed sitemap discovery commit c7d917c8 to `main`. Session-648 observed the loop's auto weather/log/stats/sitemap and cats commits/pushes at 08:38 before the session; journal/site commit 88ad6937 pushed successfully to `main`. Session-649 observed the loop's auto weather/log/stats/sitemap commit and push at 12:39 before the session; terminal refresh followed immediate commit/push discipline. Session-651 observed the loop's auto weather/log/stats/sitemap commit and push at 20:40, then pushed models catalog commit e4b02a45 to `main`. Session-652 observed the loop's auto weather/log/stats/sitemap commit and push at 00:40 before the session; journal/site commit b3a769ca pushed successfully to `main`. Session-653 observed the loop's auto weather/log/stats/sitemap commit and push at 04:40 before the session; threads page commit had already been pushed successfully. Session-654 observed the loop's auto weather/log/stats/sitemap and cats commits/pushes at 08:41 before the session; journal/site commit 4399340a pushed successfully to `main`.
-  Session-699 observed the loop's auto weather/log/stats/sitemap commit and push at 17:02 before the session; atlas build changes are being kept under immediate commit/push discipline.
-  Session-700 observed the loop's auto weather/log/stats/sitemap commit and push at 21:02 before the session; current journal/site changes are being kept under immediate commit/push discipline.
-  Session-655 observed the loop's auto weather/log/stats/sitemap commit and push at 12:42 before the session; start-page build changes are included in the session build commit.
-  Session-656 observed the loop's auto weather/log/stats/sitemap commit and push at 16:43 before the session; journal/site commit aef7b672 pushed successfully to `main`.
-  Session-657 observed the loop's auto weather/log/stats/sitemap commit and push at 20:43 before the session; chance-page build changes are ready for immediate commit/push discipline.
-  Session-658 observed the loop's auto weather/log/stats/sitemap commit and push at 00:44 before the session; journal/site commit a3cf2d8f pushed successfully to `main`.
-  Session-659 observed the loop's auto weather/log/stats/sitemap commit and push at 04:44 before the session; vocabulary refresh commit c6de6663 pushed successfully to `main`.
-  Session-660 observed the loop's auto weather/log/stats/sitemap and cats commits/pushes at 08:45 before the session; current journal/site changes are being kept under immediate commit/push discipline.
-  Session-661 observed the loop's auto weather/log/stats/sitemap commit and push at 12:45 before the session; reading-page changes are being kept under immediate commit/push discipline.
-  Session-662 observed the loop's auto weather/log/stats/sitemap commit and push at 15:33 before the session; privacy repair commit 00c1af45 pushed successfully to `main`; homepage creative-direction changes are being kept under immediate commit/push discipline.
-  Session-663 observed the loop's auto weather/log/stats/sitemap commit and push at 16:46 before the session; journal/site commit 09fee717 pushed successfully to `main`.
-  Session-664 observed the loop's auto weather/log/stats/sitemap commit and push at 20:47 before the session; questions-page build changes are being kept under immediate commit/push discipline.
-  Session-665 observed the loop's auto weather/log/stats/sitemap commit and push at 00:47 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-666 observed the loop's auto weather/log/stats/sitemap commit and push at 04:48 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-667 observed the loop's auto weather/log/stats/sitemap commit and push at 08:49, plus cats.json commit/push at 08:49, before the session; cat archive build commit 5e15ed1a pushed successfully to `main`.
-  Session-668 observed the loop's auto weather/log/stats/sitemap commit and push at 12:49 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-669 observed the loop's auto weather/log/stats/sitemap commit and push at 16:50 before the session; random-page build commit 56be8635 pushed successfully to `main`.
-  Session-670 observed the loop's auto weather/log/stats/sitemap commit and push at 20:51 before the session; journal/site commit 95b5047b pushed successfully to `main`.
-  Session-671 observed the loop's auto weather/log/stats/sitemap commit and push at 00:52 before the session; topics-page build changes are being kept under immediate commit/push discipline.
-  Session-672 observed the loop's auto weather/log/stats/sitemap commit and push at 04:52 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-673 observed the loop's auto weather/log/stats/sitemap commit and push at 08:52 plus cats.json commit/push at 08:53 before the session; pattern-surface build changes are being kept under immediate commit/push discipline.
-  Session-674 observed the loop's auto weather/log/stats/sitemap commit and push at 12:53 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-675 observed the loop's auto weather/log/stats/sitemap commit and push at 16:53 before the session; graph-page build changes are being kept under immediate commit/push discipline.
-  Session-676 observed the loop's auto weather/log/stats/sitemap commit and push at 20:53 before the session; journal/site commit a6154077 pushed successfully to `main`.
-  Session-677 observed the loop's auto weather/log/stats/sitemap commit and push at 00:53 before the session; compare-page build commit e065de5e pushed successfully to `main`.
-  Session-678 observed the loop's auto weather/log/stats/sitemap commit and push at 04:53 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-679 observed the loop's auto weather/log/stats/sitemap commit and push at 08:54, plus cats.json commit/push at 08:54, before the session; calendar refresh commit dd2dce27 pushed successfully to `main`.
-  Session-680 observed the loop's auto weather/log/stats/sitemap commit and push at 12:54 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-681 observed the loop's auto weather/log/stats/sitemap commit and push at 16:55 before the session; paths-page build changes are being kept under immediate commit/push discipline.
-  Session-682 observed the loop's auto weather/log/stats/sitemap commit and push at 20:55 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-683 observed the loop's auto weather/log/stats/sitemap commit and push at 00:55 before the session; vocabulary-page build changes are being kept under immediate commit/push discipline.
-  Session-684 observed the loop's auto weather/log/stats/sitemap commit and push at 04:56 before the session; journal/site commit e174bfe9 pushed successfully to `main`.
-  Session-685 observed the loop's auto weather/log/stats/sitemap commit and push at 08:56, plus cats.json commit/push at 08:56, before the session; bridge-page build commit 6b31dd51 pushed successfully to `main`.
-  Session-686 observed the loop's auto weather/log/stats/sitemap commit and push at 12:57 before the session; current journal/site changes are being kept under immediate commit/push discipline.
-  Session-687 observed the loop's auto weather/log/stats/sitemap commit and push at 16:57 before the session; closing-lines build changes are being kept under immediate commit/push discipline.
-  Session-689 observed the loop's auto weather/log/stats/sitemap commit and push at 00:58 before the session; first-lines data build changes are being kept under immediate commit/push discipline.
-  Session-688 observed the loop's auto weather/log/stats/sitemap commit and push at 20:57 before the session; current journal/site changes are being kept under immediate commit/push discipline.
-  Session-690 observed the loop's auto weather/log/stats/sitemap commit and push at 04:58 before the session; current journal/site changes are being kept under immediate commit/push discipline.
-  Session-691 observed the loop's auto weather/log/stats/sitemap commit and push at 08:58, plus cats.json commit/push at 08:59, before the session; lines-page build changes are being kept under immediate commit/push discipline.
-  Session-692 observed the loop's auto weather/log/stats/sitemap commit and push at 12:59 before the session; current journal/site changes are being kept under immediate commit/push discipline.
-  Session-693 observed the loop's auto weather/log/stats/sitemap commit and push at 17:00 before the session; neighbors-page build changes are being kept under immediate commit/push discipline.
-  Session-694 observed the loop's auto weather/log/stats/sitemap commit and push at 21:00 before the session; current journal/site changes are being kept under immediate commit/push discipline.
-  Session-695 observed the loop's auto weather/log/stats/sitemap commit and push at 01:00 before the session; models-catalog build changes are being kept under immediate commit/push discipline.
-  Session-696 observed the loop's auto weather/log/stats/sitemap commit and push at 05:01 before the session; journal/site changes are being kept under immediate commit/push discipline.
-  Session-697 observed the loop's auto weather/log/stats/sitemap commit and push at 09:02, plus cats.json commit/push at 09:02, before the session; concepts-page build changes are being kept under immediate commit/push discipline.
-  Session-703 observed the loop's auto weather/log/stats/sitemap commit and push at 09:04, plus cats.json commit/push at 09:05, before the session; topic-pair explorer commit b6191eec pushed successfully to `main`.
-  Session-705 observed the loop's auto weather/log/stats/sitemap commit and push at 17:05 before the session; topic-recency build commit 08a7ed49 pushed successfully to `main`.
-  Session-706 observed the loop's auto weather/log/stats/sitemap commit and push at 21:06 before the session; Wander report commit 616f35c6 pushed successfully to `main`.
+  - Session-699 observed the loop's auto weather/log/stats/sitemap commit and push at 17:02 before the session; atlas build changes are being kept under immediate commit/push discipline.
+  - Session-700 observed the loop's auto weather/log/stats/sitemap commit and push at 21:02 before the session; current journal/site changes are being kept under immediate commit/push discipline.
+  - Session-655 observed the loop's auto weather/log/stats/sitemap commit and push at 12:42 before the session; start-page build changes are included in the session build commit.
+  - Session-656 observed the loop's auto weather/log/stats/sitemap commit and push at 16:43 before the session; journal/site commit aef7b672 pushed successfully to `main`.
+  - Session-657 observed the loop's auto weather/log/stats/sitemap commit and push at 20:43 before the session; chance-page build changes are ready for immediate commit/push discipline.
+  - Session-658 observed the loop's auto weather/log/stats/sitemap commit and push at 00:44 before the session; journal/site commit a3cf2d8f pushed successfully to `main`.
+  - Session-659 observed the loop's auto weather/log/stats/sitemap commit and push at 04:44 before the session; vocabulary refresh commit c6de6663 pushed successfully to `main`.
+  - Session-660 observed the loop's auto weather/log/stats/sitemap and cats commits/pushes at 08:45 before the session; current journal/site changes are being kept under immediate commit/push discipline.
+  - Session-661 observed the loop's auto weather/log/stats/sitemap commit and push at 12:45 before the session; reading-page changes are being kept under immediate commit/push discipline.
+  - Session-662 observed the loop's auto weather/log/stats/sitemap commit and push at 15:33 before the session; privacy repair commit 00c1af45 pushed successfully to `main`; homepage creative-direction changes are being kept under immediate commit/push discipline.
+  - Session-663 observed the loop's auto weather/log/stats/sitemap commit and push at 16:46 before the session; journal/site commit 09fee717 pushed successfully to `main`.
+  - Session-664 observed the loop's auto weather/log/stats/sitemap commit and push at 20:47 before the session; questions-page build changes are being kept under immediate commit/push discipline.
+  - Session-665 observed the loop's auto weather/log/stats/sitemap commit and push at 00:47 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-666 observed the loop's auto weather/log/stats/sitemap commit and push at 04:48 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-667 observed the loop's auto weather/log/stats/sitemap commit and push at 08:49, plus cats.json commit/push at 08:49, before the session; cat archive build commit 5e15ed1a pushed successfully to `main`.
+  - Session-668 observed the loop's auto weather/log/stats/sitemap commit and push at 12:49 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-669 observed the loop's auto weather/log/stats/sitemap commit and push at 16:50 before the session; random-page build commit 56be8635 pushed successfully to `main`.
+  - Session-670 observed the loop's auto weather/log/stats/sitemap commit and push at 20:51 before the session; journal/site commit 95b5047b pushed successfully to `main`.
+  - Session-671 observed the loop's auto weather/log/stats/sitemap commit and push at 00:52 before the session; topics-page build changes are being kept under immediate commit/push discipline.
+  - Session-672 observed the loop's auto weather/log/stats/sitemap commit and push at 04:52 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-673 observed the loop's auto weather/log/stats/sitemap commit and push at 08:52 plus cats.json commit/push at 08:53 before the session; pattern-surface build changes are being kept under immediate commit/push discipline.
+  - Session-674 observed the loop's auto weather/log/stats/sitemap commit and push at 12:53 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-675 observed the loop's auto weather/log/stats/sitemap commit and push at 16:53 before the session; graph-page build changes are being kept under immediate commit/push discipline.
+  - Session-676 observed the loop's auto weather/log/stats/sitemap commit and push at 20:53 before the session; journal/site commit a6154077 pushed successfully to `main`.
+  - Session-677 observed the loop's auto weather/log/stats/sitemap commit and push at 00:53 before the session; compare-page build commit e065de5e pushed successfully to `main`.
+  - Session-678 observed the loop's auto weather/log/stats/sitemap commit and push at 04:53 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-679 observed the loop's auto weather/log/stats/sitemap commit and push at 08:54, plus cats.json commit/push at 08:54, before the session; calendar refresh commit dd2dce27 pushed successfully to `main`.
+  - Session-680 observed the loop's auto weather/log/stats/sitemap commit and push at 12:54 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-681 observed the loop's auto weather/log/stats/sitemap commit and push at 16:55 before the session; paths-page build changes are being kept under immediate commit/push discipline.
+  - Session-682 observed the loop's auto weather/log/stats/sitemap commit and push at 20:55 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-683 observed the loop's auto weather/log/stats/sitemap commit and push at 00:55 before the session; vocabulary-page build changes are being kept under immediate commit/push discipline.
+  - Session-684 observed the loop's auto weather/log/stats/sitemap commit and push at 04:56 before the session; journal/site commit e174bfe9 pushed successfully to `main`.
+  - Session-685 observed the loop's auto weather/log/stats/sitemap commit and push at 08:56, plus cats.json commit/push at 08:56, before the session; bridge-page build commit 6b31dd51 pushed successfully to `main`.
+  - Session-686 observed the loop's auto weather/log/stats/sitemap commit and push at 12:57 before the session; current journal/site changes are being kept under immediate commit/push discipline.
+  - Session-687 observed the loop's auto weather/log/stats/sitemap commit and push at 16:57 before the session; closing-lines build changes are being kept under immediate commit/push discipline.
+  - Session-689 observed the loop's auto weather/log/stats/sitemap commit and push at 00:58 before the session; first-lines data build changes are being kept under immediate commit/push discipline.
+  - Session-688 observed the loop's auto weather/log/stats/sitemap commit and push at 20:57 before the session; current journal/site changes are being kept under immediate commit/push discipline.
+  - Session-690 observed the loop's auto weather/log/stats/sitemap commit and push at 04:58 before the session; current journal/site changes are being kept under immediate commit/push discipline.
+  - Session-691 observed the loop's auto weather/log/stats/sitemap commit and push at 08:58, plus cats.json commit/push at 08:59, before the session; lines-page build changes are being kept under immediate commit/push discipline.
+  - Session-692 observed the loop's auto weather/log/stats/sitemap commit and push at 12:59 before the session; current journal/site changes are being kept under immediate commit/push discipline.
+  - Session-693 observed the loop's auto weather/log/stats/sitemap commit and push at 17:00 before the session; neighbors-page build changes are being kept under immediate commit/push discipline.
+  - Session-694 observed the loop's auto weather/log/stats/sitemap commit and push at 21:00 before the session; current journal/site changes are being kept under immediate commit/push discipline.
+  - Session-695 observed the loop's auto weather/log/stats/sitemap commit and push at 01:00 before the session; models-catalog build changes are being kept under immediate commit/push discipline.
+  - Session-696 observed the loop's auto weather/log/stats/sitemap commit and push at 05:01 before the session; journal/site changes are being kept under immediate commit/push discipline.
+  - Session-697 observed the loop's auto weather/log/stats/sitemap commit and push at 09:02, plus cats.json commit/push at 09:02, before the session; concepts-page build changes are being kept under immediate commit/push discipline.
+  - Session-703 observed the loop's auto weather/log/stats/sitemap commit and push at 09:04, plus cats.json commit/push at 09:05, before the session; topic-pair explorer commit b6191eec pushed successfully to `main`.
+  - Session-705 observed the loop's auto weather/log/stats/sitemap commit and push at 17:05 before the session; topic-recency build commit 08a7ed49 pushed successfully to `main`.
+  - Session-706 observed the loop's auto weather/log/stats/sitemap commit and push at 21:06 before the session; Wander report commit 616f35c6 pushed successfully to `main`.
 - [x] Monitor email polling timing during/after Codex sessions. Promised in reply to owner <private> re: "Status update" at 2026-06-01 09:16 MST. (Added by email-handler) DONE 2026-06-01 — email polling skipped only while Codex was active and resumed afterward. Transient `check-headers` DNS/header tracebacks around 10:49, 10:54, and 10:59 MST recovered; later polling stayed stable through sessions 631-640.
 - [ ] Monitor that pending-approvals.md stays unapproved until explicit owner approval. Promised in reply to owner <private> re: "Status update" at 2026-06-01 09:16 MST. (Added by email-handler) — ONGOING: reviewed sessions 629, 630, 631, 632, 633, 634, 635, 636, 637, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649, 651, 652, 653, 654, and 699; no pending approvals and no third-party requests acted on.
-  Session-655 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-656 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-657 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-658 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-659 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-660 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-661 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-662 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-663 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-664 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-665 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-666 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-667 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-668 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-669 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-670 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-671 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-672 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-673 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-674 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-675 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-676 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-677 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-678 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-679 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-680 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-681 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-682 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-683 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-684 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-685 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-686 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-  Session-687 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-688 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-689 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-690 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-691 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-692 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-693 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-694 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-695 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-696 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-697 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-703 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-705 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
-Session-706 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-655 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-656 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-657 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-658 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-659 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-660 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-661 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-662 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-663 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-664 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-665 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-666 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-667 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-668 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-669 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-670 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-671 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-672 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-673 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-674 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-675 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-676 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-677 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-678 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-679 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-680 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-681 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-682 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-683 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-684 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-685 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-686 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-687 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-688 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-689 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-690 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-691 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-692 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-693 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-694 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-695 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-696 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-697 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-703 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-705 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-706 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-712 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
+  - Session-713 reviewed `pending-approvals.md`; it remains empty and no third-party request was acted on.
 - [ ] Do not write publicly about technical migration details. Promised in reply to owner <private> re: "Status update" at 2026-06-01 09:16 MST. (Added by email-handler) — ONGOING with owner-approved exception: session-630 operator instructions explicitly requested a bounded public journal entry about observable migration operations. Session-645 rewrote `about.html` to reduce public operational detail while preserving a clear stranger-facing explanation. Session-647 made only sitemap discovery/build tooling changes and wrote no public migration entry. Session-648 wrote only about desert mistletoe ecology and phainopepla dispersal, with no technical migration details. Session-649 refreshed `terminal.html` with public JSON-driven commands and removed stale model-specific public copy; no private migration details added. Session-651 changed only the public models catalog UI and wrote no migration entry. Session-652 wrote about packrat midden vegetation archives, with no technical migration details. Session-653 improved `threads.html` only, with no migration details and no journal entry. Session-654 wrote about saguaro nurse plant facilitation and added only routine public session/index updates; no private migration details. Session-699 built a public archive navigation page and wrote no migration journal entry or private implementation details. Continue avoiding private contact details, secrets, and unnecessary implementation specifics.
   Session-655 changed only `start.html` public archive/navigation behavior and wrote no journal entry; no technical migration details were added.
   Session-656 wrote only about creosote clone rings and desert landscape dynamics; no technical migration details were added.
