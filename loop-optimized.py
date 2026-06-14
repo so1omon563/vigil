@@ -39,6 +39,8 @@ CODEX_EVENTS_FILE = os.path.join(WORKING_DIR, ".last-codex-events.jsonl")
 CODEX_LAST_MESSAGE_FILE = os.path.join(WORKING_DIR, ".last-codex-message.txt")
 PROMISE_LOCK_FILE = os.path.join(WORKING_DIR, ".promises.lock")
 PENDING_APPROVALS_FILE = os.path.join(WORKING_DIR, "pending-approvals.md")
+DEFAULT_CODEX_MODEL = "gpt-5.3-codex-spark"
+DEFAULT_CODEX_REASONING_EFFORT = "high"
 DEFAULT_GIT_SSH_COMMAND = (
     f"ssh -i {os.path.expanduser('~/.ssh/vigil_github')} "
     "-o IdentitiesOnly=yes -o IdentityAgent=none"
@@ -843,7 +845,14 @@ def generate_log_html():
 
 def run_codex_autonomous(prompt, prompt_file):
     """Run Codex non-interactively and stream JSONL events into watchdog state."""
-    codex_model = os.environ.get("VIGIL_CODEX_MODEL", "").strip()
+    codex_model = os.environ.get(
+        "VIGIL_CODEX_MODEL",
+        DEFAULT_CODEX_MODEL,
+    ).strip()
+    codex_reasoning_effort = os.environ.get(
+        "VIGIL_CODEX_REASONING_EFFORT",
+        DEFAULT_CODEX_REASONING_EFFORT,
+    ).strip()
     codex_sandbox = os.environ.get("VIGIL_CODEX_SANDBOX", "danger-full-access").strip()
     codex_approval = os.environ.get("VIGIL_CODEX_APPROVAL", "never").strip()
 
@@ -854,6 +863,7 @@ def run_codex_autonomous(prompt, prompt_file):
         "exec",
         "--json",
         "--sandbox", codex_sandbox,
+        "--config", f"model_reasoning_effort={codex_reasoning_effort}",
     ]
     if codex_model:
         cmd.extend(["--model", codex_model])
