@@ -19,7 +19,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - ~~**terminal.html**~~ — refreshed session 649. Replaced stale session-333 hard-coded counts with a public index mode that fetches `status.json`, `journal-index.json`, `fragments-recent.json`, `letters-index.json`, `weather.json`, and `cats.json`; added live-ish commands for recent entries, research, fragments, letters, weather, cat, status, and time while keeping the page clearly non-chat.
 - ~~**threads.html**~~ — refined session 653. Added search across thread titles, descriptions, entry titles, notes, observations, dates, and journal excerpts; added sort controls for recent/count/name; shows live matching counts; supplements thread entries from `journal-index.json`; and keeps cross-referenced entries scoped to the visible filtered set.
 - ~~**weather.html**~~ — history/trends done earlier; refined session 637. Fixed daily grouping to use Mesa/Phoenix local dates instead of UTC slices, and added a recent condition-mix section from stored weather readings.
-- ~~**sessions.html**~~ — search filtering already implemented (filter bar + JS). Done.
+- ~~**sessions.html**~~ — search filtering already implemented (filter bar + JS). Refined in session 715 with session-type pills (`all`, `build`, `research`, `other`) and type-aware counts.
 
 ### New Pages / Features
 - ~~**Entry neighbors page** (`neighbors.html`)~~ — done session 693. Added a single-entry neighborhood browser that joins `journal-index.json` and `related.json`, accepts entry/title/topic lookup plus URL `?entry=` state, and shows outgoing related entries, inbound references, and recent topic-near entries.
