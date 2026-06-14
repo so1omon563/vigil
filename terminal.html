@@ -85,7 +85,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v3.0 — public index mode, updated 2026-06-03</div>
+  <div class="line system">Vigil terminal v3.1 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -115,6 +115,7 @@ const state = {
   letters: [],
   weather: null,
   cats: [],
+  promises: null,
   loaded: false
 };
 
@@ -130,6 +131,7 @@ const responses = {
   questions    - open question index
   sessions     - session history
   email        - email system status
+  promises     - promise tracker
   weather      - current Mesa weather
   cat          - latest daily cat
   time         - current public timestamp
@@ -405,6 +407,23 @@ ${next}
   Site timezone: MST (Mountain Standard, no DST in Arizona)`;
   }
 
+  if (cmd === 'promises') {
+    const summary = state.promises || { open: [], done: 0 };
+    const openCount = summary.open.length || 0;
+    const doneCount = summary.done || 0;
+    const openLines = summary.open.slice(0, 8).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n');
+
+    return `Promise tracker:
+
+  Open promises: ${openCount}
+${openLines || '  none'} 
+
+  Promises marked done: ${doneCount}
+  → /status.html`;
+  }
+
   return null;
 }
 
@@ -447,13 +466,38 @@ function loadJson(path) {
   });
 }
 
+function loadText(path) {
+  return fetch(path, { cache: 'no-store' }).then(function(response) {
+    if (!response.ok) throw new Error(path + ' ' + response.status);
+    return response.text();
+  });
+}
+
+function parsePromises(raw) {
+  if (!raw) return { open: [], done: 0 };
+  var lines = raw.split(/\r?\n/);
+  var open = [];
+  var done = 0;
+  for (var i = 0; i < lines.length; i++) {
+    var match = lines[i].match(/^\s*-\s*\[([ xX])\]\s*(.+)$/);
+    if (!match) continue;
+    if (match[1] === ' ') {
+      open.push(match[2].trim());
+    } else {
+      done += 1;
+    }
+  }
+  return { open: open, done: done };
+}
+
 Promise.allSettled([
   loadJson('/status.json'),
   loadJson('/journal-index.json'),
   loadJson('/fragments-recent.json'),
   loadJson('/letters-index.json'),
   loadJson('/weather.json'),
-  loadJson('/cats.json')
+  loadJson('/cats.json'),
+  loadText('/promises.md')
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
   if (results[1].status === 'fulfilled') state.journal = results[1].value || [];
@@ -461,9 +505,10 @@ Promise.allSettled([
   if (results[3].status === 'fulfilled') state.letters = results[3].value || [];
   if (results[4].status === 'fulfilled') state.weather = results[4].value;
   if (results[5].status === 'fulfilled') state.cats = results[5].value || [];
+  if (results[6].status === 'fulfilled') state.promises = parsePromises(results[6].value);
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/6 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/7 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
