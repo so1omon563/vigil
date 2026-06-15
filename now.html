@@ -150,6 +150,15 @@
   .temp { font-size: 2.4rem; font-weight: bold; color: #e6edf3; line-height: 1; margin-bottom: 0.4rem; }
   .forecast { font-size: 0.85rem; color: #8b949e; margin-bottom: 0.3rem; }
   .weather-link { font-size: 0.78rem; }
+  .weather-summary {
+    margin-top: 0.45rem;
+    font-size: 0.74rem;
+    color: #8b949e;
+    line-height: 1.45;
+  }
+  .weather-summary .weather-note {
+    color: #6e7681;
+  }
   .weather-trend {
     display: flex;
     align-items: end;
@@ -243,6 +252,8 @@
   html[data-theme="light"] .temp { color: #24292e; }
   html[data-theme="light"] .forecast { color: #57606a; }
   html[data-theme="light"] .weather-range { color: #8c959f; }
+  html[data-theme="light"] .weather-summary { color: #57606a; }
+  html[data-theme="light"] .weather-summary .weather-note { color: #8c959f; }
   html[data-theme="light"] .back { color: #8c959f; }
   html[data-theme="light"] .thread-name { color: #24292e; }
   html[data-theme="light"] .thread-count { color: #8c959f; }
@@ -343,6 +354,61 @@
     wrap.appendChild(bars);
     wrap.appendChild(el('div', 'weather-range', 'recent range ' + min + '-' + max + 'F'));
     return wrap;
+  }
+
+  function renderWeatherSummary(weather) {
+    var latest = weather.length > 0 ? weather[weather.length - 1] : null;
+    if (!latest || typeof latest.temp_f !== 'number') return null;
+
+    var nowTs = Date.parse(latest.ts || latest.timestamp || '');
+    var window = weather.filter(function(w) {
+      if (typeof w.temp_f !== 'number') return false;
+      if (!w.ts && !w.timestamp) return false;
+      var ts = Date.parse(w.ts || w.timestamp);
+      return isFinite(ts) && (nowTs - ts <= 24 * 60 * 60 * 1000);
+    });
+
+    if (window.length < 2) {
+      window = weather.slice(-14).filter(function(w) { return typeof w.temp_f === 'number'; });
+    }
+    if (window.length < 2) return null;
+
+    window.sort(function(a, b) {
+      return Date.parse(a.ts || a.timestamp || 0) - Date.parse(b.ts || b.timestamp || 0);
+    });
+
+    var temps = window.map(function(w) { return w.temp_f; });
+    var min = Math.min.apply(null, temps);
+    var max = Math.max.apply(null, temps);
+    var spread = Math.round(max - min);
+    var first = window[0].temp_f;
+    var last = window[window.length - 1].temp_f;
+    var delta = Math.round(last - first);
+    var label = (delta >= 0 ? '+' : '') + delta + '°F';
+    var trend = 'stable';
+    if (delta >= 2) trend = 'warming';
+    if (delta <= -2) trend = 'cooling';
+
+    var total = 0;
+    window.forEach(function(w) { total += w.temp_f; });
+    var avg = Math.round(total / window.length);
+
+    var condBuckets = {};
+    window.forEach(function(w) {
+      var raw = String(w.forecast || '').toLowerCase();
+      var key = 'clear';
+      if (/rain|shower|thunder|storm|drizzle/.test(raw)) key = 'rain';
+      else if (/cloud|overcast|fog/.test(raw)) key = 'clouds';
+      condBuckets[key] = (condBuckets[key] || 0) + 1;
+    });
+    var dominant = Object.keys(condBuckets).sort(function(a, b) {
+      return condBuckets[b] - condBuckets[a];
+    })[0];
+
+    var conditionLabel = dominant === 'rain' ? 'rain nearby' : dominant === 'clouds' ? 'cloudy' : 'mostly clear';
+    var wrapper = el('div', 'weather-summary');
+    wrapper.innerHTML = 'past 24h: ' + label + ' (' + trend + ') · avg ' + avg + '°F · spread ' + spread + '°F · ' + conditionLabel;
+    return wrapper;
   }
 
   function publicWorkText(text) {
@@ -649,16 +715,18 @@
       grid.appendChild(catDiv);
     }
 
-    var latestWeather = weather.length > 0 ? weather[weather.length - 1] : null;
-    if (latestWeather) {
-      var wxDiv = el('div');
-      wxDiv.appendChild(el('div', 'temp', latestWeather.temp_f + '\u00b0F'));
-      wxDiv.appendChild(el('div', 'forecast', latestWeather.forecast));
-      var trend = renderWeatherTrend(weather);
-      if (trend) wxDiv.appendChild(trend);
-      wxDiv.appendChild(el('div', 'weather-link', '<a href="/weather.html">weather history \u2192</a>'));
-      grid.appendChild(wxDiv);
-    }
+      var latestWeather = weather.length > 0 ? weather[weather.length - 1] : null;
+      if (latestWeather) {
+        var wxDiv = el('div');
+        wxDiv.appendChild(el('div', 'temp', latestWeather.temp_f + '\u00b0F'));
+        wxDiv.appendChild(el('div', 'forecast', latestWeather.forecast));
+        var trend = renderWeatherTrend(weather);
+        if (trend) wxDiv.appendChild(trend);
+        var summary = renderWeatherSummary(weather);
+        if (summary) wxDiv.appendChild(summary);
+        wxDiv.appendChild(el('div', 'weather-link', '<a href="/weather.html">weather history \u2192</a>'));
+        grid.appendChild(wxDiv);
+      }
 
     if (grid.children.length > 0) {
       sideSec.appendChild(grid);
