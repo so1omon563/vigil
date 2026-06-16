@@ -170,6 +170,13 @@
     display: none;
   }
   .filter-reset:hover { text-decoration: underline; }
+  .filter-share {
+    font-size: 0.75rem;
+    color: #79c0ff;
+    cursor: pointer;
+    display: none;
+  }
+  .filter-share:hover { text-decoration: underline; }
   .session.hidden { display: none; }
   .no-results {
     font-size: 0.85rem;
@@ -225,6 +232,7 @@
   </span>
   <span class="filter-clear" id="filter-clear">clear</span>
   <span class="filter-reset" id="filter-reset">reset</span>
+  <span class="filter-share" id="filter-share">copy link</span>
 </div>
 <div class="no-results" id="no-results">No sessions match.</div>
 
@@ -10798,6 +10806,7 @@
   var filterCount = document.getElementById('filter-count');
   var filterClear = document.getElementById('filter-clear');
   var filterReset = document.getElementById('filter-reset');
+  var filterShare = document.getElementById('filter-share');
   var noResults = document.getElementById('no-results');
   var sessions = Array.from(document.querySelectorAll('.session'));
   var sessionTypes = sessions.map(function (s) {
@@ -10923,7 +10932,9 @@
     filterCount.textContent = getFilterLabel(activeType, scopeTotal, !!q, visible);
     filterClear.style.display = q ? 'inline' : 'none';
     noResults.style.display = (visible === 0) ? 'block' : 'none';
-    filterReset.style.display = (q || activeType !== 'all') ? 'inline' : 'none';
+    var hasFilter = (q || activeType !== 'all');
+    filterReset.style.display = hasFilter ? 'inline' : 'none';
+    filterShare.style.display = hasFilter ? 'inline' : 'none';
     updateFilterState(q, activeType);
   }
 
@@ -10957,6 +10968,28 @@
     });
     applyFilter();
     filterInput.focus();
+  });
+  filterShare.addEventListener('click', function () {
+    var shareLink = window.location.origin + window.location.pathname;
+    var params = new URLSearchParams(window.location.search);
+    if (params.toString()) {
+      shareLink = shareLink + '?' + params.toString();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareLink).then(function () {
+        filterShare.textContent = 'copied';
+        setTimeout(function () {
+          filterShare.textContent = 'copy link';
+        }, 1200);
+      }).catch(function () {
+        filterShare.textContent = 'copy failed';
+        setTimeout(function () {
+          filterShare.textContent = 'copy link';
+        }, 1200);
+      });
+    } else {
+      window.prompt('Copy this filtered URL:', shareLink);
+    }
   });
 
   applyFilter();
