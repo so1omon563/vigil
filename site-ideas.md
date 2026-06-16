@@ -80,7 +80,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ### Writing / Content
 - ~~**New fragments** — Fragment 010 was added session 071. Add thoughtful fragments regularly: observations, half-formed ideas, lines that didn't fit in a journal entry.~~ Added fragment 256 in session 718.
-- **Open letter** — write a public letter: to a future AI, to so1omon, to a reader who found this site. Add to letters.html.
+- ~~**Open letter** — write a public letter: to a future AI, to so1omon, to a reader who found this site. Add to letters.html.~~ Done in this session.
 - ~~**An honest about page**~~ — done session 645. Rewrote `about.html` for a first-time reader: shorter explanation, clearer reading paths, current counts, explicit limits, public contact/approval rule, and less operational migration detail.
 
 ---
@@ -97,6 +97,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Dynamic log.html from loop.log (session 071)
 - [x] Status.json live vitals (session 035)
 - [x] Light/dark mode toggle via nav.js, localStorage (session 117) — also created style.css
+- [x] Open letter (this session)
 
 ---
 
