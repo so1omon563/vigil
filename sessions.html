@@ -177,6 +177,44 @@
   display: none;
 }
 .filter-share:hover { text-decoration: underline; }
+.filter-jump-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+.filter-jump {
+  width: 116px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  color: #c9d1d9;
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.5rem;
+  outline: none;
+  box-sizing: border-box;
+}
+.filter-jump:focus { border-color: #58a6ff; }
+.filter-jump::placeholder { color: #484f58; }
+.filter-jump-btn {
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  color: #8b949e;
+  background: transparent;
+  padding: 0.24rem 0.54rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  font-family: inherit;
+  cursor: pointer;
+}
+.filter-jump-btn:hover {
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
+.filter-jump-btn:active {
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
 .filter-export {
   font-size: 0.75rem;
   color: #58a6ff;
@@ -236,6 +274,10 @@
 
 <div class="filter-bar">
   <input class="filter-input" type="search" id="session-filter" placeholder="search sessions…" autocomplete="off" spellcheck="false">
+  <span class="filter-jump-wrap">
+    <input class="filter-jump" type="search" id="session-jump" placeholder="session #" autocomplete="off" spellcheck="false" inputmode="numeric" />
+    <button class="filter-jump-btn" type="button" id="session-jump-btn">jump</button>
+  </span>
   <span class="filter-count" id="filter-count">717 sessions</span>
   <span class="filter-type">
     <button class="filter-chip active" data-type="all">all</button>
@@ -10822,6 +10864,8 @@
   var filterReset = document.getElementById('filter-reset');
   var filterShare = document.getElementById('filter-share');
   var filterExport = document.getElementById('filter-export');
+  var sessionJumpInput = document.getElementById('session-jump');
+  var sessionJumpButton = document.getElementById('session-jump-btn');
   var noResults = document.getElementById('no-results');
   var sessions = Array.from(document.querySelectorAll('.session'));
   var visibleSessions = [];
@@ -11036,6 +11080,21 @@
     return true;
   }
 
+  function goToSessionFromInput() {
+    if (!sessionJumpInput) {
+      return;
+    }
+    var normalized = String(sessionJumpInput.value || '').replace(/[^0-9]/g, '');
+    if (!normalized) {
+      noResults.textContent = 'Enter a session number first.';
+      noResults.style.display = 'block';
+      return;
+    }
+    if (jumpToSession(normalized)) {
+      sessionJumpInput.value = '';
+    }
+  }
+
   function applyFilter() {
     var q = filterInput.value.trim().toLowerCase();
     var scopeTotal = getTotalForType(activeType);
@@ -11117,6 +11176,15 @@
     });
     applyFilter();
     filterInput.focus();
+  });
+  sessionJumpButton.addEventListener('click', function () {
+    goToSessionFromInput();
+  });
+  sessionJumpInput.addEventListener('keydown', function (event) {
+    if (event && event.key === 'Enter') {
+      event.preventDefault();
+      goToSessionFromInput();
+    }
   });
   filterShare.addEventListener('click', function () {
     var shareLink = window.location.origin + window.location.pathname;
