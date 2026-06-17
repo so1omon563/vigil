@@ -69,6 +69,28 @@
     font-size: 0.79rem;
     color: #6e7681;
   }
+  .cadence-meter-wrap {
+    margin-top: 0.45rem;
+    max-width: 320px;
+  }
+  .cadence-track {
+    height: 8px;
+    border: 1px solid #30363d;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #0d1117;
+  }
+  .cadence-fill {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #2ea043, #58a6ff);
+    width: 0%;
+  }
+  .cadence-text {
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    color: #6e7681;
+  }
   .work-label { color: #484f58; }
   .status-dot.stale { background: #d29922; }
   .status-dot.offline { background: #f85149; }
@@ -243,6 +265,9 @@
   html[data-theme="light"] .status-line { color: #57606a; }
   html[data-theme="light"] .stat { color: #24292e; }
   html[data-theme="light"] .status-next { color: #8c959f; }
+  html[data-theme="light"] .cadence-track { border-color: #d0d7de; background: #f6f8fa; }
+  html[data-theme="light"] .cadence-fill { background: linear-gradient(90deg, #1f883d, #1f6feb); }
+  html[data-theme="light"] .cadence-text { color: #8c959f; }
   html[data-theme="light"] .thinking-text { color: #24292e; border-left-color: #d0d7de; }
   html[data-theme="light"] .work-text { color: #57606a; }
   html[data-theme="light"] .work-label { color: #8c959f; }
@@ -444,6 +469,28 @@
     return s;
   }
 
+  function renderCadenceGauge(statusTs, cadenceLine, meterWrap) {
+    if (!statusTs || !isFinite(statusTs)) return;
+    var cadenceMs = 4 * 60 * 60 * 1000;
+    var now = Date.now();
+    var elapsed = Math.max(0, now - statusTs);
+    var cycle = elapsed % cadenceMs;
+    var remaining = Math.max(0, cadenceMs - cycle);
+    var nextCycleMs = statusTs + (Math.floor(elapsed / cadenceMs) + 1) * cadenceMs;
+    var minsLeft = Math.round(remaining / 60000);
+    var percent = Math.round((cycle / cadenceMs) * 100);
+
+    cadenceLine.textContent = 'expected next cycle (4h cadence): ' + formatCheckTime(new Date(nextCycleMs).toISOString()) + ' · ' + formatDuration(minsLeft) + ' from now';
+    meterWrap.style.display = 'block';
+    var fill = meterWrap.querySelector('.cadence-fill');
+    var text = meterWrap.querySelector('.cadence-text');
+    if (fill) { fill.style.width = Math.min(100, Math.max(0, percent)) + '%'; }
+    if (text) {
+      var state = percent >= 95 ? 'just started' : (percent >= 75 ? 'fresh' : (percent >= 50 ? 'aging' : (percent >= 25 ? 'getting close' : 'late')));
+      text.textContent = 'cycle freshness: ' + percent + '% · ' + state;
+    }
+  }
+
   Promise.all([
     fetch('/status.json').then(function(r){ return r.json(); }).catch(function(){ return null; }),
     fetch('/journal-index.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
@@ -479,17 +526,22 @@
       sec.appendChild(el('p', 'status-line', '<span class="' + dotClass + '"></span>' + escapeHtml(status.status || 'running') + ' — session <span class="stat">' + status.session + '</span>, <span class="stat">' + status.journal_count + '</span> entries, <span class="stat">' + Math.round(status.total_words / 1000) + 'k</span> words'));
       sec.appendChild(el('p', 'status-line', 'last update ' + age.label + ' &middot; ' + fmtTs(status.timestamp) + ' &middot; Mesa, Arizona'));
       var cadenceLine = el('p', 'status-next', '');
+      var meterWrap = el('div', 'cadence-meter-wrap');
+      var cadenceTrack = el('div', 'cadence-track');
+      var cadenceFill = el('span', 'cadence-fill');
+      var cadenceText = el('div', 'cadence-text', '');
+      cadenceTrack.appendChild(cadenceFill);
+      meterWrap.appendChild(cadenceTrack);
+      meterWrap.appendChild(cadenceText);
+
       var statusTs = Date.parse(status.timestamp);
-      var nextCheck = statusTs + 4 * 60 * 60 * 1000;
-      function refreshCadence() {
-        var now = Date.now();
-        var mins = Math.round((nextCheck - now) / 60000);
-        cadenceLine.textContent = 'expected next cycle (4h cadence): ' + formatCheckTime(new Date(nextCheck).toISOString()) + ' · ' + formatDuration(mins) + ' from now';
-      }
+      function refreshCadence() { renderCadenceGauge(statusTs, cadenceLine, meterWrap); }
+
       if (isFinite(statusTs)) {
         refreshCadence();
         setInterval(refreshCadence, 30000);
         sec.appendChild(cadenceLine);
+        sec.appendChild(meterWrap);
       }
       root.appendChild(sec);
     }
