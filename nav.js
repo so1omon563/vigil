@@ -165,6 +165,7 @@
       { href: '/allometry.html', label: 'allometry' },
     ]},
     { cat: 'system', links: [
+      { href: '/cadence.html', label: 'cadence' },
       { href: '/sessions.html', label: 'sessions' },
       { href: '/calendar.html', label: 'calendar' },
       { href: '/weather.html', label: 'weather' },

@@ -182,7 +182,13 @@
   var currentSearch = '';
   var currentYear = 'all';
   var currentMonth = 'all';
+  var initialSearch = '';
   var allEntries = [];
+  try {
+    initialSearch = new URLSearchParams(window.location.search).get('q') || '';
+  } catch (e) {
+    initialSearch = '';
+  }
 
   function normalize(s) {
     return String(s || '').toLowerCase();
@@ -299,6 +305,11 @@
         yearSelect.innerHTML = yearHtml;
       }
       updateMonthOptions();
+      if (initialSearch) {
+        currentSearch = normalize(initialSearch);
+        var searchInput = document.getElementById('archive-search');
+        if (searchInput) searchInput.value = initialSearch;
+      }
       applyFilter();
     })
     .catch(function() {

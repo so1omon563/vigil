@@ -48,6 +48,23 @@
   .card-title a { color: #e6edf3; text-decoration: none; }
   .card-title a:hover { color: #58a6ff; }
   .card-why { font-size: 0.83rem; color: #8b949e; line-height: 1.65; }
+  .theme-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .theme-chip {
+    border: 1px solid #30363d;
+    border-radius: 999px;
+    padding: 0.24rem 0.58rem;
+    font-size: 0.72rem;
+    background: #161b22;
+    color: #8b949e;
+    line-height: 1.3;
+  }
+  .theme-chip a { color: #58a6ff; text-decoration: none; }
+  .theme-chip a:hover { text-decoration: underline; }
+  .theme-empty { color: #8b949e; font-size: 0.8rem; }
   /* Letter cards */
   .letter-card {
     border: 1px solid #1a2333;
@@ -107,6 +124,13 @@
   html[data-theme="light"] .letter-title a { color: #24292e; }
   html[data-theme="light"] .letter-title a:hover { color: #0969da; }
   html[data-theme="light"] .letter-why { color: #57606a; }
+  html[data-theme="light"] .theme-chip {
+    background: #e6edf3;
+    border-color: #d0d7de;
+    color: #8c959f;
+  }
+  html[data-theme="light"] .theme-chip a { color: #0969da; }
+  html[data-theme="light"] .theme-empty { color: #8c959f; }
   html[data-theme="light"] .elsewhere-item { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .elsewhere-item a { color: #0969da; }
   html[data-theme="light"] .elsewhere-desc { color: #8c959f; }
@@ -183,13 +207,20 @@
   </div>
 </div>
 
-<div class="section">
-  <div class="section-label">Where the investigation stands now</div>
+  <div class="section">
+    <div class="section-label">Where the investigation stands now</div>
 
-  <div class="entry-card" id="latest-entry-card">
-    <div class="card-num">Loading latest entry…</div>
+    <div class="entry-card" id="latest-entry-card">
+      <div class="card-num">Loading latest entry…</div>
+    </div>
   </div>
-</div>
+
+  <div class="section">
+    <div class="section-label">Quick starts by theme</div>
+    <div class="theme-links" id="start-theme-links">
+      <span class="theme-empty">Loading recent themes…</span>
+    </div>
+  </div>
 
 <div class="elsewhere">
   <div class="section-label">Elsewhere on the site</div>
@@ -274,6 +305,47 @@
       '<div class="card-why">' + esc(entry.excerpt || 'The latest journal entry.') + '</div>';
   }
 
+  function renderThemeLinks(entries) {
+    var container = document.getElementById('start-theme-links');
+    if (!container) return;
+    var sourceEntries = Array.isArray(entries) ? entries.slice(0, 24) : [];
+    if (!sourceEntries.length) {
+      container.innerHTML = '<span class="theme-empty">No themes available yet.</span>';
+      return;
+    }
+
+    var bucket = {};
+    sourceEntries.forEach(function(entry) {
+      var topics = Array.isArray(entry.topics) ? entry.topics : [];
+      topics.forEach(function(topic) {
+        var label = String(topic || '').trim();
+        if (!label) return;
+        var key = label.toLowerCase();
+        if (!bucket[key]) bucket[key] = { label: label, count: 0 };
+        bucket[key].count += 1;
+      });
+    });
+
+    var topics = Object.keys(bucket).map(function(key) {
+      return bucket[key];
+    }).filter(function(topic) { return topic && topic.count > 0; }).sort(function(a, b) {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.label.localeCompare(b.label);
+    }).slice(0, 10);
+
+    if (!topics.length) {
+      container.innerHTML = '<span class="theme-empty">No themes found in recent entries.</span>';
+      return;
+    }
+
+    var html = '';
+    topics.forEach(function(topic) {
+      var link = '/archive.html?q=' + encodeURIComponent(topic.label);
+      html += '<span class="theme-chip">→ <a href="' + esc(link) + '">' + esc(topic.label) + ' · ' + esc(topic.count) + '</a></span>';
+    });
+    container.innerHTML = html;
+  }
+
   Promise.all([
     fetch('/journal-index.json').then(function (r) { return r.json(); }),
     fetch('/letters-index.json').then(function (r) { return r.json(); }).catch(function () { return []; }),
@@ -306,6 +378,7 @@
     setText('fragments-desc', fragmentCount.toLocaleString() + " short observations that didn't become full entries.");
     setText('graph-desc', 'Force-directed map of all ' + journalCount.toLocaleString() + ' entries and their connections. Navigate by similarity.');
     renderLatest(entries[0]);
+    renderThemeLinks(entries);
   }).catch(function () {
     setText('start-meta', 'Archive counts unavailable');
   });

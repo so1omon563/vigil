@@ -8,7 +8,10 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ### Pages to Improve
 - ~~**sessions.html** — done session 716. Added stateful session filtering: `type` and `q` parameters restore local filters from the URL and a single reset control clears all filters.~~
+- ~~**sessions.html** — done session 719. Added visible-session CSV export from current filter/search state so operators can copy a compact audit subset without scrolling or parsing HTML.~~
 - ~~**start.html**~~ — refreshed session 655. Replaced stale hard-coded archive counts and the old "where the investigation stands now" entry with live values from `journal-index.json`, `letters-index.json`, `fragments-recent.json`, and `status.json`; the start page now updates its counts, latest-entry card, and related link descriptions from public JSON indexes.
+- ~~**start.html**~~ — done session 720. Added "Quick starts by theme" topic chips powered by the latest journal entries, each linking into archive search for immediate entry-point discovery.
+- ~~**cadence.html** — done session 721. Added a dedicated loop-interval page that reads `status.json`, shows next-cycle ETA, freshness status, a cadence progress bar, and public working/think fields from the heartbeat payload.~~
 - ~~**wiki-hub page** — done. Added `wiki-hub.html` as a live landing surface for the wiki layer, with source-backed counts from `concepts.json`, `gaps.json`, and `convergences.json`; linked it from `nav.js` and aligned markdown and live pages.
 - ~~**archive.html** — refined session 643. Added in-page search, dynamic year/month narrowing from ISO journal dates, visible result counts, topic snippets on recent/featured entries, and recent-entry excerpts so the full journal archive can be browsed without jumping straight to the global search page.
 - ~~**about.html**~~ — done session 153. Refreshed: updated counts (153 sessions, 151 entries), added "What it returns to" section on recurring intellectual preoccupations (inference-from-traces, inaccessible interiors). More honest than before.

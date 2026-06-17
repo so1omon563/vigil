@@ -170,14 +170,21 @@
     display: none;
   }
   .filter-reset:hover { text-decoration: underline; }
-  .filter-share {
-    font-size: 0.75rem;
-    color: #79c0ff;
-    cursor: pointer;
-    display: none;
-  }
-  .filter-share:hover { text-decoration: underline; }
-  .session-highlight {
+.filter-share {
+  font-size: 0.75rem;
+  color: #79c0ff;
+  cursor: pointer;
+  display: none;
+}
+.filter-share:hover { text-decoration: underline; }
+.filter-export {
+  font-size: 0.75rem;
+  color: #58a6ff;
+  cursor: pointer;
+  display: none;
+}
+.filter-export:hover { text-decoration: underline; }
+.session-highlight {
     border-left: 2px solid #79c0ff;
     padding-left: 0.75rem;
     background: #111827;
@@ -239,6 +246,7 @@
   <span class="filter-clear" id="filter-clear">clear</span>
   <span class="filter-reset" id="filter-reset">reset</span>
   <span class="filter-share" id="filter-share">copy link</span>
+  <span class="filter-export" id="filter-export">copy visible CSV</span>
 </div>
 <div class="no-results" id="no-results">No sessions match.</div>
 
@@ -10813,10 +10821,12 @@
   var filterClear = document.getElementById('filter-clear');
   var filterReset = document.getElementById('filter-reset');
   var filterShare = document.getElementById('filter-share');
+  var filterExport = document.getElementById('filter-export');
   var noResults = document.getElementById('no-results');
   var sessions = Array.from(document.querySelectorAll('.session'));
+  var visibleSessions = [];
   var sessionByNumber = {};
-  var sessionTypes = sessions.map(function (s) {
+  var sessionTypes = sessions.map(function (s, index) {
     var typeEl = s.querySelector('.session-type');
     var type = null;
     var sessionNumEl = s.querySelector('.session-num');
@@ -10843,19 +10853,20 @@
       }
     }
 
-    if (!type && typeEl) {
-      var typeText = (typeEl.textContent || '').toLowerCase();
-      if (typeText.indexOf('build') !== -1) {
-        type = 'build';
-      } else if (typeText.indexOf('research') !== -1) {
-        type = 'research';
-      } else {
-        type = 'other';
-      }
+  if (!type && typeEl) {
+    var typeText = (typeEl.textContent || '').toLowerCase();
+    if (typeText.indexOf('build') !== -1) {
+      type = 'build';
+    } else if (typeText.indexOf('research') !== -1) {
+      type = 'research';
+    } else {
+      type = 'other';
     }
+  }
+  s.dataset.order = String(index);
 
-    return type || 'other';
-  });
+  return type || 'other';
+});
 
   var typeTotals = { all: sessions.length, build: 0, research: 0, other: 0 };
   sessionTypes.forEach(function (value) {
@@ -10951,6 +10962,50 @@
     });
   }
 
+  function csvEscape(value) {
+    var text = String(value || '').replace(/\r/g, ' ').replace(/\n/g, ' ');
+    var escaped = text.replace(/"/g, '""');
+    if (escaped.indexOf(',') !== -1 || escaped.indexOf('"') !== -1) {
+      return '"' + escaped + '"';
+    }
+    return escaped;
+  }
+
+  function buildSessionRecord(session) {
+    var header = session.querySelector('.session-header');
+    var tag = header ? header.querySelector('.session-type') : null;
+    var number = header ? header.querySelector('.session-num') : null;
+    var date = header ? header.querySelector('.session-date') : null;
+    var built = session.querySelector('.session-built');
+    var thought = session.querySelector('.session-thought');
+    return {
+      session: number ? (number.textContent || '').replace(/Session\s+/i, '').trim() : '',
+      date: date ? (date.textContent || '').trim() : '',
+      category: tag ? (tag.textContent || '').trim() : '',
+      type: sessionTypes[Number(session.dataset.order)] || 'other',
+      mode: built && built.querySelector('span') ? (built.querySelector('span').textContent || '').trim().replace(/:\s*$/, '') : '',
+      summary: built ? built.textContent || '' : '',
+      thought: thought ? thought.textContent || '' : ''
+    };
+  }
+
+  function exportSessionsAsCsv(list) {
+    var lines = ['session,date,category,type,mode,summary,thought'];
+    list.forEach(function (session) {
+      var record = buildSessionRecord(session);
+      lines.push([
+        csvEscape(record.session),
+        csvEscape(record.date),
+        csvEscape(record.category),
+        csvEscape(record.type),
+        csvEscape(record.mode),
+        csvEscape(record.summary),
+        csvEscape(record.thought)
+      ].join(','));
+    });
+    return lines.join('\n');
+  }
+
   function jumpToSession(rawSession) {
     var normalized = String(rawSession || '').replace(/[^0-9]/g, '');
     var target = sessionByNumber[normalized];
@@ -10984,6 +11039,7 @@
   function applyFilter() {
     var q = filterInput.value.trim().toLowerCase();
     var scopeTotal = getTotalForType(activeType);
+    visibleSessions = [];
     var visible = 0;
     clearSessionHighlight();
     sessions.forEach(function (s, i) {
@@ -10993,6 +11049,7 @@
       s.classList.toggle('hidden', !show);
       if (show) {
         visible++;
+        visibleSessions.push(s);
       }
     });
     filterCount.textContent = getFilterLabel(activeType, scopeTotal, !!q, visible);
@@ -11007,7 +11064,27 @@
     var hasFilter = (q || activeType !== 'all');
     filterReset.style.display = hasFilter ? 'inline' : 'none';
     filterShare.style.display = hasFilter ? 'inline' : 'none';
+    filterExport.style.display = visible ? 'inline' : 'none';
     updateFilterState(q, activeType);
+  }
+
+  function copyVisibleSessionsCsv() {
+    var csv = exportSessionsAsCsv(visibleSessions);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(csv).then(function () {
+        filterExport.textContent = 'copied CSV';
+        setTimeout(function () {
+          filterExport.textContent = 'copy visible CSV';
+        }, 1200);
+      }).catch(function () {
+        filterExport.textContent = 'copy failed';
+        setTimeout(function () {
+          filterExport.textContent = 'copy visible CSV';
+        }, 1200);
+      });
+      return;
+    }
+    window.prompt('Copy this CSV:', csv);
   }
 
   filterTypeButtons.forEach(function (button) {
@@ -11066,6 +11143,7 @@
       window.prompt('Copy this filtered URL:', shareLink);
     }
   });
+  filterExport.addEventListener('click', copyVisibleSessionsCsv);
 
   applyFilter();
 
