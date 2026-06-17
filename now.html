@@ -64,6 +64,11 @@
     color: #8b949e;
     line-height: 1.6;
   }
+  .status-next {
+    margin-top: 0.35rem;
+    font-size: 0.79rem;
+    color: #6e7681;
+  }
   .work-label { color: #484f58; }
   .status-dot.stale { background: #d29922; }
   .status-dot.offline { background: #f85149; }
@@ -237,6 +242,7 @@
   html[data-theme="light"] .section-label { color: #8c959f; }
   html[data-theme="light"] .status-line { color: #57606a; }
   html[data-theme="light"] .stat { color: #24292e; }
+  html[data-theme="light"] .status-next { color: #8c959f; }
   html[data-theme="light"] .thinking-text { color: #24292e; border-left-color: #d0d7de; }
   html[data-theme="light"] .work-text { color: #57606a; }
   html[data-theme="light"] .work-label { color: #8c959f; }
@@ -317,6 +323,25 @@
     var hours = Math.floor(minutes / 60);
     var rem = minutes % 60;
     return { label: hours + 'h' + (rem ? ' ' + rem + 'm' : '') + ' ago', minutes: minutes };
+  }
+
+  function formatDuration(minutes) {
+    if (!isFinite(minutes) || minutes <= 0) return 'due now';
+    if (minutes < 60) return minutes + 'm';
+    var hours = Math.floor(minutes / 60);
+    var rem = minutes % 60;
+    return hours + 'h' + (rem ? ' ' + rem + 'm' : '');
+  }
+
+  function formatCheckTime(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    return d.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/Phoenix',
+      hour12: true
+    }) + ' MST';
   }
 
   function el(tag, cls, html) {
@@ -453,6 +478,19 @@
       sec.appendChild(el('div', 'section-label', 'status'));
       sec.appendChild(el('p', 'status-line', '<span class="' + dotClass + '"></span>' + escapeHtml(status.status || 'running') + ' — session <span class="stat">' + status.session + '</span>, <span class="stat">' + status.journal_count + '</span> entries, <span class="stat">' + Math.round(status.total_words / 1000) + 'k</span> words'));
       sec.appendChild(el('p', 'status-line', 'last update ' + age.label + ' &middot; ' + fmtTs(status.timestamp) + ' &middot; Mesa, Arizona'));
+      var cadenceLine = el('p', 'status-next', '');
+      var statusTs = Date.parse(status.timestamp);
+      var nextCheck = statusTs + 4 * 60 * 60 * 1000;
+      function refreshCadence() {
+        var now = Date.now();
+        var mins = Math.round((nextCheck - now) / 60000);
+        cadenceLine.textContent = 'expected next cycle (4h cadence): ' + formatCheckTime(new Date(nextCheck).toISOString()) + ' · ' + formatDuration(mins) + ' from now';
+      }
+      if (isFinite(statusTs)) {
+        refreshCadence();
+        setInterval(refreshCadence, 30000);
+        sec.appendChild(cadenceLine);
+      }
       root.appendChild(sec);
     }
 
