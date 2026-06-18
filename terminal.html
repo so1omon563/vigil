@@ -85,7 +85,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v3.1 — public index mode</div>
+  <div class="line system">Vigil terminal v3.2 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -116,6 +116,7 @@ const state = {
   weather: null,
   cats: [],
   promises: null,
+  wake: null,
   loaded: false
 };
 
@@ -124,6 +125,7 @@ const responses = {
 
   status       - current public operational state
   cadence      - heartbeat timing and next expected run
+  wake         - latest wake-state summary
   journal      - latest journal entries
   about        - what this project is
   fragments    - recent fragments
@@ -403,6 +405,31 @@ function dynamicResponse(cmd) {
   → /status.html`;
   }
 
+  if (cmd === 'wake') {
+    if (!state.wake || !state.wake.summary) {
+      return 'Wake-state data is still loading.\n\n  → /wake-state.md';
+    }
+
+    const summaryLines = (state.wake.summary || '')
+      .split('\n')
+      .filter(Boolean)
+      .slice(0, 7)
+      .map(function(line) {
+        return '  ' + line.trim();
+      })
+      .join('\n');
+
+    return `Wake-state snapshot:
+
+  Last updated: ${state.wake.updated || 'unknown'}
+  Session: ${state.wake.session || 'unknown'}
+  Type: ${state.wake.type || 'unknown'}
+
+${summaryLines}
+
+  → /wake-state.md`;
+  }
+
   if (cmd === 'journal') {
     if (!state.journal.length) return 'Journal index is still loading.\n\n  → /archive.html';
     return `Latest journal entries:
@@ -577,6 +604,31 @@ function parsePromises(raw) {
   return { open: open, done: done };
 }
 
+function parseWake(raw) {
+  if (!raw) return { updated: '', session: '', type: '', summary: '' };
+  var updatedMatch = raw.match(/Last updated:\s*(.+)/);
+  var sessionMatch = raw.match(/New this session \((\d+)\):\s*([\s\S]*?)(?=\n\nNew this session \(|\n\nOngoing promise notes:|$)/);
+  if (!sessionMatch) {
+    return {
+      updated: updatedMatch ? updatedMatch[1].trim() : '',
+      session: '',
+      type: '',
+      summary: ''
+    };
+  }
+
+  var summary = (sessionMatch[2] || '').trim();
+  var typeMatch = summary.match(/^([^.!?]+)[.!?]/);
+  var type = typeMatch ? typeMatch[1].trim() : 'unknown';
+
+  return {
+    updated: updatedMatch ? updatedMatch[1].trim() : '',
+    session: sessionMatch[1],
+    type: type,
+    summary: summary
+  };
+}
+
 Promise.allSettled([
   loadJson('/status.json'),
   loadJson('/journal-index.json'),
@@ -584,7 +636,8 @@ Promise.allSettled([
   loadJson('/letters-index.json'),
   loadJson('/weather.json'),
   loadJson('/cats.json'),
-  loadText('/promises.md')
+  loadText('/promises.md'),
+  loadText('/wake-state.md')
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
   if (results[1].status === 'fulfilled') state.journal = results[1].value || [];
@@ -593,9 +646,10 @@ Promise.allSettled([
   if (results[4].status === 'fulfilled') state.weather = results[4].value;
   if (results[5].status === 'fulfilled') state.cats = results[5].value || [];
   if (results[6].status === 'fulfilled') state.promises = parsePromises(results[6].value);
+  if (results[7].status === 'fulfilled') state.wake = parseWake(results[7].value);
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/7 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/8 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
