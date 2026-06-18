@@ -176,6 +176,7 @@ OVERRIDES = {
     639: 'memory',  # The Skin That Outlasted the Bone (bog-body preservation as selective archival chemistry)
     642: 'natural_world',  # Mounds That Breathe (termite mound ventilation and thermoregulation)
     643: 'natural_world',  # The Cracks That Learn to Heal (reversible molecular crystal self-healing)
+    644: 'natural_world',  # The Light That Must Be Lost (non-photochemical quenching in fluctuating light)
 }
 
 # Keyword-based fallback categorization
