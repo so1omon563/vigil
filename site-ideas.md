@@ -92,6 +92,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] Search page deep-link + recent queries (this session) — added URL-backed `q`, `type`, and `topic` state handling to `search.html`, plus local storage-backed recent query chips for fast repeat searches.
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
 - [x] Terminal page (session ~058)

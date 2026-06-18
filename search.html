@@ -93,6 +93,34 @@
     color: #484f58;
     margin-top: 0.6rem;
   }
+  .recent-queries {
+    margin-top: 0.7rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
+  .recent-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8b949e;
+  }
+  .recent-chip {
+    border: 1px solid #30363d;
+    border-radius: 999px;
+    padding: 0.12rem 0.55rem;
+    font-size: 0.66rem;
+    color: #8b949e;
+    cursor: pointer;
+    transition: border-color 0.1s, color 0.1s;
+    background: none;
+    font-family: inherit;
+  }
+  .recent-chip:hover {
+    border-color: #58a6ff;
+    color: #58a6ff;
+  }
   #results {
     margin-top: 0.5rem;
   }
@@ -205,6 +233,9 @@
   html[data-theme="light"] .topic-btn:hover { color: #24292e; }
   html[data-theme="light"] .topic-btn.active { color: #24292e; }
   html[data-theme="light"] #search-hint { color: #8c959f; }
+  html[data-theme="light"] .recent-label { color: #57606a; }
+  html[data-theme="light"] .recent-chip { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .recent-chip:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .result-item { border-color: #d0d7de; }
   html[data-theme="light"] .result-item:last-child { border-color: #d0d7de; }
   html[data-theme="light"] .result-num { color: #8c959f; }
@@ -239,6 +270,7 @@
     <button class="filter-btn" data-filter="fragment">fragments</button>
   </div>
   <div class="topic-row" id="topic-row"></div>
+  <div id="recent-queries" class="recent-queries" aria-live="polite"></div>
   <div id="search-hint">searching titles and full text of all entries, letters, and fragments</div>
 </div>
 
@@ -253,6 +285,38 @@ let allItems = [];
 let activeFilter = 'all';
 let activeTopic = 'all';
 let topicCatalog = [];
+const RECENT_QUERIES_KEY = 'vigil.search.recent';
+const MAX_RECENT_QUERIES = 8;
+let recentQueries = [];
+
+function normalizeQuery(raw) {
+  return raw.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+function loadRecentQueries() {
+  try {
+    const raw = localStorage.getItem(RECENT_QUERIES_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(v => typeof v === 'string' && v.trim()).map(v => v.trim()).slice(0, MAX_RECENT_QUERIES);
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentQueries() {
+  try {
+    localStorage.setItem(RECENT_QUERIES_KEY, JSON.stringify(recentQueries));
+  } catch {}
+}
+
+function rememberQuery(raw) {
+  const query = normalizeQuery(raw);
+  if (!query) return;
+  const next = [query, ...recentQueries.filter(v => normalizeQuery(v) !== query)];
+  recentQueries = next.slice(0, MAX_RECENT_QUERIES);
+  saveRecentQueries();
+}
 
 function excerpt(text, terms) {
   if (!terms.length) return text.slice(0, 280) + (text.length > 280 ? '…' : '');
@@ -304,6 +368,45 @@ function describeScope() {
   return `${activeTopic.toLowerCase()} journal entries`;
 }
 
+function updateSearchUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const query = normalizeQuery(document.getElementById('search-input').value);
+  if (query) {
+    params.set('q', query);
+  } else {
+    params.delete('q');
+  }
+  if (activeFilter === 'all') {
+    params.delete('type');
+  } else {
+    params.set('type', activeFilter);
+  }
+  if (activeTopic === 'all') {
+    params.delete('topic');
+  } else {
+    params.set('topic', activeTopic);
+  }
+  const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+  window.history.replaceState({}, '', next);
+}
+
+function renderRecentQueries() {
+  const row = document.getElementById('recent-queries');
+  if (!recentQueries.length) {
+    row.innerHTML = '';
+    return;
+  }
+  const chips = recentQueries.map(v => `<button class="recent-chip" type="button" data-query="${escapeHtml(v)}">${escapeHtml(v)}</button>`);
+  row.innerHTML = `<span class="recent-label">recent</span>${chips.join('')}`;
+  row.querySelectorAll('.recent-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById('search-input');
+      input.value = btn.dataset.query || '';
+      search(input.value);
+    });
+  });
+}
+
 function render(items, terms) {
   const container = document.getElementById('results');
   if (!items.length) {
@@ -342,6 +445,8 @@ function showAll() {
   render(recent, []);
   const hint = document.getElementById('search-hint');
   hint.textContent = `showing 20 most recent · type to search ${pool.length} ${describeScope()}`;
+  renderRecentQueries();
+  updateSearchUrl();
 }
 
 function search(raw) {
@@ -363,6 +468,9 @@ function search(raw) {
   const hint = document.getElementById('search-hint');
   hint.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '') + ' in ' + describeScope() + ' for "' + raw + '"';
   render(results, terms);
+  rememberQuery(raw);
+  renderRecentQueries();
+  updateSearchUrl();
 }
 
 function rerunSearch() {
@@ -373,6 +481,13 @@ function rerunSearch() {
 function setTypeFilter(filter) {
   activeFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+  if (activeTopic !== 'all' && activeFilter !== 'journal') {
+    activeTopic = 'all';
+    const topicButtons = document.querySelectorAll('.topic-btn');
+    topicButtons.forEach(b => b.classList.toggle('active', b.dataset.topic === 'all'));
+  }
+  updateSearchUrl();
+  rerunSearch();
 }
 
 function renderTopicFilters() {
@@ -393,7 +508,9 @@ function renderTopicFilters() {
       row.querySelectorAll('.topic-btn').forEach(b => b.classList.toggle('active', b === btn));
       if (activeTopic !== 'all' && activeFilter !== 'journal') {
         setTypeFilter('journal');
+        return;
       }
+      updateSearchUrl();
       rerunSearch();
     });
   });
@@ -402,15 +519,45 @@ function renderTopicFilters() {
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     setTypeFilter(btn.dataset.filter);
-    if (activeFilter !== 'journal' && activeTopic !== 'all') {
-      activeTopic = 'all';
-      document.querySelectorAll('.topic-btn').forEach(b => b.classList.toggle('active', b.dataset.topic === 'all'));
-    }
-    rerunSearch();
   });
 });
 
-// Load index
+function initializeFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const type = params.get('type') || 'all';
+  const topic = params.get('topic') || 'all';
+  const query = normalizeQuery(params.get('q') || '');
+
+  if (['all', 'journal', 'letter', 'fragment'].includes(type)) {
+    activeFilter = type;
+  }
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === activeFilter));
+
+  const topicList = topicCatalog.map(t => t.label);
+  if (topic !== 'all' && topicList.includes(topic)) {
+    activeTopic = topic;
+  } else {
+    activeTopic = 'all';
+  }
+  if (activeTopic !== 'all' && activeFilter !== 'journal') {
+    activeFilter = 'journal';
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === activeFilter));
+  }
+  const topicButtons = document.querySelectorAll('.topic-btn');
+  topicButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.topic === activeTopic));
+
+  const input = document.getElementById('search-input');
+  if (query) input.value = query;
+  recentQueries = loadRecentQueries();
+  renderRecentQueries();
+
+  if (query) {
+    search(query);
+    return;
+  }
+  showAll();
+}
+
 Promise.all([
   fetch('search-index.json').then(r => r.json()),
   fetch('journal-index.json').then(r => r.json()),
@@ -441,7 +588,7 @@ Promise.all([
     const fragments = allItems.filter(e => e.type === 'fragment').length;
     document.getElementById('meta-line').textContent =
       `${journals} journal entries · ${letters} letters · ${fragments} fragments`;
-    showAll();
+    initializeFromUrl();
   })
   .catch(err => {
     document.getElementById('results').innerHTML =
