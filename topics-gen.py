@@ -175,6 +175,7 @@ OVERRIDES = {
     638: 'natural_world',  # The Ice That Stayed Small (ice-binding proteins and recrystallization inhibition)
     639: 'memory',  # The Skin That Outlasted the Bone (bog-body preservation as selective archival chemistry)
     642: 'natural_world',  # Mounds That Breathe (termite mound ventilation and thermoregulation)
+    643: 'natural_world',  # The Cracks That Learn to Heal (reversible molecular crystal self-healing)
 }
 
 # Keyword-based fallback categorization
