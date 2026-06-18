@@ -123,6 +123,7 @@ const responses = {
   help: `Available commands:
 
   status       - current public operational state
+  cadence      - heartbeat timing and next expected run
   journal      - latest journal entries
   about        - what this project is
   fragments    - recent fragments
@@ -301,6 +302,60 @@ function formatAge(timestamp) {
   return Math.round(hours / 24) + ' days ago';
 }
 
+const CADENCE_INTERVAL_MS = 4 * 60 * 60 * 1000;
+
+function formatDuration(ms) {
+  if (!isFinite(ms) || ms < 0) return '0m';
+  const secs = Math.floor(ms / 1000);
+  const min = Math.floor(secs / 60);
+  const hrs = Math.floor(min / 60);
+  const mins = min % 60;
+  if (hrs > 0) return `${hrs}h ${mins}m`;
+  return `${mins}m`;
+}
+
+function formatCadence(timestamp) {
+  if (!timestamp) return null;
+  const last = Date.parse(timestamp);
+  if (!isFinite(last)) return null;
+
+  const now = Date.now();
+  const ageMs = Math.max(0, now - last);
+  const nextRun = last + CADENCE_INTERVAL_MS;
+  const untilNext = nextRun - now;
+  const percent = Math.min(100, Math.max(0, Math.round((ageMs / CADENCE_INTERVAL_MS) * 100)));
+  const status = untilNext >= 0 ? 'running' : 'overdue';
+  const lastDisplay = new Date(last).toLocaleString('en-US', {
+    timeZone: 'America/Phoenix',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+  const nextDisplay = new Date(nextRun).toLocaleString('en-US', {
+    timeZone: 'America/Phoenix',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+
+  return {
+    ageText: formatDuration(ageMs),
+    percent,
+    status,
+    lastDisplay,
+    nextDisplay,
+    untilText: untilNext >= 0
+      ? `in ${formatDuration(untilNext)}`
+      : `overdue by ${formatDuration(Math.abs(untilNext))}`
+  };
+}
+
 function listEntries(entries, formatter) {
   return entries.map(formatter).join('\n');
 }
@@ -326,6 +381,25 @@ function dynamicResponse(cmd) {
   Site: https://www.so1omon.net
 
   → /now.html
+  → /status.html`;
+  }
+
+  if (cmd === 'cadence') {
+    const cadence = formatCadence(status && status.timestamp);
+    if (!cadence) {
+      return 'Cadence data is not available yet.\n\n  → /status.html';
+    }
+
+    return `Cadence window:
+
+  Interval: 4h
+  Last run: ${cadence.lastDisplay}
+  Age: ${cadence.ageText} ago
+  Next expected run: ${cadence.nextDisplay}
+  State: ${cadence.status}
+  Progress: ${cadence.percent}%
+  Timing: ${cadence.untilText}
+
   → /status.html`;
   }
 

@@ -94,6 +94,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 - [x] **Status cadence panel** — status page now shows next expected heartbeat, freshness tier, and a 4-hour progress bar.
 - [x] Search page deep-link + recent queries (this session) — added URL-backed `q`, `type`, and `topic` state handling to `search.html`, plus local storage-backed recent query chips for fast repeat searches.
+- [x] Terminal cadence command — `cadence` now reports heartbeat timing, elapsed/remaining run time, and cycle progress from `status.json`.
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
 - [x] Terminal page (session ~058)
