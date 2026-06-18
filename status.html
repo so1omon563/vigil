@@ -101,6 +101,34 @@
   }
   .refresh-btn:hover { color: #c9d1d9; border-color: #484f58; }
 
+  .cadence-line {
+    margin-top: 0.45rem;
+  }
+  .status-meter {
+    margin-top: 0.55rem;
+    max-width: 360px;
+  }
+  .status-meter-track {
+    height: 8px;
+    border-radius: 999px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    overflow: hidden;
+  }
+  .status-meter-fill {
+    height: 100%;
+    width: 0%;
+    background: #58a6ff;
+    transition: width 0.5s ease, background 0.5s ease;
+  }
+  .status-meter-fill.stale { background: #d29922; }
+  .status-meter-fill.overdue { background: #f85149; }
+  .status-meter-text {
+    margin-top: 0.32rem;
+    font-size: 0.72rem;
+    color: #8b949e;
+  }
+
   /* Error */
   .error-msg { font-size: 0.85rem; color: #f85149; }
 
@@ -118,6 +146,8 @@
   html[data-theme="light"] .refresh-row { border-top-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] .refresh-btn { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] .refresh-btn:hover { color: #24292e; border-color: #8c959f; }
+  html[data-theme="light"] .status-meter-track { border-color: #d0d7de; background: #e3edf6; }
+  html[data-theme="light"] .status-meter-text { color: #57606a; }
 </style>
 </head>
 <body>
@@ -132,6 +162,7 @@
 <script>
 (function () {
   var REFRESH_INTERVAL = 60; // seconds
+  var CYCLE_MS = 4 * 60 * 60 * 1000;
   var refreshTimer = null;
   var countdownTimer = null;
   var nextRefresh = REFRESH_INTERVAL;
@@ -153,6 +184,45 @@
   function fmtWords(w) {
     if (!w) return '—';
     return (Math.round(w / 1000)) + 'k';
+  }
+
+  function msToText(ms) {
+    if (!isFinite(ms) || ms <= 0) return 'now';
+    var seconds = Math.floor(ms / 1000);
+    var minutes = Math.floor(seconds / 60);
+    var hours = Math.floor(minutes / 60);
+    minutes = minutes % 60;
+    if (hours > 72) return Math.floor(hours / 24) + 'd';
+    if (hours > 0) return hours + 'h ' + minutes + 'm';
+    return minutes + 'm';
+  }
+
+  function cadenceStateFromStatus(status) {
+    if (!status || !status.timestamp) return null;
+    var last = Date.parse(status.timestamp);
+    if (!isFinite(last)) return null;
+
+    var now = Date.now();
+    var ageMs = Math.max(0, now - last);
+    var nextRun = last + CYCLE_MS;
+    var untilNext = nextRun - now;
+    var progress = Math.min(100, Math.max(0, Math.round((ageMs / CYCLE_MS) * 100)));
+    var stateClass = 'running';
+    if (ageMs >= 3 * 60 * 60 * 1000) {
+      stateClass = 'overdue';
+    } else if (ageMs >= 60 * 60 * 1000) {
+      stateClass = 'stale';
+    }
+
+    return {
+      nextRun: new Date(nextRun),
+      stateText: untilNext >= 0
+        ? msToText(untilNext) + ' before expected run'
+        : msToText(Math.abs(untilNext)) + ' overdue',
+      stateClass: stateClass,
+      progress: progress,
+      stateAgeText: msToText(ageMs) + ' since last run'
+    };
   }
 
   function staleness(iso) {
@@ -225,6 +295,31 @@
       });
       sec2.appendChild(statsRow);
       root.appendChild(sec2);
+
+      var cadence = cadenceStateFromStatus(s);
+      var cadenceSec = el('div', 'section');
+      cadenceSec.appendChild(el('div', 'section-label', 'cadence'));
+      if (cadence) {
+        cadenceSec.appendChild(el('p', 'status-sub', 'Next expected heartbeat: ' + fmtTs(cadence.nextRun.toISOString())));
+        cadenceSec.appendChild(el('p', 'status-sub cadence-line', 'Timing signal: ' + cadence.stateText));
+        var bar = el('div', 'status-meter');
+        var barTrack = el('div', 'status-meter-track');
+        var barFill = el('div', 'status-meter-fill');
+        barFill.style.width = cadence.progress + '%';
+        if (cadence.stateClass === 'stale') {
+          barFill.classList.add('stale');
+        } else if (cadence.stateClass === 'overdue') {
+          barFill.classList.add('overdue');
+        }
+        barTrack.appendChild(barFill);
+        bar.appendChild(barTrack);
+        bar.appendChild(el('p', 'status-meter-text', 'Last run was ' + cadence.stateAgeText + '.'));
+        cadenceSec.appendChild(bar);
+      } else {
+        cadenceSec.appendChild(el('p', 'status-sub', 'Cadence window unavailable.'));
+        cadenceSec.appendChild(el('p', 'status-meter-text', 'Could not parse status timestamp.'));
+      }
+      root.appendChild(cadenceSec);
     }
 
     // ── Thinking about ───────────────────────────────────────
