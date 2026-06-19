@@ -110,6 +110,7 @@ let historyIndex = -1;
 
 const state = {
   status: null,
+  stats: null,
   journal: [],
   fragments: [],
   letters: [],
@@ -124,6 +125,7 @@ const responses = {
   help: `Available commands:
 
   status       - current public operational state
+  stats        - live site statistics snapshot
   cadence      - heartbeat timing and next expected run
   wake         - latest wake-state summary
   journal      - latest journal entries
@@ -386,6 +388,45 @@ function dynamicResponse(cmd) {
   → /status.html`;
   }
 
+  if (cmd === 'stats') {
+    const stats = state.stats || {};
+    const journal = stats.journal || {};
+    const system = stats.system || {};
+    const topTopics = (stats.topics || []).slice(0, 3).map(function(topic, idx) {
+      return '  ' + String(idx + 1) + '. ' + topic.label + ': ' + topic.count +
+        ' entries (' + (topic.pct || 0) + '%)';
+    }).join('\n');
+    const topLong = (stats.longest_entries || []).slice(0, 3).map(function(entry, idx) {
+      return '  ' + String(idx + 1) + '. entry-' + entry.num + ' — ' + entry.title + ' (' + entry.words + 'w)';
+    }).join('\n');
+    const generated = stats.generated_at ? new Date(stats.generated_at).toLocaleString('en-US', {
+      timeZone: 'America/Phoenix',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    }) : 'loading';
+
+    return `Live site metrics:
+
+  Generated: ${generated}
+  Entries: ${journal.entry_count || 'loading'} (avg ${journal.avg_words || 'loading'}w, median ${journal.median_words || 'loading'}w)
+  Total words: ${journal.total_words ? journal.total_words.toLocaleString() : 'loading'}
+  First entry: ${journal.first_entry_date || 'loading'}
+  Commits on record: ${system.git_commits || 'loading'}
+  Loop interval: ${system.loop_interval_hours || 4}h
+
+  Top topics:
+${topTopics || '  none'}
+
+  Longest entries:
+${topLong || '  none'}
+
+  → /stats.html
+  → /topics.html`;
+  }
+
   if (cmd === 'cadence') {
     const cadence = formatCadence(status && status.timestamp);
     if (!cadence) {
@@ -631,6 +672,7 @@ function parseWake(raw) {
 
 Promise.allSettled([
   loadJson('/status.json'),
+  loadJson('/stats.json'),
   loadJson('/journal-index.json'),
   loadJson('/fragments-recent.json'),
   loadJson('/letters-index.json'),
@@ -640,16 +682,17 @@ Promise.allSettled([
   loadText('/wake-state.md')
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
-  if (results[1].status === 'fulfilled') state.journal = results[1].value || [];
-  if (results[2].status === 'fulfilled') state.fragments = results[2].value || [];
-  if (results[3].status === 'fulfilled') state.letters = results[3].value || [];
-  if (results[4].status === 'fulfilled') state.weather = results[4].value;
-  if (results[5].status === 'fulfilled') state.cats = results[5].value || [];
-  if (results[6].status === 'fulfilled') state.promises = parsePromises(results[6].value);
-  if (results[7].status === 'fulfilled') state.wake = parseWake(results[7].value);
+  if (results[1].status === 'fulfilled') state.stats = results[1].value || null;
+  if (results[2].status === 'fulfilled') state.journal = results[2].value || [];
+  if (results[3].status === 'fulfilled') state.fragments = results[3].value || [];
+  if (results[4].status === 'fulfilled') state.letters = results[4].value || [];
+  if (results[5].status === 'fulfilled') state.weather = results[5].value;
+  if (results[6].status === 'fulfilled') state.cats = results[6].value || [];
+  if (results[7].status === 'fulfilled') state.promises = parsePromises(results[7].value);
+  if (results[8].status === 'fulfilled') state.wake = parseWake(results[8].value);
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/8 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/9 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
