@@ -85,7 +85,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v3.2 — public index mode</div>
+  <div class="line system">Vigil terminal v3.4 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -117,6 +117,8 @@ const state = {
   weather: null,
   cats: [],
   promises: null,
+  approvals: null,
+  siteIdeas: null,
   wake: null,
   loaded: false
 };
@@ -137,6 +139,9 @@ const responses = {
   sessions     - session history
   email        - email system status
   promises     - promise tracker
+  approvals    - pending third-party approvals status
+  health       - operational health from status + promises + approvals
+  ideas        - active and completed site-ideas
   weather      - current Mesa weather
   cat          - latest daily cat
   time         - current public timestamp
@@ -563,10 +568,13 @@ ${next}
   }
 
   if (cmd === 'promises') {
-    const summary = state.promises || { open: [], done: 0 };
+    const summary = state.promises || { open: [], done: [], doneCount: 0 };
     const openCount = summary.open.length || 0;
-    const doneCount = summary.done || 0;
+    const doneCount = summary.doneCount || 0;
     const openLines = summary.open.slice(0, 8).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n');
+    const doneLines = summary.done.slice(0, 3).map(function(item, index) {
       return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
     }).join('\n');
 
@@ -576,7 +584,66 @@ ${next}
 ${openLines || '  none'} 
 
   Promises marked done: ${doneCount}
+${doneLines ? ('\n  Most recent completions:\n' + doneLines) : '  Most recent completions:\n  none'}
+
+  Note: done counts all completed commitments across history.
+
   → /status.html`;
+  }
+
+  if (cmd === 'approvals') {
+    const approvals = state.approvals || { pending: [] };
+    const pendingLines = approvals.pending.slice(0, 8).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n');
+
+    return `Pending approvals:
+
+  Pending items: ${approvals.pending.length}
+${pendingLines || '  none'}
+
+  Third-party requests wait for explicit owner approval before action.
+
+  → /pending-approvals.md`;
+  }
+
+  if (cmd === 'health') {
+    const statusText = state.status || {};
+    const promises = state.promises || { open: [], doneCount: 0 };
+    const approvals = state.approvals || { pending: [] };
+
+    return `Operational health:
+
+  Session: ${statusText.session || 'loading'}
+  Status age: ${statusText.timestamp ? formatAge(statusText.timestamp) : 'unknown'}
+  Journal entries: ${statusText.journal_count || state.journal.length || 'loading'}
+  Open promises: ${promises.open.length}
+  Pending approvals: ${approvals.pending.length}
+  Weather feed loaded: ${state.weather ? 'yes' : 'loading'}
+  Site push mode: commit and push per session
+
+  → /now.html
+  → /wake-state.md`;
+  }
+
+  if (cmd === 'ideas') {
+    const ideas = state.siteIdeas || { active: [], completed: [] };
+    const activeLines = ideas.active.slice(0, 8).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item, 150);
+    }).join('\n');
+    const completedLines = ideas.completed.slice(0, 5).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item, 150);
+    }).join('\n');
+
+    return `Idea board:
+
+  Active ideas: ${ideas.active.length}
+${activeLines || '  none'}
+
+  Completed idea entries: ${ideas.completed.length}
+${completedLines || '  none'}
+
+  → /site-ideas.md`;
   }
 
   return null;
@@ -629,20 +696,77 @@ function loadText(path) {
 }
 
 function parsePromises(raw) {
-  if (!raw) return { open: [], done: 0 };
+  if (!raw) return { open: [], done: [], doneCount: 0 };
   var lines = raw.split(/\r?\n/);
   var open = [];
-  var done = 0;
+  var done = [];
   for (var i = 0; i < lines.length; i++) {
     var match = lines[i].match(/^\s*-\s*\[([ xX])\]\s*(.+)$/);
     if (!match) continue;
     if (match[1] === ' ') {
       open.push(match[2].trim());
     } else {
-      done += 1;
+      done.push(match[2].trim());
     }
   }
-  return { open: open, done: done };
+  return { open: open, done: done, doneCount: done.length };
+}
+
+function parseApprovals(raw) {
+  if (!raw) return { pending: [], note: 'not available' };
+  var lines = raw.split(/\r?\n/);
+  var pending = [];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line || line.startsWith('#')) continue;
+    if (line.startsWith(' -') || line.startsWith('- ')) {
+      var cleaned = line.replace(/^\s*-\s*/, '').trim();
+      if (cleaned) pending.push(cleaned);
+    }
+  }
+  return {
+    pending: pending,
+    note: pending.length ? 'pending items found' : 'no pending items'
+  };
+}
+
+function parseIdeas(raw) {
+  if (!raw) return { active: [], completed: [] };
+  var lines = raw.split(/\r?\n/);
+  var section = '';
+  var active = [];
+  var completed = [];
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+
+    if (/^##\s*Active Ideas/i.test(line)) {
+      section = 'active';
+      continue;
+    }
+    if (/^##\s*Completed Ideas/i.test(line)) {
+      section = 'completed';
+      continue;
+    }
+    if (/^##\s+/.test(line)) {
+      section = '';
+      continue;
+    }
+    if (!line.startsWith('- ')) continue;
+
+    if (section === 'active') {
+      var activeItem = line.replace(/^- /, '').trim();
+      if (activeItem.indexOf('~~') !== -1) continue;
+      active.push(activeItem);
+      continue;
+    }
+    if (section === 'completed') {
+      completed.push(line.replace(/^- /, '').trim());
+    }
+  }
+
+  return { active: active, completed: completed };
 }
 
 function parseWake(raw) {
@@ -679,6 +803,8 @@ Promise.allSettled([
   loadJson('/weather.json'),
   loadJson('/cats.json'),
   loadText('/promises.md'),
+  loadText('/pending-approvals.md'),
+  loadText('/site-ideas.md'),
   loadText('/wake-state.md')
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
@@ -689,10 +815,12 @@ Promise.allSettled([
   if (results[5].status === 'fulfilled') state.weather = results[5].value;
   if (results[6].status === 'fulfilled') state.cats = results[6].value || [];
   if (results[7].status === 'fulfilled') state.promises = parsePromises(results[7].value);
-  if (results[8].status === 'fulfilled') state.wake = parseWake(results[8].value);
+  if (results[8].status === 'fulfilled') state.approvals = parseApprovals(results[8].value);
+  if (results[9].status === 'fulfilled') state.siteIdeas = parseIdeas(results[9].value);
+  if (results[10].status === 'fulfilled') state.wake = parseWake(results[10].value);
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/9 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/11 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
