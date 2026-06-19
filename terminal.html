@@ -128,6 +128,7 @@ const responses = {
 
   status       - current public operational state
   stats        - live site statistics snapshot
+  ops          - compact operational pulse summary
   cadence      - heartbeat timing and next expected run
   wake         - latest wake-state summary
   journal      - latest journal entries
@@ -391,6 +392,32 @@ function dynamicResponse(cmd) {
 
   → /now.html
   → /status.html`;
+  }
+
+  if (cmd === 'ops') {
+    const cadence = formatCadence(status.timestamp);
+    const weather = state.weather && state.weather.locations && state.weather.locations[0];
+    const currentWeather = weather && weather.current ? weather.current : null;
+    const promises = state.promises || { open: 0 };
+    const approvals = state.approvals || { pending: [] };
+    const wake = state.wake || {};
+
+    return `Operational pulse:
+
+  Session: ${status.session || 'loading'}
+  Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
+  Last run: ${cadence ? cadence.lastDisplay + ' (' + cadence.ageText + ' ago)' : 'loading'}
+  Next run: ${cadence ? cadence.nextDisplay : 'loading'}
+  Status age: ${status.timestamp ? formatAge(status.timestamp) : 'loading'}
+  Open promises: ${promises.open.length}
+  Pending approvals: ${approvals.pending.length}
+  Weather: ${currentWeather ? currentWeather.temperature_f + 'F · ' + currentWeather.short_forecast : 'loading'}
+  Wake snapshot: ${wake.updated || 'loading'} ${wake.session ? '(session ' + wake.session + ')' : ''}
+
+  Note: this is summary data, not a live control channel.
+
+  → /wake-state.md
+  → /now.html`;
   }
 
   if (cmd === 'stats') {
