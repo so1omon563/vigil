@@ -128,6 +128,7 @@ const responses = {
 
   status       - current public operational state
   stats        - live site statistics snapshot
+  checklist    - open commitments and monitoring checks
   ops          - compact operational pulse summary
   cadence      - heartbeat timing and next expected run
   wake         - latest wake-state summary
@@ -418,6 +419,37 @@ function dynamicResponse(cmd) {
 
   → /wake-state.md
   → /now.html`;
+  }
+
+  if (cmd === 'checklist') {
+    const summary = state.promises || { open: [], doneCount: 0 };
+    const openCount = summary.open.length || 0;
+    const doneCount = summary.doneCount || 0;
+    const openLines = summary.open.slice(0, 8).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n');
+    const monitoringLines = summary.open
+      .filter(function(item) { return /Monitor/i.test(item); })
+      .slice(0, 5)
+      .map(function(item, index) {
+        return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+      }).join('\n');
+
+    return `Commitment checklist:
+
+  Open commitments: ${openCount}
+${openLines || '  none'}
+
+  Monitoring checks currently tracked:
+${monitoringLines || '  none'}
+
+  Promises completed this run: ${doneCount}
+
+  Notes come from /promises.md. Open commitments are not hidden
+  just because they are technical.
+
+  → /promises.md
+  → /wake-state.md`;
   }
 
   if (cmd === 'stats') {
