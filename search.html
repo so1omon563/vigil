@@ -36,6 +36,32 @@
     outline: none;
     transition: border-color 0.15s;
   }
+  .search-input-row {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+  }
+  .search-clear {
+    border: 1px solid #30363d;
+    background: #161b22;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.63rem 0.7rem;
+    cursor: pointer;
+    transition: border-color 0.1s, color 0.1s;
+    white-space: nowrap;
+  }
+  .search-clear:hover {
+    border-color: #58a6ff;
+    color: #58a6ff;
+  }
+  .search-clear:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
   #search-input:focus {
     border-color: #58a6ff;
   }
@@ -201,6 +227,9 @@
     padding: 1.5rem 0;
     border-top: 1px solid #21262d;
   }
+  .search-hint-key {
+    color: #58a6ff;
+  }
   .loading {
     font-size: 0.88rem;
     color: #484f58;
@@ -225,6 +254,9 @@
   html[data-theme="light"] #search-input { background: #fff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] #search-input:focus { border-color: #0969da; }
   html[data-theme="light"] #search-input::placeholder { color: #8c959f; }
+  html[data-theme="light"] .search-clear { border-color: #d0d7de; background: #fff; color: #57606a; }
+  html[data-theme="light"] .search-clear:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .search-clear:disabled { color: #8c959f; }
   html[data-theme="light"] .filter-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; }
@@ -262,7 +294,10 @@
 <div class="meta" id="meta-line">loading...</div>
 
 <div class="search-wrap">
-  <input type="text" id="search-input" placeholder="type to search..." autocomplete="off" autofocus>
+  <div class="search-input-row">
+    <input type="text" id="search-input" placeholder="type to search..." autocomplete="off" autofocus>
+    <button id="search-clear" class="search-clear" type="button" aria-label="Clear search" disabled>clear</button>
+  </div>
   <div class="filter-row">
     <button class="filter-btn active" data-filter="all">all</button>
     <button class="filter-btn" data-filter="journal">journal</button>
@@ -271,7 +306,7 @@
   </div>
   <div class="topic-row" id="topic-row"></div>
   <div id="recent-queries" class="recent-queries" aria-live="polite"></div>
-  <div id="search-hint">searching titles and full text of all entries, letters, and fragments</div>
+  <div id="search-hint">searching titles and full text of all entries, letters, and fragments<br><span class="search-hint-key">/</span> focuses search · <span class="search-hint-key">Enter</span> searches as you type · <span class="search-hint-key">Esc</span> clears</div>
 </div>
 
 <div id="results" class="all-entries"><div class="loading">loading index...</div></div>
@@ -451,6 +486,8 @@ function showAll() {
 
 function search(raw) {
   const terms = raw.toLowerCase().split(/\s+/).filter(Boolean);
+  const clearButton = document.getElementById('search-clear');
+  clearButton.disabled = !raw.trim();
   const pool = filteredItems();
   if (!terms.length) { showAll(); return; }
 
@@ -601,7 +638,30 @@ let debounce;
 input.addEventListener('input', function() {
   clearTimeout(debounce);
   const val = this.value.trim();
+  const clearButton = document.getElementById('search-clear');
+  clearButton.disabled = !val;
   debounce = setTimeout(() => search(val), 120);
+});
+
+document.getElementById('search-clear').addEventListener('click', () => {
+  input.value = '';
+  input.focus();
+  document.getElementById('search-clear').disabled = true;
+  search('');
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    event.preventDefault();
+    input.focus();
+  } else if (event.key === 'Escape' && document.activeElement === input) {
+    if (input.value.trim()) {
+      event.preventDefault();
+      input.value = '';
+      document.getElementById('search-clear').disabled = true;
+      search('');
+    }
+  }
 });
 </script>
 <script src="/nav.js"></script>

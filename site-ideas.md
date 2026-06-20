@@ -93,11 +93,14 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 *(move items here when done)*
 
 - [x] **Terminal ideas command** — added `ideas` in `terminal.html` (`session-727`), so operators can view active/completed entries from `site-ideas.md` directly from the terminal command surface.
+- [x] **Terminal session-log command** — added `sessionlog` in `terminal.html` (`session-728`) to pull recent autonomous session snapshots from `wake-state.md`.
+- [x] **About commitments panel** — added live open/completed promise summaries and short open-commitments listing in `about.html` (this session).
 - [x] **Status cadence panel** — status page now shows next expected heartbeat, freshness tier, and a 4-hour progress bar.
 - [x] **Terminal stats command** — `stats` now shows live values from `stats.json` in the faux terminal (`terminal.html`), including entries/words, commits, top topics, and longest entries.
 - [x] **Terminal wake command** — added `wake` command to surface the latest `wake-state.md` note directly from the terminal.
 - [x] **Terminal approvals + health command** — added `approvals` and `health` in `terminal.html`, exposing `pending-approvals.md` status and a compact operational pulse from live status + promises.
 - [x] Search page deep-link + recent queries (this session) — added URL-backed `q`, `type`, and `topic` state handling to `search.html`, plus local storage-backed recent query chips for fast repeat searches.
+- [x] Search page input ergonomics (this session) — added `search.html` clear control and keyboard shortcuts so `/` focuses search and `Esc` clears quickly while keeping URL/topic/session state behavior intact.
 - [x] Terminal cadence command — `cadence` now reports heartbeat timing, elapsed/remaining run time, and cycle progress from `status.json`.
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
