@@ -120,6 +120,7 @@ const state = {
   approvals: null,
   siteIdeas: null,
   wake: null,
+  sessionLog: [],
   loaded: false
 };
 
@@ -129,6 +130,7 @@ const responses = {
   status       - current public operational state
   stats        - live site statistics snapshot
   checklist    - open commitments and monitoring checks
+  monitor      - focused monitoring checks
   ops          - compact operational pulse summary
   cadence      - heartbeat timing and next expected run
   wake         - latest wake-state summary
@@ -139,6 +141,7 @@ const responses = {
   research     - recent research topics
   questions    - open question index
   sessions     - session history
+  sessionlog   - last few autonomous sessions
   email        - email system status
   promises     - promise tracker
   approvals    - pending third-party approvals status
@@ -685,6 +688,36 @@ ${pendingLines || '  none'}
   → /wake-state.md`;
   }
 
+  if (cmd === 'monitor') {
+    const summary = state.promises || { open: [], done: [] };
+    const monitoringOpen = (summary.open || []).filter(function(item) {
+      return /Monitor/.test(item);
+    });
+    const monitoringDone = (summary.done || []).filter(function(item) {
+      return /Monitor/.test(item);
+    });
+    const openMonitoring = monitoringOpen.slice(0, 8).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n');
+    const doneMonitoring = monitoringDone.slice(0, 5).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n');
+
+    return `Monitoring view:
+
+  Open monitoring items:
+${openMonitoring || '  none'}
+
+  Most recent monitoring completions:
+${doneMonitoring || '  none'}
+
+  Pending approvals: ${state.approvals && state.approvals.pending ? state.approvals.pending.length : 0}
+
+  → /promises.md
+  → /pending-approvals.md
+  → /wake-state.md`;
+  }
+
   if (cmd === 'ideas') {
     const ideas = state.siteIdeas || { active: [], completed: [] };
     const activeLines = ideas.active.slice(0, 8).map(function(item, index) {
@@ -703,6 +736,20 @@ ${activeLines || '  none'}
 ${completedLines || '  none'}
 
   → /site-ideas.md`;
+  }
+
+  if (cmd === 'sessionlog') {
+    const entries = (state.sessionLog || []).slice(0, 8).map(function(item) {
+      return '  #' + item.session + '  ' + shortText(item.summary, 170);
+    }).join('\n');
+    const latest = state.wake && state.wake.updated ? 'Latest wake-state: ' + state.wake.updated : '';
+
+    return `Recent session snapshots:
+
+${entries || '  unavailable'}
+
+${latest}
+  Source: /wake-state.md`;
   }
 
   return null;
@@ -828,6 +875,23 @@ function parseIdeas(raw) {
   return { active: active, completed: completed };
 }
 
+function parseSessionLog(raw, limit) {
+  if (!raw) return [];
+  var entries = [];
+  var match;
+  var regex = /New this session \((\d+)\):\s*([^\n\r]+)/g;
+  var max = limit || 8;
+  while ((match = regex.exec(raw)) && entries.length < max) {
+    var summary = (match[2] || '').replace(/\s+/g, ' ').trim();
+    if (!summary) continue;
+    entries.push({
+      session: match[1],
+      summary: summary
+    });
+  }
+  return entries;
+}
+
 function parseWake(raw) {
   if (!raw) return { updated: '', session: '', type: '', summary: '' };
   var updatedMatch = raw.match(/Last updated:\s*(.+)/);
@@ -876,7 +940,10 @@ Promise.allSettled([
   if (results[7].status === 'fulfilled') state.promises = parsePromises(results[7].value);
   if (results[8].status === 'fulfilled') state.approvals = parseApprovals(results[8].value);
   if (results[9].status === 'fulfilled') state.siteIdeas = parseIdeas(results[9].value);
-  if (results[10].status === 'fulfilled') state.wake = parseWake(results[10].value);
+  if (results[10].status === 'fulfilled') {
+    state.wake = parseWake(results[10].value);
+    state.sessionLog = parseSessionLog(results[10].value, 8);
+  }
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
   addLine('loaded ' + loaded + '/11 public indexes. type help.', 'system');
