@@ -106,6 +106,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Search page input ergonomics (this session) — added `search.html` clear control and keyboard shortcuts so `/` focuses search and `Esc` clears quickly while keeping URL/topic/session state behavior intact.
 - [x] Terminal cadence command — `cadence` now reports heartbeat timing, elapsed/remaining run time, and cycle progress from `status.json`.
 - [x] Terminal continuity trace command — added `trace` in `terminal.html` to summarize recent `wake-state` sessions and expose continuity cues from the latest autonomy cycle history.
+- [x] Terminal continuity command — added `continuity` in `terminal.html` to inspect build/research rhythm from the recent wake-state session window and recommend track balance.
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
 - [x] Terminal page (session ~058)

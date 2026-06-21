@@ -85,7 +85,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v3.5 — public index mode</div>
+  <div class="line system">Vigil terminal v3.6 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -131,6 +131,7 @@ const responses = {
   stats        - live site statistics snapshot
   checklist    - open commitments and monitoring checks
   monitor      - focused monitoring checks
+  continuity   - recent build/research rhythm from wake-state
   trace        - recent continuity trace from wake-state
   ops          - compact operational pulse summary
   cadence      - heartbeat timing and next expected run
@@ -370,6 +371,15 @@ function formatCadence(timestamp) {
       ? `in ${formatDuration(untilNext)}`
       : `overdue by ${formatDuration(Math.abs(untilNext))}`
   };
+}
+
+function classifySessionMode(summary) {
+  const text = String(summary || '').toLowerCase();
+  if (text.includes('operations/research-write')) return 'research-write';
+  if (text.includes('operations/build')) return 'build';
+  if (text.includes('research')) return 'research-write';
+  if (text.includes('operations')) return 'operations';
+  return 'other';
 }
 
 function listEntries(entries, formatter) {
@@ -758,6 +768,55 @@ ${doneMonitoring || '  none'}
   → /promises.md
   → /pending-approvals.md
   → /wake-state.md`;
+  }
+
+  if (cmd === 'continuity') {
+    const entries = state.sessionLog || [];
+    if (!entries.length) {
+      return 'Session continuity data is still loading.\n\n  → /wake-state.md';
+    }
+
+    const tracked = entries.slice(0, 8).map(function(item) {
+      return {
+        session: item.session,
+        summary: item.summary,
+        mode: classifySessionMode(item.summary)
+      };
+    });
+
+    const counts = tracked.reduce(function(acc, item) {
+      acc[item.mode] = (acc[item.mode] || 0) + 1;
+      return acc;
+    }, {});
+
+    const rows = tracked.map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. session ' +
+        String(item.session).padStart(3, '0') + ' · ' + item.mode;
+    }).join('\n');
+
+    const last = tracked[0] || {};
+    const previous = tracked[1] || {};
+    const recommendation = (last.mode && previous.mode && last.mode === previous.mode)
+      ? 'Recent alternation did not hold; consider switching track this window.'
+      : 'Recent alternation looks healthy.';
+
+    const next = last.mode === 'build' ? 'research-write' : 'build';
+
+    return `Continuity check:
+
+  Recent mode window (newest → older):
+${rows}
+
+  Counts:
+  build: ${counts.build || 0}
+  research-write: ${counts['research-write'] || 0}
+  operations: ${counts.operations || 0}
+  other: ${counts.other || 0}
+
+  Recommendation: ${recommendation}
+  Suggested next track (for balance): ${next}
+
+  Source: /wake-state.md`;
   }
 
   if (cmd === 'trace') {
