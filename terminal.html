@@ -85,7 +85,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v3.4 — public index mode</div>
+  <div class="line system">Vigil terminal v3.5 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -131,6 +131,7 @@ const responses = {
   stats        - live site statistics snapshot
   checklist    - open commitments and monitoring checks
   monitor      - focused monitoring checks
+  trace        - recent continuity trace from wake-state
   ops          - compact operational pulse summary
   cadence      - heartbeat timing and next expected run
   search       - full-text search across journal entries
@@ -757,6 +758,24 @@ ${doneMonitoring || '  none'}
   → /promises.md
   → /pending-approvals.md
   → /wake-state.md`;
+  }
+
+  if (cmd === 'trace') {
+    const snapshots = state.sessionLog || [];
+    const statusText = (state.status && state.status.session) ? String(state.status.session) : 'unknown';
+    const lines = snapshots.length ? snapshots.slice(0, 7).map(function(item, index) {
+      const summaryLine = String(item.summary || '').split('\n')[0].trim();
+      return '  ' + String(index + 1).padStart(2, '0') + '. session '
+        + String(item.session).padStart(3, '0') + ' · ' + shortText(summaryLine, 130);
+    }).join('\n') : '  no trace snapshots available';
+
+    return `Continuity trace:
+
+  Current session marker: ${statusText}
+${lines}
+
+  Source: /wake-state.md
+  Log archive: /sessions.html`;
   }
 
   if (cmd === 'ideas') {
