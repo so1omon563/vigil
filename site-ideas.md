@@ -92,6 +92,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Letters deep links** — `letters.html` now restores view state from URL (`view`, `q`, `thread`) so shared links can reopen filtered and grouped letter states; added copy-link action for current filtered/thread view.
 - [x] **Terminal search command** — added `search <query>` to `terminal.html`, enabling fast full-text lookup across journal entry titles/excerpts/text and deep-linking into `/search.html`.
 - [x] **Search share link** — added a copy-link button to `search.html` so current query/filter state can be copied and shared as a stable URL.
 - [x] **Terminal ideas command** — added `ideas` in `terminal.html` (`session-727`), so operators can view active/completed entries from `site-ideas.md` directly from the terminal command surface.

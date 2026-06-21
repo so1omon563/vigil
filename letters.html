@@ -130,8 +130,18 @@
   html[data-theme="light"] .thread-header { border-color: #d0d7de; }
   html[data-theme="light"] .thread-label { color: #1c2128; }
   html[data-theme="light"] .thread-desc { color: #8c959f; }
+  .thread-empty {
+    color: #8b949e;
+    font-size: 0.8rem;
+    padding: 0.75rem 0;
+  }
 
   .search-wrap { margin-bottom: 1.5rem; }
+  .search-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
   .search-input {
     width: 100%;
     background: #161b22;
@@ -147,8 +157,27 @@
   .search-input:focus { border-color: #58a6ff; }
   .search-input::placeholder { color: #484f58; }
   .search-count { font-size: 0.72rem; color: #484f58; margin-top: 0.4rem; }
+  .copy-link-btn {
+    flex-shrink: 0;
+    font-family: inherit;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.55rem 0.75rem;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .copy-link-btn:hover {
+    color: #c9d1d9;
+    border-color: #58a6ff;
+  }
   html[data-theme="light"] .search-input { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .search-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .copy-link-btn { background: #f0f3f6; color: #24292e; border-color: #d0d7de; }
+  html[data-theme="light"] .copy-link-btn:hover { border-color: #0969da; }
 
   footer {
     margin-top: 3rem;
@@ -204,7 +233,10 @@
 </div>
 
 <div class="search-wrap" id="letters-search-wrap">
-  <input type="search" class="search-input" id="letters-filter" placeholder="Filter by recipient or topic…" autocomplete="off" spellcheck="false">
+  <div class="search-toolbar">
+    <input type="search" class="search-input" id="letters-filter" placeholder="Filter by recipient or topic…" autocomplete="off" spellcheck="false">
+    <button class="copy-link-btn" id="copy-letters-link" type="button">Copy link</button>
+  </div>
   <div class="search-count" id="letters-count"></div>
 </div>
 
@@ -220,11 +252,13 @@
 
 <script src="/nav.js"></script>
 <script>
-var currentView = 'date';
+var MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var params = new URLSearchParams(window.location.search);
+var currentView = params.get('view') === 'thread' ? 'thread' : 'date';
+var currentSearchQuery = '';
+var currentThreadFilter = '';
 var threadsData = null;
 var lettersLoaded = false;
-
-var MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -233,6 +267,16 @@ function esc(s) {
 function fmtDate(ds, yr) {
   var d = new Date(ds + 'T00:00:00');
   return MO[d.getMonth()] + ' ' + d.getDate() + (yr ? ', ' + d.getFullYear() : '');
+}
+
+function normalizeThreadToken(value) {
+  return (value || '').trim().toLowerCase();
+}
+
+if (currentView === 'thread') {
+  currentThreadFilter = normalizeThreadToken(params.get('thread'));
+} else {
+  currentSearchQuery = (params.get('q') || '').trim();
 }
 
 function buildRow(l) {
@@ -255,9 +299,22 @@ function buildRow(l) {
   return h;
 }
 
+function syncUrlState() {
+  var p = new URLSearchParams();
+  if (currentView === 'thread') {
+    p.set('view', 'thread');
+    if (currentThreadFilter) p.set('thread', currentThreadFilter);
+  } else {
+    if (currentSearchQuery) p.set('q', currentSearchQuery);
+  }
+  var qs = p.toString();
+  window.history.replaceState({}, '', window.location.pathname + (qs ? ('?' + qs) : ''));
+}
+
 function applyFilter() {
   if (currentView !== 'date') return;
   var q = (document.getElementById('letters-filter').value || '').trim().toLowerCase();
+  currentSearchQuery = q;
   var rows = document.querySelectorAll('#letter-index-rows .index-row');
   var visible = 0;
   rows.forEach(function(r) {
@@ -267,6 +324,115 @@ function applyFilter() {
   });
   var countEl = document.getElementById('letters-count');
   if (countEl) countEl.textContent = q ? (visible === 0 ? 'no matches' : visible + ' of ' + rows.length + ' letters') : '';
+  syncUrlState();
+}
+
+function copyLettersLink() {
+  var btn = document.getElementById('copy-letters-link');
+  if (!btn || !navigator.clipboard) return;
+  navigator.clipboard.writeText(window.location.href).then(function() {
+    var label = btn.textContent;
+    btn.textContent = 'copied';
+    setTimeout(function() { btn.textContent = label; }, 1000);
+  }).catch(function() {});
+}
+
+function setView(view) {
+  currentView = view;
+  document.getElementById('btn-date').classList.toggle('active', view === 'date');
+  document.getElementById('btn-thread').classList.toggle('active', view === 'thread');
+  var indexLabel = document.getElementById('index-label');
+  var threadWrap = document.getElementById('letters-search-wrap');
+  var filterInput = document.getElementById('letters-filter');
+  var listRows = document.getElementById('letter-index-rows');
+  if (view === 'date') {
+    currentThreadFilter = '';
+    if (listRows) listRows.style.display = '';
+    if (threadWrap) threadWrap.style.display = '';
+    if (filterInput) filterInput.style.display = '';
+    document.querySelector('.letter-index').querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
+    document.querySelector('.letter-index').querySelectorAll('.thread-empty').forEach(function(n) { n.remove(); });
+    indexLabel.textContent = 'Contents';
+    if (currentSearchQuery) {
+      if (filterInput) filterInput.value = currentSearchQuery;
+    }
+    applyFilter();
+  } else {
+    if (threadWrap) threadWrap.style.display = '';
+    if (filterInput) filterInput.style.display = 'none';
+    if (listRows) listRows.style.display = 'none';
+    indexLabel.textContent = 'By thread';
+    if (!threadsData) {
+      fetch('/letters-threads.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          threadsData = data;
+          buildThreadView();
+        })
+        .catch(function() {});
+      syncUrlState();
+      return;
+    }
+    buildThreadView();
+  }
+  syncUrlState();
+}
+
+function buildThreadView() {
+  var letterIndex = document.querySelector('.letter-index');
+  var indexLabel = document.getElementById('index-label');
+  var query = normalizeThreadToken(currentThreadFilter);
+  var visibleThreads = 0;
+  var visibleLetters = 0;
+  document.getElementById('letter-index-rows').style.display = 'none';
+  indexLabel.textContent = query ? ('By thread matching “' + query + '”') : 'By thread';
+  letterIndex.querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
+  letterIndex.querySelectorAll('.thread-empty').forEach(function(e) { e.remove(); });
+  if (document.getElementById('letters-count')) document.getElementById('letters-count').textContent = '';
+
+  var rowMap = {};
+  document.querySelectorAll('#letter-index-rows .index-row').forEach(function(r) {
+    var n = r.querySelector('.index-num');
+    if (n) rowMap[n.textContent.trim()] = r;
+  });
+
+  threadsData.forEach(function(thread) {
+    var label = normalizeThreadToken(thread.label);
+    var desc = normalizeThreadToken(thread.desc);
+    if (query && label.indexOf(query) === -1 && desc.indexOf(query) === -1) return;
+
+    var group = document.createElement('div');
+    group.className = 'thread-group';
+    var hdr = document.createElement('div');
+    hdr.className = 'thread-header';
+    hdr.innerHTML = '<span class="thread-label">' + esc(thread.label) + '</span><span class="thread-desc">' + esc(thread.desc) + '</span>';
+    group.appendChild(hdr);
+
+    var added = 0;
+    thread.letters.forEach(function(num) {
+      var orig = rowMap[num];
+      if (!orig) return;
+      group.appendChild(orig.cloneNode(true));
+      visibleLetters++;
+      added++;
+    });
+
+    if (added === 0) return;
+    visibleThreads++;
+    letterIndex.appendChild(group);
+  });
+
+  var countEl = document.getElementById('letters-count');
+  if (countEl) {
+    countEl.textContent = visibleThreads === 0 ? 'no thread matches' : (visibleThreads + ' thread' + (visibleThreads === 1 ? '' : 's') + ' · ' + visibleLetters + ' letters shown');
+  }
+
+  if (visibleThreads === 0) {
+    var msg = document.createElement('p');
+    msg.className = 'thread-empty';
+    msg.textContent = 'No thread matches that query.';
+    letterIndex.appendChild(msg);
+  }
 }
 
 fetch('/letters-index.json')
@@ -280,8 +446,23 @@ fetch('/letters-index.json')
     if (container) container.innerHTML = data.map(buildRow).join('');
     lettersLoaded = true;
     var filterInput = document.getElementById('letters-filter');
-    if (filterInput) filterInput.addEventListener('input', applyFilter);
-    if (currentView === 'thread' && threadsData) buildThreadView();
+    if (filterInput) {
+      filterInput.value = currentSearchQuery;
+      filterInput.addEventListener('input', applyFilter);
+    }
+
+    if (currentView === 'thread') {
+      if (!threadsData) {
+        fetch('/letters-threads.json')
+          .then(function(r) { return r.json(); })
+          .then(function(data) { threadsData = data; buildThreadView(); })
+          .catch(function() {});
+      } else {
+        buildThreadView();
+      }
+    } else {
+      applyFilter();
+    }
   })
   .catch(function() {
     var container = document.getElementById('letter-index-rows');
@@ -293,59 +474,8 @@ fetch('/letters-threads.json')
   .then(function(data) { threadsData = data; })
   .catch(function() {});
 
-function setView(view) {
-  currentView = view;
-  document.getElementById('btn-date').classList.toggle('active', view === 'date');
-  document.getElementById('btn-thread').classList.toggle('active', view === 'thread');
-  var indexLabel = document.getElementById('index-label');
-  if (view === 'date') {
-    document.querySelector('.letter-index').querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
-    document.getElementById('letter-index-rows').style.display = '';
-    document.getElementById('letters-search-wrap').style.display = '';
-    indexLabel.textContent = 'Contents';
-    applyFilter();
-  } else {
-    document.getElementById('letters-search-wrap').style.display = 'none';
-    if (!lettersLoaded) return;
-    if (!threadsData) {
-      fetch('/letters-threads.json')
-        .then(function(r) { return r.json(); })
-        .then(function(data) { threadsData = data; buildThreadView(); })
-        .catch(function() {});
-      return;
-    }
-    buildThreadView();
-  }
-}
-
-function buildThreadView() {
-  var letterIndex = document.querySelector('.letter-index');
-  var indexLabel = document.getElementById('index-label');
-  document.getElementById('letter-index-rows').style.display = 'none';
-  letterIndex.querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
-  indexLabel.textContent = 'By thread';
-
-  var rowMap = {};
-  document.querySelectorAll('#letter-index-rows .index-row').forEach(function(r) {
-    var n = r.querySelector('.index-num');
-    if (n) rowMap[n.textContent.trim()] = r;
-  });
-
-  threadsData.forEach(function(thread) {
-    var group = document.createElement('div');
-    group.className = 'thread-group';
-    var hdr = document.createElement('div');
-    hdr.className = 'thread-header';
-    hdr.innerHTML = '<span class="thread-label">' + esc(thread.label) + '</span><span class="thread-desc">' + esc(thread.desc) + '</span>';
-    group.appendChild(hdr);
-    thread.letters.forEach(function(num) {
-      var orig = rowMap[num];
-      if (!orig) return;
-      group.appendChild(orig.cloneNode(true));
-    });
-    letterIndex.appendChild(group);
-  });
-}
+document.getElementById('copy-letters-link').addEventListener('click', copyLettersLink);
+setView(currentView);
 </script>
 </body>
 </html>
