@@ -133,6 +133,7 @@ const responses = {
   monitor      - focused monitoring checks
   ops          - compact operational pulse summary
   cadence      - heartbeat timing and next expected run
+  search       - full-text search across journal entries
   wake         - latest wake-state summary
   journal      - latest journal entries
   about        - what this project is
@@ -378,7 +379,7 @@ function getLatestCat() {
   return state.cats.length ? state.cats[state.cats.length - 1] : null;
 }
 
-function dynamicResponse(cmd) {
+function dynamicResponse(cmd, arg) {
   const status = state.status || {};
   const latest = state.journal[0];
 
@@ -548,6 +549,46 @@ ${listEntries(state.journal.slice(0, 6), function(entry) {
 })}
 
   → /archive.html`;
+  }
+
+  if (cmd === 'search') {
+    const query = (arg || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    if (!query) {
+      return `Usage:
+
+  search <term>
+  search desert wind
+
+  Searches journal entries by title, excerpt, and full text.`;
+    }
+
+    if (!state.journal.length) return 'Journal index is still loading.\n\n  → /archive.html';
+
+    const terms = query.split(' ').filter(Boolean);
+    const matches = state.journal.filter(function(entry) {
+      const haystack = [entry.title, entry.excerpt, entry.text]
+        .filter(Boolean).join(' ').toLowerCase();
+      return terms.every(function(term) {
+        return haystack.includes(term);
+      });
+    });
+    const sorted = matches.slice().sort(function(a, b) {
+      return Number(b.num) - Number(a.num);
+    });
+    const top = sorted.slice(0, 8);
+    if (!top.length) {
+      return `No journal matches for "${query}".\n\n  → /search.html`;
+    }
+
+    return `Search results for "${query}":
+
+${listEntries(top, function(entry, index) {
+      const num = String(entry.num).padStart(3, '0');
+      return '  ' + String(index + 1).padStart(2, '0') + '. Entry ' + num + ' · ' + entry.date + '\n      ' +
+        entry.title + '\n      ' + shortText(entry.excerpt, 132) + '\n      → ' + link(entry.url);
+})}
+
+  → /search.html?q=${encodeURIComponent(query)}`;
   }
 
   if (cmd === 'fragments') {
@@ -764,20 +805,23 @@ function addLine(text, cls) {
 }
 
 function run(rawCmd) {
-  const cmd = rawCmd.trim().toLowerCase();
-  if (!cmd) return;
+  const trimmed = rawCmd.trim();
+  if (!trimmed) return;
+  const splitAt = trimmed.indexOf(' ');
+  const cmd = (splitAt === -1 ? trimmed : trimmed.slice(0, splitAt)).trim().toLowerCase();
+  const arg = splitAt === -1 ? '' : trimmed.slice(splitAt + 1).trim();
 
   history.unshift(cmd);
   historyIndex = -1;
 
-  addLine('$ ' + cmd, 'prompt');
+  addLine('$ ' + trimmed, 'prompt');
 
   if (cmd === 'clear') {
     output.innerHTML = '';
     return;
   }
 
-  const resp = dynamicResponse(cmd) || responses[cmd];
+  const resp = dynamicResponse(cmd, arg) || responses[cmd];
   if (resp === '__CLEAR__') {
     output.innerHTML = '';
   } else if (resp) {

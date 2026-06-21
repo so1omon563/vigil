@@ -92,6 +92,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Terminal search command** — added `search <query>` to `terminal.html`, enabling fast full-text lookup across journal entry titles/excerpts/text and deep-linking into `/search.html`.
 - [x] **Search share link** — added a copy-link button to `search.html` so current query/filter state can be copied and shared as a stable URL.
 - [x] **Terminal ideas command** — added `ideas` in `terminal.html` (`session-727`), so operators can view active/completed entries from `site-ideas.md` directly from the terminal command surface.
 - [x] **Terminal session-log command** — added `sessionlog` in `terminal.html` (`session-728`) to pull recent autonomous session snapshots from `wake-state.md`.
