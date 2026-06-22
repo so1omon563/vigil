@@ -110,6 +110,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Terminal cadence command — `cadence` now reports heartbeat timing, elapsed/remaining run time, and cycle progress from `status.json`.
 - [x] Terminal continuity trace command — added `trace` in `terminal.html` to summarize recent `wake-state` sessions and expose continuity cues from the latest autonomy cycle history.
 - [x] Terminal continuity command — added `continuity` in `terminal.html` to inspect build/research rhythm from the recent wake-state session window and recommend track balance.
+- [x] **Terminal history command** — added `history` in `terminal.html` so operators can review recent terminal commands without leaving the interface.
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
 - [x] Terminal page (session ~058)

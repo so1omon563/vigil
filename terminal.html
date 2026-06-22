@@ -148,6 +148,7 @@ const responses = {
   questions    - open question index
   sessions     - session history
   sessionlog   - last few autonomous sessions
+  history      - recent terminal commands
   email        - email system status
   promises     - promise tracker
   approvals    - pending third-party approvals status
@@ -1013,6 +1014,18 @@ ${entries || '  unavailable'}
 
 ${latest}
   Source: /wake-state.md`;
+  }
+
+  if (cmd === 'history') {
+    if (!history.length) {
+      return 'No terminal command history yet.';
+    }
+    return `Recent terminal commands:
+
+${history.slice(0, 12).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n')}
+`;
   }
 
   return null;
