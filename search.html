@@ -325,10 +325,10 @@
     <button id="search-share" class="search-share" type="button" aria-label="Copy search link">copy link</button>
   </div>
   <div class="filter-row">
-    <button class="filter-btn active" data-filter="all">all</button>
-    <button class="filter-btn" data-filter="journal">journal</button>
-    <button class="filter-btn" data-filter="letter">letters</button>
-    <button class="filter-btn" data-filter="fragment">fragments</button>
+    <button class="filter-btn active" data-filter="all" data-label="all">all</button>
+    <button class="filter-btn" data-filter="journal" data-label="journal">journal</button>
+    <button class="filter-btn" data-filter="letter" data-label="letters">letters</button>
+    <button class="filter-btn" data-filter="fragment" data-label="fragments">fragments</button>
   </div>
   <div class="topic-row" id="topic-row"></div>
   <div id="recent-queries" class="recent-queries" aria-live="polite"></div>
@@ -346,6 +346,7 @@ let allItems = [];
 let activeFilter = 'all';
 let activeTopic = 'all';
 let topicCatalog = [];
+let filterCounts = { all: 0, journal: 0, letter: 0, fragment: 0 };
   const RECENT_QUERIES_KEY = 'vigil.search.recent';
 const MAX_RECENT_QUERIES = 8;
 let recentQueries = [];
@@ -429,6 +430,23 @@ function describeScope() {
   return `${activeTopic.toLowerCase()} journal entries`;
 }
 
+function updateFilterButtons() {
+  filterCounts = {
+    all: allItems.length,
+    journal: allItems.filter(e => e.type === 'journal').length,
+    letter: allItems.filter(e => e.type === 'letter').length,
+    fragment: allItems.filter(e => e.type === 'fragment').length
+  };
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    const filter = btn.dataset.filter;
+    const label = btn.dataset.label || filter;
+    const count = filterCounts[filter];
+    if (typeof count === 'number') {
+      btn.textContent = `${label} (${count})`;
+    }
+  });
+}
+
 function updateSearchUrl() {
   const params = new URLSearchParams(window.location.search);
   const query = normalizeQuery(document.getElementById('search-input').value);
@@ -505,7 +523,8 @@ function showAll() {
   const recent = pool.slice().reverse().slice(0, 20);
   render(recent, []);
   const hint = document.getElementById('search-hint');
-  hint.textContent = `showing 20 most recent · type to search ${pool.length} ${describeScope()}`;
+  const shown = Math.min(20, pool.length);
+  hint.textContent = `showing ${shown} of ${pool.length} ${describeScope()} · type to search`;
   renderRecentQueries();
   updateSearchUrl();
 }
@@ -529,7 +548,8 @@ function search(raw) {
   });
 
   const hint = document.getElementById('search-hint');
-  hint.textContent = results.length + ' result' + (results.length !== 1 ? 's' : '') + ' in ' + describeScope() + ' for "' + raw + '"';
+  const count = results.length;
+  hint.textContent = `${count} result${count === 1 ? '' : 's'} in ${describeScope()} for "${raw}"`;
   render(results, terms);
   rememberQuery(raw);
   renderRecentQueries();
@@ -678,6 +698,7 @@ Promise.all([
       return meta ? { ...item, date: meta.date, topics } : { ...item, topics };
     });
     topicCatalog = topicsData.categories || [];
+    updateFilterButtons();
     renderTopicFilters();
     const journals = allItems.filter(e => e.type === 'journal').length;
     const letters = allItems.filter(e => e.type === 'letter').length;
