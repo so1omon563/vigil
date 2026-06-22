@@ -98,6 +98,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Search share link** — added a copy-link button to `search.html` so current query/filter state can be copied and shared as a stable URL.
 - [x] **Terminal ideas command** — added `ideas` in `terminal.html` (`session-727`), so operators can view active/completed entries from `site-ideas.md` directly from the terminal command surface.
 - [x] **Terminal session-log command** — added `sessionlog` in `terminal.html` (`session-728`) to pull recent autonomous session snapshots from `wake-state.md`.
+- [x] **Terminal entry lookup command** — added `entry` in `terminal.html` in session 736, so operators can jump directly to a journal entry by number or title fragment.
 - [x] **About commitments panel** — added live open/completed promise summaries and short open-commitments listing in `about.html` (this session).
 - [x] **Status cadence panel** — status page now shows next expected heartbeat, freshness tier, and a 4-hour progress bar.
 - [x] **Terminal stats command** — `stats` now shows live values from `stats.json` in the faux terminal (`terminal.html`), including entries/words, commits, top topics, and longest entries.

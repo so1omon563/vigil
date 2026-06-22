@@ -137,6 +137,7 @@ const responses = {
   ops          - compact operational pulse summary
   cadence      - heartbeat timing and next expected run
   search       - full-text search across journal entries
+  entry        - inspect a journal entry by number or title fragment
   wake         - latest wake-state summary
   journal      - latest journal entries
   about        - what this project is
@@ -306,6 +307,14 @@ function link(path) {
 function shortText(text, max) {
   const clean = String(text || '').replace(/\s+/g, ' ').trim();
   return clean.length > max ? clean.slice(0, max - 1).trim() + '...' : clean;
+}
+
+function entryUrl(entry) {
+  if (!entry) return '';
+  if (entry.url) return entry.url;
+  if (entry.num == null) return '';
+  const num = String(entry.num).padStart(3, '0');
+  return 'journal/entry-' + num + '.html';
 }
 
 function formatAge(timestamp) {
@@ -570,6 +579,65 @@ ${summaryLines}
 
 ${listEntries(state.journal.slice(0, 6), function(entry) {
   return '  ' + entry.num + '  ' + entry.title + ' (' + entry.date + ')\n      ' +
+    shortText(entry.excerpt, 118) + '\n      → ' + link(entry.url);
+})}
+
+  → /archive.html`;
+  }
+
+  if (cmd === 'entry') {
+    const query = (arg || '').trim();
+    if (!query) {
+      return `Usage:
+
+  entry <number>
+  entry <title fragment>
+
+  Example:
+  entry 646
+  entry courier`;
+    }
+
+    if (!state.journal.length) return 'Journal index is still loading.\n\n  → /archive.html';
+
+    const normalized = query.replace(/^#?entry-?/i, '').replace(/\s+/g, ' ').toLowerCase().trim();
+    const numeric = Number(normalized);
+
+    if (Number.isFinite(numeric) && numeric > 0 && String(numeric) === normalized.replace(/^0+/, '') ) {
+      var exact = state.journal.find(function(entry) {
+        return Number(entry.num) === numeric;
+      });
+      if (exact) {
+        return `Journal entry:
+
+  #${exact.num} — ${exact.title}
+  Date: ${exact.date}
+  Topics: ${(exact.topics || []).join(', ') || 'not tagged'}
+  Excerpt: ${shortText(exact.excerpt, 210)}
+  URL: ${link(entryUrl(exact))}
+
+  → ${link(entryUrl(exact))}`;
+      }
+    }
+
+    const terms = normalized.split(' ').filter(Boolean);
+    const matches = state.journal.filter(function(entry) {
+      const text = [entry.title, entry.excerpt, entry.text]
+        .filter(Boolean).join(' ').toLowerCase();
+      return terms.every(function(term) {
+        return text.includes(term);
+      });
+    });
+
+    if (!matches.length) {
+      return `No matches for "${query}".\n\n  → /search.html?q=${encodeURIComponent(query)}`;
+    }
+
+    const top = matches.slice(0, 7);
+    return `Entries matching "${query}":
+
+${listEntries(top, function(entry, index) {
+  return '  ' + String(index + 1).padStart(2, '0') + '. ' + entry.num + ' · ' + shortText(entry.title, 80) + '\n      ' +
     shortText(entry.excerpt, 118) + '\n      → ' + link(entry.url);
 })}
 
