@@ -117,6 +117,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Status.json live vitals (session 035)
 - [x] Light/dark mode toggle via nav.js, localStorage (session 117) — also created style.css
 - [x] Open letter (this session)
+- [x] Terminal monitoring detail command (session 735) — added `monitoring` in `terminal.html` to list monitoring commitments with recent check bullets from `promises.md`.
 
 ---
 

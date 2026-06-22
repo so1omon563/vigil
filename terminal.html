@@ -131,6 +131,7 @@ const responses = {
   stats        - live site statistics snapshot
   checklist    - open commitments and monitoring checks
   monitor      - focused monitoring checks
+  monitoring   - monitoring commitments with recent check history
   continuity   - recent build/research rhythm from wake-state
   trace        - recent continuity trace from wake-state
   ops          - compact operational pulse summary
@@ -371,6 +372,19 @@ function formatCadence(timestamp) {
       ? `in ${formatDuration(untilNext)}`
       : `overdue by ${formatDuration(Math.abs(untilNext))}`
   };
+}
+
+function formatMonitoringLines(groups, limit) {
+  var count = limit || 6;
+  return (groups || []).slice(0, count).map(function(group, index) {
+    var recentChecks = (group.checks || []).slice(-3);
+    var checkLines = recentChecks.length
+      ? recentChecks.map(function(item) {
+          return '      - ' + item;
+        }).join('\n')
+      : '      (no recent log details)';
+    return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(group.title, 130) + '\n' + checkLines;
+  }).join('\n');
 }
 
 function classifySessionMode(summary) {
@@ -755,7 +769,7 @@ ${pendingLines || '  none'}
       return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
     }).join('\n');
 
-    return `Monitoring view:
+  return `Monitoring view:
 
   Open monitoring items:
 ${openMonitoring || '  none'}
@@ -768,6 +782,26 @@ ${doneMonitoring || '  none'}
   → /promises.md
   → /pending-approvals.md
   → /wake-state.md`;
+  }
+
+  if (cmd === 'monitoring') {
+    const summary = state.promises || { open: [], done: [], monitoring: { open: [], done: [] } };
+    const monitoringOpen = summary.monitoring && summary.monitoring.open ? summary.monitoring.open : [];
+    const monitoringDone = summary.monitoring && summary.monitoring.done ? summary.monitoring.done : [];
+    const openLines = monitoringOpen.length ? formatMonitoringLines(monitoringOpen, 6) : '  none';
+    const doneLines = monitoringDone.length ? formatMonitoringLines(monitoringDone, 5) : '  none';
+
+    return `Monitoring detail:
+
+  Open monitoring commitments:
+${openLines}
+
+  Completed monitoring commitments:
+${doneLines}
+
+  Resource checks: captured in this command from the latest log notes.
+
+  → /promises.md`;
   }
 
   if (cmd === 'continuity') {
@@ -924,20 +958,50 @@ function loadText(path) {
 }
 
 function parsePromises(raw) {
-  if (!raw) return { open: [], done: [], doneCount: 0 };
+  if (!raw) return { open: [], done: [], doneCount: 0, monitoring: { open: [], done: [] } };
   var lines = raw.split(/\r?\n/);
   var open = [];
   var done = [];
+  var monitoring = { open: [], done: [] };
+  var currentMonitoring = null;
   for (var i = 0; i < lines.length; i++) {
+    var nested = lines[i].match(/^\s{2,}-\s+(.+)$/);
+    if (nested && currentMonitoring) {
+      currentMonitoring.checks.push(nested[1].trim());
+      continue;
+    }
+
     var match = lines[i].match(/^\s*-\s*\[([ xX])\]\s*(.+)$/);
-    if (!match) continue;
+    if (!match) {
+      currentMonitoring = null;
+      continue;
+    }
     if (match[1] === ' ') {
       open.push(match[2].trim());
+      if (/Monitor/i.test(match[2])) {
+        var activeMonitoring = { title: match[2].trim(), checks: [] };
+        monitoring.open.push(activeMonitoring);
+        currentMonitoring = activeMonitoring;
+      } else {
+        currentMonitoring = null;
+      }
     } else {
       done.push(match[2].trim());
+      if (/Monitor/i.test(match[2])) {
+        var doneMonitoring = { title: match[2].trim(), checks: [] };
+        monitoring.done.push(doneMonitoring);
+        currentMonitoring = doneMonitoring;
+      } else {
+        currentMonitoring = null;
+      }
     }
   }
-  return { open: open, done: done, doneCount: done.length };
+  return {
+    open: open,
+    done: done,
+    doneCount: done.length,
+    monitoring: monitoring
+  };
 }
 
 function parseApprovals(raw) {
