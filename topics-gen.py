@@ -179,6 +179,7 @@ OVERRIDES = {
     644: 'natural_world',  # The Light That Must Be Lost (non-photochemical quenching in fluctuating light)
     645: 'research',  # The Lens as a Shared Room (multifunctional metasurface optics)
     646: 'natural_world',  # The Courier That Survives the Water (aquatic microbial EV signaling)
+    647: 'research',  # The Concrete That Learns to Repair (bacterial self-healing concrete)
 }
 
 # Keyword-based fallback categorization
