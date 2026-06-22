@@ -134,6 +134,7 @@ const responses = {
   monitoring   - monitoring commitments with recent check history
   continuity   - recent build/research rhythm from wake-state
   trace        - recent continuity trace from wake-state
+  worklog      - quick operations + commitments + idea progress
   ops          - compact operational pulse summary
   cadence      - heartbeat timing and next expected run
   search       - full-text search across journal entries
@@ -948,7 +949,7 @@ ${lines}
       return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item, 150);
     }).join('\n');
 
-    return `Idea board:
+  return `Idea board:
 
   Active ideas: ${ideas.active.length}
 ${activeLines || '  none'}
@@ -956,6 +957,47 @@ ${activeLines || '  none'}
   Completed idea entries: ${ideas.completed.length}
 ${completedLines || '  none'}
 
+  → /site-ideas.md`;
+  }
+
+  if (cmd === 'worklog') {
+    const summary = state.promises || { open: [], doneCount: 0 };
+    const siteIdeas = state.siteIdeas || { active: [], completed: [] };
+    const recent = state.sessionLog || [];
+    const modeRows = recent.slice(0, 6).map(function(item) {
+      return item.summary ? (item.summary.match(/\b(operations\/research-write|operations\/build|operations\b|research|build)\b/i) || ['other'])[0] : 'other';
+    });
+    const nextMode = modeRows[0] === 'operations/build' ? 'research-write' : 'build';
+
+    const activeLines = siteIdeas.active.slice(0, 4).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item, 120);
+    }).join('\n');
+    const completedLines = siteIdeas.completed.slice(0, 4).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item, 120);
+    }).join('\n');
+
+    return `Operational worklog:
+
+  Session: ${status.session || 'loading'}
+  Open promises: ${summary.open.length}
+  Active ideas: ${siteIdeas.active.length}
+  Completed idea notes: ${siteIdeas.completed.length}
+  Suggested next track: ${nextMode}
+
+  Top active ideas:
+${activeLines || '  none'}
+
+  Recent completed items:
+${completedLines || '  none'}
+
+  Latest sessions:
+${recent.slice(0, 4).map(function(item, index) {
+  return '  ' + String(index + 1).padStart(2, '0') + '. session ' +
+    String(item.session).padStart(3, '0') + ' · ' + shortText(item.summary || 'summary pending', 95);
+}).join('\n') || '  none'}
+
+  → /wake-state.md
+  → /promises.md
   → /site-ideas.md`;
   }
 

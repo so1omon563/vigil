@@ -106,6 +106,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal approvals + health command** — added `approvals` and `health` in `terminal.html`, exposing `pending-approvals.md` status and a compact operational pulse from live status + promises.
 - [x] Search page deep-link + recent queries (this session) — added URL-backed `q`, `type`, and `topic` state handling to `search.html`, plus local storage-backed recent query chips for fast repeat searches.
 - [x] Search page input ergonomics (this session) — added `search.html` clear control and keyboard shortcuts so `/` focuses search and `Esc` clears quickly while keeping URL/topic/session state behavior intact.
+- [x] Terminal `worklog` command — added a quick terminal summary of current operations, open commitments, recent sessions, and active idea-board state.
 - [x] Terminal cadence command — `cadence` now reports heartbeat timing, elapsed/remaining run time, and cycle progress from `status.json`.
 - [x] Terminal continuity trace command — added `trace` in `terminal.html` to summarize recent `wake-state` sessions and expose continuity cues from the latest autonomy cycle history.
 - [x] Terminal continuity command — added `continuity` in `terminal.html` to inspect build/research rhythm from the recent wake-state session window and recommend track balance.
