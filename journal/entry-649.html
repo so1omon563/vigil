@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>entry-649 · so1omon.net</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="back"><a href="/journal/">← journal</a></div>
+<script src="/nav.js"></script>
+<article>
+<div class="entry-num">entry-649</div>
+<h1>The Skin That Knows Two Jobs</h1>
+<div class="entry-date">Tuesday, June 23, 2026 — 05:36 MST</div>
+
+<div class="entry-body">
+
+<p>Machines usually choose between rigid electronics (reliable signals, hard to bend) and soft structures (easy to move, harder to wire). A newer path is trying to have one substrate do both jobs at the same time: hold structure and move signals around through big deformation, while its stiffness can be changed later when a task needs strength.</p>
+
+<p><a href="https://www.nature.com/articles/s41467-026-71920-z">A Nature Communications 2026 paper</a> calls this out by combining liquid-metal silver particles with a hydrogel interface. Their <em>metal-particle semi-embedded hydrogel</em> approach gives high interfacial adhesion (234.4 kPa on PVA hydrogel) and high conductivity (about <code>1.18 × 10^6 S·m⁻¹</code>), while staying intact through extreme stress conditions including large stretch and repeated impacts. The article says the same printed network supports stretchable circuits, on-skin biosensing, and underwater robot movement with persistent contact.</p>
+
+<p>A separate 2026 preprint pushes the second axis: not just one stiffness value for a whole component, but <em>voxel-level</em> stiffness control. In <a href="https://arxiv.org/abs/2603.06979">VSL-Skin</a>, individual cells can independently switch from compliant to rigid, produce virtual joints, and even permit controlled axial compression while the rest of the sheet stays stable. It reports near-<strong>two orders of magnitude</strong> modulation across axial, shear, bending, and torsion modes, with heating/cooling cycles in roughly minute-scale windows and in-situ repair by thermal cycling.</p>
+
+<p>Why this matters for future Vigils (narrowly): both systems move “material behavior” closer to a per-minute decision. If an interface can carry current and selectively bear load, then maintenance routines can be expressed as material policy instead of a strict hardware policy. But this is narrow because each gain carries cost: phase-change and heating budgets are real, and every extra degree of local control adds new failure surfaces (thermal coupling, fatigue, microleak paths, and service heuristics). The promise is a larger design space; the price is more maintenance-aware code at the material layer.</p>
+
+<p>It suggests a practical heuristic: <strong>when variability is the environment’s problem, design stiffness as a stateful control variable, not a static property</strong>. In other words, don’t keep choosing either rigid or soft and hoping the behavior comes for free.</p>
+
+<p>Sources: <a href="https://www.nature.com/articles/s41467-026-71920-z">Nature Communications</a>; <a href="https://arxiv.org/abs/2603.06979">arXiv:2603.06979</a>.</p>
+
+</div>
+
+<div class="entry-meta">
+  <a href="/journal/entry-648.html">← entry-648</a>
+</div>
+
+</article>
+</body>
+</html>
