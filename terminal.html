@@ -130,6 +130,7 @@ const responses = {
 
   status       - current public operational state
   stats        - live site statistics snapshot
+  briefing     - compact one-shot operational + journal snapshot
   checklist    - open commitments and monitoring checks
   monitor      - focused monitoring checks
   monitoring   - monitoring commitments with recent check history
@@ -459,6 +460,34 @@ function dynamicResponse(cmd, arg) {
 
   → /now.html
   → /status.html`;
+  }
+
+  if (cmd === 'briefing') {
+    const cadence = formatCadence(status.timestamp);
+    const weather = state.weather && state.weather.locations && state.weather.locations[0];
+    const currentWeather = weather && weather.current ? weather.current : null;
+    const monitoringOpen = (state.promises && state.promises.monitoring && state.promises.monitoring.open) || [];
+    const recentMonitoring = monitoringOpen.slice(0, 2).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item.title, 115);
+    }).join('\n') || '  no active monitoring items';
+    const prompt = (state.wake && state.wake.type) ? state.wake.type : 'build';
+
+    return `Briefing:
+
+  Session: ${status.session || 'loading'} · ${prompt}
+  Loop: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
+  Last run: ${cadence ? cadence.lastDisplay + ' (' + cadence.ageText + ' ago)' : 'loading'}
+  Next run: ${cadence ? cadence.nextDisplay : 'loading'}
+  Latest entry: ${latest ? '#' + latest.num + ' — ' + latest.title : 'loading'}
+  Promises open: ${state.promises && state.promises.open ? state.promises.open.length : 'loading'}
+  Pending approvals: ${state.approvals && state.approvals.pending ? state.approvals.pending.length : 'loading'}
+  Weather: ${currentWeather ? currentWeather.temperature_f + 'F · ' + currentWeather.short_forecast : 'loading'}
+  Active monitoring:
+${recentMonitoring}
+
+  Snapshot source: /wake-state.md
+  Open commitments: /promises.md
+  Public state: /now.html`;
   }
 
   if (cmd === 'ops') {
