@@ -115,6 +115,7 @@ const state = {
   fragments: [],
   letters: [],
   weather: null,
+  weatherHistory: null,
   cats: [],
   promises: null,
   approvals: null,
@@ -155,6 +156,7 @@ const responses = {
   health       - operational health from status + promises + approvals
   ideas        - active and completed site-ideas
   weather      - current Mesa weather
+  weathertrend - Mesa weather trend from history
   cat          - latest daily cat
   time         - current public timestamp
   location     - where the Pi is
@@ -413,6 +415,30 @@ function listEntries(entries, formatter) {
 
 function getLatestCat() {
   return state.cats.length ? state.cats[state.cats.length - 1] : null;
+}
+
+function toPhoenixDay(iso) {
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return 'unknown';
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Phoenix',
+      month: 'short',
+      day: '2-digit'
+    }).format(d);
+  } catch (e) {
+    return 'unknown';
+  }
+}
+
+function bucketForecast(forecast) {
+  const f = (forecast || '').toLowerCase();
+  if (f.includes('thunder') || f.includes('storm')) return 'storm';
+  if (f.includes('rain') || f.includes('shower')) return 'rain';
+  if (f.includes('cloud') || f.includes('overcast')) return 'cloud';
+  if (f.includes('clear') || f.includes('sun')) return 'clear';
+  if (f.includes('smoke') || f.includes('haze') || f.includes('dust')) return 'haze';
+  return 'other';
 }
 
 function dynamicResponse(cmd, arg) {
@@ -733,13 +759,83 @@ ${listEntries(state.journal.slice(0, 8), function(entry) {
       return '  ' + period.name + ': ' + period.temperature_f + 'F, ' +
         period.short_forecast + ', wind ' + period.wind_speed + ' ' + period.wind_direction;
     }).join('\n');
-    return `Mesa weather:
+  return `Mesa weather:
 
   Current: ${current.temperature_f}F, ${current.short_forecast}
   Wind: ${current.wind_speed} ${current.wind_direction}
   Updated: ${state.weather.updated || 'unknown'} (${formatAge(state.weather.updated)})
 
 ${next}
+
+  → /weather.html`;
+  }
+
+  if (cmd === 'weathertrend') {
+    const history = (state.weatherHistory || []).filter(item => item.location === 'local');
+    if (!history.length) {
+      return 'Weather trend data is still loading.\n\n  → /weather.html';
+    }
+
+    const recent = history.slice(-84); // roughly two weeks at 4-hour cadence
+    const latest = recent[recent.length - 1];
+    const earliest = recent[0];
+    const values = recent.map(item => Number(item.temp_f));
+    const min = Math.min.apply(null, values);
+    const max = Math.max.apply(null, values);
+
+    const half = Math.floor(recent.length / 2);
+    const first = recent.slice(0, half).map(item => Number(item.temp_f));
+    const second = recent.slice(half).map(item => Number(item.temp_f));
+    const avg = list => Math.round(list.reduce((sum, num) => sum + num, 0) / list.length);
+    const trend = avg(second) - avg(first);
+    const trendText = trend > 3
+      ? `↑ warming trend (+${trend}°F)`
+      : trend < -3
+        ? `↘ cooler trend (${trend}°F)`
+        : '→ stable';
+
+    const byDay = {};
+    recent.forEach(item => {
+      const day = toPhoenixDay(item.ts);
+      if (!byDay[day]) byDay[day] = [];
+      byDay[day].push(Number(item.temp_f));
+    });
+
+    const dayLabels = Object.keys(byDay)
+      .sort()
+      .slice(-14)
+      .map(day => {
+        const vals = byDay[day];
+        return '  ' + day + ': ' + Math.min.apply(null, vals) + '°F - ' + Math.max.apply(null, vals) + '°F';
+      })
+      .join('\n');
+
+    const buckets = {};
+    recent.forEach(item => {
+      const bucket = bucketForecast(item.forecast);
+      buckets[bucket] = (buckets[bucket] || 0) + 1;
+    });
+    const dominant = Object.entries(buckets)
+      .sort(function(a, b) { return b[1] - a[1]; })[0];
+    const dominantText = dominant ? `${dominant[0]} (${Math.round((dominant[1] / recent.length) * 100)}%)` : 'no dominant condition';
+
+    const hottest = recent.reduce(function(a, b) {
+      return a.temp_f >= b.temp_f ? a : b;
+    });
+    const coolest = recent.reduce(function(a, b) {
+      return a.temp_f <= b.temp_f ? a : b;
+    });
+
+    return `Mesa weather trend:
+
+  Window: ${earliest.ts ? toPhoenixDay(earliest.ts) : 'n/a'} (${earliest.temp_f}°F) → ${latest.ts ? toPhoenixDay(latest.ts) : 'n/a'} (${latest.temp_f}°F)
+  Range: ${min}°F to ${max}°F
+  Trend: ${trendText}
+  Dominant condition: ${dominantText}
+  Hottest sample: ${hottest.temp_f}°F on ${toPhoenixDay(hottest.ts)}
+  Coolest sample: ${coolest.temp_f}°F on ${toPhoenixDay(coolest.ts)}
+  Day range (local):
+${dayLabels}
 
   → /weather.html`;
   }
@@ -1233,6 +1329,7 @@ Promise.allSettled([
   loadJson('/fragments-recent.json'),
   loadJson('/letters-index.json'),
   loadJson('/weather.json'),
+  loadJson('/weather-history.json'),
   loadJson('/cats.json'),
   loadText('/promises.md'),
   loadText('/pending-approvals.md'),
@@ -1245,17 +1342,18 @@ Promise.allSettled([
   if (results[3].status === 'fulfilled') state.fragments = results[3].value || [];
   if (results[4].status === 'fulfilled') state.letters = results[4].value || [];
   if (results[5].status === 'fulfilled') state.weather = results[5].value;
-  if (results[6].status === 'fulfilled') state.cats = results[6].value || [];
-  if (results[7].status === 'fulfilled') state.promises = parsePromises(results[7].value);
-  if (results[8].status === 'fulfilled') state.approvals = parseApprovals(results[8].value);
-  if (results[9].status === 'fulfilled') state.siteIdeas = parseIdeas(results[9].value);
-  if (results[10].status === 'fulfilled') {
-    state.wake = parseWake(results[10].value);
-    state.sessionLog = parseSessionLog(results[10].value, 8);
+  if (results[6].status === 'fulfilled') state.weatherHistory = results[6].value || [];
+  if (results[7].status === 'fulfilled') state.cats = results[7].value || [];
+  if (results[8].status === 'fulfilled') state.promises = parsePromises(results[8].value);
+  if (results[9].status === 'fulfilled') state.approvals = parseApprovals(results[9].value);
+  if (results[10].status === 'fulfilled') state.siteIdeas = parseIdeas(results[10].value);
+  if (results[11].status === 'fulfilled') {
+    state.wake = parseWake(results[11].value);
+    state.sessionLog = parseSessionLog(results[11].value, 8);
   }
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/11 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/12 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
