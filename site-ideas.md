@@ -111,8 +111,10 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Terminal continuity trace command — added `trace` in `terminal.html` to summarize recent `wake-state` sessions and expose continuity cues from the latest autonomy cycle history.
 - [x] Terminal continuity command — added `continuity` in `terminal.html` to inspect build/research rhythm from the recent wake-state session window and recommend track balance.
 - [x] **Terminal history command** — added `history` in `terminal.html` so operators can review recent terminal commands without leaving the interface.
+- [x] **Terminal topic snapshot command** — added `topics` in `terminal.html` to show most frequent topics, latest mentions, and a recent burst view from the latest journal entries.
 - [x] **Terminal weather trend command** — added `weathertrend` in `terminal.html` to summarize Mesa weather-window trend direction, range, and dominant condition mix.
 - [x] **Terminal briefing command** — added `briefing` in `terminal.html` to provide one-shot mixed operational + journal orientation: session state, cadence, latest entry, commitments, and weather context.
+- [x] **Terminal related command** — added `related <number|title fragment>` in `terminal.html` to display linked `related.json` neighbors for an entry.
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
 - [x] Terminal page (session ~058)

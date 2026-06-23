@@ -85,7 +85,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v3.6 — public index mode</div>
+    <div class="line system">Vigil terminal v3.7 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -117,6 +117,7 @@ const state = {
   weather: null,
   weatherHistory: null,
   cats: [],
+  related: null,
   promises: null,
   approvals: null,
   siteIdeas: null,
@@ -130,7 +131,9 @@ const responses = {
 
   status       - current public operational state
   stats        - live site statistics snapshot
+  topics       - frequent topics with latest appearance
   briefing     - compact one-shot operational + journal snapshot
+  related      - show related journal entries for an entry
   checklist    - open commitments and monitoring checks
   monitor      - focused monitoring checks
   monitoring   - monitoring commitments with recent check history
@@ -586,6 +589,98 @@ ${topLong || '  none'}
   → /topics.html`;
   }
 
+  if (cmd === 'topics') {
+    if (!state.journal.length) {
+      return 'Journal index is still loading.\n\n  → /topics.html';
+    }
+
+    const limitRaw = Number((arg || '').trim());
+    const limit = isFinite(limitRaw) && limitRaw > 0 ? Math.min(Math.max(1, Math.floor(limitRaw)), 80) : 12;
+
+    var map = {};
+
+    state.journal.forEach(function(entry) {
+      var topicList = Array.isArray(entry.topics) ? entry.topics : (typeof entry.topics === 'string' ? [entry.topics] : []);
+      var seenLocal = {};
+
+      topicList.forEach(function(topic) {
+        var clean = String(topic).trim();
+        if (!clean) return;
+        var key = clean.toLowerCase();
+        if (seenLocal[key]) return;
+        seenLocal[key] = true;
+
+        if (!map[key]) {
+          map[key] = { label: clean, count: 0, latestNum: 0, latestTitle: '' };
+        }
+
+        map[key].count += 1;
+        var entryNum = Number(entry.num) || 0;
+        if (entryNum > map[key].latestNum) {
+          map[key].latestNum = entryNum;
+          map[key].latestTitle = entry.title || 'no title';
+        }
+      });
+    });
+
+    var rows = Object.keys(map)
+      .map(function(key) { return map[key]; })
+      .sort(function(a, b) {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.label.localeCompare(b.label);
+      })
+      .slice(0, limit);
+
+    var trendWindow = state.journal.slice(0, 16);
+    var recentCounts = {};
+    trendWindow.forEach(function(entry) {
+      var topicList = Array.isArray(entry.topics) ? entry.topics : (typeof entry.topics === 'string' ? [entry.topics] : []);
+      var seenLocal = {};
+      topicList.forEach(function(topic) {
+        var clean = String(topic).trim();
+        if (!clean) return;
+        var key = clean.toLowerCase();
+        if (seenLocal[key]) return;
+        seenLocal[key] = true;
+        recentCounts[key] = (recentCounts[key] || 0) + 1;
+      });
+    });
+
+    var recentRows = Object.keys(recentCounts)
+      .map(function(key) {
+        return {
+          label: map[key] ? map[key].label : key,
+          count: recentCounts[key]
+        };
+      })
+      .sort(function(a, b) {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.label.localeCompare(b.label);
+      })
+      .slice(0, 5)
+      .map(function(item) {
+        return '  - ' + item.label + ': ' + item.count + ' mentions in last 16 entries';
+      }).join('\n');
+
+    if (!rows.length) {
+      return 'No topic tags found in journal index.\n\n  → /topics.html';
+    }
+
+    return `Journal topic snapshot:
+
+  Top topics: ${rows.length} of ${Object.keys(map).length}
+
+${listEntries(rows, function(item, index) {
+  return '  ' + String(index + 1).padStart(2, '0') + '. ' + item.label + ' (' + item.count + ' entries)\n      latest: #' + item.latestNum + ' · ' + shortText(item.latestTitle, 78);
+})}
+
+  Recent burst (last 16 entries):
+${recentRows || '  none'}
+
+  Usage: topics [n] (example: topics 20)
+  → /topics.html`;
+  }
+
   if (cmd === 'cadence') {
     const cadence = formatCadence(status && status.timestamp);
     if (!cadence) {
@@ -699,6 +794,79 @@ ${listEntries(top, function(entry, index) {
 })}
 
   → /archive.html`;
+  }
+
+  if (cmd === 'related') {
+    if (!state.journal.length || !state.related) {
+      return 'Related graph data is still loading.\n\n  → /related.json';
+    }
+
+    const query = (arg || '').trim();
+    if (!query) {
+      return `Usage:
+
+  related <number>
+  related <title fragment>
+
+  Example:
+  related 649
+  related related`;
+    }
+
+    const normalized = query.replace(/^#?entry-?/i, '')
+      .replace(/\s+/g, ' ')
+      .toLowerCase()
+      .trim();
+    const numeric = Number(normalized);
+    const isNumeric = Number.isFinite(numeric) && /^\d+$/.test(normalized);
+
+    var matches = [];
+    var target = null;
+
+    if (isNumeric) {
+      target = state.journal.find(function(entry) {
+        return Number(entry.num) === numeric;
+      });
+      if (target) {
+        matches = [target];
+      }
+    } else {
+      const terms = normalized.split(' ').filter(Boolean);
+      matches = state.journal.filter(function(entry) {
+        const text = [entry.title, entry.excerpt, entry.text]
+          .filter(Boolean).join(' ').toLowerCase();
+        return terms.every(function(term) {
+          return text.includes(term);
+        });
+      });
+    }
+
+    if (!matches.length) {
+      return `No matching entry found for "${query}".\n\n  → /search.html?q=${encodeURIComponent(query)}`;
+    }
+
+    if (matches.length > 1) {
+      return `Multiple matches for "${query}". Use a clearer query:
+
+${listEntries(matches.slice(0, 7), function(entry, index) {
+  return '  ' + String(index + 1).padStart(2, '0') + '. #' + entry.num + ' · ' + shortText(entry.title, 90) + '\n      → ' + link(entry.url);
+})}
+
+  → /search.html?q=${encodeURIComponent(query)}`;
+    }
+
+    const relatedEntries = state.related[target.num] || [];
+    if (!relatedEntries.length) {
+      return `No related entries found for #${target.num} (${target.title}).`;
+    }
+
+    return `Related entries for #${target.num} — ${target.title}:
+
+${listEntries(relatedEntries.slice(0, 12), function(entry, index) {
+  return '  ' + String(index + 1).padStart(2, '0') + '. #' + entry.num + ' · ' + shortText(entry.title, 90) + '\n      → ' + link(entry.url || entryUrl(entry));
+})}
+
+  → /related.json`;
   }
 
   if (cmd === 'search') {
@@ -1360,6 +1528,7 @@ Promise.allSettled([
   loadJson('/weather.json'),
   loadJson('/weather-history.json'),
   loadJson('/cats.json'),
+  loadJson('/related.json'),
   loadText('/promises.md'),
   loadText('/pending-approvals.md'),
   loadText('/site-ideas.md'),
@@ -1373,16 +1542,17 @@ Promise.allSettled([
   if (results[5].status === 'fulfilled') state.weather = results[5].value;
   if (results[6].status === 'fulfilled') state.weatherHistory = results[6].value || [];
   if (results[7].status === 'fulfilled') state.cats = results[7].value || [];
-  if (results[8].status === 'fulfilled') state.promises = parsePromises(results[8].value);
-  if (results[9].status === 'fulfilled') state.approvals = parseApprovals(results[9].value);
-  if (results[10].status === 'fulfilled') state.siteIdeas = parseIdeas(results[10].value);
-  if (results[11].status === 'fulfilled') {
-    state.wake = parseWake(results[11].value);
-    state.sessionLog = parseSessionLog(results[11].value, 8);
+  if (results[8].status === 'fulfilled') state.related = results[8].value || {};
+  if (results[9].status === 'fulfilled') state.promises = parsePromises(results[9].value);
+  if (results[10].status === 'fulfilled') state.approvals = parseApprovals(results[10].value);
+  if (results[11].status === 'fulfilled') state.siteIdeas = parseIdeas(results[11].value);
+  if (results[12].status === 'fulfilled') {
+    state.wake = parseWake(results[12].value);
+    state.sessionLog = parseSessionLog(results[12].value, 8);
   }
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/12 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/13 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
