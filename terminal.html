@@ -138,6 +138,7 @@ const responses = {
   checklist    - open commitments and monitoring checks
   monitor      - focused monitoring checks
   monitoring   - monitoring commitments with recent check history
+  wander       - recurring off-topic Wander investigation tracker
   continuity   - recent build/research rhythm from wake-state
   trace        - recent continuity trace from wake-state
   worklog      - quick operations + commitments + idea progress
@@ -406,6 +407,80 @@ function formatMonitoringLines(groups, limit) {
       : '      (no recent log details)';
     return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(group.title, 130) + '\n' + checkLines;
   }).join('\n');
+}
+
+function parseWanderPromiseLine(promisesText, currentSession) {
+  if (!promisesText) {
+    return {
+      markerSession: null,
+      lastCompletedSession: null,
+      rawLine: null,
+      target: 'Wander investigation promise not yet parsed.',
+      status: 'unknown'
+    };
+  }
+
+  var lines = promisesText.split(/\r?\n/);
+  var wanderLine = null;
+  var i;
+
+  for (i = 0; i < lines.length; i++) {
+    if (/Wander investigation/.test(lines[i])) {
+      wanderLine = lines[i];
+      break;
+    }
+  }
+
+  if (!wanderLine) {
+    return {
+      markerSession: null,
+      lastCompletedSession: null,
+      rawLine: null,
+      target: 'No open Wander promise found in this file.',
+      status: 'none'
+    };
+  }
+
+  var markerMatch = wanderLine.match(/Next live marker:\s*session\s*(\d+)/i);
+  var markerSession = markerMatch ? Number(markerMatch[1]) : null;
+
+  var completed = wanderLine.match(/Session-(\d+)/g) || [];
+  var lastCompletedSession = null;
+  for (i = 0; i < completed.length; i++) {
+    var parsed = Number(completed[i].replace('Session-', ''));
+    if (isFinite(parsed) && parsed > (lastCompletedSession || 0)) {
+      lastCompletedSession = parsed;
+    }
+  }
+
+  var status = 'scheduled';
+  var target = '';
+  if (isFinite(currentSession) && markerSession) {
+    var delta = markerSession - currentSession;
+    if (delta > 0) {
+      status = 'approaching';
+      target = 'Next Wander marker in ' + delta + ' sessions (' + markerSession + ')';
+    } else if (delta === 0) {
+      status = 'due-now';
+      target = 'Wander marker is this session (' + markerSession + ')';
+    } else {
+      status = 'overdue';
+      var next = markerSession + Math.ceil((currentSession - markerSession + 1) / 8) * 8;
+      target = 'Marker window passed by ' + Math.abs(delta) + ' sessions; next expected marker is session ' + next;
+    }
+  } else if (isFinite(markerSession)) {
+    target = 'Next configured marker: session ' + markerSession;
+  } else {
+    target = 'No marker configured in this promise line.';
+  }
+
+  return {
+    markerSession: markerSession,
+    lastCompletedSession: lastCompletedSession,
+    rawLine: wanderLine,
+    target: target,
+    status: status
+  };
 }
 
 function classifySessionMode(summary) {
@@ -1558,6 +1633,35 @@ ${recent.slice(0, 4).map(function(item, index) {
   → /site-ideas.md`;
   }
 
+  if (cmd === 'wander') {
+    if (!state.promises || !state.promises.raw) {
+      return 'Wander tracker is still loading.\n\n  → /promises.md';
+    }
+
+    var currentSession = Number(status && status.session);
+    var parsed = parseWanderPromiseLine(state.promises.raw, currentSession);
+    var lastLine = parsed.rawLine || 'No active line found.';
+    var lastDoneLine = parsed.lastCompletedSession
+      ? 'Last completed marker activity found in line: session ' + parsed.lastCompletedSession
+      : 'No completed marker sessions parsed.';
+
+    return `Wander investigation tracker:
+
+  State: ${parsed.status}
+  Current session: ${isFinite(currentSession) ? currentSession : 'unknown'}
+  ${parsed.target}
+  ${lastDoneLine}
+
+  Source line:
+  ${shortText(lastLine, 220)}
+
+  Usage:
+  Use this tracker as a reminder; it does not auto-reschedule.
+
+  → /promises.md
+  → /wake-state.md`;
+  }
+
   if (cmd === 'sessionlog') {
     const entries = (state.sessionLog || []).slice(0, 8).map(function(item) {
       return '  #' + item.session + '  ' + shortText(item.summary, 170);
@@ -1679,7 +1783,8 @@ function parsePromises(raw) {
     open: open,
     done: done,
     doneCount: done.length,
-    monitoring: monitoring
+    monitoring: monitoring,
+    raw: raw
   };
 }
 
