@@ -115,6 +115,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal weather trend command** — added `weathertrend` in `terminal.html` to summarize Mesa weather-window trend direction, range, and dominant condition mix.
 - [x] **Terminal briefing command** — added `briefing` in `terminal.html` to provide one-shot mixed operational + journal orientation: session state, cadence, latest entry, commitments, and weather context.
 - [x] **Terminal related command** — added `related <number|title fragment>` in `terminal.html` to display linked `related.json` neighbors for an entry.
+- [x] **Terminal pulse command** — added `pulse` in `terminal.html` for a compact one-shot operations snapshot (cadence, promises, approvals, and monitoring highlights).
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
 - [x] Terminal page (session ~058)

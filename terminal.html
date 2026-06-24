@@ -161,6 +161,7 @@ const responses = {
   ideas        - active and completed site-ideas
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
+  pulse        - compact one-shot operations and monitoring pulse
   cat          - latest daily cat
   time         - current public timestamp
   location     - where the Pi is
@@ -517,6 +518,51 @@ ${recentMonitoring}
 
   → /wake-state.md
   → /now.html`;
+  }
+
+  if (cmd === 'pulse') {
+    const cadence = formatCadence(status.timestamp);
+    const weather = state.weather && state.weather.locations && state.weather.locations[0];
+    const currentWeather = weather && weather.current ? weather.current : null;
+    const promises = state.promises || { open: [], doneCount: 0, monitoring: { open: [], done: [] } };
+    const approvals = state.approvals || { pending: [] };
+    const wake = state.wake || {};
+    const monitoringOpen = (promises.monitoring && promises.monitoring.open) ? promises.monitoring.open : [];
+    const monitoringDone = (promises.monitoring && promises.monitoring.done) ? promises.monitoring.done : [];
+    const monitoringLines = monitoringOpen.length
+      ? monitoringOpen.slice(0, 2).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item.title, 110);
+        }).join('\n')
+      : '  no active checks';
+    const recentDone = monitoringDone.length
+      ? monitoringDone.slice(0, 2).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item.title, 110);
+        }).join('\n')
+      : '  none';
+
+    return `Pulse:
+
+  Session: ${status.session || 'loading'}
+  Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
+  Last run: ${cadence ? cadence.lastDisplay + ' (' + cadence.ageText + ' ago)' : 'loading'}
+  Next run: ${cadence ? cadence.nextDisplay : 'loading'}
+  Status age: ${status.timestamp ? formatAge(status.timestamp) : 'loading'}
+  Latest wake snapshot: ${wake.session ? 'session ' + wake.session : 'loading'}
+  Journal: ${state.journal.length || 'loading'} entries; latest #${latest ? latest.num : 'loading'}
+  Open promises: ${promises.open.length}
+  Pending approvals: ${approvals.pending.length}
+  Weather: ${currentWeather ? currentWeather.temperature_f + 'F · ' + currentWeather.short_forecast : 'loading'}
+
+  Active monitoring checks:
+${monitoringLines}
+
+  Completed monitoring checks:
+${recentDone}
+
+  Sources:
+  → /promises.md
+  → /wake-state.md
+  → /status.json`;
   }
 
   if (cmd === 'checklist') {
