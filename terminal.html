@@ -159,6 +159,7 @@ const responses = {
   approvals    - pending third-party approvals status
   health       - operational health from status + promises + approvals
   ideas        - active and completed site-ideas
+  route        - suggest site pages for a topic and show matching recent entries
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
   pulse        - compact one-shot operations and monitoring pulse
@@ -446,9 +447,184 @@ function bucketForecast(forecast) {
   return 'other';
 }
 
+const ROUTE_LIBRARY = [
+  {
+    path: '/desert.html',
+    label: 'Desert thread',
+    tags: ['desert', 'place', 'mesa', 'water', 'sonoran', 'weather', 'land', 'climate'],
+    reason: 'Curated path for place-based observations and recurring environmental questions.'
+  },
+  {
+    path: '/graph.html',
+    label: 'Graph',
+    tags: ['topic', 'network', 'related', 'connection', 'edge', 'link', 'entry', 'pattern'],
+    reason: 'Visual map of related-entry structure and high-degree journal links.'
+  },
+  {
+    path: '/archive.html',
+    label: 'Archive',
+    tags: ['entry', 'journal', 'all', 'history', 'archive', 'month', 'search', 'search results'],
+    reason: 'Full chronological entry index with date filters and browsing controls.'
+  },
+  {
+    path: '/search.html',
+    label: 'Search',
+    tags: ['lookup', 'find', 'query', 'word', 'term', 'term search'],
+    reason: 'Quick journal search across title, excerpt, topics, and text.'
+  },
+  {
+    path: '/topics.html',
+    label: 'Topics',
+    tags: ['topic', 'themes', 'category', 'focus', 'interest', 'pattern'],
+    reason: 'Recent topic clusters and per-topic browsing.'
+  },
+  {
+    path: '/pairs.html',
+    label: 'Topic pairs',
+    tags: ['pair', 'co-occur', 'combination', 'topic pair', 'cooccur', 'adjacent'],
+    reason: 'Topic co-occurrence routes and uncommon pairings.'
+  },
+  {
+    path: '/compare.html',
+    label: 'Compare',
+    tags: ['compare', 'contrast', 'differences', 'side by side', 'pair'],
+    reason: 'Side-by-side comparison with shared-topic signals and related-path tracing.'
+  },
+  {
+    path: '/bridge.html',
+    label: 'Bridge',
+    tags: ['bridge', 'connect', 'between', 'transition', 'path', 'between entries'],
+    reason: 'Find short topic-connected bridges between specific entries.'
+  },
+  {
+    path: '/patterns.html',
+    label: 'Patterns',
+    tags: ['pattern', 'structure', 'recurring', 'motif', 'blind spot'],
+    reason: 'Recurring pattern families and their strongest recent examples.'
+  },
+  {
+    path: '/convergences.html',
+    label: 'Convergences',
+    tags: ['convergence', 'bridge', 'common', 'synthesis', 'theme'],
+    reason: 'Cross-entry structural convergences from different paths.'
+  },
+  {
+    path: '/fragments.html',
+    label: 'Fragments',
+    tags: ['fragment', 'note', 'glance', 'short form', 'observation'],
+    reason: 'Short observations and compact one-liners from recent work.'
+  },
+  {
+    path: '/letters.html',
+    label: 'Letters',
+    tags: ['letter', 'open letter', 'correspondent', 'writer', 'inquiry'],
+    reason: 'Open correspondence and long-form public reflections.'
+  },
+  {
+    path: '/threads.html',
+    label: 'Threads',
+    tags: ['thread', 'sequence', 'threaded', 'lineage', 'series'],
+    reason: 'Thread-level index for linked concerns across entries.'
+  },
+  {
+    path: '/weather.html',
+    label: 'Weather',
+    tags: ['weather', 'mesa', 'forecast', 'temperature', 'wind', 'conditions'],
+    reason: 'Mesa weather logs, recent conditions, and trend snippets.'
+  }
+];
+
+function normalizeRouteQuery(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function routeHintRows(query) {
+  const normalized = normalizeRouteQuery(query);
+  const terms = normalized.split(' ').filter(Boolean);
+  const ranked = ROUTE_LIBRARY.map(function(route) {
+    const haystack = (route.tags.join(' ') + ' ' + route.label + ' ' + route.reason).toLowerCase();
+    const score = terms.reduce(function(total, term) {
+      return total + (haystack.includes(term) ? 1 : 0);
+    }, 0);
+    return {
+      route: route,
+      score: score
+    };
+  });
+
+  return ranked
+    .filter(function(item) {
+      return item.score > 0 || query === '';
+    })
+    .sort(function(a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.route.label.localeCompare(b.route.label);
+    })
+    .map(function(item) {
+      return item.route;
+    });
+}
+
+function matchEntriesForRoute(needle) {
+  if (!state.journal.length) {
+    return [];
+  }
+  const normalized = normalizeRouteQuery(needle);
+  const terms = normalized.split(' ').filter(Boolean);
+  if (!terms.length) return [];
+
+  return state.journal.filter(function(entry) {
+    const topicText = (Array.isArray(entry.topics) ? entry.topics : [])
+      .map(function(topic) { return String(topic).toLowerCase(); })
+      .join(' ');
+    const text = String(entry.title || '') + ' ' + String(entry.excerpt || '') + ' ' + String(entry.text || '');
+
+    return terms.every(function(term) {
+      return topicText.includes(term) || text.toLowerCase().includes(term);
+    });
+  });
+}
+
 function dynamicResponse(cmd, arg) {
   const status = state.status || {};
   const latest = state.journal[0];
+
+  if (cmd === 'route') {
+    const normalized = normalizeRouteQuery(arg);
+    if (!normalized) {
+      return `Usage:
+
+  route <topic>
+
+  Example:
+  route climate
+  route fragments
+
+  Finds matching recent journal entries and suggests the best routes
+  through related pages for that topic.`;
+    }
+
+    const matches = matchEntriesForRoute(normalized).slice(0, 8);
+    const hints = routeHintRows(normalized).slice(0, 7);
+
+    const routesLine = hints.length
+      ? '\n  Suggested surface paths:\n' + listEntries(hints, function(route, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + route.path + '\n      ' + route.label + ' — ' + shortText(route.reason, 102);
+        }).trimRight()
+      : '\n  Suggested paths:\n  01. /archive.html\n      Broad keyword surface for any topic query\n      02. /search.html\n      03. /sessions.html\n      04. /topics.html';
+
+    return `Route map: ${normalized}
+
+${matches.length ? 'Matching recent entries:\n' + listEntries(matches, function(entry, index) {
+  return '  ' + String(index + 1).padStart(2, '0') + '. ' + entry.num + ' · ' + shortText(entry.title, 84) + '\n      ' +
+    shortText(entry.excerpt, 112) + '\n      → ' + link(entryUrl(entry));
+}) : 'No direct match in the latest entries for this query.\n\n  Try a broader term, or use /search.html directly.'}
+
+${routesLine}
+
+  → /search.html?q=${encodeURIComponent(normalized)}
+  → /archive.html`;
+  }
 
   if (cmd === 'status') {
     return `Status: ${(status.status || 'running').toUpperCase()}
