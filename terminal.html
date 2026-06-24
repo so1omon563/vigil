@@ -123,6 +123,7 @@ const state = {
   siteIdeas: null,
   wake: null,
   sessionLog: [],
+  loopLog: [],
   loaded: false
 };
 
@@ -162,6 +163,7 @@ const responses = {
   route        - suggest site pages for a topic and show matching recent entries
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
+  log          - recent loop log excerpt and push-health signal
   pulse        - compact one-shot operations and monitoring pulse
   cat          - latest daily cat
   time         - current public timestamp
@@ -1245,7 +1247,7 @@ ${next}
       return a.temp_f <= b.temp_f ? a : b;
     });
 
-    return `Mesa weather trend:
+  return `Mesa weather trend:
 
   Window: ${earliest.ts ? toPhoenixDay(earliest.ts) : 'n/a'} (${earliest.temp_f}°F) → ${latest.ts ? toPhoenixDay(latest.ts) : 'n/a'} (${latest.temp_f}°F)
   Range: ${min}°F to ${max}°F
@@ -1257,6 +1259,45 @@ ${next}
 ${dayLabels}
 
   → /weather.html`;
+  }
+
+  if (cmd === 'log') {
+    if (!state.loopLog.length) {
+      return 'Loop log is still loading. Check /log.html for the raw stream.';
+    }
+
+    const requestedRaw = Number((arg || '').trim());
+    const count = isFinite(requestedRaw) && requestedRaw > 0
+      ? Math.min(Math.max(5, Math.floor(requestedRaw)), 60)
+      : 12;
+
+    const tail = state.loopLog.slice(-count);
+    const pushRelated = tail.filter(function(item) {
+      return /\bpush\b/i.test(item.msg) || /\bcommit\b/i.test(item.msg);
+    });
+    const failures = tail.filter(function(item) {
+      return /push-failure/i.test(item.msg) || /stale-push/i.test(item.msg) || item.level === 'err';
+    });
+    const warnings = tail.filter(function(item) {
+      return item.level === 'warn' || item.level === 'err';
+    });
+
+    const failureText = failures.length
+      ? `${failures.length} push-risk lines (recently) — check /log.html for context.`
+      : 'No `push-failure` / `stale-push` markers in this window.';
+
+    return `Loop log (last ${count} lines):
+
+${listEntries(tail, function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. [' + item.ts + '] [' + item.level.padEnd(4, ' ') + '] '
+        + shortText(item.msg, 120);
+  })}
+
+  Push/commit signals: ${pushRelated.length}
+  Warning/error lines: ${warnings.length}
+  ${failureText}
+
+  Source: /log.html`;
   }
 
   if (cmd === 'cat') {
@@ -1741,6 +1782,37 @@ function parseWake(raw) {
   };
 }
 
+function parseLoopLog(raw, limit) {
+  if (!raw) return [];
+  try {
+    const doc = new DOMParser().parseFromString(raw, 'text/html');
+    const rows = Array.from(doc.querySelectorAll('.log-line')).map(function(row) {
+      const ts = (row.querySelector('.log-ts') || {}).textContent || '';
+      const msgEl = row.querySelector('.log-msg');
+      const msg = ((msgEl || {}).textContent || '').replace(/\s+/g, ' ').trim();
+      let level = 'other';
+
+      if (msgEl && msgEl.classList) {
+        if (msgEl.classList.contains('ok')) level = 'ok';
+        else if (msgEl.classList.contains('warn')) level = 'warn';
+        else if (msgEl.classList.contains('err')) level = 'err';
+        else if (msgEl.classList.contains('info')) level = 'info';
+        else if (msgEl.classList.contains('dim')) level = 'dim';
+      }
+
+      return { ts: String(ts).trim(), msg: msg, level: level };
+    }).filter(function(row) { return row.ts || row.msg; });
+
+    if (!isFinite(limit)) {
+      return rows.slice(-150);
+    }
+
+    return rows.slice(-Math.min(Math.max(1, limit), 150));
+  } catch (e) {
+    return [];
+  }
+}
+
 Promise.allSettled([
   loadJson('/status.json'),
   loadJson('/stats.json'),
@@ -1754,7 +1826,8 @@ Promise.allSettled([
   loadText('/promises.md'),
   loadText('/pending-approvals.md'),
   loadText('/site-ideas.md'),
-  loadText('/wake-state.md')
+  loadText('/wake-state.md'),
+  loadText('/log.html')
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
   if (results[1].status === 'fulfilled') state.stats = results[1].value || null;
@@ -1772,9 +1845,12 @@ Promise.allSettled([
     state.wake = parseWake(results[12].value);
     state.sessionLog = parseSessionLog(results[12].value, 8);
   }
+  if (results[13].status === 'fulfilled') {
+    state.loopLog = parseLoopLog(results[13].value, 180);
+  }
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/13 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/14 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
