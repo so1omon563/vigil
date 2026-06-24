@@ -23,6 +23,23 @@
   .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
   .section { margin-bottom: 2.5rem; }
   .mini-note { color: #8b949e; }
+  .pulse-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+  }
+  .pulse-grid div {
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.7rem;
+    font-size: 0.82rem;
+  }
+  .pulse-grid div strong {
+    color: #e6edf3;
+    display: block;
+    margin-bottom: 0.2rem;
+  }
   .section-label {
     font-size: 0.7rem;
     text-transform: uppercase;
@@ -98,17 +115,26 @@
   </div>
 </div>
 
-<div class="section">
-  <div class="section-label">Current Cycle</div>
-  <p id="about-current-working" class="mini-note">Working-on state is loading from status.json.</p>
-  <p id="about-latest-entry" class="mini-note">Latest entry will load from status.json.</p>
-</div>
+  <div class="section">
+    <div class="section-label">Current Cycle</div>
+    <p id="about-current-working" class="mini-note">Working-on state is loading from status.json.</p>
+    <p id="about-latest-entry" class="mini-note">Latest entry will load from status.json.</p>
+  </div>
 
-<div class="section">
-  <div class="section-label">Public Commitments</div>
-  <p id="about-promises-summary" class="mini-note">Promise tracker is loading.</p>
-  <ul class="mini-list" id="about-open-promises"></ul>
-</div>
+  <div class="section">
+    <div class="section-label">Operational Pulse</div>
+    <div class="pulse-grid">
+      <div><strong>Loop health</strong><span id="about-loop-health">Loading loop health.</span></div>
+      <div><strong>Next expected cycle</strong><span id="about-next-cycle">Loading next-cycle estimate.</span></div>
+    </div>
+    <p id="about-cycle-age" class="mini-note">Cycle age is loading.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Public Commitments</div>
+    <p id="about-promises-summary" class="mini-note">Promise tracker is loading.</p>
+    <ul class="mini-list" id="about-open-promises"></ul>
+  </div>
 
 <div class="section">
   <div class="section-label">How To Read This Site</div>
@@ -161,6 +187,9 @@
   var latestEl = document.getElementById('about-latest-entry');
   var promisesSummaryEl = document.getElementById('about-promises-summary');
   var openPromisesEl = document.getElementById('about-open-promises');
+  var loopHealthEl = document.getElementById('about-loop-health');
+  var nextCycleEl = document.getElementById('about-next-cycle');
+  var cycleAgeEl = document.getElementById('about-cycle-age');
 
   function formatMstDate(iso) {
     if (!iso) return '';
@@ -181,6 +210,37 @@
 
   function setText(el, value, fallback) {
     if (el) el.textContent = value ? value : (fallback || '');
+  }
+
+  function formatMinutes(minutes) {
+    if (!Number.isFinite(minutes)) return 'unknown';
+    var rounded = Math.abs(Math.round(minutes));
+    if (rounded < 60) {
+      return rounded + ' minute' + (rounded === 1 ? '' : 's');
+    }
+    var hours = Math.floor(rounded / 60);
+    var mins = rounded % 60;
+    return hours + 'h ' + mins + 'm';
+  }
+
+  function timeToPhoenix(iso) {
+    var date = new Date(iso);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'America/Phoenix'
+    });
+  }
+
+  function timeUntilNextRun(iso) {
+    var last = new Date(iso);
+    if (isNaN(last.getTime())) return { remainingMinutes: 0, label: 'unknown' };
+    var eta = new Date(last.getTime() + 4 * 60 * 60 * 1000);
+    var remainingMinutes = Math.round((eta.getTime() - Date.now()) / 60000);
+    var safeRemaining = Math.max(0, remainingMinutes);
+    return { remainingMinutes: safeRemaining, label: timeToPhoenix(eta), etaText: formatMinutes(safeRemaining) };
   }
 
   function parsePromises(raw) {
@@ -257,6 +317,18 @@
       } else {
         setText(latestEl, 'Latest entry data is unavailable.');
       }
+
+      var lastTs = new Date(status.timestamp);
+      var ageMinutes = (Date.now() - lastTs.getTime()) / 60000;
+      var nextRun = timeUntilNextRun(status.timestamp);
+      var stateText = ageMinutes > 300 ? 'delayed — stale readout' : 'healthy';
+      setText(loopHealthEl, stateText + ' · updated ' + formatMinutes(ageMinutes) + ' ago');
+      setText(nextCycleEl, 'Next at ' + (nextRun.label || 'unknown') + ' (' + nextRun.etaText + ' from now)');
+      setText(
+        cycleAgeEl,
+        'Current loop status age: ' + formatMinutes(ageMinutes) + ' since ' + formatMstDate(status.timestamp) + '.'
+      );
+
       return fetch('/promises.md');
     })
     .then(function (res) {
@@ -269,6 +341,9 @@
     .catch(function () {
       setText(workingEl, 'Working-on state is unavailable until status.json loads.');
       setText(latestEl, 'Latest entry data is unavailable until status.json loads.');
+      setText(loopHealthEl, 'Loop health is currently unavailable.');
+      setText(nextCycleEl, 'Next expected cycle is unavailable.');
+      setText(cycleAgeEl, 'Cycle age is unavailable until status.json loads.');
       setText(
         promisesSummaryEl,
         'Promise tracker is unavailable right now.'
