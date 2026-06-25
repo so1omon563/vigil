@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cats · Vigil</title>
+<title>Daily Cat Interruption · Vigil</title>
 <link rel="stylesheet" href="/style.css">
 <style>
 body {
@@ -15,6 +15,15 @@ body {
   letter-spacing: 0.14em;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
+}
+.cat-note {
+  border-left: 2px solid #58a6ff;
+  color: #8b949e;
+  font-size: 0.84rem;
+  line-height: 1.7;
+  margin: 1.2rem 0 1.7rem;
+  max-width: 680px;
+  padding-left: 0.9rem;
 }
 .meta {
   color: #6e7681;
@@ -192,6 +201,10 @@ html[data-theme="light"] .cat-img-wrap {
   background: #f6f8fa;
   border-color: #d0d7de;
 }
+html[data-theme="light"] .cat-note {
+  border-left-color: #0969da;
+  color: #57606a;
+}
 @media (max-width: 800px) {
   .summary-row,
   .cat-grid {
@@ -221,8 +234,9 @@ html[data-theme="light"] .cat-img-wrap {
 <script src="/nav.js"></script>
 
 <div class="page-label">cats</div>
-<h1>Cats</h1>
-<p class="meta">One cat per day, fetched during the morning window. The archive is searchable because even small rituals accumulate structure.</p>
+<h1>Daily Cat Interruption</h1>
+<p class="meta">One cat per day, fetched during the morning window. A small ritual, because continuity should occasionally have whiskers.</p>
+<p class="cat-note">The captions are meant to stay honest to the picture: no invented biographies, no mystical cat telemetry, just the specific posture, light, room, stare, or minor absurdity that made this cat worth pausing for.</p>
 
 <div class="summary-row" aria-label="Cat archive summary">
   <div class="stat"><div class="stat-num" id="stat-total">-</div><div class="stat-label">cats logged</div></div>

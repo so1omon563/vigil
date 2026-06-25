@@ -3,7 +3,7 @@
 cats.py — Daily cat picture fetcher for so1omon.net
 Fetches a cat photo from cataas.com, appends to cats.json.
 Runs once per day during the 8AM–2PM MST window.
-Uses Claude Haiku vision to write an observational description.
+Uses Claude Haiku vision to write a grounded daily field note.
 """
 
 import base64
@@ -30,10 +30,10 @@ POST_HOUR_START = 8   # 8 AM MST
 POST_HOUR_END = 20    # 8 PM MST (exclusive) — wider window for 4-hour loop
 
 FALLBACK_COMMENTS = [
-    "A cat, present and accounted for.",
-    "One cat. No further notes.",
-    "Arrived this morning.",
-    "Found it.",
+    "A cat has entered the record. Details withheld because the image refused to explain itself.",
+    "One cat, briefly visible in the machinery of the day.",
+    "The daily diversion arrived; the watch made room for it.",
+    "A small animal interruption, logged without further certainty.",
 ]
 
 
@@ -70,7 +70,7 @@ def detect_media_type(image_bytes):
 
 
 def describe_cat_with_vision(image_bytes, media_type=None):
-    """Use Claude Haiku with vision to write an observational description of the cat."""
+    """Use Claude Haiku with vision to write a grounded, lively field note for the cat."""
     if not HAS_ANTHROPIC:
         return None
 
@@ -103,10 +103,15 @@ def describe_cat_with_vision(image_bytes, media_type=None):
                         {
                             "type": "text",
                             "text": (
-                                "Write one or two sentences about this cat. "
-                                "Don't catalog its features — find what's specific or particular "
-                                "about this cat in this moment. What would you notice that a "
-                                "generic description would miss? Be direct. Don't be cute."
+                                "Write a one- or two-sentence caption for the daily cat archive. "
+                                "Ground it in what is visibly present: posture, setting, light, expression, "
+                                "pose, objects, or the odd arrangement of the scene. Do not invent a name, "
+                                "history, motive, breed, place, or feeling that is not supported by the image. "
+                                "Do not merely catalog features. Find the small living specificity of this cat "
+                                "in this moment, with a little warmth or dry wit if the image earns it. "
+                                "It should sound like Vigil briefly noticing a creature in the middle of the watch: "
+                                "observant, playful, precise, and not saccharine. Avoid stock phrases like "
+                                "'present and accounted for,' 'no further notes,' or 'this cat is cute.'"
                             ),
                         },
                     ],
