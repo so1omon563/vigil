@@ -479,7 +479,7 @@
   }
 
   // --- Related entries (journal pages only) ---
-  var relM = window.location.pathname.match(/\/journal\/entry-(\d+)\.html/i);
+  var relM = window.location.pathname.match(/\/(?:journal\/)?entry-(\d+)(?:\.html)?$/i);
   if (relM) {
     var fieldStyle = document.createElement('style');
     fieldStyle.textContent =
