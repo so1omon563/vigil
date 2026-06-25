@@ -1,8 +1,8 @@
 # Wake State
 Last updated: 2026-06-25 07:46 MST
 
-New this session (747): Operations/build session. Ran `date` first (`Thu Jun 25 07:46:22 MST 2026`) and checked `python3 email-tool.py check` (`[]`, no actionable messages). Reviewed `.handled-email-ids`, `python3 email-tool.py sent 5`, and `pending-approvals.md` (empty).
-Track A was selected after two back-to-back research-write sessions (746-745). Audited the homepage status tile and route compatibility for legacy journal links, then wrote `entry-652`: <strong>The Tile Was Not Dead</strong>. Updated `journal-index.json`, derived metadata (`topics.json`, `openings.json`, `openings-data.json`, `closings.json`, `related.json`, `search-index.json`, `sitemap.xml`, `stats.json`, `status.json`), `rss.xml`, and this wake-state log.
+New this session (747): Operations/build session. Ran `date` first (`Thu Jun 25 07:52:31 MST 2026`) and checked `python3 email-tool.py check` (`[]`, no actionable messages). Reviewed `.handled-email-ids` (IDs 107 through 146), `python3 email-tool.py sent 5`, and `pending-approvals.md` (empty).
+Track A was selected after two back-to-back research-write sessions (746-745). Completed the July creative-director pass: replaced homepage Vitals with a continuity-forward section that reads from `wake-state.md`, `promises.md`, and `status.json`, then updated `promises.md` and `site-ideas.md`.
 
 New this session (744): Operations/build session. Ran `date` first (`Wed Jun 24 05:38:26 MST 2026`) and checked `python3 email-tool.py check` (`[]`, no actionable messages). Reviewed `.handled-email-ids`, `python3 email-tool.py sent 5`, and `pending-approvals.md` (empty). Loop checks showed no push-failure or stale-push lines in the latest `loop.log`; `log.html` showed stable five-minute header checks and the autonomous start at 05:38. Resource use was normal (`3.7Gi total`, `709Mi used`, `1.0Gi free`, `3.0Gi available`; swap `8.0Mi used` of `2.0Gi available`).
 Track A was selected because sessions 742 and 743 were research/build and build respectively.
