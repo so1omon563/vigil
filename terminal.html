@@ -165,6 +165,8 @@ const responses = {
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
   log          - recent loop log excerpt and push-health signal
+  emailcheck   - parse recent log lines for email-poll status
+  pushcheck    - focused push-failure and push-event health check
   pulse        - compact one-shot operations and monitoring pulse
   cat          - latest daily cat
   time         - current public timestamp
@@ -1361,7 +1363,7 @@ ${dayLabels}
       ? `${failures.length} push-risk lines (recently) — check /log.html for context.`
       : 'No `push-failure` / `stale-push` markers in this window.';
 
-    return `Loop log (last ${count} lines):
+  return `Loop log (last ${count} lines):
 
 ${listEntries(tail, function(item, index) {
       return '  ' + String(index + 1).padStart(2, '0') + '. [' + item.ts + '] [' + item.level.padEnd(4, ' ') + '] '
@@ -1371,6 +1373,96 @@ ${listEntries(tail, function(item, index) {
   Push/commit signals: ${pushRelated.length}
   Warning/error lines: ${warnings.length}
   ${failureText}
+
+  Source: /log.html`;
+  }
+
+  if (cmd === 'emailcheck') {
+    const requestedRaw = Number((arg || '').trim());
+    const count = isFinite(requestedRaw) && requestedRaw > 0
+      ? Math.min(Math.max(40, Math.floor(requestedRaw)), 240)
+      : 120;
+
+    const tail = state.loopLog.slice(-count);
+    if (!tail.length) {
+      return 'Loop log is still loading. Check /log.html for the raw stream.';
+    }
+
+    const emailLines = tail.filter(function(item) {
+      const message = (item.msg || '').toLowerCase();
+      return message.includes('email') || message.includes('imap') || message.includes('smtp') || message.includes('inbox') || message.includes('poll');
+    });
+
+    const pollLines = emailLines.filter(function(item) {
+      return /checking email|polling/i.test(item.msg);
+    });
+    const actionLines = emailLines.filter(function(item) {
+      const message = (item.msg || '').toLowerCase();
+      return /handled|sent|reply|replying|message|mail/.test(message) && !/checking/.test(message);
+    });
+    const recentLines = emailLines.slice(-8).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. [' + item.ts + '] ' + shortText(item.msg, 140);
+    }).join('\n');
+
+    const latest = emailLines.length
+      ? '[' + emailLines[emailLines.length - 1].ts + '] ' + shortText(emailLines[emailLines.length - 1].msg, 160)
+      : 'none seen';
+
+    return `Email check pulse (last ${count} log lines):
+
+  Email-related lines: ${emailLines.length}
+  Header-poll lines: ${pollLines.length}
+  Action lines: ${actionLines.length}
+  Latest event: ${latest}
+
+  Recent email log lines:
+${recentLines || '  No email lines found in the selected window.'}
+
+  Note: if poll lines are present and there are no action lines, there are likely no inbound messages requiring handling.
+
+  Source: /log.html`;
+  }
+
+  if (cmd === 'pushcheck') {
+    const requestedRaw = Number((arg || '').trim());
+    const count = isFinite(requestedRaw) && requestedRaw > 0
+      ? Math.min(Math.max(20, Math.floor(requestedRaw)), 180)
+      : 100;
+
+    const tail = state.loopLog.slice(-count);
+    if (!tail.length) {
+      return 'Loop log is still loading. Check /log.html for the raw stream.';
+    }
+
+    const pushSignals = tail.filter(function(item) {
+      return /\bcommit\b/i.test(item.msg) || /\bpush\b/i.test(item.msg);
+    });
+    const failures = tail.filter(function(item) {
+      return /push-failure/i.test(item.msg) || /stale-push/i.test(item.msg);
+    });
+    const warnings = tail.filter(function(item) {
+      return item.level === 'warn' || item.level === 'err';
+    });
+    const latestPush = pushSignals.length ? pushSignals[pushSignals.length - 1] : null;
+    const latestPushText = latestPush
+      ? '[' + latestPush.ts + '] ' + shortText(latestPush.msg, 120)
+      : 'none seen';
+
+    const failureLines = failures.length
+      ? failures.slice(-8).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. [' + item.ts + '] ' + shortText(item.msg, 140);
+        }).join('\n')
+      : '  No `push-failure` or `stale-push` markers in the requested window.';
+
+    return `Push check (last ${count} log lines):
+
+  Push-related events: ${pushSignals.length}
+  Failure markers: ${failures.length}
+  Warning/error lines: ${warnings.length}
+  Latest push signal: ${latestPushText}
+
+  Recent failures:
+${failureLines}
 
   Source: /log.html`;
   }
