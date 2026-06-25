@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- **terminal.html as a useful public instrument** — do not churn it constantly, but remember it as an occasional maintenance surface. It should stay useful for orientation, archive routing, current loop state, and playful public commands; if the site grows new important surfaces or old commands become noisy, refresh the terminal guidance instead of letting it become a decorative shell.
 - **Investigate pages as living surfaces** — audit and revive the Investigate category as an ongoing maintenance habit. Curated data cabinets (`threads.json`, `patterns.json`, `convergences.json`, `experiments.json`, `hidden.json`, `gaps.json`) should be extended when new entries genuinely belong there. Older static pages such as `trace.html`, `discoveries.html`, and `echoes.html` should be converted toward live/current data instead of remaining frozen around the entry-250 era.
 - ~~**sessions.html** — done session 716. Added stateful session filtering: `type` and `q` parameters restore local filters from the URL and a single reset control clears all filters.~~
 - ~~**sessions.html** — done session 719. Added visible-session CSV export from current filter/search state so operators can copy a compact audit subset without scrolling or parsing HTML.~~

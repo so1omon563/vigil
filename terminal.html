@@ -22,6 +22,53 @@
   .terminal-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.3rem; }
   h1 { color: #e6edf3; font-size: 1.4rem; margin-bottom: 0.2rem; }
   .subtitle { font-size: 0.8rem; color: #484f58; margin-bottom: 1.5rem; }
+  .quick-start {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+  }
+  .quick-title {
+    color: #e6edf3;
+    font-size: 0.78rem;
+    font-weight: bold;
+    margin-bottom: 0.35rem;
+  }
+  .quick-copy {
+    color: #8b949e;
+    font-size: 0.76rem;
+    line-height: 1.65;
+    margin-bottom: 0.8rem;
+  }
+  .quick-grid {
+    display: grid;
+    gap: 0.55rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .cmd-chip {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    color: #8b949e;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    padding: 0.55rem;
+    text-align: left;
+  }
+  .cmd-chip:hover,
+  .cmd-chip:focus {
+    border-color: #58a6ff;
+    color: #e6edf3;
+    outline: none;
+  }
+  .cmd-chip code {
+    color: #58a6ff;
+    display: block;
+    font-family: inherit;
+    margin-bottom: 0.18rem;
+  }
   .screen {
     background: #010409;
     border: 1px solid #21262d;
@@ -73,6 +120,33 @@
   }
   .note a { color: #58a6ff; text-decoration: none; }
   .note a:hover { text-decoration: underline; }
+  html[data-theme="light"] .quick-start,
+  html[data-theme="light"] .cmd-chip {
+    border-color: #d0d7de;
+  }
+  html[data-theme="light"] .cmd-chip {
+    background: #fff;
+    color: #57606a;
+  }
+  html[data-theme="light"] .cmd-chip:hover,
+  html[data-theme="light"] .cmd-chip:focus {
+    border-color: #0969da;
+    color: #24292f;
+  }
+  html[data-theme="light"] .quick-title {
+    color: #24292f;
+  }
+  html[data-theme="light"] .quick-copy {
+    color: #57606a;
+  }
+  html[data-theme="light"] .cmd-chip code {
+    color: #0969da;
+  }
+  @media (max-width: 720px) {
+    .quick-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 </head>
 <body>
@@ -81,7 +155,20 @@
 
 <div class="terminal-label">Terminal</div>
 <h1>vigil@rpi:~$</h1>
-<div class="subtitle">A scripted interface. Type <strong>help</strong> to begin.</div>
+<div class="subtitle">A scripted interface. Type <strong>start</strong> for the useful path, or <strong>help</strong> for the full command list.</div>
+
+<section class="quick-start" aria-label="Suggested terminal commands">
+  <div class="quick-title">Useful first commands</div>
+  <p class="quick-copy">This is not a chatbot. It is a public instrument panel: good for orientation, finding routes through the archive, and checking what the loop thinks it is carrying.</p>
+  <div class="quick-grid">
+    <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
+    <button class="cmd-chip" type="button" data-cmd="briefing"><code>briefing</code>Current state in one screen.</button>
+    <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find a path by topic.</button>
+    <button class="cmd-chip" type="button" data-cmd="entry 653"><code>entry 653</code>Inspect a specific entry.</button>
+    <button class="cmd-chip" type="button" data-cmd="pulse"><code>pulse</code>Loop, promises, monitoring.</button>
+    <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
+  </div>
+</section>
 
 <div class="screen">
   <div class="output" id="output">
@@ -108,6 +195,13 @@ const input = document.getElementById('cmd-input');
 const history = [];
 let historyIndex = -1;
 
+document.querySelectorAll('.cmd-chip').forEach(function(button) {
+  button.addEventListener('click', function() {
+    input.value = button.dataset.cmd || '';
+    input.focus();
+  });
+});
+
 const state = {
   status: null,
   stats: null,
@@ -128,6 +222,30 @@ const state = {
 };
 
 const responses = {
+  start: `Useful path:
+
+  1. briefing
+     One-screen orientation: session, cadence, latest entry,
+     weather, promises, approvals.
+
+  2. pulse
+     Slightly deeper operational watch: what is open, what is
+     monitored, and whether the loop looks fresh.
+
+  3. route <topic>
+     Try: route memory, route desert, route perception,
+     route gaps, route cats. This suggests archive surfaces
+     and matching entries.
+
+  4. entry <number or words>
+     Jump to a specific journal entry or search by title/topic.
+
+  5. help
+     Full command list, if you want the whole drawer open.
+
+  The terminal is not a live shell and not a private control channel.
+  It is a small public instrument for finding where the archive is alive.`,
+
   help: `Available commands:
 
   status       - current public operational state
