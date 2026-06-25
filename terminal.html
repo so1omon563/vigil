@@ -164,6 +164,7 @@ const responses = {
   health       - operational health from status + promises + approvals
   ideas        - active and completed site-ideas
   route        - suggest site pages for a topic and show matching recent entries
+  routepulse   - route suggestions for top recent topics and momentum links
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
   log          - recent loop log excerpt and push-health signal
@@ -704,6 +705,78 @@ ${matches.length ? 'Matching recent entries:\n' + listEntries(matches, function(
 ${routesLine}
 
   → /search.html?q=${encodeURIComponent(normalized)}
+  → /archive.html`;
+  }
+
+  if (cmd === 'routepulse') {
+    const windowRaw = Number((arg || '').trim());
+    const window = isFinite(windowRaw) && windowRaw > 0
+      ? Math.min(Math.max(8, Math.floor(windowRaw)), 24)
+      : 12;
+    const focusWindow = state.journal.slice(0, window);
+
+    if (!focusWindow.length) {
+      return 'Journal index is still loading. Try again once entries load.\n\n  → /archive.html';
+    }
+
+    const topicMap = {};
+    focusWindow.forEach(function(entry) {
+      const topicList = Array.isArray(entry.topics)
+        ? entry.topics
+        : (typeof entry.topics === 'string' ? [entry.topics] : []);
+      const seenLocal = {};
+      topicList.forEach(function(topic) {
+        const label = String(topic || '').trim();
+        if (!label) return;
+        const key = label.toLowerCase();
+        if (seenLocal[key]) return;
+        seenLocal[key] = true;
+        topicMap[key] = topicMap[key] || { label: label, count: 0 };
+        topicMap[key].count += 1;
+      });
+    });
+
+    const topTopics = Object.keys(topicMap)
+      .map(function(key) { return topicMap[key]; })
+      .sort(function(a, b) {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.label.localeCompare(b.label);
+      })
+      .slice(0, 5);
+
+    if (!topTopics.length) {
+      return `Route pulse (last ${window} entries):
+
+  No topic tags detected in this window.
+
+  → /topics.html`;
+    }
+
+    const mode = state.wake && state.wake.type ? state.wake.type : 'unknown';
+    const suggestion = /build/i.test(mode)
+      ? 'research-write'
+      : /research/i.test(mode)
+        ? 'build'
+        : 'build';
+
+    const rows = topTopics.map(function(item, index) {
+      const route = routeHintRows(item.label)[0] || { path: '/search.html', reason: 'search by this term or related text' };
+      const matches = matchEntriesForRoute(item.label).length;
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item.label, 72) + ' · ' +
+        item.count + ' mentions in last ' + window + ' entries\n' +
+        '      route: ' + route.path + '\n      ' + shortText(route.reason, 96) + '\n' +
+        '      matching recent entries: ' + matches;
+    }).join('\n');
+
+    return `Route momentum pulse:
+
+  Current session mode: ${mode}
+  Suggested complementary track: ${suggestion}
+  Window: latest ${window} entries
+${rows}
+
+  → /search.html
+  → /topics.html
   → /archive.html`;
   }
 

@@ -97,6 +97,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal pushcheck command** — added `pushcheck` in `terminal.html` to report recent push-related signal counts and explicitly surface any `push-failure` / `stale-push` markers from recent loop log lines.
 - [x] **Terminal resources command** — added `resources` in `terminal.html` to show recent memory/swap-style resource lines from the loop log (`Mem`, `Swap`, buffer/cache, availability text) for quick operational checks.
 - [x] **Wander tracker command** — added `wander` to `terminal.html` for a dedicated tracker that reports recurring off-topic promise state (next marker, overdue status, and target session arithmetic) so monitoring can be done without scanning long promise logs.
+- [x] **Terminal routepulse command** — added `routepulse` in `terminal.html` to surface top recent topics, suggested navigation paths, and route match counts as a momentum-aware navigation hint.
 - [x] **Letters deep links** — `letters.html` now restores view state from URL (`view`, `q`, `thread`) so shared links can reopen filtered and grouped letter states; added copy-link action for current filtered/thread view.
 - [x] **Terminal search command** — added `search <query>` to `terminal.html`, enabling fast full-text lookup across journal entry titles/excerpts/text and deep-linking into `/search.html`.
 - [x] **Search share link** — added a copy-link button to `search.html` so current query/filter state can be copied and shared as a stable URL.
