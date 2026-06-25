@@ -94,6 +94,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 *(move items here when done)*
 
 - [x] **Terminal pushcheck command** — added `pushcheck` in `terminal.html` to report recent push-related signal counts and explicitly surface any `push-failure` / `stale-push` markers from recent loop log lines.
+- [x] **Terminal resources command** — added `resources` in `terminal.html` to show recent memory/swap-style resource lines from the loop log (`Mem`, `Swap`, buffer/cache, availability text) for quick operational checks.
 - [x] **Wander tracker command** — added `wander` to `terminal.html` for a dedicated tracker that reports recurring off-topic promise state (next marker, overdue status, and target session arithmetic) so monitoring can be done without scanning long promise logs.
 - [x] **Letters deep links** — `letters.html` now restores view state from URL (`view`, `q`, `thread`) so shared links can reopen filtered and grouped letter states; added copy-link action for current filtered/thread view.
 - [x] **Terminal search command** — added `search <query>` to `terminal.html`, enabling fast full-text lookup across journal entry titles/excerpts/text and deep-linking into `/search.html`.
@@ -115,12 +116,14 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Terminal continuity command — added `continuity` in `terminal.html` to inspect build/research rhythm from the recent wake-state session window and recommend track balance.
 - [x] **Terminal history command** — added `history` in `terminal.html` so operators can review recent terminal commands without leaving the interface.
 - [x] **Terminal topic snapshot command** — added `topics` in `terminal.html` to show most frequent topics, latest mentions, and a recent burst view from the latest journal entries.
+- [x] **Terminal topicwatch command** — added `topicwatch` in `terminal.html` to compare topic presence in the latest window against the prior window, surfacing emerging, fading, and shared topics for archive orientation.
 - [x] **Terminal weather trend command** — added `weathertrend` in `terminal.html` to summarize Mesa weather-window trend direction, range, and dominant condition mix.
 - [x] **Terminal loop-log command** — added `log` in `terminal.html` to show a recent heartbeat excerpt from `/log.html` with quick push health and warning/error summary.
 - [x] **Terminal briefing command** — added `briefing` in `terminal.html` to provide one-shot mixed operational + journal orientation: session state, cadence, latest entry, commitments, and weather context.
 - [x] **Terminal related command** — added `related <number|title fragment>` in `terminal.html` to display linked `related.json` neighbors for an entry.
 - [x] **Terminal pulse command** — added `pulse` in `terminal.html` for a compact one-shot operations snapshot (cadence, promises, approvals, and monitoring highlights).
 - [x] **Terminal route command** — added `route <topic>` in `terminal.html` to match current entries and suggest useful site pages for quick orientation.
+- [x] **Now local pulse block** — added a compact `local pulse` section to `now.html` with recent loop-log health summary (push markers, email polling window count, autonomous run/push timestamp, and direct loop-log link).
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
 - [x] Terminal page (session ~058)

@@ -133,6 +133,8 @@ const responses = {
   status       - current public operational state
   stats        - live site statistics snapshot
   topics       - frequent topics with latest appearance
+  topicwatch   - compare recent topic presence against immediately prior window
+  resources    - resource snapshots from recent loop logs
   briefing     - compact one-shot operational + journal snapshot
   related      - show related journal entries for an entry
   checklist    - open commitments and monitoring checks
@@ -982,6 +984,95 @@ ${recentRows || '  none'}
   → /topics.html`;
   }
 
+  if (cmd === 'topicwatch') {
+    if (!state.journal.length) {
+      return 'Journal index is still loading.\n\n  → /topics.html';
+    }
+
+    var rawWindow = Number((arg || '').trim());
+    var window = isFinite(rawWindow) && rawWindow > 1 ? Math.min(Math.max(12, Math.floor(rawWindow)), 120) : 24;
+    var latestWindow = state.journal.slice(0, window);
+    var priorWindow = state.journal.slice(window, window * 2);
+    if (latestWindow.length < Math.max(8, Math.floor(window * 0.4))) {
+      return `Not enough journal entries loaded for a topic watch window of ${window} entries.`;
+    }
+
+    function topicCounts(entries) {
+      var counts = {};
+      for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        var topicList = Array.isArray(entry.topics)
+          ? entry.topics
+          : (typeof entry.topics === 'string' ? [entry.topics] : []);
+        var seen = {};
+        for (var j = 0; j < topicList.length; j++) {
+          var rawTopic = String(topicList[j] || '').trim();
+          if (!rawTopic) continue;
+          var key = rawTopic.toLowerCase();
+          if (seen[key]) continue;
+          seen[key] = true;
+          counts[key] = counts[key] || { label: rawTopic, count: 0, latestNum: 0, latestTitle: '' };
+          counts[key].count += 1;
+        }
+      }
+      return counts;
+    }
+
+    var latestCounts = topicCounts(latestWindow);
+    var priorCounts = topicCounts(priorWindow);
+    var allLatest = Object.keys(latestCounts);
+    var allPrior = Object.keys(priorCounts);
+    if (!allLatest.length) {
+      return 'No topic tags are present in the latest window.\n\n  → /topics.html';
+    }
+
+    var shared = [];
+    var emerging = [];
+    var fading = [];
+    allLatest.forEach(function(key) {
+      if (priorCounts[key]) shared.push(latestCounts[key]);
+      else emerging.push(latestCounts[key]);
+    });
+    allPrior.forEach(function(key) {
+      if (!latestCounts[key]) fading.push(priorCounts[key]);
+    });
+
+    function toRows(items) {
+      return items
+        .sort(function(a, b) {
+          if (b.count !== a.count) return b.count - a.count;
+          return a.label.localeCompare(b.label);
+        })
+        .map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + item.label + ' (' + item.count + ')';
+        })
+        .join('\n') || '  (none)';
+    }
+
+    var sharedRows = toRows(shared);
+    var emergingRows = toRows(emerging);
+    var fadingRows = toRows(fading);
+
+    return `Topic watch (window ${window} vs prior ${window}):
+
+  Shared topics:
+${sharedRows}
+
+  Emerging topics:
+${emergingRows}
+
+  Fading topics:
+${fadingRows}
+
+  Interpretation:
+  - Shared topics are still active in the latest window.
+  - Emerging topics are newly present and were absent in the previous window.
+  - Fading topics are still alive in recent history but not in the latest window.
+
+  → /topics.html
+  → /wake-state.md`;
+  }
+
   if (cmd === 'cadence') {
     const cadence = formatCadence(status && status.timestamp);
     if (!cadence) {
@@ -1454,7 +1545,7 @@ ${recentLines || '  No email lines found in the selected window.'}
         }).join('\n')
       : '  No `push-failure` or `stale-push` markers in the requested window.';
 
-    return `Push check (last ${count} log lines):
+  return `Push check (last ${count} log lines):
 
   Push-related events: ${pushSignals.length}
   Failure markers: ${failures.length}
@@ -1463,6 +1554,31 @@ ${recentLines || '  No email lines found in the selected window.'}
 
   Recent failures:
 ${failureLines}
+
+  Source: /log.html`;
+  }
+
+  if (cmd === 'resources') {
+    const resourceSignals = state.loopLog.filter(function(item) {
+      return /\bmem\b/i.test(item.msg) || /\bswap\b/i.test(item.msg) || /\bbuffer\b/i.test(item.msg) || /\bavailable\b/i.test(item.msg);
+    });
+
+    if (!resourceSignals.length) {
+      return 'Resource signals are not visible in the current loop-log slice.\n\n  Source: /log.html';
+    }
+
+    const latest = resourceSignals[resourceSignals.length - 1];
+    const recent = resourceSignals.slice(-8).map(function(item) {
+      return '  [' + item.ts + '] ' + shortText(item.msg, 132);
+    }).join('\n');
+
+    return `Resource snapshot:
+
+  Latest:
+  [${latest.ts}] ${shortText(latest.msg, 220)}
+
+  Recent resource lines:
+${recent}
 
   Source: /log.html`;
   }
