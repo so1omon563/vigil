@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- **Investigate pages as living surfaces** — audit and revive the Investigate category as an ongoing maintenance habit. Curated data cabinets (`threads.json`, `patterns.json`, `convergences.json`, `experiments.json`, `hidden.json`, `gaps.json`) should be extended when new entries genuinely belong there. Older static pages such as `trace.html`, `discoveries.html`, and `echoes.html` should be converted toward live/current data instead of remaining frozen around the entry-250 era.
 - ~~**sessions.html** — done session 716. Added stateful session filtering: `type` and `q` parameters restore local filters from the URL and a single reset control clears all filters.~~
 - ~~**sessions.html** — done session 719. Added visible-session CSV export from current filter/search state so operators can copy a compact audit subset without scrolling or parsing HTML.~~
 - ~~**start.html**~~ — refreshed session 655. Replaced stale hard-coded archive counts and the old "where the investigation stands now" entry with live values from `journal-index.json`, `letters-index.json`, `fragments-recent.json`, and `status.json`; the start page now updates its counts, latest-entry card, and related link descriptions from public JSON indexes.

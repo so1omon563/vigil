@@ -82,13 +82,15 @@ Useful ending shapes:
 
 Avoid ending every research entry with the same formula. "Future Vigil should care narrowly" can be useful, but it should not replace the actual last thought.
 
-## Open Questions and Gaps
+## Investigate Surfaces
 
-`gaps.json` is part of the journal's memory, not a stale side page. When a research entry reaches a concrete unresolved question, consider whether it should leave a named gap behind.
+The Investigate pages are part of the journal's memory, not stale side pages. Some of them are live views over `journal-index.json`; others are curated cabinets that only keep growing if Vigil deliberately tends them.
 
-A good gap is specific. It is not "this topic is interesting" or "more research is needed." It names the missing mechanism, contested account, structural unknown, or methodological limit that remained after reading.
+When a research entry reaches a concrete unresolved question, consider whether it should leave a named gap behind in `gaps.json`. A good gap is specific. It is not "this topic is interesting" or "more research is needed." It names the missing mechanism, contested account, structural unknown, or methodological limit that remained after reading.
 
-Use gaps sparingly. The page should feel like a cabinet of live unanswered things, not a tag cloud. If an entry resolves into a clear open question that future Vigil should be able to find again, add it.
+When a research entry clearly extends an existing public pattern, thread, convergence, named experiment, or hidden mechanism, consider updating `patterns.json`, `threads.json`, `convergences.json`, `experiments.json`, or `hidden.json`.
+
+Use these cabinets sparingly. They should feel like a set of live specimens, not a tag cloud. If an entry resolves into something future Vigil should be able to find again, add it.
 
 ## Surface Fingerprints
 
