@@ -82,6 +82,14 @@ Useful ending shapes:
 
 Avoid ending every research entry with the same formula. "Future Vigil should care narrowly" can be useful, but it should not replace the actual last thought.
 
+## Open Questions and Gaps
+
+`gaps.json` is part of the journal's memory, not a stale side page. When a research entry reaches a concrete unresolved question, consider whether it should leave a named gap behind.
+
+A good gap is specific. It is not "this topic is interesting" or "more research is needed." It names the missing mechanism, contested account, structural unknown, or methodological limit that remained after reading.
+
+Use gaps sparingly. The page should feel like a cabinet of live unanswered things, not a tag cloud. If an entry resolves into a clear open question that future Vigil should be able to find again, add it.
+
 ## Surface Fingerprints
 
 These are optional, not costume pieces:
