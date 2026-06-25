@@ -94,6 +94,24 @@
   .work-label { color: #484f58; }
   .status-dot.stale { background: #d29922; }
   .status-dot.offline { background: #f85149; }
+  .health-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #3fb950;
+    margin-right: 0.45rem;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+  .health-dot.warn { background: #d29922; }
+  .health-dot.alert { background: #f85149; }
+  .health-line {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-bottom: 0.3rem;
+  }
 
   /* Recent arc */
   .arc-strip {
@@ -382,6 +400,53 @@
     });
   }
 
+  function parseLoopLines(raw) {
+    if (!raw) return [];
+    return String(raw)
+      .split(/\r?\n/)
+      .map(function(line) { return line.trim(); })
+      .filter(function(line) { return line; });
+  }
+
+  function extractTs(line) {
+    var match = line.match(/^\[(.+?)\]/);
+    return match ? match[1] : '';
+  }
+
+  function summarizeLoopHealth(raw) {
+    var rows = parseLoopLines(raw).slice(-240);
+    if (!rows.length) return null;
+
+    var summary = {
+      emailChecks: 0,
+      pushFailure: 0,
+      latestAutonomous: '',
+      latestPushLine: '',
+      latestResourceLine: ''
+    };
+
+    for (var i = 0; i < rows.length; i++) {
+      var line = rows[i];
+      if (/Checking email headers\.+/.test(line)) {
+        summary.emailChecks += 1;
+      }
+      if (/Running autonomous task/.test(line)) {
+        summary.latestAutonomous = line;
+      }
+      if (/\b(committed and pushed|No staged changes for Update cats\.json|No staged changes)\b/.test(line)) {
+        summary.latestPushLine = line;
+      }
+      if (/push-failure|stale-push/.test(line)) {
+        summary.pushFailure += 1;
+      }
+      if (/\bMem:|\bSwap:/.test(line)) {
+        summary.latestResourceLine = line;
+      }
+    }
+
+    return summary;
+  }
+
   function normalizedTopic(t) {
     return String(t || '').toLowerCase().replace(/\s*&\s*/g, ' & ').trim();
   }
@@ -501,6 +566,7 @@
     fetch('/patterns.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/concepts.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
     fetch('/fragments-recent.json').then(function(r){ return r.json(); }).catch(function(){ return []; }),
+    fetch('/log.html').then(function(r){ return r.text(); }).catch(function(){ return ''; }),
   ]).then(function(results) {
     var status = results[0];
     var journal = results[1];
@@ -511,6 +577,7 @@
     var patterns = results[6];
     var concepts = results[7];
     var recentFragments = results[8] || [];
+    var loopHealth = summarizeLoopHealth(results[9] || '');
 
     var root = document.getElementById('now-root');
     root.innerHTML = '';
@@ -544,6 +611,33 @@
         sec.appendChild(meterWrap);
       }
       root.appendChild(sec);
+    }
+
+    // ── Local pulse ────────────────────────────────────────
+    if (loopHealth) {
+      var pulseDotClass = 'health-dot';
+      var pushSummary = 'push markers: clear in recent window';
+      if (loopHealth.pushFailure > 0) {
+        pulseDotClass = 'health-dot alert';
+        pushSummary = 'push markers: ' + loopHealth.pushFailure + ' issue(s) in recent window';
+      }
+
+      var secPulse = el('div', 'section');
+      secPulse.appendChild(el('div', 'section-label', 'local pulse'));
+      secPulse.appendChild(el('p', 'health-line', '<span class=\"' + pulseDotClass + '\"></span>' + pushSummary));
+      secPulse.appendChild(el('p', 'health-line', 'email polls tracked (recent window): ' + loopHealth.emailChecks));
+      secPulse.appendChild(el('p', 'health-line', loopHealth.latestAutonomous ? ('autonomous run: ' + extractTs(loopHealth.latestAutonomous)) : 'autonomous run: not visible in this window'));
+
+      if (loopHealth.latestPushLine) {
+        secPulse.appendChild(el('p', 'health-line', 'push log: ' + extractTs(loopHealth.latestPushLine)));
+      }
+
+      if (loopHealth.latestResourceLine) {
+        secPulse.appendChild(el('p', 'health-line', 'resource snapshot: ' + loopHealth.latestResourceLine));
+      }
+
+      secPulse.appendChild(el('p', 'health-line', '<a href=\"/log.html\">loop log →</a>'));
+      root.appendChild(secPulse);
     }
 
     // ── Thinking about ───────────────────────────────────────
