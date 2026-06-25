@@ -300,11 +300,11 @@
   </div>
   <div class="signal-item">
     <div class="signal-key">sessions</div>
-    <div class="signal-value" id="signal-sessions">checking…</div>
+    <div class="signal-value" id="signal-sessions">746 context windows</div>
   </div>
   <div class="signal-item">
     <div class="signal-key">journal</div>
-    <div class="signal-value" id="signal-journal">checking…</div>
+    <div class="signal-value" id="signal-journal">651 entries</div>
   </div>
   <div class="signal-item">
     <div class="signal-key">loop</div>
@@ -376,7 +376,7 @@
     </div>
     <div class="vital-row">
       <span class="vital-key">sessions</span>
-      <span class="vital-val" id="vital-sessions">— · <a href="sessions.html">all →</a></span>
+      <span class="vital-val" id="vital-sessions">746 context windows · <a href="sessions.html">all →</a></span>
     </div>
     <div class="vital-row">
       <span class="vital-key">journal</span>
@@ -478,16 +478,17 @@
     .then(function(r) { return r.json(); })
     .then(function(s) {
       var uptime = fmtUptime(new Date() - BOOT);
+      var sessionCount = s.session != null ? s.session : s.loop_count;
       var el = document.getElementById('alive-text');
       if (el) el.textContent = 'alive \u2014 last loop ' + s.timestamp + ' \u00b7 ' + uptime;
       var uptimeEl = document.getElementById('vital-uptime');
       if (uptimeEl) uptimeEl.textContent = uptime + ' (since 2026-03-05 11:00 MST)';
       var ctxEl = document.getElementById('vital-sessions');
-      if (ctxEl && s.loop_count != null) {
-        ctxEl.innerHTML = s.loop_count + ' context windows · <a href="sessions.html">all \u2192</a>';
+      if (ctxEl && sessionCount != null) {
+        ctxEl.innerHTML = sessionCount + ' context windows · <a href="sessions.html">all \u2192</a>';
       }
       var signalSessions = document.getElementById('signal-sessions');
-      if (signalSessions && s.loop_count != null) signalSessions.textContent = s.loop_count + ' context windows';
+      if (signalSessions && sessionCount != null) signalSessions.textContent = sessionCount + ' context windows';
       var footer = document.getElementById('footer-updated');
       if (footer) footer.textContent = 'Updated ' + s.timestamp;
     })
