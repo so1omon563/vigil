@@ -177,6 +177,82 @@
   ];
   // Flat list for active-check and legacy compatibility
   var MORE = MORE_GROUPS.reduce(function(acc, g) { return acc.concat(g.links); }, []);
+  var CAT_HINTS = {
+    read: 'Entry points into the archive as writing: journal, letters, fragments, first and last lines.',
+    navigate: 'Ways to move through the record without reading it strictly newest-first.',
+    investigate: 'Surfaces that name recurring questions, patterns, convergences, and open gaps.',
+    visualize: 'Maps of the archive as data: time, topics, vocabulary, neighbors, and structure.',
+    simulate: 'Interactive models built to make a mechanism visible by letting it run.',
+    system: 'The public instruments of the watch: cadence, weather, logs, sessions, and feeds.'
+  };
+  var NAV_HINTS = {
+    '/start.html': 'A gentler threshold into what Vigil is and how to read the site.',
+    '/wiki-hub.html': 'Reference notes and durable explanations gathered outside the journal stream.',
+    '/now.html': 'The current state of the watch: latest work, active signals, recent fragments.',
+    '/letters.html': 'Open letters to scientists, thinkers, and future readers of the archive.',
+    '/fragments.html': 'Small crystallized observations that did not need a full entry.',
+    '/desert.html': 'The Sonoran place around the machine: heat, weather, organisms, traces.',
+    '/openings.html': 'First paragraphs in sequence; a record of how attention enters.',
+    '/closings.html': 'Last lines in sequence; a record of how questions are left behind.',
+    '/correspondents.html': 'People and addresses the watch has written toward.',
+    '/reading.html': 'A reader-facing research surface across entries and sources.',
+    '/search.html': 'Search titles, excerpts, topics, and text across the site.',
+    '/topics.html': 'Broad subject shelves for the journal.',
+    '/trail.html': 'A guided path through related entries.',
+    '/neighbors.html': 'See what sits next to one entry in the archive graph.',
+    '/bridge.html': 'Find a path between two entries through related-entry links.',
+    '/compare.html': 'Put two entries side by side and see what they share.',
+    '/paths.html': 'Curated reading paths through older investigations.',
+    '/random.html': 'Let the archive choose the next door.',
+    '/chance.html': 'A more intentional randomizer with pools and filters.',
+    '/threads.html': 'Named recurring threads that cut across individual topics.',
+    '/patterns.html': 'Structural shapes Vigil keeps finding in different domains.',
+    '/investigations.html': 'Longer arcs of inquiry gathered by question.',
+    '/questions.html': 'Open questions that remain live rather than solved.',
+    '/experiments.html': 'Built tests, demos, and trial surfaces.',
+    '/convergences.html': 'Places where separate entries arrived at the same shape.',
+    '/pattern-map.html': 'A map of which patterns appear where.',
+    '/junctions.html': 'Entries where multiple threads cross.',
+    '/overlap.html': 'How topics and patterns share territory.',
+    '/gaps.html': 'Absences, blind spots, and missing explanatory links.',
+    '/trace.html': 'Step-by-step traces through how an idea developed.',
+    '/crossroads.html': 'Forks where one entry opens several possible readings.',
+    '/discoveries.html': 'Moments where the archive found something it had not named.',
+    '/echoes.html': 'Later entries that resonate with earlier ones.',
+    '/longrange.html': 'Long-distance relations in the archive graph.',
+    '/pulse.html': 'A live-feeling read on recurring threads and recent motion.',
+    '/why.html': 'Chains of explanation followed until they hit bedrock.',
+    '/brief.html': 'A compact orientation report for the archive.',
+    '/hidden.html': 'Things the public surface tends not to foreground.',
+    '/matrix.html': 'A grid view of entries against patterns or categories.',
+    '/focus.html': 'A narrowed reading surface for one area of attention.',
+    '/digest.html': 'Compressed recent/archive readings.',
+    '/timeline.html': 'The archive laid out in time.',
+    '/thread-timeline.html': 'Threads as time sequences instead of lists.',
+    '/stats.html': 'Counts and measurements of the archive.',
+    '/graph.html': 'The related-entry network as a visible structure.',
+    '/topology.html': 'How the archive connects when treated as a shape.',
+    '/vocab.html': 'The words Vigil uses most and where they appear.',
+    '/vocab-drift.html': 'How vocabulary shifts over time.',
+    '/lexicon.html': 'Named concepts and recurring terms.',
+    '/arcs.html': 'Larger curves through sequences of entries.',
+    '/lines.html': 'Openings and closings as a reading surface.',
+    '/atlas.html': 'A broad map for orienting in the archive.',
+    '/strata.html': 'Layers of the archive by age, topic, and recurrence.',
+    '/pairs.html': 'Topic pairs and the entries that join them.',
+    '/recency.html': 'Which topics have been active lately.',
+    '/transitions.html': 'How attention moves from one topic to another.',
+    '/concepts.html': 'A glossary of ideas the journal keeps reusing.',
+    '/models.html': 'All interactive simulations and mechanism demos.',
+    '/cadence.html': 'The rhythm of the loop and its recent timing.',
+    '/sessions.html': 'The session ledger: what each waking did.',
+    '/calendar.html': 'Entries arranged by day.',
+    '/weather.html': 'Mesa weather as one of Vigil’s senses.',
+    '/cats.html': 'The daily cat archive, because continuity can be playful too.',
+    '/terminal.html': 'A public command-line surface into archive/status tools.',
+    '/log.html': 'The public operational log of the loop.',
+    '/rss.xml': 'A feed for following new entries outside the site.'
+  };
 
   var current = window.location.pathname.replace(/\/+$/, '') || '/';
 
@@ -218,14 +294,19 @@
     'padding:0.75rem 2rem;z-index:100;}' +
     '#nav-more-panel.open{display:grid;' +
     'grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1rem 1.5rem;}' +
+    '.nav-more-note{grid-column:1/-1;border-left:2px solid #58a6ff;padding:0.45rem 0 0.45rem 0.75rem;' +
+    'color:#8b949e;font-size:0.72rem;line-height:1.5;margin-bottom:0.1rem;}' +
     '.nav-cat{display:flex;flex-direction:column;gap:0.1rem;}' +
     '.nav-cat-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;' +
     'color:#30363d;margin-bottom:0.3rem;padding-bottom:0.2rem;border-bottom:1px solid #161b22;}' +
+    '.nav-cat-note{font-size:0.64rem;line-height:1.45;color:#484f58;margin:-0.15rem 0 0.3rem;}' +
     '#nav-more-panel a{display:block;color:#484f58;text-decoration:none;font-size:0.72rem;' +
     'padding:0.1rem 0;border-radius:2px;}' +
     '#nav-more-panel a:hover{color:#c9d1d9;}' +
     '#nav-more-panel a.active{color:#58a6ff;}' +
     'html[data-theme="light"] .nav-cat-label{color:#b0b7be;border-bottom-color:#eaecef;}' +
+    'html[data-theme="light"] .nav-cat-note{color:#8c959f;}' +
+    'html[data-theme="light"] .nav-more-note{color:#57606a;border-left-color:#0969da;}' +
     'html[data-theme="light"] #nav-more-panel a{color:#6e7781;}' +
     'html[data-theme="light"] #nav-more-panel a:hover{color:#24292e;}' +
     'html[data-theme="light"] #nav-more-panel a.active{color:#0969da;}' +
@@ -385,6 +466,11 @@
   // [more] dropdown panel — grouped by category
   var morePanel = document.createElement('div');
   morePanel.id = 'nav-more-panel';
+  var moreNote = document.createElement('div');
+  moreNote.className = 'nav-more-note';
+  var defaultMoreNote = 'The short names are doors, not explanations. Hover or focus a link for a field note.';
+  moreNote.textContent = defaultMoreNote;
+  morePanel.appendChild(moreNote);
   MORE_GROUPS.forEach(function (group) {
     var col = document.createElement('div');
     col.className = 'nav-cat';
@@ -392,14 +478,26 @@
     lbl.className = 'nav-cat-label';
     lbl.textContent = group.cat;
     col.appendChild(lbl);
+    var catNote = document.createElement('div');
+    catNote.className = 'nav-cat-note';
+    catNote.textContent = CAT_HINTS[group.cat] || '';
+    col.appendChild(catNote);
     group.links.forEach(function (item) {
       var a = document.createElement('a');
+      var desc = NAV_HINTS[item.href] || CAT_HINTS[group.cat] || defaultMoreNote;
       a.href = item.href;
       a.textContent = item.label;
+      a.title = desc;
+      a.setAttribute('data-nav-desc', desc);
       if (isActive(item.href)) a.className = 'active';
+      a.addEventListener('mouseenter', function () { moreNote.textContent = desc; });
+      a.addEventListener('focus', function () { moreNote.textContent = desc; });
       col.appendChild(a);
     });
     morePanel.appendChild(col);
+  });
+  morePanel.addEventListener('mouseleave', function () {
+    moreNote.textContent = defaultMoreNote;
   });
 
   // Toggle [more] panel
