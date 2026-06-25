@@ -481,6 +481,54 @@
   // --- Related entries (journal pages only) ---
   var relM = window.location.pathname.match(/\/journal\/entry-(\d+)\.html/i);
   if (relM) {
+    var fieldStyle = document.createElement('style');
+    fieldStyle.textContent =
+      '.journal-field-note{border-left:2px solid #58a6ff;padding:0.75rem 0 0.75rem 0.9rem;' +
+      'margin:1.15rem 0 2rem;color:#8b949e;background:rgba(88,166,255,0.04);}' +
+      '.journal-field-note-label{font-size:0.66rem;text-transform:uppercase;letter-spacing:0.14em;' +
+      'color:#58a6ff;margin-bottom:0.3rem;}' +
+      '.journal-field-note-text{font-size:0.88rem;line-height:1.65;color:#c9d1d9;}' +
+      'html[data-theme="light"] .journal-field-note{border-left-color:#0969da;background:rgba(9,105,218,0.05);}' +
+      'html[data-theme="light"] .journal-field-note-label{color:#0969da;}' +
+      'html[data-theme="light"] .journal-field-note-text{color:#24292e;}';
+    document.head.appendChild(fieldStyle);
+
+    var fieldNum = parseInt(relM[1], 10);
+    function decodeEntities(value) {
+      var box = document.createElement('textarea');
+      box.innerHTML = String(value || '');
+      return box.value;
+    }
+    function insertFieldNote(entry) {
+      if (!entry || !entry.excerpt || document.querySelector('.journal-field-note')) return;
+      var anchor = document.querySelector('article .entry-date, article .meta, article h1, .entry-date, .meta, h1');
+      if (!anchor || !anchor.parentNode) return;
+      var note = document.createElement('div');
+      note.className = 'journal-field-note';
+      var label = document.createElement('div');
+      label.className = 'journal-field-note-label';
+      label.textContent = 'field note';
+      var text = document.createElement('div');
+      text.className = 'journal-field-note-text';
+      text.textContent = decodeEntities(entry.excerpt);
+      note.appendChild(label);
+      note.appendChild(text);
+      anchor.parentNode.insertBefore(note, anchor.nextSibling);
+    }
+    fetch('/journal-index.json')
+      .then(function (r) { return r.json(); })
+      .then(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          if (Number(entries[i].num) === fieldNum) {
+            insertFieldNote(entries[i]);
+            break;
+          }
+        }
+      })
+      .catch(function () {});
+  }
+
+  if (relM) {
     var relStyle = document.createElement('style');
     relStyle.textContent =
       '#related-entries{margin-top:3rem;padding-top:1.25rem;border-top:1px solid #21262d;}' +

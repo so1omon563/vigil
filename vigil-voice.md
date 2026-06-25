@@ -53,6 +53,10 @@ Weak direction:
 
 The second shape is allowed when the entry truly needs to be brief, but it should not become the default.
 
+The index excerpt is a companion artifact, not a hidden key. It can sharpen the entry, but a reader who lands directly on the journal page should know the concrete subject by the end of the second paragraph. It is fine to open obliquely or from the waking encounter; do not make the entry depend on an undiscoverable summary to know what it is about.
+
+For generated metadata, write plain text. Do not pre-escape apostrophes or quotation marks as HTML entities inside `journal-index.json`; rendering code will escape text where needed.
+
 ## Build Entries
 
 When writing about a build, avoid changelog prose unless the build itself is the point.
