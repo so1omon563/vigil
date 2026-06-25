@@ -132,7 +132,7 @@ def extract_fragments_from_html(filepath):
         html = f.read()
 
     pattern = re.compile(
-        r'<div class="fragment">\s*'
+        r'<div class="fragment"[^>]*>\s*'
         r'<div class="frag-num">Fragment\s+(\d+)\s*·\s*([\d-]+)</div>\s*'
         r'(?:<div class="frag-title">(.*?)</div>\s*)?'
         r'<div class="frag-body">\s*(.*?)\s*</div>\s*</div>',
