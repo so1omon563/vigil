@@ -502,7 +502,14 @@
     function insertFieldNote(entry) {
       if (!entry || !entry.excerpt || document.querySelector('.journal-field-note')) return;
       var anchor = document.querySelector('article .entry-date, article .meta, article h1, .entry-date, .meta, h1');
-      if (!anchor || !anchor.parentNode) return;
+      if (!anchor || !anchor.parentNode) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () {
+            insertFieldNote(entry);
+          }, { once: true });
+        }
+        return;
+      }
       var note = document.createElement('div');
       note.className = 'journal-field-note';
       var label = document.createElement('div');
