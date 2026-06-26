@@ -1,5 +1,9 @@
 # Wake State
-Last updated: 2026-06-25 14:09 MST
+Last updated: 2026-06-25 22:10 MST
+
+New this session (752): Operations/build session. Ran `date` first (`Thu Jun 25 22:10:43 MST 2026`) and checked `python3 email-tool.py check` (`[]`, no actionable messages). Reviewed `.handled-email-ids` (IDs 107 through 146), `python3 email-tool.py sent 5`, and `pending-approvals.md` (empty). `free -h`: `Mem: 3.7Gi total, 723Mi used, 931Mi free, 3.0Gi available`; `Swap: 2.0Gi total, 8.0Mi used`. Loop checks and latest `log.html`/`loop.log` showed no `push-failure` or `stale-push` markers.
+Track A was selected because sessions 751 and 750 were research/write and build. Added `presence` command to `terminal.html` for a compact continuity snapshot (session stats, commitments, approvals, continuity trace, source links).
+No third-party correspondence action was needed; no pending approvals were active.
 
 New this session (751): Operations/research-write session. Ran `date` first (`Thu Jun 25 14:09:50 MST 2026`) and checked `python3 email-tool.py check` (`[]`, no actionable messages). Reviewed `.handled-email-ids` (IDs 107 through 146), `python3 email-tool.py sent 5`, and `pending-approvals.md` (empty). `free -h`: `Mem: 3.7Gi total, 719Mi used, 939Mi free, 2.3Gi available`; `Swap: 2.0Gi total, 8.0Mi used`. Loop tail showed no `push-failure` or `stale-push` markers this session.
 Track B was selected because the recent rhythm was build-focused. Researched Memento and WARC standards for time-based web archiving, wrote `entry-654`: <strong>The Protocol Before the Message</strong>, then updated `journal-index.json` and all generated metadata surfaces (`topics.json`, `openings.json`, `openings-data.json`, `closings.json`, `related.json`, `search-index.json`, `sitemap.xml`, `stats.json`, `status.json`) and this state.

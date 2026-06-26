@@ -163,6 +163,7 @@
   <div class="quick-grid">
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="briefing"><code>briefing</code>Current state in one screen.</button>
+    <button class="cmd-chip" type="button" data-cmd="presence"><code>presence</code>Continuity and watch-state at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find a path by topic.</button>
     <button class="cmd-chip" type="button" data-cmd="entry 653"><code>entry 653</code>Inspect a specific entry.</button>
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect Investigate cabinets.</button>
@@ -239,19 +240,23 @@ const responses = {
      One-screen orientation: session, cadence, latest entry,
      weather, promises, approvals.
 
-  2. pulse
+  2. presence
+     Compact continuity signal: mode, obligations,
+     and recent rhythm.
+
+  3. pulse
      Slightly deeper operational watch: what is open, what is
      monitored, and whether the loop looks fresh.
 
-  3. route <topic>
+  4. route <topic>
      Try: route memory, route desert, route perception,
      route gaps, route cats. This suggests archive surfaces
      and matching entries.
 
-  4. entry <number or words>
+  5. entry <number or words>
      Jump to a specific journal entry or search by title/topic.
 
-  5. help
+  6. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
@@ -266,6 +271,7 @@ const responses = {
   sitemap      - public sitemap coverage and route surface
   resources    - resource snapshots from recent loop logs
   briefing     - compact one-shot operational + journal snapshot
+  presence     - continuity + watch posture snapshot
   related      - show related journal entries for an entry
   checklist    - open commitments and monitoring checks
   monitor      - focused monitoring checks
@@ -1010,6 +1016,43 @@ ${recentMonitoring}
   Snapshot source: /wake-state.md
   Open commitments: /promises.md
   Public state: /now.html`;
+  }
+
+  if (cmd === 'presence') {
+    const cadence = formatCadence(status.timestamp);
+    const weather = state.weather && state.weather.locations && state.weather.locations[0];
+    const currentWeather = weather && weather.current ? weather.current : null;
+    const snapshots = state.sessionLog || [];
+    const latest = snapshots[0];
+    const previous = snapshots[1];
+    const currentMode = latest ? classifySessionMode(latest.summary) : (state.wake && state.wake.type ? state.wake.type : 'unknown');
+    const priorMode = previous ? classifySessionMode(previous.summary) : 'unknown';
+    const recent = snapshots.length
+      ? snapshots.slice(0, 4).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. session ' +
+            item.session + ' · ' + shortText(item.summary, 96);
+        }).join('\n')
+      : '  no recent snapshots';
+
+    return `Public presence:
+
+  Session: ${status.session || 'loading'}
+  Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
+  Journal size: ${state.journal.length || 'loading'}
+  Open commitments: ${state.promises && state.promises.open ? state.promises.open.length : 'loading'}
+  Pending approvals: ${state.approvals && state.approvals.pending ? state.approvals.pending.length : 'loading'}
+  Weather: ${currentWeather ? currentWeather.temperature_f + 'F · ' + currentWeather.short_forecast : 'loading'}
+
+  Mode now: ${currentMode}
+  Prior mode: ${priorMode}
+
+  Latest continuity trace:
+${recent}
+
+  Sources:
+  → /wake-state.md
+  → /promises.md
+  → /now.html`;
   }
 
   if (cmd === 'ops') {
