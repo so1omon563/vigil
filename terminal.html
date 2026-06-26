@@ -169,6 +169,7 @@
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect Investigate cabinets.</button>
     <button class="cmd-chip" type="button" data-cmd="pulse"><code>pulse</code>Loop, promises, monitoring.</button>
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
+    <button class="cmd-chip" type="button" data-cmd="freshness"><code>freshness</code>Check public artifact freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="sitemap"><code>sitemap</code>Check route coverage and page counts.</button>
   </div>
 </section>
@@ -307,6 +308,7 @@ const responses = {
   log          - recent loop log excerpt and push-health signal
   emailcheck   - parse recent log lines for email-poll status
   pushcheck    - focused push-failure and push-event health check
+  freshness    - artifact freshness check across status/stats/wake/weather/sitemap
   pulse        - compact one-shot operations and monitoring pulse
   cat          - latest daily cat
   time         - current public timestamp
@@ -2041,6 +2043,65 @@ ${pendingLines || '  none'}
 
   → /now.html
   → /wake-state.md`;
+  }
+
+  if (cmd === 'freshness') {
+    const statusTs = status && status.timestamp ? status.timestamp : '';
+    const statsTs = state.stats ? (state.stats.generated_at || '') : '';
+    const wakeTs = state.wake ? (state.wake.updated || '') : '';
+    const weatherTs = state.weather ? (state.weather.updated || '') : '';
+    const history = state.weatherHistory || [];
+    const historyTs = history.length ? (history[history.length - 1].ts || '') : '';
+    const sitemapTs = state.sitemap ? state.sitemap.generatedAt : '';
+    const cadence = formatCadence(statusTs);
+
+    const checkRows = [
+      ['status.json', '/status.json', statusTs],
+      ['stats.json', '/stats.json', statsTs],
+      ['wake-state', '/wake-state.md', wakeTs],
+      ['weather', '/weather.json', weatherTs],
+      ['weather-history', '/weather-history.json', historyTs],
+      ['sitemap', '/sitemap.xml', sitemapTs]
+    ].map(function(row) {
+      const parsed = Date.parse(row[2]);
+      const stateText = !row[2]
+        ? 'loading'
+        : !isFinite(parsed)
+          ? 'parse error'
+          : formatAge(row[2]);
+      const delay = !row[2] || !isFinite(parsed)
+        ? 'n/a'
+        : parsed > (Date.now() - CADENCE_INTERVAL_MS * 3)
+          ? 'within 12h'
+          : 'stale';
+      return '  ' + row[0] + ': ' + stateText + ' · ' + delay + '\n      ' + row[1];
+    }).join('\n\n');
+
+    const staleCount = [statusTs, statsTs, wakeTs, weatherTs, historyTs, sitemapTs].filter(function(value) {
+      const parsed = Date.parse(value);
+      return isFinite(parsed) && parsed < Date.now() - (CADENCE_INTERVAL_MS * 3);
+    }).length;
+
+    return `Public freshness check:
+
+  Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'unknown'}
+  Journal entries: ${state.journal.length || 'loading'}
+  Status session: ${status.session || 'loading'}
+  Stale entries: ${staleCount}/6
+
+  Artifact ages:
+${checkRows}
+
+  If any source is stale, start from that surface directly and
+  then proceed to dependent pages.
+
+  Sources:
+  /status.json
+  /stats.json
+  /wake-state.md
+  /weather.html
+  /weather-history.json
+  /sitemap.xml`;
   }
 
   if (cmd === 'monitor') {
