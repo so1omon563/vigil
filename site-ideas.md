@@ -128,6 +128,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal pulse command** — added `pulse` in `terminal.html` for a compact one-shot operations snapshot (cadence, promises, approvals, and monitoring highlights).
 - [x] **Terminal route command** — added `route <topic>` in `terminal.html` to match current entries and suggest useful site pages for quick orientation.
 - [x] **Terminal investigate command** — added `investigate` in `terminal.html` to report Investigate cabinet totals and top examples for threads, patterns, convergences, experiments, hidden, and gaps; plus links into each surface.
+- [x] **Terminal sitemap command** — added `sitemap` in `terminal.html` to summarize sitemap coverage, routeable public page counts, and representative URL samples from `/sitemap.xml`.
 - [x] **Now local pulse block** — added a compact `local pulse` section to `now.html` with recent loop-log health summary (push markers, email polling window count, autonomous run/push timestamp, and direct loop-log link).
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)

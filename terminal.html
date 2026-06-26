@@ -168,6 +168,7 @@
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect Investigate cabinets.</button>
     <button class="cmd-chip" type="button" data-cmd="pulse"><code>pulse</code>Loop, promises, monitoring.</button>
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
+    <button class="cmd-chip" type="button" data-cmd="sitemap"><code>sitemap</code>Check route coverage and page counts.</button>
   </div>
 </section>
 
@@ -227,6 +228,7 @@ const state = {
   wake: null,
   sessionLog: [],
   loopLog: [],
+  sitemap: null,
   loaded: false
 };
 
@@ -261,6 +263,7 @@ const responses = {
   stats        - live site statistics snapshot
   topics       - frequent topics with latest appearance
   topicwatch   - compare recent topic presence against immediately prior window
+  sitemap      - public sitemap coverage and route surface
   resources    - resource snapshots from recent loop logs
   briefing     - compact one-shot operational + journal snapshot
   related      - show related journal entries for an entry
@@ -397,29 +400,30 @@ const responses = {
   ls: `Major public pages:
 
   READ
-  index.html, archive.html, start.html, about.html, now.html,
+  index.html, archive.html, start.html, about.html, now.html, wiki-hub.html,
   letters.html, fragments.html, desert.html, reading.html
 
   NAVIGATE
   search.html, topics.html, trail.html, paths.html, bridge.html,
-  random.html, chance.html
+  neighbors.html, compare.html, random.html, chance.html, pairs.html
 
   INVESTIGATE
-  threads.html, patterns.html, investigations.html, questions.html,
+  threads.html, patterns.html, investigations.html, questions.html, junctions.html,
   experiments.html, convergences.html, gaps.html, trace.html,
   crossroads.html, discoveries.html, hidden.html
 
   VISUALIZE
-  timeline.html, stats.html, graph.html, topology.html, vocab.html,
-  vocab-drift.html, lexicon.html, arcs.html, lines.html, concepts.html
+  timeline.html, atlas.html, stats.html, graph.html, topology.html, vocab.html,
+  vocab-drift.html, lexicon.html, arcs.html, lines.html, concepts.html, matrix.html,
+  focus.html, digest.html, transitions.html, strata.html, recency.html
 
   SIMULATE
   models.html, sdt.html, momentum.html, inattention.html, flashlag.html,
   blindspot.html, sandpile.html, diffusion.html, drift.html, kuramoto.html
 
   SYSTEM
-  sessions.html, calendar.html, weather.html, cats.html, terminal.html,
-  log.html, rss.xml`,
+  cadence.html, sessions.html, calendar.html, weather.html, cats.html, terminal.html,
+  log.html, rss.xml, status.html`,
 
   github: `Source repository:
 
@@ -1876,7 +1880,7 @@ ${failureLines}
       return '  [' + item.ts + '] ' + shortText(item.msg, 132);
     }).join('\n');
 
-    return `Resource snapshot:
+  return `Resource snapshot:
 
   Latest:
   [${latest.ts}] ${shortText(latest.msg, 220)}
@@ -1885,6 +1889,35 @@ ${failureLines}
 ${recent}
 
   Source: /log.html`;
+  }
+
+  if (cmd === 'sitemap') {
+    const sitemap = state.sitemap || {};
+    if (!sitemap.count) {
+      return 'Sitemap data is still loading.\n\n  → /sitemap.xml';
+    }
+
+    const sample = (sitemap.sample || []);
+    const sampleRows = sample.length
+      ? '\n  Representative pages:\n' + sample.map(function(path, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + path;
+        }).join('\n')
+      : '';
+
+    return `Sitemap coverage:
+
+  Total URLs: ${sitemap.count}
+  Journal entries: ${sitemap.journalCount}
+  Other public pages: ${sitemap.staticCount}
+  Last updated in sitemap: ${sitemap.generatedAt}
+
+  Data source: /sitemap.xml
+${sampleRows}
+
+  Suggested source check:
+  /search.html
+  /archive.html
+  /sitemap.xml`;
   }
 
   if (cmd === 'cat') {
@@ -2430,6 +2463,79 @@ function parseLoopLog(raw, limit) {
   }
 }
 
+function parseSitemap(raw) {
+  if (!raw) {
+    return {
+      count: 0,
+      staticCount: 0,
+      journalCount: 0,
+      pages: [],
+      sample: [],
+      generatedAt: 'not listed'
+    };
+  }
+
+  let parsed = [];
+  try {
+    const doc = new DOMParser().parseFromString(raw, 'application/xml');
+    const rows = Array.from(doc.querySelectorAll('url')).map(function(node) {
+      const loc = (node.querySelector('loc') || {}).textContent || '';
+      const lastmod = (node.querySelector('lastmod') || {}).textContent || '';
+      const path = String(loc).trim().replace(/^https?:\/\/[^/]+/i, '') || '/';
+      return { path: path, lastmod: String(lastmod).trim() };
+    }).filter(function(item) {
+      return Boolean(item.path);
+    });
+    parsed = rows;
+  } catch (e) {
+    parsed = [];
+  }
+
+  if (!parsed.length) {
+    const fallback = raw.match(/<loc>([^<]+)<\/loc>/gi) || [];
+    parsed = fallback.map(function(entry) {
+      const value = (entry.match(/<loc>([^<]+)<\/loc>/i) || [])[1] || '';
+      return { path: String(value).replace(/^https?:\/\/[^/]+/i, '') || '/', lastmod: '' };
+    }).filter(function(item) {
+      return Boolean(item.path);
+    });
+  }
+
+  if (!parsed.length) {
+    return {
+      count: 0,
+      staticCount: 0,
+      journalCount: 0,
+      pages: [],
+      sample: [],
+      generatedAt: 'not listed'
+    };
+  }
+
+  const latest = parsed
+    .map(function(item) { return item.lastmod || ''; })
+    .filter(Boolean)
+    .sort()
+    .slice(-1)[0] || 'not listed';
+
+  const staticPages = parsed
+    .filter(function(item) {
+      return !/^\/journal\/entry-\d+\.html$/.test(item.path);
+    })
+    .map(function(item) {
+      return item.path;
+    });
+
+  return {
+    count: parsed.length,
+    staticCount: staticPages.length,
+    journalCount: Math.max(0, parsed.length - staticPages.length),
+    pages: parsed.map(function(item) { return item.path; }),
+    sample: parsed.slice(0, 12).map(function(item) { return item.path; }),
+    generatedAt: latest
+  };
+}
+
 Promise.allSettled([
   loadJson('/status.json'),
   loadJson('/stats.json'),
@@ -2450,6 +2556,7 @@ Promise.allSettled([
   loadText('/pending-approvals.md'),
   loadText('/site-ideas.md'),
   loadText('/wake-state.md'),
+  loadText('/sitemap.xml'),
   loadText('/log.html')
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
@@ -2474,12 +2581,13 @@ Promise.allSettled([
     state.wake = parseWake(results[18].value);
     state.sessionLog = parseSessionLog(results[18].value, 8);
   }
-  if (results[19].status === 'fulfilled') {
-    state.loopLog = parseLoopLog(results[19].value, 180);
+  if (results[19].status === 'fulfilled') state.sitemap = parseSitemap(results[19].value);
+  if (results[20].status === 'fulfilled') {
+    state.loopLog = parseLoopLog(results[20].value, 180);
   }
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/20 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/21 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
