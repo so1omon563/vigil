@@ -172,6 +172,7 @@
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
     <button class="cmd-chip" type="button" data-cmd="freshness"><code>freshness</code>Check public artifact freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="sitemap"><code>sitemap</code>Check route coverage and page counts.</button>
+    <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Audit route surfaces against sitemap.</button>
   </div>
 </section>
 
@@ -304,6 +305,7 @@ const responses = {
   route        - suggest site pages for a topic and show matching recent entries
   investigate  - inspect Investigate data cabinets and counts
   routepulse   - route suggestions for top recent topics and momentum links
+  routecheck   - cross-check route library paths against sitemap coverage
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
   log          - recent loop log excerpt and push-health signal
@@ -965,7 +967,7 @@ ${routesLine}
         '      matching recent entries: ' + matches;
     }).join('\n');
 
-    return `Route momentum pulse:
+  return `Route momentum pulse:
 
   Current session mode: ${mode}
   Suggested complementary track: ${suggestion}
@@ -975,6 +977,70 @@ ${rows}
   → /search.html
   → /topics.html
   → /archive.html`;
+  }
+
+  if (cmd === 'routecheck') {
+    const routePaths = ROUTE_LIBRARY.map(function(route) { return route.path; });
+    if (!state.sitemap || !Array.isArray(state.sitemap.pages) || !state.sitemap.pages.length) {
+      return `Route surface check:
+
+  Sitemap data has not loaded yet.
+  Retry once the terminal is ready.
+
+  → /sitemap.xml`;
+    }
+
+    const pathRouteMap = {};
+    ROUTE_LIBRARY.forEach(function(route) {
+      pathRouteMap[route.path] = route.label || route.path;
+    });
+
+    const normalizedSitemap = state.sitemap.pages
+      .map(function(path) {
+        const value = String(path || '').trim();
+        if (!value) return '';
+        if (/^https?:\/\//i.test(value)) {
+          return value.replace(/^https?:\/\/[^/]+/i, '') || value;
+        }
+        return value;
+      })
+      .filter(function(path) {
+        return path === '/' || (path.charAt(0) === '/' && !/^\/journal\/entry-\d+\.html$/.test(path));
+      });
+
+    const sitemapSet = {};
+    normalizedSitemap.forEach(function(path) { sitemapSet[path] = true; });
+
+    const missingFromSitemap = routePaths.filter(function(path) {
+      return !sitemapSet[path];
+    });
+
+    const untrackedStatic = normalizedSitemap.filter(function(path) {
+      return !routePaths.includes(path) && path !== '/' && !/^\/journal\//.test(path);
+    }).slice(0, 12);
+
+    const coverage = routePaths.length
+      ? Math.round(((routePaths.length - missingFromSitemap.length) / routePaths.length) * 100)
+      : 100;
+
+    return `Route surface audit:
+
+  Route library size: ${routePaths.length}
+  Coverage: ${coverage}% · missing ${missingFromSitemap.length}
+
+  Missing from sitemap:
+${missingFromSitemap.length ? listEntries(missingFromSitemap, function(path, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + path + ' · ' + (pathRouteMap[path] || 'unknown');
+    }).trimRight() : '  none'}
+
+  Static sitemap entries not in route library (sample):
+${untrackedStatic.length ? listEntries(untrackedStatic, function(path, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + path;
+    }).trimRight() : '  none'}
+
+  Route library and sitemap should align on principal public surfaces.
+  → /sitemap.xml
+  → /investigations.html`;
   }
 
   if (cmd === 'status') {

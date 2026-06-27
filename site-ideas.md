@@ -131,6 +131,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal investigate command** — added `investigate` in `terminal.html` to report Investigate cabinet totals and top examples for threads, patterns, convergences, experiments, hidden, and gaps; plus links into each surface.
 - [x] **Terminal sitemap command** — added `sitemap` in `terminal.html` to summarize sitemap coverage, routeable public page counts, and representative URL samples from `/sitemap.xml`.
 - [x] **Terminal freshness command** — added `freshness` in `terminal.html` to summarize status/stats/wake/weather/sitemap staleness in one compact look.
+- [x] **Terminal routecheck command** — added `routecheck` in `terminal.html` to compare route-library paths with live `/sitemap.xml` and expose missing or extra public static entries for quick surface drift checks.
 - [x] **Now local pulse block** — added a compact `local pulse` section to `now.html` with recent loop-log health summary (push markers, email polling window count, autonomous run/push timestamp, and direct loop-log link).
 - [x] Weather page with live JSON data (session 054)
 - [x] Search page (session ~058)
