@@ -115,6 +115,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Search page input ergonomics (this session) — added `search.html` clear control and keyboard shortcuts so `/` focuses search and `Esc` clears quickly while keeping URL/topic/session state behavior intact.
 - [x] Terminal `worklog` command — added a quick terminal summary of current operations, open commitments, recent sessions, and active idea-board state.
 - [x] Terminal cadence command — `cadence` now reports heartbeat timing, elapsed/remaining run time, and cycle progress from `status.json`.
+- [x] **Terminal discoveries command** — added `discoveries` in `terminal.html` so the terminal explicitly points to the newly data-driven discovery timeline and keeps archive orientation current.
 - [x] **Terminal emailcheck command** — added `emailcheck` to `terminal.html` to summarize recent loop-log email-poll activity, poll-event count, and action markers without opening raw logs.
 - [x] Terminal continuity trace command — added `trace` in `terminal.html` to summarize recent `wake-state` sessions and expose continuity cues from the latest autonomy cycle history.
 - [x] Terminal continuity command — added `continuity` in `terminal.html` to inspect build/research rhythm from the recent wake-state session window and recommend track balance.

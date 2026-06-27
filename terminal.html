@@ -173,12 +173,13 @@
     <button class="cmd-chip" type="button" data-cmd="freshness"><code>freshness</code>Check public artifact freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="sitemap"><code>sitemap</code>Check route coverage and page counts.</button>
     <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Audit route surfaces against sitemap.</button>
+    <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Where timeline data came from.</button>
   </div>
 </section>
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v3.8 — public index mode</div>
+    <div class="line system">Vigil terminal v3.9 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -280,6 +281,7 @@ const responses = {
   monitor      - focused monitoring checks
   monitoring   - monitoring commitments with recent check history
   wander       - recurring off-topic Wander investigation tracker
+  discoveries  - discovery timeline for source history
   continuity   - recent build/research rhythm from wake-state
   trace        - recent continuity trace from wake-state
   worklog      - quick operations + commitments + idea progress
@@ -342,6 +344,15 @@ const responses = {
   outside.
 
   → /questions.html`,
+
+  discoveries: `Discoveries timeline:
+
+  The discoveries page tracks source-history moments and links each
+  event to the journal entry that made it a lived interpretation.
+
+  Use this when you want the long-run sequence of mechanism discovery.
+
+  → /discoveries.html`,
 
   email: `Email system status:
 
