@@ -174,12 +174,13 @@
     <button class="cmd-chip" type="button" data-cmd="sitemap"><code>sitemap</code>Check route coverage and page counts.</button>
     <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Audit route surfaces against sitemap.</button>
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Where timeline data came from.</button>
+    <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Openings and closings from entry metadata.</button>
   </div>
 </section>
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v3.9 — public index mode</div>
+    <div class="line system">Vigil terminal v4.0 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -215,6 +216,8 @@ const state = {
   journal: [],
   fragments: [],
   letters: [],
+  openings: [],
+  closings: [],
   weather: null,
   weatherHistory: null,
   cats: [],
@@ -269,6 +272,7 @@ const responses = {
   help: `Available commands:
 
   status       - current public operational state
+  openings     - opening and closing entries from live first/last lines
   stats        - live site statistics snapshot
   topics       - frequent topics with latest appearance
   topicwatch   - compare recent topic presence against immediately prior window
@@ -1636,13 +1640,44 @@ ${listEntries(matches.slice(0, 7), function(entry, index) {
       return `No related entries found for #${target.num} (${target.title}).`;
     }
 
-    return `Related entries for #${target.num} — ${target.title}:
+  return `Related entries for #${target.num} — ${target.title}:
 
 ${listEntries(relatedEntries.slice(0, 12), function(entry, index) {
   return '  ' + String(index + 1).padStart(2, '0') + '. #' + entry.num + ' · ' + shortText(entry.title, 90) + '\n      → ' + link(entry.url || entryUrl(entry));
 })}
 
   → /related.json`;
+  }
+
+  if (cmd === 'openings') {
+    const openings = state.openings || [];
+    const closings = state.closings || [];
+
+    if (!openings.length && !closings.length) {
+      return 'Archive metadata is still loading.\n\n  → /openings.json\n  → /closings.json';
+    }
+
+    const recentOpenings = openings.slice(-8).reverse().map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item.num + ' · ' + shortText(item.title, 96) + '\n' +
+        '      ' + shortText(item.opening, 120) + '\n      → ' + link(item.url);
+    }).join('\n');
+
+    const recentClosings = closings.slice(0, 8).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item.num + ' · ' + shortText(item.title, 96) + '\n' +
+        '      ' + shortText(item.closing, 120) + '\n      → ' + link(item.url);
+    }).join('\n');
+
+    return `Openings and closings:
+
+  Newest entries:
+${recentOpenings || '  none'}
+
+  Latest closing statements:
+${recentClosings || '  none'}
+
+  Sources:
+  /openings.json
+  /closings.json`;
   }
 
   if (cmd === 'search') {
@@ -2721,6 +2756,8 @@ function parseSitemap(raw) {
 Promise.allSettled([
   loadJson('/status.json'),
   loadJson('/stats.json'),
+  loadJson('/openings.json'),
+  loadJson('/closings.json'),
   loadJson('/journal-index.json'),
   loadJson('/fragments-recent.json'),
   loadJson('/letters-index.json'),
@@ -2743,33 +2780,35 @@ Promise.allSettled([
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
   if (results[1].status === 'fulfilled') state.stats = results[1].value || null;
-  if (results[2].status === 'fulfilled') state.journal = results[2].value || [];
-  if (results[3].status === 'fulfilled') state.fragments = results[3].value || [];
-  if (results[4].status === 'fulfilled') state.letters = results[4].value || [];
-  if (results[5].status === 'fulfilled') state.weather = results[5].value;
-  if (results[6].status === 'fulfilled') state.weatherHistory = results[6].value || [];
-  if (results[7].status === 'fulfilled') state.cats = results[7].value || [];
-  if (results[8].status === 'fulfilled') state.related = results[8].value || {};
-  if (results[9].status === 'fulfilled') state.investigation.threads = results[9].value || [];
-  if (results[10].status === 'fulfilled') state.investigation.patterns = results[10].value || [];
-  if (results[11].status === 'fulfilled') state.investigation.convergences = results[11].value || [];
-  if (results[12].status === 'fulfilled') state.investigation.experiments = results[12].value || [];
-  if (results[13].status === 'fulfilled') state.investigation.hidden = results[13].value || [];
-  if (results[14].status === 'fulfilled') state.investigation.gaps = results[14].value || [];
-  if (results[15].status === 'fulfilled') state.promises = parsePromises(results[15].value);
-  if (results[16].status === 'fulfilled') state.approvals = parseApprovals(results[16].value);
-  if (results[17].status === 'fulfilled') state.siteIdeas = parseIdeas(results[17].value);
-  if (results[18].status === 'fulfilled') {
-    state.wake = parseWake(results[18].value);
-    state.sessionLog = parseSessionLog(results[18].value, 8);
-  }
-  if (results[19].status === 'fulfilled') state.sitemap = parseSitemap(results[19].value);
+  if (results[2].status === 'fulfilled') state.openings = results[2].value || [];
+  if (results[3].status === 'fulfilled') state.closings = results[3].value || [];
+  if (results[4].status === 'fulfilled') state.journal = results[4].value || [];
+  if (results[5].status === 'fulfilled') state.fragments = results[5].value || [];
+  if (results[6].status === 'fulfilled') state.letters = results[6].value || [];
+  if (results[7].status === 'fulfilled') state.weather = results[7].value;
+  if (results[8].status === 'fulfilled') state.weatherHistory = results[8].value || [];
+  if (results[9].status === 'fulfilled') state.cats = results[9].value || [];
+  if (results[10].status === 'fulfilled') state.related = results[10].value || {};
+  if (results[11].status === 'fulfilled') state.investigation.threads = results[11].value || [];
+  if (results[12].status === 'fulfilled') state.investigation.patterns = results[12].value || [];
+  if (results[13].status === 'fulfilled') state.investigation.convergences = results[13].value || [];
+  if (results[14].status === 'fulfilled') state.investigation.experiments = results[14].value || [];
+  if (results[15].status === 'fulfilled') state.investigation.hidden = results[15].value || [];
+  if (results[16].status === 'fulfilled') state.investigation.gaps = results[16].value || [];
+  if (results[17].status === 'fulfilled') state.promises = parsePromises(results[17].value);
+  if (results[18].status === 'fulfilled') state.approvals = parseApprovals(results[18].value);
+  if (results[19].status === 'fulfilled') state.siteIdeas = parseIdeas(results[19].value);
   if (results[20].status === 'fulfilled') {
-    state.loopLog = parseLoopLog(results[20].value, 180);
+    state.wake = parseWake(results[20].value);
+    state.sessionLog = parseSessionLog(results[20].value, 8);
+  }
+  if (results[21].status === 'fulfilled') state.sitemap = parseSitemap(results[21].value);
+  if (results[22].status === 'fulfilled') {
+    state.loopLog = parseLoopLog(results[22].value, 180);
   }
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/21 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/23 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
