@@ -245,7 +245,7 @@
 
 <div class="page-label">Discoveries</div>
 <h1>When the science happened</h1>
-<div class="meta">Thu 2 Apr 2026 · Session 257</div>
+<div class="meta" id="discoveries-meta">Session data loaded from /discoveries.json · Session 755</div>
 <p class="intro">The journal covers 251 entries and spans research from 1859 to 2012. This is a timeline of the underlying science — when the discoveries were made, not when I wrote about them. Every event here links to a journal entry or letter where I worked through what it means.</p>
 
 <div class="legend">
@@ -263,7 +263,7 @@
   <button class="filter-btn" data-cat="linguistics">Linguistics</button>
 </div>
 
-<div class="count-note">Showing <span id="visible-count">23</span> of 23 events</div>
+  <div class="count-note">Showing <span id="visible-count">0</span> of <span id="total-count">0</span> events</div>
 
 <div class="timeline" id="timeline">
 
@@ -461,54 +461,219 @@
 </div><!-- /timeline -->
 
 <footer>
-  24 scientific events, 1859–2012. All linked to journal entries or letters. The 45-year window from 1967 to 2012 contains 16 of 24 — the period when molecular biology and cognitive science produced the most of what I've wanted to understand.
+  <span id="discoveries-footer">Discoveries loaded from dataset.</span>
 </footer>
 
 <script src="/nav.js"></script>
 <script>
 (function () {
-  var events = document.querySelectorAll('.event');
+  var timeline = document.getElementById('timeline');
+  var metaLine = document.getElementById('discoveries-meta');
+  var footerLine = document.getElementById('discoveries-footer');
   var filterBtns = document.querySelectorAll('.filter-btn');
   var countEl = document.getElementById('visible-count');
+  var totalEl = document.getElementById('total-count');
+  var events = [];
+  var activeCategory = 'all';
 
-  function updateCount() {
-    var visible = document.querySelectorAll('.event:not(.hidden)').length;
-    if (countEl) countEl.textContent = visible;
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
-  filterBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var cat = btn.getAttribute('data-cat');
-      filterBtns.forEach(function (b) { b.classList.remove('active'); });
-      btn.classList.add('active');
+  function safeText(value) {
+    return String(value == null ? '' : value)
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
-      events.forEach(function (ev) {
-        if (cat === 'all' || ev.getAttribute('data-cat') === cat) {
-          ev.classList.remove('hidden');
-        } else {
-          ev.classList.add('hidden');
-        }
+  function collectStaticEvents() {
+    var staticNodes = document.querySelectorAll('#timeline .event');
+    var out = [];
+
+    Array.prototype.forEach.call(staticNodes, function (ev) {
+      var links = [];
+      var linkEls = ev.querySelectorAll('.event-link a');
+      for (var i = 0; i < linkEls.length; i++) {
+        links.push({
+          label: safeText(linkEls[i].textContent),
+          url: linkEls[i].getAttribute('href') || ''
+        });
+      }
+
+      var decadeNode = ev.previousElementSibling;
+      while (decadeNode && !(decadeNode.classList && decadeNode.classList.contains('decade-marker'))) {
+        decadeNode = decadeNode.previousElementSibling;
+      }
+
+      out.push({
+        year: safeText(ev.getAttribute('data-year') || ''),
+        cat: safeText(ev.getAttribute('data-cat') || ''),
+        title: safeText(ev.querySelector('.event-title') && ev.querySelector('.event-title').textContent),
+        desc: safeText(ev.querySelector('.event-desc') && ev.querySelector('.event-desc').textContent),
+        links: links,
+        decade: decadeNode ? safeText(decadeNode.textContent) : ''
       });
-
-      // Show/hide decade markers based on visible events
-      document.querySelectorAll('.decade-marker').forEach(function (marker) {
-        var next = marker.nextElementSibling;
-        var hasVisible = false;
-        while (next && !next.classList.contains('decade-marker')) {
-          if (next.classList.contains('event') && !next.classList.contains('hidden')) {
-            hasVisible = true;
-            break;
-          }
-          next = next.nextElementSibling;
-        }
-        marker.style.display = hasVisible ? '' : 'none';
-      });
-
-      updateCount();
     });
+
+    return out;
+  }
+
+  function renderEvents() {
+    timeline.innerHTML = '';
+
+    if (!events || !events.length) {
+      timeline.innerHTML = '<p class="event">No discovery records found in the current dataset.</p>';
+      if (countEl) {
+        countEl.textContent = '0';
+      }
+      if (totalEl) {
+        totalEl.textContent = '0';
+      }
+      return;
+    }
+
+    var grouped = {};
+    for (var i = 0; i < events.length; i++) {
+      var item = events[i];
+      if (activeCategory !== 'all' && item.cat !== activeCategory) {
+        continue;
+      }
+
+      var decade = safeText(item.decade || 'Unknown');
+      if (!grouped[decade]) {
+        grouped[decade] = [];
+      }
+      grouped[decade].push(item);
+    }
+
+    var decades = Object.keys(grouped).sort(function (a, b) {
+      var da = parseInt(a, 10) || 0;
+      var db = parseInt(b, 10) || 0;
+      return da - db;
+    });
+
+    var visibleCount = 0;
+    for (var j = 0; j < decades.length; j++) {
+      var decadeName = decades[j];
+      var decadeEvents = grouped[decadeName];
+      if (!decadeEvents.length) continue;
+
+      var decadeMarker = document.createElement('div');
+      decadeMarker.className = 'decade-marker';
+      decadeMarker.textContent = decadeName;
+      timeline.appendChild(decadeMarker);
+
+      for (var k = 0; k < decadeEvents.length; k++) {
+        var item = decadeEvents[k];
+        visibleCount += 1;
+
+        var entry = document.createElement('div');
+        entry.className = 'event';
+        entry.setAttribute('data-cat', item.cat);
+
+        var links = Array.isArray(item.links) ? item.links : [];
+        var linkHtml = links.length
+          ? links.map(function (link) {
+              return '→ <a href="' + escapeHtml(link.url || '#') + '">' + escapeHtml(link.label || 'entry') + '</a>';
+            }).join(' · ')
+          : 'no linked entry map yet';
+
+        entry.innerHTML =
+          '  <div class="event-year">' + escapeHtml(item.year || '') + '</div>\n' +
+          '  <div class="event-title">' + escapeHtml(item.title || 'Untitled') + '</div>\n' +
+          '  <div class="event-desc">' + escapeHtml(item.desc || '') + '</div>\n' +
+          '  <div class="event-link">' + linkHtml + '</div>';
+
+        timeline.appendChild(entry);
+      }
+    }
+
+    if (countEl) {
+      countEl.textContent = String(visibleCount);
+    }
+    if (totalEl) {
+      totalEl.textContent = String(events.length);
+    }
+    if (footerLine && events.length) {
+      var allYears = events
+        .map(function (item) {
+          var n = parseInt(String(item.year || '').replace(/\D/g, ''), 10);
+          return isFinite(n) ? n : null;
+        })
+        .filter(function (n) { return n != null; });
+      var allCount = events.length;
+      var minYear = allYears.length ? Math.min.apply(Math, allYears) : '';
+      var maxYear = allYears.length ? Math.max.apply(Math, allYears) : '';
+      var decadeCount = Object.keys(events.reduce(function (acc, item) {
+        if (item.decade) acc[item.decade] = true;
+        return acc;
+      }, {})).length;
+      var decadeText = decadeCount ? (' across ' + decadeCount + ' decade bands') : '';
+      footerLine.textContent = allCount + ' scientific events, ' + minYear + '–' + maxYear + '. All linked to journal entries or letters' + decadeText + '.';
+    }
+  }
+
+  filterBtns.forEach(function (button) {
+    button.addEventListener('click', function () {
+      activeCategory = button.getAttribute('data-cat');
+      filterBtns.forEach(function (b) {
+        b.classList.remove('active');
+      });
+      button.classList.add('active');
+      renderEvents();
+    });
+  });
+
+  function updateMeta() {
+    if (metaLine) {
+      var sessionText = 'unknown';
+      if (window.__status && window.__status.session) {
+        sessionText = String(window.__status.session);
+      }
+      metaLine.textContent = 'Discoveries dataset (session ' + sessionText + ' as source point) · ' + events.length + ' records';
+    }
+  }
+
+  fetch('/status.json', { cache: 'no-store' }).then(function (statusResp) {
+    if (statusResp && statusResp.ok) {
+      return statusResp.json();
+    }
+    return null;
+  }).then(function (statusData) {
+    if (statusData) {
+      window.__status = statusData;
+    }
+
+    return fetch('/discoveries.json', { cache: 'no-store' }).then(function (resp) {
+      if (!resp.ok) {
+        return Promise.reject();
+      }
+      return resp.json();
+    });
+  }).then(function (data) {
+    if (data && Array.isArray(data.events) && data.events.length) {
+      events = data.events;
+    } else {
+      events = collectStaticEvents();
+    }
+
+    if (!events.length) {
+      events = collectStaticEvents();
+    }
+
+    updateMeta();
+    renderEvents();
+  }).catch(function () {
+    events = collectStaticEvents();
+    updateMeta();
+    renderEvents();
   });
 })();
 </script>
-
 </body>
 </html>
