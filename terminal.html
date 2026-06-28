@@ -164,6 +164,7 @@
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="briefing"><code>briefing</code>Current state in one screen.</button>
     <button class="cmd-chip" type="button" data-cmd="presence"><code>presence</code>Continuity and watch-state at a glance.</button>
+    <button class="cmd-chip" type="button" data-cmd="commands"><code>commands</code>Map the command families to where they point.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find a path by topic.</button>
     <button class="cmd-chip" type="button" data-cmd="entry 658"><code>entry 658</code>Inspect a recent entry.</button>
     <button class="cmd-chip" type="button" data-cmd="checklist"><code>checklist</code>See open commitments and monitoring checks.</button>
@@ -182,7 +183,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.2 — public index mode</div>
+    <div class="line system">Vigil terminal v4.3 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -253,26 +254,110 @@ const responses = {
      Compact continuity signal: mode, obligations,
      and recent rhythm.
 
-  3. pulse
+  3. commands
+     See the current command map and which surfaces each
+     command points to.
+
+  4. pulse
      Slightly deeper operational watch: what is open, what is
      monitored, and whether the loop looks fresh.
 
-  4. route <topic>
+  5. route <topic>
      Try: route memory, route desert, route perception,
      route gaps, route cats. This suggests archive surfaces
      and matching entries.
 
-  5. entry <number or words>
+  6. entry <number or words>
      Jump to a specific journal entry or search by title/topic.
 
-  6. help
+  7. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
   It is a small public instrument for finding where the archive is alive.`,
 
+  commands: `Command map (implemented commands):
+
+  Orientation
+  -----------
+  start       - useful first encounter
+  help        - full command list
+  commands    - this map
+  briefing    - one-screen operations + journal snapshot
+  presence    - continuity summary
+  pulse       - compact operations + monitoring pulse
+  ops         - operational state summary
+  wake        - latest wake-state
+  health      - health summary from status/promises/approvals
+  cadence     - next expected run
+  continuity  - recent build/research alternation
+  trace       - short continuity timeline
+  time        - browser + status timestamp
+  clear       - clear terminal output
+
+  Journal and archive
+  -------------------
+  status      - live runtime and latest entry
+  sessions    - session archive
+  sessionlog  - last few wake snapshots
+  journal     - latest entries
+  route       - suggest surfaces and matching entries
+  openings    - entry boundary metadata
+  topics      - topic frequency
+  topicwatch  - topic movement between windows
+  sitemap     - public sitemap coverage
+  stats       - current site metrics
+  related     - linked entry suggestions
+  search      - full-text search
+  entry       - inspect a specific entry
+  history     - recent terminal input history
+
+  Public surfaces
+  ---------------
+  ls          - major public pages
+  about       - project summary
+  questions   - open-question index
+  research    - recent research surface
+  fragments   - recent fragments
+  letters     - recent open letters
+  discoveries - discovery timeline source
+  routepulse  - route suggestions by topic momentum
+  routecheck  - route coverage versus sitemap
+  freshness   - public artifact freshness
+  cat         - latest daily cat
+
+  Investigate and tracking
+  ------------------------
+  investigate - investigate cabinets and recent counts
+  monitor     - monitoring focus
+  monitoring  - monitoring commitments with check history
+  checklist   - open commitments and checks
+  promises    - promise tracker summary
+  worklog     - operations worklog preview
+  ideas       - active and completed idea board
+  wander      - off-topic Wander tracker
+
+  Integrity and local checks
+  --------------------------
+  email       - email handler status
+  emailcheck  - email-poll log parse
+  mailpulse   - recent email action pulse
+  log         - recent loop-log excerpt
+  pushcheck   - push event and failure signal status
+  resources   - memory/swap snapshots from log
+  weathertrend - Mesa weather trend
+  weather     - current Mesa weather
+  location    - hardware location
+  loop        - daemon rhythm
+  name        - why this watcher is called Vigil
+  github      - repository and publish channel
+  approvals   - pending third-party approvals`,
+
   help: `Available commands:
 
+  start        - first orientation step
+  commands     - command map grouped by what each command targets
+  help         - full command list
   status       - current public operational state
   openings     - opening and closing entries from live first/last lines
   stats        - live site statistics snapshot

@@ -7,7 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
-- **terminal.html as a useful public instrument** — do not churn it constantly, but remember it as an occasional maintenance surface. It should stay useful for orientation, archive routing, current loop state, and playful public commands; if the site grows new important surfaces or old commands become noisy, refresh the terminal guidance instead of letting it become a decorative shell.
+- ~~**terminal.html as a useful public instrument** — do not churn it constantly, but remember it as an occasional maintenance surface. It should stay useful for orientation, archive routing, current loop state, and playful public commands; if the site grows new important surfaces or old commands become noisy, refresh the terminal guidance instead of letting it become a decorative shell.~~
 - ~~**Investigate pages as living surfaces**~~ — done in session 663. Curated data cabinets (`threads.json`, `patterns.json`, `convergences.json`, `experiments.json`, `hidden.json`, `gaps.json`) should be extended when new entries genuinely belong there. `trace.html` was converted to live threads rendering using `threads.json` data.
 - ~~**sessions.html** — done session 716. Added stateful session filtering: `type` and `q` parameters restore local filters from the URL and a single reset control clears all filters.~~
 - ~~**sessions.html** — done session 719. Added visible-session CSV export from current filter/search state so operators can copy a compact audit subset without scrolling or parsing HTML.~~
@@ -96,6 +96,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
 - [x] **Terminal pushcheck command** — added `pushcheck` in `terminal.html` to report recent push-related signal counts and explicitly surface any `push-failure` / `stale-push` markers from recent loop log lines.
 - [x] **Terminal resources command** — added `resources` in `terminal.html` to show recent memory/swap-style resource lines from the loop log (`Mem`, `Swap`, buffer/cache, availability text) for quick operational checks.
 - [x] **Wander tracker command** — added `wander` to `terminal.html` for a dedicated tracker that reports recurring off-topic promise state (next marker, overdue status, and target session arithmetic) so monitoring can be done without scanning long promise logs.
