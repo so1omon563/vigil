@@ -169,6 +169,7 @@
     <button class="cmd-chip" type="button" data-cmd="monitoring"><code>monitoring</code>Show the latest monitoring commitments and checks.</button>
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect Investigate cabinets.</button>
     <button class="cmd-chip" type="button" data-cmd="pulse"><code>pulse</code>Loop, promises, monitoring.</button>
+    <button class="cmd-chip" type="button" data-cmd="mailpulse"><code>mailpulse</code>Concise email polling rhythm and action pulse.</button>
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
     <button class="cmd-chip" type="button" data-cmd="freshness"><code>freshness</code>Check public artifact freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="sitemap"><code>sitemap</code>Check route coverage and page counts.</button>
@@ -316,6 +317,7 @@ const responses = {
   weathertrend - Mesa weather trend from history
   log          - recent loop log excerpt and push-health signal
   emailcheck   - parse recent log lines for email-poll status
+  mailpulse    - concise email polling rhythm and action summary
   pushcheck    - focused push-failure and push-event health check
   freshness    - artifact freshness check across status/stats/wake/weather/sitemap
   pulse        - compact one-shot operations and monitoring pulse
@@ -2002,6 +2004,58 @@ ${recentLines || '  No email lines found in the selected window.'}
   Note: if poll lines are present and there are no action lines, there are likely no inbound messages requiring handling.
 
   Source: /log.html`;
+  }
+
+  if (cmd === 'mailpulse') {
+    const requestedRaw = Number((arg || '').trim());
+    const count = isFinite(requestedRaw) && requestedRaw > 0
+      ? Math.min(Math.max(20, Math.floor(requestedRaw)), 360)
+      : 180;
+
+    const tail = state.loopLog.slice(-count);
+    if (!tail.length) {
+      return 'Loop log is still loading. Check /log.html for the raw stream.';
+    }
+
+    const emailLines = tail.filter(function(item) {
+      const message = (item.msg || '').toLowerCase();
+      return message.includes('email') || message.includes('imap') || message.includes('smtp') || message.includes('inbox') || message.includes('poll');
+    });
+    const pollLines = emailLines.filter(function(item) {
+      return /checking email|polling/i.test(item.msg);
+    });
+    const actionLines = emailLines.filter(function(item) {
+      const message = (item.msg || '').toLowerCase();
+      return /handled|sent|reply|replying|message|mail/.test(message) && !/checking/.test(message);
+    });
+    const latestPoll = pollLines.length ? pollLines[pollLines.length - 1] : null;
+    const latestAction = actionLines.length ? actionLines[actionLines.length - 1] : null;
+
+    const latestPollMs = latestPoll ? Date.parse(latestPoll.ts) : NaN;
+    const cadenceWindowMs = 5 * 60 * 1000 + 120 * 1000;
+    const cadenceOk = isFinite(latestPollMs)
+      ? Date.now() - latestPollMs <= cadenceWindowMs
+      : false;
+
+    const recentLines = emailLines.slice(-6).map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. [' + item.ts + '] ' + shortText(item.msg, 140);
+    }).join('\n');
+
+    return `Mail-pulse (last ${count} log lines):
+
+  Email lines: ${emailLines.length}
+  Poll lines: ${pollLines.length}
+  Action lines: ${actionLines.length}
+  Poll rhythm: ${cadenceOk ? 'within normal 5m pulse + tolerance' : 'slower or no recent poll in window'}
+  Latest poll: ${latestPoll ? '[' + latestPoll.ts + '] ' + shortText(latestPoll.msg, 138) : 'none'}
+  Latest action: ${latestAction ? '[' + latestAction.ts + '] ' + shortText(latestAction.msg, 138) : 'none'}
+  Poll recency: ${latestPoll ? formatAge(latestPoll.ts) : 'n/a'}
+
+  Recent email lines:
+${recentLines || '  None in selected window.'}
+
+  Source: /log.html
+  Context: /wake-state.md`;
   }
 
   if (cmd === 'pushcheck') {
