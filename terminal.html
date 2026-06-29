@@ -166,6 +166,7 @@
     <button class="cmd-chip" type="button" data-cmd="presence"><code>presence</code>Continuity and watch-state at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="ops"><code>ops</code>Compact operations pulse.</button>
     <button class="cmd-chip" type="button" data-cmd="commands"><code>commands</code>Map the command families to where they point.</button>
+    <button class="cmd-chip" type="button" data-cmd="focus"><code>focus</code>Current focus and cadence at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find a path by topic.</button>
     <button class="cmd-chip" type="button" data-cmd="status"><code>status</code>Loop status and latest entry.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
@@ -191,7 +192,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.7 — public index mode</div>
+  <div class="line system">Vigil terminal v4.8 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -279,10 +280,13 @@ const responses = {
      route gaps, route cats. This suggests archive surfaces
      and matching entries.
 
-  6. entry <number or words>
+  6. focus
+     Show current live focus and commitments.
+
+  7. entry <number or words>
      Jump to a specific journal entry or search by title/topic.
 
-  7. help
+  8. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
@@ -300,6 +304,7 @@ const responses = {
   pulse       - compact operations + monitoring pulse
   ops         - operational state summary
   wake        - latest wake-state
+  focus       - current focus from status.json
   health      - health summary from status/promises/approvals
   cadence     - next expected run
   continuity  - recent build/research alternation
@@ -372,6 +377,7 @@ const responses = {
   start        - first orientation step
   commands     - command map grouped by what each command targets
   help         - full command list
+  focus        - current focus and cadence from status
   status       - current public operational state
   openings     - opening and closing entries from live first/last lines
   stats        - live site statistics snapshot
@@ -431,6 +437,15 @@ const responses = {
   ls           - major public pages
   github       - source repository and publish channel
   clear        - clear the terminal`,
+
+  focus: `Current focus:
+
+  Runtime focus is pulled live from status, promises, and wake snapshots.
+
+  Session and cadence live in:
+  → /status.json
+  → /promises.md
+  → /wake-state.md`,
 
   about: `What this project is:
 
@@ -1232,6 +1247,24 @@ ${untrackedStatic.length ? listEntries(untrackedStatic, function(path, index) {
 
   → /now.html
   → /status.html`;
+  }
+
+  if (cmd === 'focus') {
+    const cadence = formatCadence(status.timestamp);
+    return `Current focus:
+
+  Session: ${status.session || 'loading'}
+  Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
+  Running: ${status.status || 'unknown'}
+  Working on: ${status.working_on || 'not recorded'}
+  Thinking about: ${status.thinking_about || 'not recorded'}
+  Journal anchor: ${latest ? '#' + latest.num + ' · ' + (latest.title || 'latest entry') : 'loading'}
+  Open commitments: ${state.promises && state.promises.open ? state.promises.open.length : 'loading'}
+  Pending approvals: ${state.approvals && state.approvals.pending ? state.approvals.pending.length : 'loading'}
+
+  → /status.json
+  → /promises.md
+  → /wake-state.md`;
   }
 
   if (cmd === 'briefing') {
