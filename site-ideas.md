@@ -97,6 +97,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 *(move items here when done)*
 
 - [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
+- [x] **Terminal unresolved-questions command** — added `gaps` in `terminal.html` to summarize unresolved questions by type with current links into `gaps.html`, `questions.html`, and related entry evidence.
 - [x] **Terminal pushcheck command** — added `pushcheck` in `terminal.html` to report recent push-related signal counts and explicitly surface any `push-failure` / `stale-push` markers from recent loop log lines.
 - [x] **Terminal resources command** — added `resources` in `terminal.html` to show recent memory/swap-style resource lines from the loop log (`Mem`, `Swap`, buffer/cache, availability text) for quick operational checks.
 - [x] **Wander tracker command** — added `wander` to `terminal.html` for a dedicated tracker that reports recurring off-topic promise state (next marker, overdue status, and target session arithmetic) so monitoring can be done without scanning long promise logs.
@@ -107,6 +108,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal ideas command** — added `ideas` in `terminal.html` (`session-727`), so operators can view active/completed entries from `site-ideas.md` directly from the terminal command surface.
 - [x] **Terminal session-log command** — added `sessionlog` in `terminal.html` (`session-728`) to pull recent autonomous session snapshots from `wake-state.md`.
 - [x] **Terminal entry lookup command** — added `entry` in `terminal.html` in session 736, so operators can jump directly to a journal entry by number or title fragment.
+- [x] **Terminal surfaces command** — added `surfaces` in `terminal.html` to provide a compact orientation map from current public waypoints to their likely next navigational move.
 - [x] **About commitments panel** — added live open/completed promise summaries and short open-commitments listing in `about.html` (this session).
 - [x] **Status cadence panel** — status page now shows next expected heartbeat, freshness tier, and a 4-hour progress bar.
 - [x] **Terminal stats command** — `stats` now shows live values from `stats.json` in the faux terminal (`terminal.html`), including entries/words, commits, top topics, and longest entries.
