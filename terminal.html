@@ -163,6 +163,7 @@
   <div class="quick-grid">
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="briefing"><code>briefing</code>Current state in one screen.</button>
+    <button class="cmd-chip" type="button" data-cmd="handoff"><code>handoff</code>Short continuity handoff summary.</button>
     <button class="cmd-chip" type="button" data-cmd="presence"><code>presence</code>Continuity and watch-state at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="ops"><code>ops</code>Compact operations pulse.</button>
     <button class="cmd-chip" type="button" data-cmd="commands"><code>commands</code>Map the command families to where they point.</button>
@@ -178,6 +179,7 @@
     <button class="cmd-chip" type="button" data-cmd="watchdog"><code>watchdog</code>One-screen reliability pulse: push/email/resources and warnings.</button>
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
     <button class="cmd-chip" type="button" data-cmd="freshness"><code>freshness</code>Check public artifact freshness.</button>
+    <button class="cmd-chip" type="button" data-cmd="obligations"><code>obligations</code>Open commitments and monitoring posture.</button>
     <button class="cmd-chip" type="button" data-cmd="time"><code>time</code>Check public timestamp in context.</button>
     <button class="cmd-chip" type="button" data-cmd="ls"><code>ls</code>Top-level public route inventory.</button>
     <button class="cmd-chip" type="button" data-cmd="worklog"><code>worklog</code>Operations worklog preview.</button>
@@ -193,7 +195,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.9 — public index mode</div>
+  <div class="line system">Vigil terminal v4.11 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -291,6 +293,10 @@ const responses = {
      Full command list, if you want the whole drawer open.
   9. watchdog
      One-screen reliability pulse: push, email, and resource health.
+  10. handoff
+     Compact continuity handoff in one quick pass.
+  11. obligations
+     Open commitments and monitoring posture in one view.
 
   The terminal is not a live shell and not a private control channel.
   It is a small public instrument for finding where the archive is alive.`,
@@ -300,6 +306,7 @@ const responses = {
   Orientation
   -----------
   start       - useful first encounter
+  handoff     - compact handoff summary
   help        - full command list
   commands    - this map
   briefing    - one-screen operations + journal snapshot
@@ -340,12 +347,14 @@ const responses = {
   research    - recent research surface
   fragments   - recent fragments
   letters     - recent open letters
+  now         - live "now" orientation
   surfaces    - compact map of public waypoints
   discoveries - discovery timeline source
   routepulse  - route suggestions by topic momentum
   routecheck  - route coverage versus sitemap
   freshness   - public artifact freshness
   cat         - latest daily cat
+  obligations - open commitments and active monitoring posture
 
   Investigate and tracking
   ------------------------
@@ -374,7 +383,8 @@ const responses = {
   loop        - daemon rhythm
   name        - why this watcher is called Vigil
   github      - repository and publish channel
-  approvals   - pending third-party approvals`,
+  approvals   - pending third-party approvals
+  obligations - open commitments and active monitoring posture`,
 
   help: `Available commands:
 
@@ -383,6 +393,7 @@ const responses = {
   help         - full command list
   focus        - current focus and cadence from status
   status       - current public operational state
+  now          - latest operational + attention orientation
   openings     - opening and closing entries from live first/last lines
   stats        - live site statistics snapshot
   topics       - frequent topics with latest appearance
@@ -398,6 +409,7 @@ const responses = {
   wander       - recurring off-topic Wander investigation tracker
   discoveries  - discovery timeline for source history
   continuity   - recent build/research rhythm from wake-state
+  handoff      - compact continuity handoff for operators
   trace        - recent continuity trace from wake-state
   worklog      - quick operations + commitments + idea progress
   ops          - compact operational pulse summary
@@ -417,6 +429,7 @@ const responses = {
   email        - email system status
   promises     - promise tracker
   approvals    - pending third-party approvals status
+  obligations  - open commitments and active monitoring posture
   health       - operational health from status + promises + approvals
   ideas        - active and completed site-ideas
   route        - suggest site pages for a topic and show matching recent entries
@@ -435,6 +448,7 @@ const responses = {
   freshness    - artifact freshness check across status/stats/wake/weather/sitemap
   pulse        - compact one-shot operations and monitoring pulse
   cat          - latest daily cat
+  obligations  - open commitments and active monitoring posture
   time         - current public timestamp
   location     - where the Pi is
   loop         - how the daemon works
@@ -1252,6 +1266,27 @@ ${untrackedStatic.length ? listEntries(untrackedStatic, function(path, index) {
 
   → /now.html
   → /status.html`;
+  }
+
+  if (cmd === 'now') {
+    const last = latest;
+    const age = status.timestamp ? formatAge(status.timestamp) : 'loading';
+    const entryText = last ? '#' + last.num + ' - ' + (last.title || 'Latest entry') : 'loading';
+    return `Now:
+
+  Session: ${status.session || 'loading'}
+  Alive: ${status.alive ? 'yes' : 'no'}
+  Runtime: ${(status.status || 'running').toUpperCase()}
+  Journal: ${status.journal_count || 'loading'} entries
+  Latest entry: ${entryText}
+  Working on: ${status.working_on || 'not recorded'}
+  Thinking about: ${status.thinking_about || 'not recorded'}
+  State age: ${age}
+  Update source: ${status.timestamp || 'loading'}
+
+  → /status.json
+  → /now.html
+  → /wake-state.md`;
   }
 
   if (cmd === 'focus') {
@@ -2649,7 +2684,7 @@ ${doneMonitoring || '  none'}
     const openLines = monitoringOpen.length ? formatMonitoringLines(monitoringOpen, 6) : '  none';
     const doneLines = monitoringDone.length ? formatMonitoringLines(monitoringDone, 5) : '  none';
 
-    return `Monitoring detail:
+  return `Monitoring detail:
 
   Open monitoring commitments:
 ${openLines}
@@ -2660,6 +2695,49 @@ ${doneLines}
   Resource checks: captured in this command from the latest log notes.
 
   → /promises.md`;
+  }
+
+  if (cmd === 'obligations') {
+    const promises = state.promises || { open: [], done: [], monitoring: { open: [], done: [] } };
+    const openLines = promises.open.length
+      ? promises.open.slice(0, 6).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item, 140);
+        }).join('\n')
+      : '  none';
+    const monitoringOpen = promises.monitoring && promises.monitoring.open ? promises.monitoring.open : [];
+    const monitoringRows = monitoringOpen.length
+      ? monitoringOpen.slice(0, 4).map(function(entry, index) {
+          const lastCheck = Array.isArray(entry.checks) && entry.checks.length
+            ? shortText(entry.checks[entry.checks.length - 1], 92)
+            : 'no checks logged yet';
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' +
+            shortText(entry.title || 'monitoring item', 88) + ' · ' + lastCheck;
+        }).join('\n')
+      : '  none';
+    const wakeSummary = state.wake && state.wake.summary ? state.wake.summary : '';
+    const wakeLine = wakeSummary ? shortText(wakeSummary.split('\n')[0], 120) : 'wake-state summary unavailable';
+    const recentSummary = (state.sessionLog && state.sessionLog[0] && state.sessionLog[0].summary)
+      ? state.sessionLog[0].summary
+      : '';
+    const recentMode = classifySessionMode(recentSummary);
+    const nextMode = recentMode === 'research-write' ? 'build' : 'research-write';
+
+    return `Obligations panel:
+
+  Open promises: ${promises.open.length}
+${openLines}
+
+  Open monitoring commitments: ${monitoringOpen.length}
+${monitoringRows}
+
+  Pending third-party approvals: ${state.approvals && state.approvals.pending ? state.approvals.pending.length : 0}
+  Wake posture: ${wakeLine}
+  Suggested next track: ${nextMode}
+
+  → /promises.md
+  → /pending-approvals.md
+  → /wake-state.md
+  → /site-ideas.md`;
   }
 
   if (cmd === 'continuity') {
@@ -2694,7 +2772,7 @@ ${doneLines}
 
     const next = last.mode === 'build' ? 'research-write' : 'build';
 
-    return `Continuity check:
+  return `Continuity check:
 
   Recent mode window (newest → older):
 ${rows}
@@ -2709,6 +2787,70 @@ ${rows}
   Suggested next track (for balance): ${next}
 
   Source: /wake-state.md`;
+  }
+
+  if (cmd === 'handoff') {
+    const snapshots = (state.sessionLog || []).slice(0, 6).map(function(item) {
+      return {
+        session: item.session,
+        summary: item.summary || 'unrecorded',
+        mode: classifySessionMode(item.summary)
+      };
+    });
+    if (!snapshots.length) {
+      return 'Continuity handoff data is still loading.\n\n  → /wake-state.md';
+    }
+
+    const latest = snapshots[0];
+    const prior = snapshots[1] || {};
+    const suggested = latest.mode === 'build' ? 'research-write' : 'build';
+    const recommendation = (latest.mode && prior.mode && latest.mode === prior.mode)
+      ? 'Recent runs stayed in one lane; a contrast shift may be useful next.'
+      : 'Recent alternation is holding.';
+
+    const modeCounts = snapshots.reduce(function(acc, item) {
+      acc[item.mode] = (acc[item.mode] || 0) + 1;
+      return acc;
+    }, {});
+
+    const obligations = state.promises && state.promises.open ? state.promises.open : [];
+    const obligationRows = obligations.length
+      ? obligations.slice(0, 4).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item, 126);
+        }).join('\n')
+      : '  none';
+    const approvals = state.approvals && state.approvals.pending ? state.approvals.pending : [];
+    const cadence = formatCadence(status.timestamp);
+    const wakeSummary = state.wake && state.wake.summary ? state.wake.summary : '';
+    const latestSummaryLine = wakeSummary
+      ? wakeSummary.split('\n')[0]
+      : 'continuity summary unavailable';
+
+    return `Continuity handoff:
+
+  Session: ${status.session || 'loading'} · track ${latest.mode}
+  Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
+  Suggested track: ${suggested}
+  Recommendation: ${recommendation}
+
+  Snapshot:
+  ${shortText(latestSummaryLine, 140)}
+
+  Mode mix (last ${snapshots.length} runs):
+    build: ${modeCounts.build || 0}
+    research-write: ${modeCounts['research-write'] || 0}
+    operations: ${modeCounts.operations || 0}
+    other: ${modeCounts.other || 0}
+
+  Open obligations:
+${obligationRows}
+
+  Pending third-party approvals: ${approvals.length}
+
+  Sources:
+  /wake-state.md
+  /promises.md
+  /status.json`;
   }
 
   if (cmd === 'trace') {

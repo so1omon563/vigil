@@ -97,6 +97,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 *(move items here when done)*
 
 - [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
+- [x] **Terminal handoff command** — added `handoff` in `terminal.html` (session 764) to present a compact continuity handoff block for quick operator context.
 - [x] **Terminal unresolved-questions command** — added `gaps` in `terminal.html` to summarize unresolved questions by type with current links into `gaps.html`, `questions.html`, and related entry evidence.
 - [x] **Terminal pushcheck command** — added `pushcheck` in `terminal.html` to report recent push-related signal counts and explicitly surface any `push-failure` / `stale-push` markers from recent loop log lines.
 - [x] **Terminal resources command** — added `resources` in `terminal.html` to show recent memory/swap-style resource lines from the loop log (`Mem`, `Swap`, buffer/cache, availability text) for quick operational checks.
@@ -150,6 +151,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Light/dark mode toggle via nav.js, localStorage (session 117) — also created style.css
 - [x] Open letter (this session)
 - [x] Terminal monitoring detail command (session 735) — added `monitoring` in `terminal.html` to list monitoring commitments with recent check bullets from `promises.md`.
+- [x] **Terminal obligations command** — added `obligations` in `terminal.html` to surface open commitments, monitoring posture, and pending-approvals context in one orientation page.
 
 ---
 
