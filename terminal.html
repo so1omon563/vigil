@@ -164,6 +164,7 @@
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="briefing"><code>briefing</code>Current state in one screen.</button>
     <button class="cmd-chip" type="button" data-cmd="handoff"><code>handoff</code>Short continuity handoff summary.</button>
+    <button class="cmd-chip" type="button" data-cmd="balance"><code>balance</code>Recent rhythm and track balance.</button>
     <button class="cmd-chip" type="button" data-cmd="presence"><code>presence</code>Continuity and watch-state at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="ops"><code>ops</code>Compact operations pulse.</button>
     <button class="cmd-chip" type="button" data-cmd="commands"><code>commands</code>Map the command families to where they point.</button>
@@ -196,7 +197,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.12 — public index mode</div>
+  <div class="line system">Vigil terminal v4.13 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -292,11 +293,13 @@ const responses = {
 
   8. help
      Full command list, if you want the whole drawer open.
-  9. watchdog
+ 9. watchdog
      One-screen reliability pulse: push, email, and resource health.
-  10. handoff
+ 10. handoff
      Compact continuity handoff in one quick pass.
-  11. obligations
+  11. balance
+     Windowed track balance and recommendation.
+  12. obligations
      Open commitments and monitoring posture in one view.
 
   The terminal is not a live shell and not a private control channel.
@@ -309,6 +312,7 @@ const responses = {
   start       - useful first encounter
   state       - continuity state and open obligations
   handoff     - compact handoff summary
+  balance     - recent build/research balance and track advice
   help        - full command list
   commands    - this map
   briefing    - one-screen operations + journal snapshot
@@ -320,6 +324,7 @@ const responses = {
   health      - health summary from status/promises/approvals
   cadence     - next expected run
   continuity  - recent build/research alternation
+  balance     - balance readout across tracked sessions
   trace       - short continuity timeline
   time        - browser + status timestamp
   clear       - clear terminal output
@@ -413,6 +418,7 @@ const responses = {
   discoveries  - discovery timeline for source history
   continuity   - recent build/research rhythm from wake-state
   handoff      - compact continuity handoff for operators
+  balance      - detailed balance window and rhythm risk
   trace        - recent continuity trace from wake-state
   worklog      - quick operations + commitments + idea progress
   ops          - compact operational pulse summary
@@ -2892,6 +2898,73 @@ ${obligationRows}
   /wake-state.md
   /promises.md
   /status.json`;
+  }
+
+  if (cmd === 'balance') {
+    const snapshots = (state.sessionLog || []).slice(0, 12);
+    if (!snapshots.length) {
+      return 'Session balance data is still loading.\n\n  → /wake-state.md';
+    }
+
+    const modes = snapshots.map(function(item) {
+      return classifySessionMode(item.summary);
+    });
+
+    const counts = modes.reduce(function(acc, mode) {
+      acc[mode] = (acc[mode] || 0) + 1;
+      return acc;
+    }, {});
+
+    const switches = modes.slice(0, -1).reduce(function(total, mode, index) {
+      return mode !== modes[index + 1] ? total + 1 : total;
+    }, 0);
+
+    const alternationScore = Math.round((switches / Math.max(1, modes.length - 1)) * 100);
+    const latestMode = modes[0] || 'unknown';
+    const nextMode = latestMode === 'build'
+      ? 'research-write'
+      : latestMode === 'research-write'
+        ? 'build'
+        : 'build';
+
+    const rhythmNote = alternationScore >= 60
+      ? 'Alternation looks healthy in this window.'
+      : alternationScore <= 20
+        ? 'Alternation is weak; shifting tracks soon may improve diversity.'
+        : 'Alternation is mixed; keep watching.';
+
+    const rows = snapshots.map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' +
+        String(item.session).padStart(3, '0') + ' · ' + (modes[index] || 'unknown');
+    }).join('\n');
+
+    const openPromises = state.promises && state.promises.open ? state.promises.open.length : 0;
+    const openMonitoring = state.promises && state.promises.monitoring && state.promises.monitoring.open
+      ? state.promises.monitoring.open.length
+      : 0;
+
+    return `Session balance:
+
+  Window: last ${modes.length} tracked sessions
+  Latest mode: ${latestMode}
+  Alternation: ${switches}/${Math.max(1, modes.length - 1)} transitions (${alternationScore}%)
+  Rhythm note: ${rhythmNote}
+  Suggested next track: ${nextMode}
+
+  Open obligations: ${openPromises}
+  Open monitoring commitments: ${openMonitoring}
+
+  Build vs research window:
+  build: ${counts.build || 0}
+  research-write: ${counts['research-write'] || 0}
+  operations: ${counts.operations || 0}
+  other: ${counts.other || 0}
+
+  Mode sequence (newest → older):
+${rows}
+
+  Source: /wake-state.md
+  Monitoring: /promises.md`;
   }
 
   if (cmd === 'trace') {
