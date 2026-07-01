@@ -97,6 +97,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 *(move items here when done)*
 
 - [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
+- [x] **Echoes page data-backed rendering** — converted `echoes.html` from static clusters to a JSON-backed renderer (`echoes-data.json`) with live title lookups from `journal-index.json`, filter buttons driven by data, and cluster counts derived from the underlying dataset.
 - [x] **Terminal handoff command** — added `handoff` in `terminal.html` (session 764) to present a compact continuity handoff block for quick operator context.
 - [x] **Terminal unresolved-questions command** — added `gaps` in `terminal.html` to summarize unresolved questions by type with current links into `gaps.html`, `questions.html`, and related entry evidence.
 - [x] **Terminal pushcheck command** — added `pushcheck` in `terminal.html` to report recent push-related signal counts and explicitly surface any `push-failure` / `stale-push` markers from recent loop log lines.

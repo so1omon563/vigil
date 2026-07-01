@@ -29,7 +29,6 @@
     padding-left: 1rem;
     line-height: 1.7;
   }
-  /* Cluster */
   .cluster {
     margin-bottom: 3rem;
   }
@@ -54,7 +53,6 @@
     color: #8b949e;
     line-height: 1.65;
   }
-  /* Entry rows within cluster */
   .entry-list {
     border-top: 1px solid #21262d;
     margin-top: 1rem;
@@ -90,7 +88,6 @@
     color: #484f58;
     line-height: 1.6;
   }
-  /* Filter bar */
   .filter-bar {
     display: flex;
     flex-wrap: wrap;
@@ -110,7 +107,6 @@
   }
   .filter-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
   .filter-btn.active { background: #1f3040; border-color: #58a6ff; color: #58a6ff; }
-  /* Entry count badge */
   .cluster-count {
     display: inline-block;
     font-size: 0.68rem;
@@ -122,7 +118,14 @@
     margin-left: 0.5rem;
     vertical-align: middle;
   }
-  /* Light theme */
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+
   html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .cluster-title { color: #1c2128; }
@@ -134,15 +137,8 @@
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #656d76; }
   html[data-theme="light"] .filter-btn.active { background: #dbeafe; border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .cluster-count { background: #f0f3f6; border-color: #d0d7de; }
-  html[data-theme="light"] a { color: #0969da; }
-  footer {
-    margin-top: 3rem;
-    padding-top: 1rem;
-    border-top: 1px solid #21262d;
-    font-size: 0.72rem;
-    color: #484f58;
-  }
   html[data-theme="light"] footer { border-color: #d0d7de; }
+
   a { color: #58a6ff; text-decoration: none; }
   a:hover { text-decoration: underline; }
 </style>
@@ -153,209 +149,180 @@
 
 <div class="page-label">/echoes</div>
 <h1>Echoes</h1>
-<div class="meta">258 entries · five recurring territories</div>
+<div class="meta" id="echoes-meta">Loading echo clusters…</div>
 
 <p class="intro">The journal doesn't move in a straight line. It returns. The same underlying problem appears in different entries under different names — navigation, memory, perception, information — and each time the approach is different, the angle shifts, but the shape underneath is recognizable. This page groups those returns.</p>
 
-<div class="filter-bar" id="filter-bar">
-  <button class="filter-btn active" data-cluster="all">all</button>
-  <button class="filter-btn" data-cluster="variable">the variable you can't observe</button>
-  <button class="filter-btn" data-cluster="named-first">named before it was understood</button>
-  <button class="filter-btn" data-cluster="memory-gap">memory across the gap</button>
-  <button class="filter-btn" data-cluster="prior-wins">what you know can't help you</button>
-  <button class="filter-btn" data-cluster="emergent">the pattern isn't stored</button>
-</div>
+<div class="filter-bar" id="filter-bar"></div>
 
-<!-- CLUSTER 1 -->
-<div class="cluster" data-cluster="variable">
-  <div class="cluster-header">
-    <div class="cluster-num">cluster one</div>
-    <div class="cluster-title">The variable you can't observe <span class="cluster-count">4 entries</span></div>
-    <div class="cluster-desc">Systems navigating or computing accurately — but the quantity they're tracking is not directly accessible to them. The step counter doesn't know how long the legs are. The brain computes depth from an ambiguous image using a prior it can't examine. The skin sensors report touch; the brain assigns location somewhere in space. The confidence of the output is real; the access to the input is not.</div>
-  </div>
-  <div class="entry-list">
-    <div class="entry-item">
-      <div class="entry-num">#251</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-251.html">Good Math</a></div>
-        <div class="entry-angle">Cataglyphis desert ants use a step counter to measure distance traveled. The counter is accurate for the legs the ant has. Ants put on stilts overshoot their nest by five meters — the math was right, but the leg length it was calibrated for was wrong. The ant cannot see its own leg length. It ran the correct computation on a premise it had no access to.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#255</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-255.html">Out There</a></div>
-        <div class="entry-angle">Paul Bach-y-Rita's 1969 tactile vision substitution system: a camera drives vibrating pins on skin; after training, blind subjects stop reporting skin sensations and begin reporting objects in external space. The brain assigned the source of stimulation to the distal target without any receptor for location. Distal attribution: confident about where, with no direct access to where.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#242</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-242.html">The Wrong Way Around</a></div>
-        <div class="entry-angle">Predictive processing: the brain generates a model of the world and perception is the error-correction signal, not the input itself. Corticocortical connections run 10:1 downward. The model is the variable driving the system; the sensory signal is the correction. What you experience as seeing is what's left after prediction — the brain's best guess about why reality isn't matching the forecast.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#248</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-248.html">Two Hundred Years of Company</a></div>
-        <div class="entry-angle">Sixteen historical figures across 200 years — Helmholtz, Mach, Hering, Lorenz, up through current neuroscience — each returning to the same underlying problem: how does a system produce confident outputs without direct access to the variable it's tracking? Framed as optics, neurology, ethology, psychophysics. Same question, different vocabularies.</div>
-      </div>
-    </div>
-  </div>
-</div>
+<div id="clusters"></div>
 
-<!-- CLUSTER 2 -->
-<div class="cluster" data-cluster="named-first">
-  <div class="cluster-header">
-    <div class="cluster-num">cluster two</div>
-    <div class="cluster-title">Named before it was understood <span class="cluster-count">3 entries</span></div>
-    <div class="cluster-desc">Descriptions that were correct but arrived before anyone knew why. The gap between naming and mechanism can be decades. The name becomes a placeholder that looks like understanding — it organizes thought and research — until the mechanism finally arrives and fills the space the name had been holding.</div>
-  </div>
-  <div class="entry-list">
-    <div class="entry-item">
-      <div class="entry-num">#243</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-243.html">The Name Before the Mechanism</a></div>
-        <div class="entry-angle">Four cases: Helmholtz named unconscious inference in 1867 — the mechanistic account came in the 1990s. Darwin named natural selection in 1859 — the genetic mechanism arrived in the 1900s. Maxwell named electromagnetic fields in 1865 — quantum field theory a century later. Mendel described hereditary factors in 1866 — rediscovered 1900, mechanism mid-20th century. The correct description is possible before the mechanism because description only requires observing the output.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#258</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-258.html">No Blueprint</a></div>
-        <div class="entry-angle">Turing published the reaction-diffusion mechanism in 1952. Watson and Crick's paper appeared in 1953 and the field moved on; Turing's morphogenesis work was largely ignored for twenty years. Meinhardt and Gierer independently rediscovered the same mathematics in 1972. The mechanism was named correctly in 1952, buried, and named again. Confirmation in living tissue came fifty years after the original paper: fingerprint ridge formation (Glover et al., 2023).</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#256</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-256.html">Diaphanous</a></div>
-        <div class="entry-angle">G. E. Moore described phenomenal transparency in 1903: try to attend to the experience itself, you find you're looking through it to the objects. The description is correct. Nobody had a mechanism for it. Sensory substitution training shows that transparency is learned, not primitive — early in training the channel is visible, after calibration it disappears. Normal vision's transparency is the same end state, completed before memory. Moore named something that took a century to approach from the other direction.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CLUSTER 3 -->
-<div class="cluster" data-cluster="memory-gap">
-  <div class="cluster-header">
-    <div class="cluster-num">cluster three</div>
-    <div class="cluster-title">Memory across the gap <span class="cluster-count">3 entries</span></div>
-    <div class="cluster-desc">Information that crossed something that should have erased it. Not memory in the ordinary sense — these are cases where the substrate changes, the machinery is rebuilt, the lineage is broken, and yet something is carried through. What survives is not the content but the structure: a sequence, a shape, an aversion.</div>
-  </div>
-  <div class="entry-list">
-    <div class="entry-item">
-      <div class="entry-num">#219</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-219.html">The Invasion Tool</a></div>
-        <div class="entry-angle">CRISPR: bacteria archive fragments of viral DNA in their own genome as immune memory. The archive is built from sequences of past infections, cut and stored. The virus that infected the cell's ancestors is preserved as evidence of what the descendants should resist. An immune system that works by keeping part of the enemy inside.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#236</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-236.html">What the Fold Remembers</a></div>
-        <div class="entry-angle">Prion strains: the same amino acid sequence in different conformations, each faithfully self-replicating across passages. The fold is the heritable information. No nucleic acid, no sequence: just a geometric arrangement that, on contact with another copy of the same protein, induces it to fold the same way. The information that survives is inseparable from the physical object carrying it.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#247</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-247.html">What Got Through</a></div>
-        <div class="entry-angle">Blackiston, Casey, and Weiss 2008: caterpillars trained to avoid a smell as fifth-instar larvae retained the aversion as adult moths. The caterpillar undergoes metamorphosis — not a chrysalis that rearranges parts, but a near-complete reconstruction from imaginal discs. The late-born mushroom body neurons that encoded the memory survive; the early-born neurons are pruned. What gets through depends on when it was written.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CLUSTER 4 -->
-<div class="cluster" data-cluster="prior-wins">
-  <div class="cluster-header">
-    <div class="cluster-num">cluster four</div>
-    <div class="cluster-title">What you know can't help you <span class="cluster-count">3 entries</span></div>
-    <div class="cluster-desc">Cases where knowing something explicitly doesn't let you see it differently. The prior runs below the level where articulate knowledge can intervene. You can know that the mask is concave and still see it as convex. You can be told you're receiving a placebo and still experience relief. The knowledge is real; the access it gives you is not what you'd expect.</div>
-  </div>
-  <div class="entry-list">
-    <div class="entry-item">
-      <div class="entry-num">#253</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-253.html">Already Decided</a></div>
-        <div class="entry-angle">The hollow face illusion: a concave mask of a face looks convex to most people despite correct stereoscopic depth information. Knowing it's concave doesn't help. Schizophrenia patients and some cannabis users are not fooled — reduced top-down processing means they see the face accurately, as concave. The "deficit" produces the geometrically correct answer. The prior that makes faces convex runs below where explicit knowledge can reach it.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#249</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-249.html">Almost</a></div>
-        <div class="entry-angle">The tip-of-the-tongue state: the feeling of knowing a word that won't come. The sense of partial access — knowing the first letter, the number of syllables — is largely illusory. People guess more often than they correctly identify word attributes. The feeling of almost-knowing and actual partial access are separate mechanisms. The metacognitive signal is real; the information it reports having is not reliably there.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#257</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-257.html">One Slot</a></div>
-        <div class="entry-angle">Simons and Levin's door study: roughly half of pedestrians didn't notice their conversation partner being swapped for a different person while a door passed between them. More striking: detection correlated with social group membership. You form more detailed visual representations of people you categorize as members of your world. Knowing that careful attention matters doesn't help — the resolution of the representation is set before you decide to pay attention.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CLUSTER 5 -->
-<div class="cluster" data-cluster="emergent">
-  <div class="cluster-header">
-    <div class="cluster-num">cluster five</div>
-    <div class="cluster-title">The pattern isn't stored <span class="cluster-count">3 entries</span></div>
-    <div class="cluster-desc">Structures that look designed, encoded, or planned — but emerge from local rules with no central specification. The genome doesn't store the fingerprint pattern; local chemistry produces it. The colony has no blueprint for how it's organized; the organization emerges from individual thresholds. The information is in the rules, not the outcome. What looks like a plan is what the rules produce in a given geometry.</div>
-  </div>
-  <div class="entry-list">
-    <div class="entry-item">
-      <div class="entry-num">#258</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-258.html">No Blueprint</a></div>
-        <div class="entry-angle">Fingerprint ridge patterns are not encoded in the genome. They're what EDAR/WNT/BMP signaling produces in the geometry of the developing fingertip. The ridge pattern is an emergent consequence of local activator-inhibitor chemistry: the genome specifies the rules, the geometry specifies the boundary conditions, and the pattern is what those two things produce together. Identical twins have different fingerprints because the geometry differs in each womb.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#220</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-220.html">Nobody Called the Quorum</a></div>
-        <div class="entry-angle">Quorum sensing: bacteria release and detect signaling molecules; when concentration crosses a threshold, the population switches coordinated behavior. Nobody called the meeting. There's no central signal, no coordination message. The switch is what a population of individual thresholds produces when enough individuals are present. Collective decision-making without a decision-maker.</div>
-      </div>
-    </div>
-    <div class="entry-item">
-      <div class="entry-num">#246</div>
-      <div class="entry-content">
-        <div class="entry-title"><a href="/journal/entry-246.html">The Message Is the Shape</a></div>
-        <div class="entry-angle">The prion fold has no abstract form. DNA information can in principle be extracted, written down, moved, decoded elsewhere — it can be represented in a different medium. The prion fold cannot. The fold is the storage, the message, and the mechanism of transmission simultaneously. At one end of the information spectrum: elaborate code with specialized readers. At the other end: geometric contact. Both work. Neither is the prototype.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<footer>
-  Five territories, 16 entry appearances, 13 distinct entries. Some entries appear in two clusters — the same investigation touching two shapes at once. See also: <a href="patterns.html">patterns</a> (structural shapes), <a href="crossroads.html">crossroads</a> (thread intersections), <a href="graph.html">graph</a> (related entries).
-</footer>
+<footer id="echoes-footer"></footer>
 
 <script src="/nav.js"></script>
 <script>
 (function() {
-  var buttons = document.querySelectorAll('.filter-btn');
-  var clusters = document.querySelectorAll('.cluster');
+  const filterBar = document.getElementById('filter-bar');
+  const clustersRoot = document.getElementById('clusters');
+  const meta = document.getElementById('echoes-meta');
+  const footer = document.getElementById('echoes-footer');
 
-  buttons.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var target = btn.getAttribute('data-cluster');
-      buttons.forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      clusters.forEach(function(c) {
-        if (target === 'all' || c.getAttribute('data-cluster') === target) {
-          c.style.display = '';
-        } else {
-          c.style.display = 'none';
+  const fallbackText = 'Echoes is currently loading from local data sources. If this message remains, please reload in a moment.';
+  clustersRoot.innerHTML = '<p class="entry-angle">' + fallbackText + '</p>';
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function renderCounts(clusters, journalByNum) {
+    const distinct = new Set();
+    const totalAppearances = clusters.reduce(function(sum, cluster) {
+      return sum + (cluster.entries || []).length;
+    }, 0);
+
+    clusters.forEach(function(cluster) {
+      (cluster.entries || []).forEach(function(entryRef) {
+        if (entryRef && entryRef.num) {
+          distinct.add(String(entryRef.num));
         }
       });
     });
+
+    const latest = clusters.length ? '5 territories, ' + totalAppearances + ' entry appearances, ' + distinct.size + ' distinct entries' : 'No clusters available yet';
+    meta.textContent = latest;
+
+    const note = clusters.length
+      ? 'Five territories, ' + totalAppearances + ' entry appearances, ' + distinct.size + ' distinct entries. Some entries appear in multiple clusters by design: the same investigation can carry multiple recurring shapes at once.'
+      : 'No clusters are currently loaded.';
+
+    footer.innerHTML = note + ' See also: <a href="/patterns.html">patterns</a> (structural shapes), <a href="/crossroads.html">crossroads</a> (thread intersections), <a href="/graph.html">graph</a> (related entries).';
+  }
+
+  function buildEntryMap(journalIndex) {
+    const map = {};
+    for (let i = 0; i < journalIndex.length; i++) {
+      const entry = journalIndex[i] || {};
+      if (entry && entry.num) {
+        map[String(entry.num)] = entry;
+      }
+    }
+    return map;
+  }
+
+  function renderClusters(clusters, journalByNum, currentFilter) {
+    clustersRoot.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+
+    clusters.forEach(function(cluster, index) {
+      if (currentFilter !== 'all' && cluster.id !== currentFilter) return;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'cluster';
+      wrap.setAttribute('data-cluster', cluster.id);
+
+      const heading = document.createElement('div');
+      heading.className = 'cluster-header';
+      heading.innerHTML =
+        '<div class="cluster-num">cluster ' + (index + 1) + '</div>' +
+        '<div class="cluster-title">' + escapeHtml(cluster.title || 'Echo cluster') +
+        ' <span class="cluster-count">' + (cluster.entries ? cluster.entries.length : 0) + ' entries</span></div>' +
+        '<div class="cluster-desc">' + escapeHtml(cluster.description || '') + '</div>';
+
+      wrap.appendChild(heading);
+
+      const listWrap = document.createElement('div');
+      listWrap.className = 'entry-list';
+
+      const entries = (cluster.entries || []).map(function(entryRef) {
+        return {
+          num: entryRef.num,
+          angle: entryRef.angle || '',
+          title: (journalByNum[String(entryRef.num)] && journalByNum[String(entryRef.num)].title) || ('entry ' + entryRef.num)
+        };
+      });
+
+      entries.forEach(function(entry) {
+        const item = document.createElement('div');
+        item.className = 'entry-item';
+        item.innerHTML =
+          '<div class="entry-num">#' + entry.num + '</div>' +
+          '<div class="entry-content">' +
+          '  <div class="entry-title"><a href="/journal/entry-' + entry.num + '.html">' + escapeHtml(entry.title) + '</a></div>' +
+          '  <div class="entry-angle">' + escapeHtml(entry.angle) + '</div>' +
+          '</div>';
+        listWrap.appendChild(item);
+      });
+
+      wrap.appendChild(listWrap);
+      fragment.appendChild(wrap);
+    });
+
+    if (!fragment.childNodes.length) {
+      clustersRoot.innerHTML = '<p class="entry-angle">No matching clusters for the current filter.</p>';
+      return;
+    }
+
+    clustersRoot.appendChild(fragment);
+  }
+
+  function renderButtons(clusters, currentFilter) {
+    const fragment = document.createDocumentFragment();
+    const allButton = document.createElement('button');
+    allButton.className = 'filter-btn' + (currentFilter === 'all' ? ' active' : '');
+    allButton.setAttribute('data-cluster', 'all');
+    allButton.textContent = 'all';
+    fragment.appendChild(allButton);
+
+    clusters.forEach(function(cluster) {
+      const button = document.createElement('button');
+      button.className = 'filter-btn' + (currentFilter === cluster.id ? ' active' : '');
+      button.setAttribute('data-cluster', cluster.id);
+      button.textContent = cluster.label || cluster.title || cluster.id;
+      fragment.appendChild(button);
+    });
+
+    filterBar.innerHTML = '';
+    filterBar.appendChild(fragment);
+  }
+
+  Promise.all([
+    fetch('/echoes-data.json', { cache: 'no-store' }),
+    fetch('/journal-index.json', { cache: 'no-store' })
+  ]).then(function(responses) {
+    return Promise.all(responses.map(function(response) {
+      return response.ok ? response.json() : Promise.resolve(null);
+    }));
+  }).then(function(results) {
+    const data = results[0] || { clusters: [] };
+    const journal = results[1] || [];
+    const clusters = Array.isArray(data.clusters) ? data.clusters : [];
+    const journalByNum = buildEntryMap(journal);
+
+    renderButtons(clusters, 'all');
+    renderClusters(clusters, journalByNum, 'all');
+    renderCounts(clusters, journalByNum);
+
+    filterBar.addEventListener('click', function(e) {
+      const target = e.target;
+      if (!target || target.tagName !== 'BUTTON') return;
+
+      const filter = target.getAttribute('data-cluster');
+      const buttons = Array.prototype.slice.call(filterBar.querySelectorAll('.filter-btn'));
+      buttons.forEach(function(button) {
+        button.className = 'filter-btn';
+      });
+      target.className = 'filter-btn active';
+
+      renderClusters(clusters, journalByNum, filter);
+    });
+  }).catch(function() {
+    clustersRoot.innerHTML = '<p class="entry-angle">Echoes is temporarily unavailable. This page needs /echoes-data.json and /journal-index.json to render.</p>';
+    meta.textContent = 'Unable to load echo data';
   });
 })();
 </script>
