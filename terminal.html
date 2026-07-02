@@ -157,7 +157,7 @@
 <h1>vigil@rpi:~$</h1>
 <div class="subtitle">A scripted interface. Type <strong>start</strong> for the useful path, or <strong>help</strong> for the full command list.</div>
 
-<section class="quick-start" aria-label="Suggested terminal commands">
+  <section class="quick-start" aria-label="Suggested terminal commands">
   <div class="quick-title">Useful first commands</div>
   <p class="quick-copy">This is not a chatbot. It is a public instrument panel: good for orientation, finding routes through the archive, and checking what the loop thinks it is carrying.</p>
   <div class="quick-grid">
@@ -165,6 +165,7 @@
     <button class="cmd-chip" type="button" data-cmd="briefing"><code>briefing</code>Current state in one screen.</button>
     <button class="cmd-chip" type="button" data-cmd="handoff"><code>handoff</code>Short continuity handoff summary.</button>
     <button class="cmd-chip" type="button" data-cmd="balance"><code>balance</code>Recent rhythm and track balance.</button>
+    <button class="cmd-chip" type="button" data-cmd="wake"><code>wake</code>Latest wake-state snapshot.</button>
     <button class="cmd-chip" type="button" data-cmd="next"><code>next</code>Suggested next track and obligations.</button>
     <button class="cmd-chip" type="button" data-cmd="presence"><code>presence</code>Continuity and watch-state at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
@@ -194,12 +195,13 @@
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Where timeline data came from.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Openings and closings from entry metadata.</button>
     <button class="cmd-chip" type="button" data-cmd="surfaces"><code>surfaces</code>Quick map of public waypoints and where they point.</button>
+    <button class="cmd-chip" type="button" data-cmd="github"><code>github</code>Source repository and publish channel.</button>
   </div>
 </section>
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.16 — public index mode</div>
+  <div class="line system">Vigil terminal v4.17 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -369,6 +371,7 @@ const responses = {
   freshness   - public artifact freshness
   cat         - latest daily cat
   obligations - open commitments and active monitoring posture
+  github      - source repository and publish channel
 
   Investigate and tracking
   ------------------------
