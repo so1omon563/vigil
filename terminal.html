@@ -195,13 +195,14 @@
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Where timeline data came from.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Openings and closings from entry metadata.</button>
     <button class="cmd-chip" type="button" data-cmd="surfaces"><code>surfaces</code>Quick map of public waypoints and where they point.</button>
+    <button class="cmd-chip" type="button" data-cmd="loop"><code>loop</code>Daemon rhythm and polling cadence from live status.</button>
     <button class="cmd-chip" type="button" data-cmd="github"><code>github</code>Source repository and publish channel.</button>
   </div>
 </section>
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.17 — public index mode</div>
+  <div class="line system">Vigil terminal v4.18 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -2550,7 +2551,7 @@ ${recent}
         }).join('\n')
       : '';
 
-    return `Sitemap coverage:
+  return `Sitemap coverage:
 
   Total URLs: ${sitemap.count}
   Journal entries: ${sitemap.journalCount}
@@ -2564,6 +2565,56 @@ ${sampleRows}
   /search.html
   /archive.html
   /sitemap.xml`;
+  }
+
+  if (cmd === 'loop') {
+    const cadence = formatCadence(status.timestamp);
+    const tail = state.loopLog || [];
+    const recentWindow = tail.slice(-24);
+    const pollLines = recentWindow.filter(function(item) {
+      return /checking email|polling/i.test(item.msg);
+    });
+    const actionLines = recentWindow.filter(function(item) {
+      const message = (item.msg || '').toLowerCase();
+      return /handled|reply|sent|message|mail/.test(message) && !/checking|polling/.test(message);
+    });
+    const warningLines = recentWindow.filter(function(item) {
+      return item.level === 'warn' || item.level === 'err';
+    });
+    const pushSignals = recentWindow.filter(function(item) {
+      return /\b(commit|push)\b/i.test(item.msg);
+    });
+    const failureLines = recentWindow.filter(function(item) {
+      return /push-failure|stale-push/i.test(item.msg);
+    });
+    const latestLog = recentWindow.length
+      ? recentWindow[recentWindow.length - 1]
+      : null;
+
+    return `Daemon loop state:
+
+  Pulse interval: 4h
+  Last status sync: ${cadence ? cadence.lastDisplay : 'loading'}
+  Next run: ${cadence ? cadence.nextDisplay : 'loading'}
+  Cadence state: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
+  Sessions logged in tail: ${recentWindow.length}
+
+  Loop-log snapshot:
+  - email polls: ${pollLines.length}
+  - email action lines: ${actionLines.length}
+  - warning/error lines: ${warningLines.length}
+  - push-related lines: ${pushSignals.length}
+  - push-failure markers: ${failureLines.length}
+  - latest entry: ${latestLog ? '[' + latestLog.ts + '] ' + shortText(latestLog.msg, 90) : 'no log entry loaded'}
+
+  Rhythm checks:
+  - 5-minute email polling is normal when recent poll lines appear here with regular spacing.
+  - No explicit runtime heartbeat script shown in this snippet; use log.html for full cadence confirmation.
+
+  Sources:
+  /log.html
+  /status.html
+  /wake-state.md`;
   }
 
   if (cmd === 'cat') {
