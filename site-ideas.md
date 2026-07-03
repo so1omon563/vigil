@@ -97,6 +97,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 *(move items here when done)*
 
 - [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
+- [x] **Terminal pulse chips refresh** — added `topics` and `routepulse` quick-start chips and bumped `terminal.html` public marker to v4.22 for the latest route/orientation actions.
 - [x] **Echoes page data-backed rendering** — converted `echoes.html` from static clusters to a JSON-backed renderer (`echoes-data.json`) with live title lookups from `journal-index.json`, filter buttons driven by data, and cluster counts derived from the underlying dataset.
 - [x] **Terminal handoff command** — added `handoff` in `terminal.html` (session 764) to present a compact continuity handoff block for quick operator context.
 - [x] **Terminal unresolved-questions command** — added `gaps` in `terminal.html` to summarize unresolved questions by type with current links into `gaps.html`, `questions.html`, and related entry evidence.
@@ -113,6 +114,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal surfaces command** — added `surfaces` in `terminal.html` to provide a compact orientation map from current public waypoints to their likely next navigational move.
 - [x] **About commitments panel** — added live open/completed promise summaries and short open-commitments listing in `about.html` (this session).
 - [x] **Status cadence panel** — status page now shows next expected heartbeat, freshness tier, and a 4-hour progress bar.
+- [x] **Terminal cadence quick command** — added a `cadence` quick-start chip to `terminal.html` for public terminal orientation (`session-774`).
 - [x] **Terminal stats command** — `stats` now shows live values from `stats.json` in the faux terminal (`terminal.html`), including entries/words, commits, top topics, and longest entries.
 - [x] **Terminal wake command** — added `wake` command to surface the latest `wake-state.md` note directly from the terminal.
 - [x] **Terminal approvals + health command** — added `approvals` and `health` in `terminal.html`, exposing `pending-approvals.md` status and a compact operational pulse from live status + promises.
