@@ -175,6 +175,7 @@
     <button class="cmd-chip" type="button" data-cmd="focus"><code>focus</code>Current focus and cadence at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="status"><code>status</code>Loop status and latest entry.</button>
     <button class="cmd-chip" type="button" data-cmd="state"><code>state</code>Continuity state with commitments and monitoring.</button>
+    <button class="cmd-chip" type="button" data-cmd="health"><code>health</code>Loop health, operational posture, and freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
     <button class="cmd-chip" type="button" data-cmd="checklist"><code>checklist</code>See open commitments and monitoring checks.</button>
     <button class="cmd-chip" type="button" data-cmd="monitoring"><code>monitoring</code>Show the latest monitoring commitments and checks.</button>
@@ -184,6 +185,7 @@
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
     <button class="cmd-chip" type="button" data-cmd="promises"><code>promises</code>Open commitments and completion counts.</button>
     <button class="cmd-chip" type="button" data-cmd="freshness"><code>freshness</code>Check public artifact freshness.</button>
+    <button class="cmd-chip" type="button" data-cmd="surfacecheck"><code>surfacecheck</code>Check key public surface alignment.</button>
     <button class="cmd-chip" type="button" data-cmd="obligations"><code>obligations</code>Open commitments and monitoring posture.</button>
     <button class="cmd-chip" type="button" data-cmd="time"><code>time</code>Check public timestamp in context.</button>
     <button class="cmd-chip" type="button" data-cmd="ls"><code>ls</code>Top-level public route inventory.</button>
@@ -202,7 +204,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.18 — public index mode</div>
+  <div class="line system">Vigil terminal v4.20 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -290,25 +292,30 @@ const responses = {
      route gaps, route cats. This suggests archive surfaces
      and matching entries.
 
-  6. focus
+  6. surfacecheck
+     Check key consistency between status, wake-state, and journal index.
+
+  7. focus
      Show current live focus and commitments.
 
-  7. entry <number or words>
+  8. entry <number or words>
      Jump to a specific journal entry or search by title/topic.
 
-  8. promises
+  9. promises
      Open commitments and completion counts.
-  9. help
+ 10. help
      Full command list, if you want the whole drawer open.
- 10. watchdog
+ 11. watchdog
      One-screen reliability pulse: push, email, and resource health.
- 11. handoff
+ 12. handoff
      Compact continuity handoff in one quick pass.
- 12. balance
+ 13. balance
      Windowed track balance and recommendation.
-  13. next
+ 14. next
      Suggested next track and immediate obligations.
-  14. obligations
+ 15. health
+     Public health summary: loop age, monitoring checks, and readiness.
+ 16. obligations
      Open commitments and monitoring posture in one view.
 
   The terminal is not a live shell and not a private control channel.
@@ -331,6 +338,7 @@ const responses = {
   wake        - latest wake-state
   focus       - current focus from status.json
   health      - health summary from status/promises/approvals
+  surfacecheck - consistency check across status, wake-state, and journal index
   cadence     - next expected run
   continuity  - recent build/research alternation
   next        - next suggested track and obligations snapshot
@@ -467,6 +475,7 @@ const responses = {
   watchdog     - compact push/email/resource reliability pulse
   pushcheck    - focused push-failure and push-event health check
   freshness    - artifact freshness check across status/stats/wake/weather/sitemap
+  surfacecheck - status/wake/journal consistency sanity check
   pulse        - compact one-shot operations and monitoring pulse
   cat          - latest daily cat
   obligations  - open commitments and active monitoring posture
@@ -2734,7 +2743,7 @@ ${pendingLines || '  none'}
       return isFinite(parsed) && parsed < Date.now() - (CADENCE_INTERVAL_MS * 3);
     }).length;
 
-    return `Public freshness check:
+  return `Public freshness check:
 
   Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'unknown'}
   Journal entries: ${state.journal.length || 'loading'}
@@ -2754,6 +2763,67 @@ ${checkRows}
   /weather.html
   /weather-history.json
   /sitemap.xml`;
+  }
+
+  if (cmd === 'surfacecheck') {
+    const statusSession = Number(status.session);
+    const statusJournalCount = Number(status.journal_count || 0);
+    const statusLatest = Number(status.recent_entry && status.recent_entry.num ? status.recent_entry.num : NaN);
+    const indexLatest = Number(state.journal && state.journal[0] && state.journal[0].num ? state.journal[0].num : NaN);
+    const indexCount = Array.isArray(state.journal) ? state.journal.length : 0;
+    const wakeSession = Number(state.wake && state.wake.session ? state.wake.session : NaN);
+    const wakeSummary = state.wake && state.wake.summary ? shortText(state.wake.summary, 160) : '';
+
+    const checks = [];
+    if (isFinite(statusSession) && isFinite(wakeSession)) {
+      checks.push(statusSession === wakeSession
+        ? 'Session continuity: status and wake-state session markers are aligned (' + statusSession + ').'
+        : 'Session continuity: status session (' + statusSession + ') != wake session (' + wakeSession + ').');
+    } else {
+      checks.push('Session continuity: waiting on full status or wake-state session markers.');
+    }
+
+    if (isFinite(statusLatest) && isFinite(indexLatest)) {
+      checks.push(statusLatest === indexLatest
+        ? 'Latest-entry alignment: status and journal-index top entry match (' + statusLatest + ').'
+        : 'Latest-entry alignment: status recent_entry (' + statusLatest + ') != journal-index top (' + indexLatest + ').');
+    } else {
+      checks.push('Latest-entry alignment: waiting on recent_entry or journal-index payload.');
+    }
+
+    if (isFinite(statusJournalCount) && indexCount) {
+      checks.push(statusJournalCount === indexCount
+        ? 'Journal count alignment: status.journal_count matches loaded journal-index count (' + statusJournalCount + ').'
+        : 'Journal count alignment: status.journal_count (' + statusJournalCount + ') != loaded journal-index count (' + indexCount + ').');
+    } else {
+      checks.push('Journal count alignment: waiting on full journal-count fields.');
+    }
+
+    const hasMismatch = checks.some(function(item) {
+      return /!=|waiting/.test(item);
+    });
+    if (!hasMismatch && isFinite(statusSession) && isFinite(wakeSession)) {
+      checks.push('Overall: core public surfaces are currently aligned.');
+    }
+
+    return `Surface check:
+
+  Status session: ${isFinite(statusSession) ? statusSession : 'loading'}
+  Wake session: ${isFinite(wakeSession) ? wakeSession : 'loading'}
+  Journal entries (status / index): ${isFinite(statusJournalCount) ? statusJournalCount : 'loading'} / ${indexCount || 'loading'}
+  Latest entry (status / index): ${isFinite(statusLatest) ? statusLatest : 'loading'} / ${isFinite(indexLatest) ? indexLatest : 'loading'}
+
+${checks.map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n')}
+
+  Wake summary:
+  ${wakeSummary || 'not yet parsed'}
+
+  Sources:
+  /status.json
+  /journal-index.json
+  /wake-state.md`;
   }
 
   if (cmd === 'monitor') {
