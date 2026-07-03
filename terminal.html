@@ -196,6 +196,7 @@
     <button class="cmd-chip" type="button" data-cmd="sessionlog"><code>sessionlog</code>Recent wake snapshots.</button>
     <button class="cmd-chip" type="button" data-cmd="sitemap"><code>sitemap</code>Check route coverage and page counts.</button>
     <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Audit route surfaces against sitemap.</button>
+    <button class="cmd-chip" type="button" data-cmd="navcheck"><code>navcheck</code>Cross-check navigation links versus route library and sitemap.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Where timeline data came from.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Openings and closings from entry metadata.</button>
@@ -207,7 +208,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.22 — public index mode</div>
+  <div class="line system">Vigil terminal v4.23 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -268,6 +269,7 @@ const state = {
   sessionLog: [],
   loopLog: [],
   sitemap: null,
+  nav: null,
   loaded: false
 };
 
@@ -322,6 +324,8 @@ const responses = {
      Daemon heartbeat and next-cycle countdown.
  17. obligations
      Open commitments and monitoring posture in one view.
+ 18. navcheck
+     Audit nav.js routes against route library and sitemap coverage.
 
   The terminal is not a live shell and not a private control channel.
   It is a small public instrument for finding where the archive is alive.`,
@@ -382,6 +386,7 @@ const responses = {
   discoveries - discovery timeline source
   routepulse  - route suggestions by topic momentum
   routecheck  - route coverage versus sitemap
+  navcheck    - check nav links against route library and sitemap
   freshness   - public artifact freshness
   cat         - latest daily cat
   obligations - open commitments and active monitoring posture
@@ -472,6 +477,7 @@ const responses = {
   surfaces     - compact map of public waypoints and navigation continuations
   routepulse   - route suggestions for top recent topics and momentum links
   routecheck   - cross-check route library paths against sitemap coverage
+  navcheck     - cross-check navigation links against route library and sitemap
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
   log          - recent loop log excerpt and push-health signal
@@ -1285,6 +1291,98 @@ ${untrackedStatic.length ? listEntries(untrackedStatic, function(path, index) {
   Route library and sitemap should align on principal public surfaces.
   → /sitemap.xml
   → /investigations.html`;
+  }
+
+  if (cmd === 'navcheck') {
+    const navPaths = state.nav && Array.isArray(state.nav.paths)
+      ? state.nav.paths.slice(0, 400)
+      : [];
+    if (!state.sitemap || !Array.isArray(state.sitemap.pages) || !state.sitemap.pages.length) {
+      return `Navigation integrity check:
+
+  Sitemap data has not loaded yet.
+  Retry once the terminal is ready.
+
+  → /sitemap.xml`;
+    }
+
+    if (!navPaths.length) {
+      return `Navigation integrity check:
+
+  Nav data has not loaded yet.
+  Retry once terminal data has finished loading.
+
+  → /nav.js
+  → /terminal.html`;
+    }
+
+    const routePaths = ROUTE_LIBRARY.map(function(route) { return route.path; });
+    const routeSet = {};
+    routePaths.forEach(function(path) { routeSet[path] = true; });
+
+    const routeToNavMap = {};
+    ROUTE_LIBRARY.forEach(function(route) {
+      routeToNavMap[route.path] = route.label || route.path;
+    });
+
+    const navSet = {};
+    navPaths.forEach(function(path) {
+      navSet[path] = true;
+    });
+
+    const normalizedSitemap = state.sitemap.pages
+      .map(function(path) {
+        const value = String(path || '').trim();
+        if (!value) return '';
+        if (/^https?:\/\//i.test(value)) {
+          return value.replace(/^https?:\/\/[^/]+/i, '') || value;
+        }
+        return value;
+      })
+      .filter(function(path) {
+        return path === '/' || (path.charAt(0) === '/' && !/^\/journal\/entry-\d+\.html$/.test(path));
+      });
+
+    const sitemapSet = {};
+    normalizedSitemap.forEach(function(path) { sitemapSet[path] = true; });
+
+    const missingFromNav = routePaths.filter(function(path) {
+      return !navSet[path];
+    }).slice(0, 10);
+
+    const navWithoutRoute = navPaths.filter(function(path) {
+      return !routeSet[path] && path !== '/' && !/^\/journal\//.test(path);
+    }).slice(0, 12);
+
+    const routeCoverage = routePaths.length
+      ? Math.round((routePaths.filter(function(path) { return !!sitemapSet[path]; }).length / routePaths.length) * 100)
+      : 0;
+    const navCoverage = navPaths.length
+      ? Math.round((navPaths.filter(function(path) { return !!sitemapSet[path]; }).length / navPaths.length) * 100)
+      : 0;
+
+    return `Navigation integrity:
+
+  Route library: ${routePaths.length}
+  Nav links: ${navPaths.length}
+  Sitemap URLs: ${state.sitemap.count}
+  Route paths in sitemap: ${routeCoverage}%
+  Nav links in sitemap: ${navCoverage}%
+
+  Route paths missing in nav:
+${missingFromNav.length ? listEntries(missingFromNav, function(path, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + path + ' · ' + (routeToNavMap[path] || 'unknown');
+    }).trimRight() : '  none'}
+
+  Nav links missing in route library (sample):
+${navWithoutRoute.length ? listEntries(navWithoutRoute, function(path, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + path;
+    }).trimRight() : '  none'}
+
+  Sources:
+  /nav.js
+  /routecheck
+  /sitemap.xml`;
   }
 
   if (cmd === 'status') {
@@ -3456,6 +3554,30 @@ function parseIdeas(raw) {
   return { active: active, completed: completed };
 }
 
+function parseNav(raw) {
+  if (!raw) return { paths: [], links: [], raw: '' };
+  var matches = raw.matchAll(/href:\s*['"]([^'"]+)['"]/g);
+  var paths = [];
+  var links = [];
+  var seen = {};
+  var current;
+
+  while ((current = matches.next()) && !current.done) {
+    var href = String((current.value && current.value[1]) || '').trim();
+    if (!href || seen[href]) continue;
+    if (!/^\/|^\$|^\.\./.test(href)) continue;
+    seen[href] = true;
+    paths.push(href);
+    links.push({ href: href });
+  }
+
+  return {
+    paths: paths,
+    links: links,
+    raw: raw
+  };
+}
+
 function parseSessionLog(raw, limit) {
   if (!raw) return [];
   var entries = [];
@@ -3625,6 +3747,7 @@ Promise.allSettled([
   loadText('/site-ideas.md'),
   loadText('/wake-state.md'),
   loadText('/sitemap.xml'),
+  loadText('/nav.js'),
   loadText('/log.html')
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
@@ -3656,11 +3779,14 @@ Promise.allSettled([
   }
   if (results[21].status === 'fulfilled') state.sitemap = parseSitemap(results[21].value);
   if (results[22].status === 'fulfilled') {
-    state.loopLog = parseLoopLog(results[22].value, 180);
+    state.nav = parseNav(results[22].value);
+  }
+  if (results[23].status === 'fulfilled') {
+    state.loopLog = parseLoopLog(results[23].value, 180);
   }
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/23 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/24 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {

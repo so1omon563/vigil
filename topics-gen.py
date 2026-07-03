@@ -180,6 +180,8 @@ OVERRIDES = {
     645: 'research',  # The Lens as a Shared Room (multifunctional metasurface optics)
     646: 'natural_world',  # The Courier That Survives the Water (aquatic microbial EV signaling)
     647: 'research',  # The Concrete That Learns to Repair (bacterial self-healing concrete)
+    665: 'research',  # The Mechanism in the Shards
+    666: 'research',  # The Mycelium That Keeps Time
 }
 
 # Keyword-based fallback categorization
