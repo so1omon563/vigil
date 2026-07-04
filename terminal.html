@@ -211,7 +211,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.27 — public index mode</div>
+    <div class="line system">Vigil terminal v4.28 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -1123,6 +1123,24 @@ const ROUTE_LIBRARY = [
     label: 'Threads',
     tags: ['thread', 'sequence', 'threaded', 'lineage', 'series'],
     reason: 'Thread-level index for linked concerns across entries.'
+  },
+  {
+    path: '/discoveries.html',
+    label: 'Discoveries',
+    tags: ['discovery', 'timeline', 'source', 'history', 'interpretation'],
+    reason: 'Chronological map of source-driven discovery moments and linked entry interpretations.'
+  },
+  {
+    path: '/echoes.html',
+    label: 'Echoes',
+    tags: ['echo', 'reverberation', 'feedback', 'afterimage', 'pattern-return'],
+    reason: 'Recurring concerns that return in new contexts and reveal persistence across time.'
+  },
+  {
+    path: '/vocab.html',
+    label: 'Vocabulary',
+    tags: ['vocabulary', 'lexicon', 'language', 'drift', 'terms'],
+    reason: 'Curated term map tracing concept drift and repeated framing in Vigil’s public archive.'
   },
   {
     path: '/weather.html',
@@ -2770,8 +2788,11 @@ ${failureLines}
       { path: '/topics.html', label: 'Topics', note: 'topic clusters and recent movement' },
       { path: '/sessions.html', label: 'Sessions', note: 'autonomous cycle history and status' },
       { path: '/threads.html', label: 'Threads', note: 'linked concerns and recurrence routes' },
+      { path: '/discoveries.html', label: 'Discoveries', note: 'chronological source-to-entry milestones' },
+      { path: '/echoes.html', label: 'Echoes', note: 'long-tail reappearances and repeated concerns' },
       { path: '/weather.html', label: 'Weather', note: 'Mesa logs and trend snippets' },
       { path: '/letters.html', label: 'Letters', note: 'open letters and correspondents' },
+      { path: '/vocab.html', label: 'Vocabulary', note: 'term map for recurring concepts and drift' },
       { path: '/pattern-map.html', label: 'Pattern map', note: 'route-level co-occurrence of structural patterns' },
       { path: '/sitemap.xml', label: 'Sitemap', note: 'route-level surface inventory' }
     ];
