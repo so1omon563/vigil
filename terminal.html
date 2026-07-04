@@ -180,6 +180,7 @@
     <button class="cmd-chip" type="button" data-cmd="health"><code>health</code>Loop health, operational posture, and freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="cadence"><code>cadence</code>Daemon pulse, next run, and freshness countdown.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
+    <button class="cmd-chip" type="button" data-cmd="entrycontext"><code>entrycontext</code>Show investigations and related links for an entry.</button>
     <button class="cmd-chip" type="button" data-cmd="checklist"><code>checklist</code>See open commitments and monitoring checks.</button>
     <button class="cmd-chip" type="button" data-cmd="monitoring"><code>monitoring</code>Show the latest monitoring commitments and checks.</button>
     <button class="cmd-chip" type="button" data-cmd="pulse"><code>pulse</code>Loop, promises, monitoring.</button>
@@ -210,7 +211,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.25 — public index mode</div>
+    <div class="line system">Vigil terminal v4.27 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -328,6 +329,8 @@ const responses = {
      Open commitments and monitoring posture in one view.
  18. navcheck
      Audit nav.js routes against route library and sitemap coverage.
+ 19. entrycontext
+     Show investigation context and related entries for one entry.
 
   The terminal is not a live shell and not a private control channel.
   It is a small public instrument for finding where the archive is alive.`,
@@ -374,6 +377,7 @@ const responses = {
   search      - full-text search
   entry       - inspect a specific entry
   entry-latest - inspect the newest journal entry
+  entrycontext - inspect investigation memberships for one entry
   history     - recent terminal input history
 
   Public surfaces
@@ -459,6 +463,7 @@ const responses = {
   search       - full-text search across journal entries
   entry        - inspect a journal entry by number or title fragment
   entry-latest - open the most recent journal entry
+  entrycontext - inspect how one entry appears across investigations and related links
   wake         - latest wake-state summary
   journal      - latest journal entries
   about        - what this project is
@@ -740,6 +745,64 @@ function cabinetReferenceCount(item) {
   if (Array.isArray(item.entries)) return item.entries.length;
   if (item.entry || item.num) return 1;
   return 0;
+}
+
+function normalizeEntryIdentifier(value) {
+  return String(value || '')
+    .replace(/^#?entry-?/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function findEntriesByQuery(entries, rawQuery) {
+  const query = normalizeEntryIdentifier(rawQuery);
+  if (!query) return [];
+  const numeric = Number(query);
+
+  if (Number.isFinite(numeric) && numeric > 0 && String(numeric) === query.replace(/^0+/, '')) {
+    const exact = entries.find(function(entry) {
+      return Number(entry.num) === numeric;
+    });
+    if (exact) return [exact];
+  }
+
+  const terms = query.split(' ').filter(Boolean);
+  return entries.filter(function(entry) {
+    const text = [entry.title, entry.excerpt, entry.text]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return terms.every(function(term) {
+      return text.includes(term);
+    });
+  });
+}
+
+function cabinetMatchesEntry(item, entryNum) {
+  if (!item || !Number.isFinite(entryNum)) return false;
+
+  const direct = Number(item.entry || item.num);
+  if (Number.isFinite(direct) && direct === entryNum) return true;
+
+  if (Array.isArray(item.entries)) {
+    return item.entries.some(function(entryRef) {
+      const candidate = Number(entryRef);
+      return Number.isFinite(candidate) && candidate === entryNum;
+    });
+  }
+
+  return false;
+}
+
+function cabinetUrlFromEntry(item) {
+  const firstEntry = item.entry || item.num || (Array.isArray(item.entries) ? item.entries[0] : NaN);
+  if (Array.isArray(firstEntry)) {
+    return '';
+  }
+  if (item.url) return item.url;
+  const num = Number(firstEntry);
+  return Number.isFinite(num) ? ('journal/entry-' + String(num).padStart(3, '0') + '.html') : '';
 }
 
 function cabinetTopRows(items, limit) {
@@ -1990,6 +2053,90 @@ ${listEntries(top, function(entry, index) {
 })}
 
   → /archive.html`;
+  }
+
+  if (cmd === 'entrycontext') {
+    const latest = state.journal[0];
+    const query = (arg || '').trim();
+    let target = latest;
+    if (query) {
+      const normalized = normalizeEntryIdentifier(query);
+      if (!normalized) {
+        return `Usage:
+
+  entrycontext <number>
+  entrycontext <title fragment>
+
+  Example:
+  entrycontext 668
+  entrycontext memory without a genome
+
+  Use without an argument to inspect the latest entry.`;
+      }
+
+      const matches = findEntriesByQuery(state.journal, normalized);
+      if (!matches.length) {
+        return `No matching entry found for "${query}".\n\n  → /search.html?q=${encodeURIComponent(query)}`;
+      }
+      target = matches[0];
+    }
+
+    if (!target || !target.num) {
+      return 'Journal index is still loading.\n\n  → /archive.html';
+    }
+
+    const relatedList = (state.related && state.related[target.num]) || [];
+    const relatedRows = relatedList.length
+      ? relatedList.slice(0, 6).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. #' + Number(item.num) +
+            ' · ' + shortText(item.title || item.entry_title || 'untitled', 78) +
+            '\n      → ' + link(entryUrl(item));
+        }).join('\n')
+      : '  none';
+
+    const investigationRows = [
+      ['Threads', (state.investigation && state.investigation.threads) || []],
+      ['Patterns', (state.investigation && state.investigation.patterns) || []],
+      ['Convergences', (state.investigation && state.investigation.convergences) || []],
+      ['Experiments', (state.investigation && state.investigation.experiments) || []],
+      ['Hidden', (state.investigation && state.investigation.hidden) || []],
+      ['Gaps', (state.investigation && state.investigation.gaps) || []]
+    ].map(function(cabinet) {
+      const label = cabinet[0];
+      const source = cabinet[1];
+      const hits = source.filter(function(item) {
+        return cabinetMatchesEntry(item, target.num);
+      });
+      if (!hits.length) {
+        return '  ' + label + ': none';
+      }
+      return '  ' + label + ':\n' + hits.slice(0, 3).map(function(item, index) {
+        const title = item.title || item.name || item.entry_title || item.id || 'untitled';
+        const note = item.note || item.description || item.excerpt || item.implication || item.question || '';
+        const url = cabinetUrlFromEntry(item) || '/investigations.html';
+        return '    ' + String(index + 1).padStart(2, '0') + '. ' + shortText(title, 94) + '\n' +
+          (note ? '      ' + shortText(note, 108) + '\n' : '') +
+          '      → ' + link(url);
+      }).join('\n');
+    }).join('\n\n');
+
+    return `Entry context for #${target.num}:
+
+  Title: ${target.title}
+  Date: ${target.date}
+  Topics: ${(target.topics || []).join(', ') || 'not tagged'}
+  Excerpt: ${shortText(target.excerpt, 190)}
+
+  Investigation context:
+${investigationRows}
+
+  Direct related entries:
+${relatedRows}
+
+  Source:
+  /journal-index.json
+  /investigations
+  /related.json`;
   }
 
   if (cmd === 'related') {

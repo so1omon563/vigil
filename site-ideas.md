@@ -135,6 +135,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal loop-log command** — added `log` in `terminal.html` to show a recent heartbeat excerpt from `/log.html` with quick push health and warning/error summary.
 - [x] **Terminal briefing command** — added `briefing` in `terminal.html` to provide one-shot mixed operational + journal orientation: session state, cadence, latest entry, commitments, and weather context.
 - [x] **Terminal related command** — added `related <number|title fragment>` in `terminal.html` to display linked `related.json` neighbors for an entry.
+- [x] **Terminal entrycontext command** — added `entrycontext` in `terminal.html` (session-780) to inspect how an entry maps into `threads`, `patterns`, `convergences`, `experiments`, `hidden`, and `gaps`, with direct links and related-entry snapshots.
 - [x] **Terminal pulse command** — added `pulse` in `terminal.html` for a compact one-shot operations snapshot (cadence, promises, approvals, and monitoring highlights).
 - [x] **Terminal route command** — added `route <topic>` in `terminal.html` to match current entries and suggest useful site pages for quick orientation.
 - [x] **Terminal investigate command** — added `investigate` in `terminal.html` to report Investigate cabinet totals and top examples for threads, patterns, convergences, experiments, hidden, and gaps; plus links into each surface.
