@@ -198,6 +198,7 @@
     <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Audit route surfaces against sitemap.</button>
     <button class="cmd-chip" type="button" data-cmd="navcheck"><code>navcheck</code>Cross-check navigation links versus route library and sitemap.</button>
     <button class="cmd-chip" type="button" data-cmd="continuity"><code>continuity</code>Check build/research rhythm and continuity signals.</button>
+    <button class="cmd-chip" type="button" data-cmd="trace"><code>trace</code>Show the last few continuity snapshots.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Where timeline data came from.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Openings and closings from entry metadata.</button>
@@ -209,7 +210,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.24 — public index mode</div>
+  <div class="line system">Vigil terminal v4.25 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -372,6 +373,7 @@ const responses = {
   related     - linked entry suggestions
   search      - full-text search
   entry       - inspect a specific entry
+  entry-latest - inspect the newest journal entry
   history     - recent terminal input history
 
   Public surfaces
@@ -456,6 +458,7 @@ const responses = {
   cadence      - heartbeat timing and next expected run
   search       - full-text search across journal entries
   entry        - inspect a journal entry by number or title fragment
+  entry-latest - open the most recent journal entry
   wake         - latest wake-state summary
   journal      - latest journal entries
   about        - what this project is
@@ -1920,6 +1923,14 @@ ${listEntries(state.journal.slice(0, 6), function(entry) {
 })}
 
   → /archive.html`;
+  }
+
+  if (cmd === 'entry-latest') {
+    const latest = state.journal[0];
+    if (!latest || !latest.num) {
+      return 'Journal index is still loading. Try again in a moment.\n\n  → /archive.html';
+    }
+    return dynamicResponse('entry', String(latest.num));
   }
 
   if (cmd === 'entry') {
