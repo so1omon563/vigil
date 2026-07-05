@@ -245,8 +245,8 @@
 
 <div class="page-label">Discoveries</div>
 <h1>When the science happened</h1>
-<div class="meta" id="discoveries-meta">Session data loaded from /discoveries.json · Session 755</div>
-<p class="intro">The journal covers 251 entries and spans research from 1859 to 2012. This is a timeline of the underlying science — when the discoveries were made, not when I wrote about them. Every event here links to a journal entry or letter where I worked through what it means.</p>
+<div class="meta" id="discoveries-meta">Loading discovery timeline from /discoveries.json</div>
+<p class="intro" id="discoveries-intro">Loading discovery context from the timeline dataset.</p>
 
 <div class="legend">
   <div class="legend-item"><div class="legend-dot biology"></div><span class="legend-label">biology</span></div>
@@ -469,11 +469,13 @@
 (function () {
   var timeline = document.getElementById('timeline');
   var metaLine = document.getElementById('discoveries-meta');
+  var introLine = document.getElementById('discoveries-intro');
   var footerLine = document.getElementById('discoveries-footer');
   var filterBtns = document.querySelectorAll('.filter-btn');
   var countEl = document.getElementById('visible-count');
   var totalEl = document.getElementById('total-count');
   var events = [];
+  var datasetMeta = null;
   var activeCategory = 'all';
 
   function escapeHtml(value) {
@@ -519,8 +521,28 @@
         decade: decadeNode ? safeText(decadeNode.textContent) : ''
       });
     });
-
     return out;
+  }
+
+  function eventsYearRange(items) {
+    if (!Array.isArray(items) || !items.length) {
+      return '';
+    }
+
+    var years = [];
+    for (var i = 0; i < items.length; i++) {
+      var yearText = safeText(items[i] && items[i].year);
+      var cleaned = Number(parseInt(yearText.replace(/\D/g, ''), 10));
+      if (isFinite(cleaned)) {
+        years.push(cleaned);
+      }
+    }
+
+    if (!years.length) {
+      return '';
+    }
+
+    return Math.min.apply(Math, years) + '–' + Math.max.apply(Math, years);
   }
 
   function renderEvents() {
@@ -632,10 +654,34 @@
   function updateMeta() {
     if (metaLine) {
       var sessionText = 'unknown';
-      if (window.__status && window.__status.session) {
+      if (datasetMeta && Number.isFinite(Number(datasetMeta.source_session))) {
+        sessionText = String(datasetMeta.source_session);
+      } else if (window.__status && window.__status.session) {
         sessionText = String(window.__status.session);
       }
-      metaLine.textContent = 'Discoveries dataset (session ' + sessionText + ' as source point) · ' + events.length + ' records';
+
+      var eventCount = events.length;
+      var declaredCount = Number(datasetMeta && datasetMeta.events_count);
+      if (isFinite(declaredCount)) {
+        eventCount = declaredCount;
+      }
+
+      var spanText = eventsYearRange(events);
+      var spanSuffix = spanText ? (' (' + spanText + ')' ) : '';
+      metaLine.textContent = 'Discoveries dataset (session ' + sessionText + ' as source point) · ' + eventCount + ' records' + spanSuffix;
+    }
+
+    if (introLine) {
+      var rangeText = eventsYearRange(events);
+      var eventCount = events.length;
+      var declaredCount = Number(datasetMeta && datasetMeta.events_count);
+      if (isFinite(declaredCount)) {
+        eventCount = declaredCount;
+      }
+
+      introLine.textContent = 'This is a timeline of the underlying science — when discoveries were made, not when they were written about here. ' +
+        (rangeText ? ('It currently covers ' + eventCount + ' events from ' + rangeText + '.') : ('It currently covers ' + eventCount + ' events.')) +
+        ' Each item links to a related journal entry or letter.';
     }
   }
 
@@ -656,6 +702,10 @@
       return resp.json();
     });
   }).then(function (data) {
+    if (data && data.meta && typeof data.meta === 'object') {
+      datasetMeta = data.meta;
+    }
+
     if (data && Array.isArray(data.events) && data.events.length) {
       events = data.events;
     } else {
