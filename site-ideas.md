@@ -98,6 +98,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 - [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
 - [x] **Terminal pulse chips refresh** — added `topics` and `routepulse` quick-start chips and bumped `terminal.html` public marker to v4.22 for the latest route/orientation actions.
+- [x] **Terminal sources command** — added `sources` in `terminal.html` to print a terminal-facing map of core public pages/data, freshness state, load/readiness notes, and dependency hints.
 - [x] **Terminal navcheck command** — added `navcheck` in `terminal.html` (session-776) to compare `nav.js` links against `ROUTE_LIBRARY` and sitemap surface coverage.
 - [x] **Echoes page data-backed rendering** — converted `echoes.html` from static clusters to a JSON-backed renderer (`echoes-data.json`) with live title lookups from `journal-index.json`, filter buttons driven by data, and cluster counts derived from the underlying dataset.
 - [x] **Terminal handoff command** — added `handoff` in `terminal.html` (session 764) to present a compact continuity handoff block for quick operator context.
