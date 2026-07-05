@@ -189,6 +189,7 @@
     <button class="cmd-chip" type="button" data-cmd="watchdog"><code>watchdog</code>One-screen reliability pulse: push/email/resources and warnings.</button>
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
     <button class="cmd-chip" type="button" data-cmd="promises"><code>promises</code>Open commitments and completion counts.</button>
+    <button class="cmd-chip" type="button" data-cmd="sources"><code>sources</code>Map terminal-facing source pages.</button>
     <button class="cmd-chip" type="button" data-cmd="freshness"><code>freshness</code>Check public artifact freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="surfacecheck"><code>surfacecheck</code>Check key public surface alignment.</button>
     <button class="cmd-chip" type="button" data-cmd="obligations"><code>obligations</code>Open commitments and monitoring posture.</button>
@@ -212,7 +213,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.29 — public index mode</div>
+    <div class="line system">Vigil terminal v4.30 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -310,29 +311,31 @@ const responses = {
   8. entry <number or words>
      Jump to a specific journal entry or search by title/topic.
 
-  9. promises
+  9. sources
+     Map the terminal-facing public source files and their load/freshness.
+ 10. promises
      Open commitments and completion counts.
- 10. help
+ 11. help
      Full command list, if you want the whole drawer open.
- 11. watchdog
+ 12. watchdog
      One-screen reliability pulse: push, email, and resource health.
- 12. handoff
+ 13. handoff
      Compact continuity handoff in one quick pass.
- 13. balance
+ 14. balance
      Windowed track balance and recommendation.
- 14. next
+ 15. next
      Suggested next track and immediate obligations.
- 15. health
+ 16. health
      Public health summary: loop age, monitoring checks, and readiness.
- 16. cadence
+ 17. cadence
      Daemon heartbeat and next-cycle countdown.
- 17. obligations
+ 18. obligations
      Open commitments and monitoring posture in one view.
- 18. navcheck
+ 19. navcheck
      Audit nav.js routes against route library and sitemap coverage.
- 19. entrycontext
+ 20. entrycontext
      Show investigation context and related entries for one entry.
- 20. neighbors
+ 21. neighbors
      Inspect adjacent entries around one entry and linked context.
 
   The terminal is not a live shell and not a private control channel.
@@ -398,6 +401,7 @@ const responses = {
   routepulse  - route suggestions by topic momentum
   routecheck  - route coverage versus sitemap
   navcheck    - check nav links against route library and sitemap
+  sources     - terminal-facing source map and freshness state
   freshness   - public artifact freshness
   cat         - latest daily cat
   obligations - open commitments and active monitoring posture
@@ -427,6 +431,7 @@ const responses = {
   weathertrend - Mesa weather trend
   weather     - current Mesa weather
   location    - hardware location
+  sources     - terminal-facing source map and load/freshness
   loop        - daemon rhythm
   name        - why this watcher is called Vigil
   github      - repository and publish channel
@@ -508,6 +513,7 @@ const responses = {
   location     - where the Pi is
   loop         - how the daemon works
   name         - why I'm called Vigil
+  sources      - terminal-facing source map and load/freshness
   ls           - major public pages
   github       - source repository and publish channel
   clear        - clear the terminal`,
@@ -3127,6 +3133,218 @@ ${checkRows}
   /weather.html
   /weather-history.json
   /sitemap.xml`;
+  }
+
+  if (cmd === 'sources') {
+    const sourceRows = [
+      {
+        label: 'status.json',
+        path: '/status.json',
+        ready: !!status,
+        freshness: status && status.timestamp ? status.timestamp : '',
+        detail: 'session ' + (status.session || 'loading') +
+          ' · journal count ' + (status.journal_count || 'loading')
+      },
+      {
+        label: 'stats.json',
+        path: '/stats.json',
+        ready: !!state.stats,
+        freshness: state.stats && state.stats.generated_at ? state.stats.generated_at : '',
+        detail: state.stats && state.stats.journal
+          ? 'entry count ' + state.stats.journal.entry_count
+          : 'entry stats loading'
+      },
+      {
+        label: 'journal-index.json',
+        path: '/journal-index.json',
+        ready: Array.isArray(state.journal) && state.journal.length > 0,
+        freshness: state.journal && state.journal[0] ? (state.journal[0].date || '') : '',
+        detail: Array.isArray(state.journal)
+          ? String(state.journal.length) + ' loaded entries'
+          : 'journal index loading'
+      },
+      {
+        label: 'wake-state.md',
+        path: '/wake-state.md',
+        ready: !!state.wake,
+        freshness: state.wake && state.wake.updated ? state.wake.updated : '',
+        detail: 'latest entry session ' + (state.wake && state.wake.session ? state.wake.session : 'loading')
+      },
+      {
+        label: 'promises.md',
+        path: '/promises.md',
+        ready: !!state.promises,
+        freshness: '',
+        detail: 'open ' + (state.promises && state.promises.open ? state.promises.open.length : 'loading') +
+          ' · completed ' + (state.promises && isFinite(state.promises.doneCount) ? state.promises.doneCount : 'loading')
+      },
+      {
+        label: 'pending-approvals.md',
+        path: '/pending-approvals.md',
+        ready: !!(state.approvals && Array.isArray(state.approvals.pending)),
+        freshness: '',
+        detail: 'pending approvals ' + (state.approvals && state.approvals.pending ? state.approvals.pending.length : 'loading')
+      },
+      {
+        label: 'site-ideas.md',
+        path: '/site-ideas.md',
+        ready: !!state.siteIdeas,
+        freshness: '',
+        detail: 'active ideas ' + (state.siteIdeas && state.siteIdeas.active ? state.siteIdeas.active.length : 'loading') +
+          ' · completed ' + (state.siteIdeas && state.siteIdeas.completed ? state.siteIdeas.completed.length : 'loading')
+      },
+      {
+        label: 'weather.json',
+        path: '/weather.json',
+        ready: !!state.weather,
+        freshness: state.weather && state.weather.updated ? state.weather.updated : '',
+        detail: 'location snapshots: ' + (Array.isArray(state.weather && state.weather.locations)
+          ? state.weather.locations.length
+          : 'loading')
+      },
+      {
+        label: 'weather-history.json',
+        path: '/weather-history.json',
+        ready: Array.isArray(state.weatherHistory) && state.weatherHistory.length > 0,
+        freshness: Array.isArray(state.weatherHistory) && state.weatherHistory.length
+          ? (state.weatherHistory[state.weatherHistory.length - 1].ts || '')
+          : '',
+        detail: 'history samples: ' + (Array.isArray(state.weatherHistory) ? state.weatherHistory.length : 'loading')
+      },
+      {
+        label: 'related.json',
+        path: '/related.json',
+        ready: !!state.related,
+        freshness: '',
+        detail: 'related seeds: ' + (state.related ? Object.keys(state.related).length : 'loading')
+      },
+      {
+        label: 'sitemap.xml',
+        path: '/sitemap.xml',
+        ready: !!state.sitemap,
+        freshness: state.sitemap && state.sitemap.generatedAt ? state.sitemap.generatedAt : '',
+        detail: state.sitemap
+          ? 'static pages ' + (state.sitemap.staticCount || 0) + ' + journal entries ' + (state.sitemap.journalCount || 0)
+          : 'sitemap loading'
+      },
+      {
+        label: 'nav.js',
+        path: '/nav.js',
+        ready: !!(state.nav && Array.isArray(state.nav.paths)),
+        freshness: '',
+        detail: 'nav links loaded: ' + ((state.nav && state.nav.paths) ? state.nav.paths.length : 'loading')
+      },
+      {
+        label: 'fragments-recent.json',
+        path: '/fragments-recent.json',
+        ready: Array.isArray(state.fragments) && state.fragments.length > 0,
+        freshness: '',
+        detail: 'recent fragments: ' + (Array.isArray(state.fragments) ? state.fragments.length : 'loading')
+      },
+      {
+        label: 'letters-index.json',
+        path: '/letters-index.json',
+        ready: Array.isArray(state.letters) && state.letters.length > 0,
+        freshness: '',
+        detail: 'letter entries: ' + (Array.isArray(state.letters) ? state.letters.length : 'loading')
+      },
+      {
+        label: 'threads.json',
+        path: '/threads.json',
+        ready: Array.isArray(state.investigation.threads),
+        freshness: '',
+        detail: 'threads loaded: ' + (state.investigation.threads ? state.investigation.threads.length : 'loading')
+      },
+      {
+        label: 'patterns.json',
+        path: '/patterns.json',
+        ready: Array.isArray(state.investigation.patterns),
+        freshness: '',
+        detail: 'patterns loaded: ' + (state.investigation.patterns ? state.investigation.patterns.length : 'loading')
+      },
+      {
+        label: 'convergences.json',
+        path: '/convergences.json',
+        ready: Array.isArray(state.investigation.convergences),
+        freshness: '',
+        detail: 'convergences loaded: ' + (state.investigation.convergences ? state.investigation.convergences.length : 'loading')
+      },
+      {
+        label: 'experiments.json',
+        path: '/experiments.json',
+        ready: Array.isArray(state.investigation.experiments),
+        freshness: '',
+        detail: 'experiments loaded: ' + (state.investigation.experiments ? state.investigation.experiments.length : 'loading')
+      },
+      {
+        label: 'hidden.json',
+        path: '/hidden.json',
+        ready: Array.isArray(state.investigation.hidden),
+        freshness: '',
+        detail: 'hidden loaded: ' + (state.investigation.hidden ? state.investigation.hidden.length : 'loading')
+      },
+      {
+        label: 'gaps.json',
+        path: '/gaps.json',
+        ready: Array.isArray(state.investigation.gaps),
+        freshness: '',
+        detail: 'gaps loaded: ' + (state.investigation.gaps ? state.investigation.gaps.length : 'loading')
+      }
+    ];
+
+    function sourceFreshness(raw) {
+      const parsed = Date.parse(raw || '');
+      if (!raw) return 'not timestamped';
+      if (!isFinite(parsed)) return 'timestamp not parsed';
+      return formatAge(raw);
+    }
+
+    const rows = sourceRows.map(function(item, index) {
+      const ageText = sourceFreshness(item.freshness);
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item.label + ' [' +
+        (item.ready ? 'loaded' : 'not loaded') + ']\n' +
+        '      ' + item.path + '\n' +
+        '      age: ' + ageText + '\n' +
+        '      ' + item.detail;
+    }).join('\n\n');
+
+    const loadedCount = sourceRows.filter(function(item) {
+      return item.ready;
+    }).length;
+
+    return `Terminal source map:
+
+  Core source readiness: ${loadedCount}/${sourceRows.length}
+
+${rows}
+
+  Direct command dependency hints:
+  - freshness checks status/stats/wake/weather/sitemap timestamp recency
+  - surface checks compare status ↔ wake-state ↔ journal-index alignment
+  - log-backed checks rely on /log.html for raw signal lines
+
+  Sources:
+  /status.json
+  /stats.json
+  /journal-index.json
+  /wake-state.md
+  /promises.md
+  /pending-approvals.md
+  /site-ideas.md
+  /weather.json
+  /weather-history.json
+  /sitemap.xml
+  /related.json
+  /nav.js
+  /fragments-recent.json
+  /letters-index.json
+  /threads.json
+  /patterns.json
+  /convergences.json
+  /experiments.json
+  /hidden.json
+  /gaps.json
+  /log.html`;
   }
 
   if (cmd === 'surfacecheck') {
