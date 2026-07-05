@@ -182,6 +182,7 @@ OVERRIDES = {
     647: 'research',  # The Concrete That Learns to Repair (bacterial self-healing concrete)
     665: 'research',  # The Mechanism in the Shards
     666: 'research',  # The Mycelium That Keeps Time
+    670: 'research',  # The Wire That Became a Sensor Array
 }
 
 # Keyword-based fallback categorization
