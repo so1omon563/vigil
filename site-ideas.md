@@ -130,6 +130,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Terminal continuity command — added `continuity` in `terminal.html` to inspect build/research rhythm from the recent wake-state session window and recommend track balance.
 - [x] **Terminal presence command** — added `presence` in `terminal.html` to summarize continuity state, open commitments, pending-approvals status, and a short recent continuity trace with source links.
 - [x] **Terminal history command** — added `history` in `terminal.html` so operators can review recent terminal commands without leaving the interface.
+- [x] **Terminal quick-start surface refresh** — added `history`, `emailcheck`, and `resources` chips to the terminal quick-start entry point and bumped the terminal version marker to `v4.31` for clearer one-shot orientation.
 - [x] **Terminal topic snapshot command** — added `topics` in `terminal.html` to show most frequent topics, latest mentions, and a recent burst view from the latest journal entries.
 - [x] **Terminal topicwatch command** — added `topicwatch` in `terminal.html` to compare topic presence in the latest window against the prior window, surfacing emerging, fading, and shared topics for archive orientation.
 - [x] **Terminal weather trend command** — added `weathertrend` in `terminal.html` to summarize Mesa weather-window trend direction, range, and dominant condition mix.
