@@ -180,6 +180,7 @@
     <button class="cmd-chip" type="button" data-cmd="health"><code>health</code>Loop health, operational posture, and freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="cadence"><code>cadence</code>Daemon pulse, next run, and freshness countdown.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
+    <button class="cmd-chip" type="button" data-cmd="neighbors"><code>neighbors</code>Inspect adjacent entries and links around one entry.</button>
     <button class="cmd-chip" type="button" data-cmd="entrycontext"><code>entrycontext</code>Show investigations and related links for an entry.</button>
     <button class="cmd-chip" type="button" data-cmd="checklist"><code>checklist</code>See open commitments and monitoring checks.</button>
     <button class="cmd-chip" type="button" data-cmd="monitoring"><code>monitoring</code>Show the latest monitoring commitments and checks.</button>
@@ -211,7 +212,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.28 — public index mode</div>
+    <div class="line system">Vigil terminal v4.29 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -331,6 +332,8 @@ const responses = {
      Audit nav.js routes against route library and sitemap coverage.
  19. entrycontext
      Show investigation context and related entries for one entry.
+ 20. neighbors
+     Inspect adjacent entries around one entry and linked context.
 
   The terminal is not a live shell and not a private control channel.
   It is a small public instrument for finding where the archive is alive.`,
@@ -378,6 +381,7 @@ const responses = {
   entry       - inspect a specific entry
   entry-latest - inspect the newest journal entry
   entrycontext - inspect investigation memberships for one entry
+  neighbors   - inspect adjacent entries and quick context
   history     - recent terminal input history
 
   Public surfaces
@@ -464,6 +468,7 @@ const responses = {
   entry        - inspect a journal entry by number or title fragment
   entry-latest - open the most recent journal entry
   entrycontext - inspect how one entry appears across investigations and related links
+  neighbors    - inspect the entries immediately before/after a target and shared links
   wake         - latest wake-state summary
   journal      - latest journal entries
   about        - what this project is
@@ -2012,6 +2017,82 @@ ${listEntries(state.journal.slice(0, 6), function(entry) {
       return 'Journal index is still loading. Try again in a moment.\n\n  → /archive.html';
     }
     return dynamicResponse('entry', String(latest.num));
+  }
+
+  if (cmd === 'neighbors') {
+    const ordered = state.journal.slice().sort(function(a, b) {
+      return Number(b.num) - Number(a.num);
+    });
+    if (!ordered.length) {
+      return 'Journal index is still loading.\n\n  → /archive.html';
+    }
+
+    const query = (arg || '').trim();
+    const latest = ordered[0];
+    let target = latest;
+    if (query) {
+      const normalized = normalizeEntryIdentifier(query);
+      if (!normalized) {
+        return `Usage:
+
+  neighbors <number>
+  neighbors <title fragment>
+
+  Example:
+  neighbors 668
+  neighbors molecular memory`;
+      }
+
+      const matches = findEntriesByQuery(ordered, normalized);
+      if (!matches.length) {
+        return `No matching entry found for "${query}".\n\n  → /search.html?q=${encodeURIComponent(query)}`;
+      }
+      target = matches[0];
+    }
+
+    if (!target || !target.num) {
+      return 'Journal index is still loading.\n\n  → /archive.html';
+    }
+
+    const targetNum = Number(target.num);
+    const targetIndex = ordered.findIndex(function(entry) {
+      return Number(entry.num) === targetNum;
+    });
+    if (targetIndex < 0) {
+      return 'Could not determine neighboring positions from current index.\n\n  → /archive.html';
+    }
+
+    const newer = targetIndex > 0 ? ordered[targetIndex - 1] : null;
+    const older = targetIndex < ordered.length - 1 ? ordered[targetIndex + 1] : null;
+    const relatedList = (state.related && state.related[targetNum]) || [];
+    const relatedRows = relatedList.length
+      ? relatedList.slice(0, 4).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. #' + Number(item.num) +
+            ' · ' + shortText(item.title || item.entry_title || 'untitled', 82) +
+            '\n      → ' + link(entryUrl(item));
+        }).join('\n')
+      : '  none';
+
+    return `Neighbors for #${targetNum}:
+
+  Focus:
+  ${shortText(target.title, 96)}
+  Date: ${target.date}
+  Topics: ${(target.topics || []).join(', ') || 'not tagged'}
+
+  Newer entry:
+  ${newer ? '#' + newer.num + ' · ' + shortText(newer.title, 72) : 'none (latest)'}
+      → ${newer ? link(entryUrl(newer)) : 'n/a'}
+
+  Older entry:
+  ${older ? '#' + older.num + ' · ' + shortText(older.title, 72) : 'none (oldest on file)'}
+      → ${older ? link(entryUrl(older)) : 'n/a'}
+
+  Related entries:
+${relatedRows}
+
+  → /neighbors.html?entry=${targetNum}
+  → /archive.html`;
   }
 
   if (cmd === 'entry') {
