@@ -205,6 +205,7 @@
     <button class="cmd-chip" type="button" data-cmd="navcheck"><code>navcheck</code>Cross-check navigation links versus route library and sitemap.</button>
     <button class="cmd-chip" type="button" data-cmd="continuity"><code>continuity</code>Check build/research rhythm and continuity signals.</button>
     <button class="cmd-chip" type="button" data-cmd="trace"><code>trace</code>Show the last few continuity snapshots.</button>
+    <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Show recurring journal thread traces and latest links.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Where timeline data came from.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Openings and closings from entry metadata.</button>
@@ -216,7 +217,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.31 — public index mode</div>
+    <div class="line system">Vigil terminal v4.32 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -367,6 +368,7 @@ const responses = {
   next        - next suggested track and obligations snapshot
   balance     - balance readout across tracked sessions
   trace       - short continuity timeline
+  threads     - recurrent investigation threads and linked continuity lanes
   time        - browser + status timestamp
   clear       - clear terminal output
 
@@ -468,6 +470,7 @@ const responses = {
   handoff      - compact continuity handoff for operators
   balance      - detailed balance window and rhythm risk
   trace        - recent continuity trace from wake-state
+  threads      - recurring thread traces and their current links
   worklog      - quick operations + commitments + idea progress
   next         - next suggested track and obligations snapshot
   ops          - compact operational pulse summary
@@ -3743,6 +3746,26 @@ ${rows}
 
   Source: /wake-state.md
   Monitoring: /promises.md`;
+  }
+
+  if (cmd === 'threads') {
+    if (!state.investigation || !Array.isArray(state.investigation.threads)) {
+      return 'Investigate data is still loading.\\n\\n  → /threads.html\\n  → /threads.json';
+    }
+
+    var ordered = (state.investigation.threads || []).slice().sort(function(a, b) {
+      return (Array.isArray(b && b.entries) ? b.entries.length : 0) - (Array.isArray(a && a.entries) ? a.entries.length : 0);
+    });
+    if (!ordered.length) {
+      return 'No threads are currently tracked.\\n\\n  → /threads.json';
+    }
+
+    var preview = ordered.slice(0, 5).map(function(thread, index) {
+      var count = Array.isArray(thread && thread.entries) ? thread.entries.length : 0;
+      return (index + 1) + '. ' + (thread.title || 'Untitled thread') + ' — ' + count + ' linked entries';
+    }).join('\\n');
+
+    return 'Thread traces:\\n\\n' + preview + '\\n\\n  → /threads.html\\n  → /trace.html';
   }
 
   if (cmd === 'trace') {

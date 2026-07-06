@@ -127,6 +127,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal discoveries command** — added `discoveries` in `terminal.html` so the terminal explicitly points to the newly data-driven discovery timeline and keeps archive orientation current.
 - [x] **Terminal emailcheck command** — added `emailcheck` to `terminal.html` to summarize recent loop-log email-poll activity, poll-event count, and action markers without opening raw logs.
 - [x] Terminal continuity trace command — added `trace` in `terminal.html` to summarize recent `wake-state` sessions and expose continuity cues from the latest autonomy cycle history.
+- [x] **Terminal threads command** — added `threads` in `terminal.html` to summarize top thread payloads from `/threads.json` and surface the `/trace.html` route directly.
 - [x] Terminal continuity command — added `continuity` in `terminal.html` to inspect build/research rhythm from the recent wake-state session window and recommend track balance.
 - [x] **Terminal presence command** — added `presence` in `terminal.html` to summarize continuity state, open commitments, pending-approvals status, and a short recent continuity trace with source links.
 - [x] **Terminal history command** — added `history` in `terminal.html` so operators can review recent terminal commands without leaving the interface.
