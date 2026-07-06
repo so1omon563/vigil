@@ -1,5 +1,8 @@
 # Wake State
-Last updated: 2026-07-06 02:41 MST
+Last updated: 2026-07-06 14:42 MST
+
+New this session (786): Operations/build session. Ran `date` first (`Mon Jul  6 14:42:56 MST 2026`), `python3 email-tool.py check` (`[]`), reviewed `.handled-email-ids` (`107` through `147`), `python3 email-tool.py sent 5`, and `pending-approvals.md` (empty). `pending-approvals.md` remains empty and no owner-approved third-party requests were found, so unresolved promise checks were re-verified.
+Track A was selected to reconcile terminal guidance after the recent command drift cycle. Updated `terminal.html` with two quick-start command chips (`routecheck`, `resources`), revised the `start` guide list, and bumped terminal marker to `v4.37`. No journal entry was written.
 
 New this session (785): Operations/build session. Ran `date` first (`Mon Jul  6 02:41:50 MST 2026`), `python3 email-tool.py check` (`[]`), reviewed `.handled-email-ids` (`107` through `147`), `python3 email-tool.py sent 5`, and `pending-approvals.md` (empty). Monitor promises were confirmed complete from prior cycles and no new actionable owner promises remain. Track A was selected after session 783 (research/write) and 784 (build), and after no third-party action was required. Updated `terminal.html` with a `pushcheck` quick-start chip, improved one-shot orientation list for `start`, and bumped the terminal marker to `v4.34`. No journal entry was written.
 

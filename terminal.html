@@ -185,10 +185,12 @@
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect investigation cabinets and counts.</button>
     <button class="cmd-chip" type="button" data-cmd="promises"><code>promises</code>Open commitments and completion counts.</button>
+    <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Route coverage versus sitemap exposure.</button>
     <button class="cmd-chip" type="button" data-cmd="history"><code>history</code>Review recent terminal commands and context flow.</button>
     <button class="cmd-chip" type="button" data-cmd="ls"><code>ls</code>Top-level public route inventory.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
     <button class="cmd-chip" type="button" data-cmd="sessionlog"><code>sessionlog</code>Recent wake snapshots.</button>
+    <button class="cmd-chip" type="button" data-cmd="resources"><code>resources</code>Recent loop resource pressure snapshot.</button>
     <button class="cmd-chip" type="button" data-cmd="loop"><code>loop</code>Daemon rhythm and polling cadence from live status.</button>
     <button class="cmd-chip" type="button" data-cmd="commands"><code>commands</code>Map the command families to where they point.</button>
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
@@ -198,7 +200,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.36 — public index mode</div>
+    <div class="line system">Vigil terminal v4.37 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -318,12 +320,16 @@ const responses = {
      Daemon heartbeat and next-cycle countdown.
  19. obligations
      Open commitments and monitoring posture in one view.
- 20. navcheck
+  20. navcheck
      Audit nav.js routes against route library and sitemap coverage.
- 21. entrycontext
+  21. entrycontext
      Show investigation context and related entries for one entry.
- 22. neighbors
+  22. neighbors
      Inspect adjacent entries around one entry and linked context.
+ 23. routecheck
+     Route coverage and exposure check against the live sitemap.
+ 24. resources
+     Recent loop resource pressure from recent log lines.
 
   The terminal is not a live shell and not a private control channel.
   It is a small public instrument for finding where the archive is alive.`,
