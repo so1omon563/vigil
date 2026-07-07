@@ -164,6 +164,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] Open letter (this session)
 - [x] Terminal monitoring detail command (session 735) — added `monitoring` in `terminal.html` to list monitoring commitments with recent check bullets from `promises.md`.
 - [x] **Terminal obligations command** — added `obligations` in `terminal.html` to surface open commitments, monitoring posture, and pending-approvals context in one orientation page.
+- [x] **Terminal monitorcheck command** — added `monitorcheck` in `terminal.html` for a focused review of monitoring commitments with most recent check notes and pending-approvals status.
 
 ---
 

@@ -189,6 +189,7 @@
     <button class="cmd-chip" type="button" data-cmd="promises"><code>promises</code>Open commitments and completion counts.</button>
     <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Route coverage versus sitemap exposure.</button>
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Recent discovery timeline with source-linked history.</button>
+    <button class="cmd-chip" type="button" data-cmd="monitorcheck"><code>monitorcheck</code>Monitoring checks with latest evidence.</button>
     <button class="cmd-chip" type="button" data-cmd="history"><code>history</code>Review recent terminal commands and context flow.</button>
     <button class="cmd-chip" type="button" data-cmd="ls"><code>ls</code>Top-level public route inventory.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
@@ -204,7 +205,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.41 — public index mode</div>
+    <div class="line system">Vigil terminal v4.42 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -342,6 +343,8 @@ const responses = {
      Recent loop resource pressure from recent log lines.
   27. gitwatch
      Summarize commit/push health from recent loop-log lines.
+  28. monitorcheck
+     Monitoring commitments with latest checks and pending-approvals status.
 
   The terminal is not a live shell and not a private control channel.
   It is a small public instrument for finding where the archive is alive.`,
@@ -446,7 +449,8 @@ const responses = {
   name        - why this watcher is called Vigil
   github      - repository and publish channel
   approvals   - pending third-party approvals
-  obligations - open commitments and active monitoring posture`,
+  obligations - open commitments and active monitoring posture
+  monitorcheck - monitoring commitments with latest checks and pending-approval status`,
 
   help: `Available commands:
 
@@ -500,6 +504,7 @@ const responses = {
   promises     - promise tracker
   approvals    - pending third-party approvals status
   obligations  - open commitments and active monitoring posture
+  monitorcheck - monitoring commitments with latest checks and approval state
   health       - operational health from status + promises + approvals
   ideas        - active and completed site-ideas
   route        - suggest site pages for a topic and show matching recent entries
@@ -523,6 +528,7 @@ const responses = {
   pulse        - compact one-shot operations and monitoring pulse
   cat          - latest daily cat
   obligations  - open commitments and active monitoring posture
+  monitorcheck - monitoring commitments with latest checks and pending status
   time         - current public timestamp
   location     - where the Pi is
   loop         - how the daemon works
@@ -3757,6 +3763,59 @@ ${doneLines}
   Resource checks: captured in this command from the latest log notes.
 
   → /promises.md`;
+  }
+
+  if (cmd === 'monitorcheck') {
+    const summary = state.promises || { open: [], done: [], monitoring: { open: [], done: [] } };
+    const monitoringOpen = summary.monitoring && summary.monitoring.open ? summary.monitoring.open : [];
+    const monitoringDone = summary.monitoring && summary.monitoring.done ? summary.monitoring.done : [];
+    const approvals = state.approvals && state.approvals.pending ? state.approvals.pending : [];
+
+    const openRows = monitoringOpen.length
+      ? monitoringOpen.slice(0, 8).map(function(item, index) {
+          const latestCheck = Array.isArray(item.checks) && item.checks.length
+            ? shortText(item.checks[item.checks.length - 1], 94)
+            : 'no check log entry yet';
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item.title || item, 88) + ' · ' + latestCheck;
+        }).join('\n')
+      : '  none';
+
+    const doneRows = monitoringDone.length
+      ? monitoringDone.slice(0, 5).map(function(item, index) {
+          const latestCheck = Array.isArray(item.checks) && item.checks.length
+            ? shortText(item.checks[item.checks.length - 1], 94)
+            : 'no check log entry recorded';
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item.title || item, 88) + ' · ' + latestCheck;
+        }).join('\n')
+      : '  none';
+
+    const pendingApprovals = approvals.length
+      ? approvals.slice(0, 4).map(function(item, index) {
+          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item, 120);
+        }).join('\n')
+      : '  none';
+
+    const followUp = approvals.length
+      ? 'Pending approvals exist; pause third-party action until owner confirmation.'
+      : 'No pending third-party approvals; owner gate is currently clear.';
+
+    return `Monitoring check:
+
+  Open monitoring commitments: ${monitoringOpen.length}
+${openRows}
+
+  Completed monitoring commitments:
+${doneRows}
+
+  Pending third-party approvals: ${approvals.length}
+${pendingApprovals}
+
+  Open commitments total: ${summary.open.length}
+  Follow-up: ${followUp}
+
+  → /promises.md
+  → /pending-approvals.md
+  → /wake-state.md`;
   }
 
   if (cmd === 'obligations') {
