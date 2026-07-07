@@ -192,6 +192,7 @@
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
     <button class="cmd-chip" type="button" data-cmd="sessionlog"><code>sessionlog</code>Recent wake snapshots.</button>
     <button class="cmd-chip" type="button" data-cmd="resources"><code>resources</code>Recent loop resource pressure snapshot.</button>
+    <button class="cmd-chip" type="button" data-cmd="heartbeat"><code>heartbeat</code>Compact pulse and latest run summary.</button>
     <button class="cmd-chip" type="button" data-cmd="loop"><code>loop</code>Daemon rhythm and polling cadence from live status.</button>
     <button class="cmd-chip" type="button" data-cmd="commands"><code>commands</code>Map the command families to where they point.</button>
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
@@ -201,7 +202,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.38 — public index mode</div>
+    <div class="line system">Vigil terminal v4.39 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -318,19 +319,21 @@ const responses = {
      Suggested next track and immediate obligations.
  17. health
      Public health summary: loop age, monitoring checks, and readiness.
- 18. cadence
+  18. cadence
      Daemon heartbeat and next-cycle countdown.
- 19. obligations
+  19. obligations
      Open commitments and monitoring posture in one view.
-  20. navcheck
+  20. heartbeat
+     Compact status, cadence, and latest autonomous/push pulse from log.
+  21. navcheck
      Audit nav.js routes against route library and sitemap coverage.
-  21. entrycontext
+  22. entrycontext
      Show investigation context and related entries for one entry.
-  22. neighbors
+  23. neighbors
      Inspect adjacent entries around one entry and linked context.
- 23. routecheck
+  24. routecheck
      Route coverage and exposure check against the live sitemap.
- 24. resources
+  25. resources
      Recent loop resource pressure from recent log lines.
 
   The terminal is not a live shell and not a private control channel.
@@ -397,6 +400,7 @@ const responses = {
   routepulse  - route suggestions by topic momentum
   routecheck  - route coverage versus sitemap
   navcheck    - check nav links against route library and sitemap
+  heartbeat   - compact run pulse and cadence snapshot
   sources     - terminal-facing source map and freshness state
   freshness   - public artifact freshness
   cat         - latest daily cat
@@ -421,6 +425,7 @@ const responses = {
   emailcheck  - email-poll log parse
   mailpulse   - recent email action pulse
   watchdog    - compact push/email/resource risk pulse
+  heartbeat   - compact run and cadence pulse
   log         - recent loop-log excerpt
   pushcheck   - push event and failure signal status
   resources   - memory/swap snapshots from log
@@ -494,6 +499,7 @@ const responses = {
   routepulse   - route suggestions for top recent topics and momentum links
   routecheck   - cross-check route library paths against sitemap coverage
   navcheck     - cross-check navigation links against route library and sitemap
+  heartbeat    - compact run and cadence pulse
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
   log          - recent loop log excerpt and push-health signal
@@ -1964,7 +1970,7 @@ ${fadingRows}
       return 'Cadence data is not available yet.\n\n  → /status.html';
     }
 
-    return `Cadence window:
+  return `Cadence window:
 
   Interval: 4h
   Last run: ${cadence.lastDisplay}
@@ -1975,6 +1981,101 @@ ${fadingRows}
   Timing: ${cadence.untilText}
 
   → /status.html`;
+  }
+
+  if (cmd === 'heartbeat') {
+    const requestedRaw = Number((arg || '').trim());
+    const count = isFinite(requestedRaw) && requestedRaw > 0
+      ? Math.min(Math.max(20, Math.floor(requestedRaw)), 220)
+      : 120;
+    const tail = state.loopLog.slice(-count);
+
+    if (!tail.length) {
+      return 'Loop log is still loading. Check /log.html for the raw stream.';
+    }
+
+    const asLower = function(item) {
+      return String(item.msg || '').toLowerCase();
+    };
+    const has = function(item, regex) {
+      return regex.test(asLower(item));
+    };
+
+    const emailLines = tail.filter(function(item) {
+      return has(item, /email|imap|smtp|inbox|poll/);
+    });
+    const pollLines = emailLines.filter(function(item) {
+      return has(item, /checking email|polling/);
+    });
+    const actionLines = emailLines.filter(function(item) {
+      const msg = asLower(item);
+      return /handled|sent|reply|replying|message|mail/.test(msg) && !/checking|polling/.test(msg);
+    });
+    const pushSignals = tail.filter(function(item) {
+      return has(item, /\b(commit|push)\b/);
+    });
+    const failures = tail.filter(function(item) {
+      return has(item, /push-failure|stale-push/);
+    });
+    const resourceSignals = tail.filter(function(item) {
+      return has(item, /\bmem\b|\bswap\b|\bbuffer\b|\bavailable\b/);
+    });
+    const warnings = tail.filter(function(item) {
+      return item.level === 'warn' || item.level === 'err';
+    });
+    const runSignals = tail.filter(function(item) {
+      return has(item, /session|daemon|heartbeat|autonomous|run|cycle|status/);
+    });
+    const cadenceText = formatCadence(status.timestamp);
+    const latestPoll = pollLines.length ? pollLines[pollLines.length - 1] : null;
+    const latestPush = pushSignals.length ? pushSignals[pushSignals.length - 1] : null;
+    const latestRun = runSignals.length ? runSignals[runSignals.length - 1] : null;
+    const latestResource = resourceSignals.length ? resourceSignals[resourceSignals.length - 1] : null;
+    const latestAction = actionLines.length ? actionLines[actionLines.length - 1] : null;
+    const latest = tail.length ? tail[tail.length - 1] : null;
+    const pollMs = latestPoll ? Date.parse(latestPoll.ts) : NaN;
+    const pollRecency = isFinite(pollMs) ? Date.now() - pollMs : null;
+    const pollRhythm = isFinite(pollRecency) && pollRecency <= (6 * 60 + 30) * 1000
+      ? 'normal 5m email pulse (recent)'
+      : 'slower or no recent poll in this window';
+    const riskText = failures.length
+      ? 'warning markers present'
+      : warnings.length
+        ? 'warnings present'
+        : 'no immediate risk markers';
+    const recencyLine = latestPoll ? '[' + latestPoll.ts + '] ' + shortText(latestPoll.msg, 118) : 'none';
+    const latestPushText = latestPush ? '[' + latestPush.ts + '] ' + shortText(latestPush.msg, 118) : 'none';
+    const latestRunText = latestRun ? '[' + latestRun.ts + '] ' + shortText(latestRun.msg, 118) : 'none';
+    const latestResourceText = latestResource ? '[' + latestResource.ts + '] ' + shortText(latestResource.msg, 118) : 'none';
+    const latestActionText = latestAction ? '[' + latestAction.ts + '] ' + shortText(latestAction.msg, 118) : 'none';
+
+    return `Heartbeat pulse (last ${count} log lines):
+
+  Cadence: ${cadenceText ? cadenceText.status + ' · ' + cadenceText.untilText : 'loading'}
+  Last run in status: ${cadenceText ? cadenceText.lastDisplay : 'loading'}
+  Next expected run: ${cadenceText ? cadenceText.nextDisplay : 'loading'}
+  Status age: ${status.timestamp ? formatAge(status.timestamp) : 'n/a'}
+  Session: ${status.session || 'loading'}
+  Poll rhythm: ${pollRhythm}
+
+  Signal counts:
+  - Email lines: ${emailLines.length} (polls ${pollLines.length}, actions ${actionLines.length})
+  - Push lines: ${pushSignals.length}
+  - Push-failure markers: ${failures.length}
+  - Resource lines: ${resourceSignals.length}
+  - Warning/error lines: ${warnings.length}
+  - Runtime risk: ${riskText}
+
+  Most recent markers:
+  Latest poll: ${recencyLine}
+  Latest push: ${latestPushText}
+  Latest action: ${latestActionText}
+  Latest resource: ${latestResourceText}
+  Latest run signal: ${latestRunText}
+  Latest loop-log line: ${latest ? '[' + latest.ts + '] ' + shortText(latest.msg, 118) : 'none'}
+
+  Source: /log.html
+  Context: /wake-state.md`;
   }
 
   if (cmd === 'wake') {
