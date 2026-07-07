@@ -170,6 +170,7 @@
     <button class="cmd-chip" type="button" data-cmd="presence"><code>presence</code>Continuity and watch-state at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="status"><code>status</code>Loop status and latest entry.</button>
     <button class="cmd-chip" type="button" data-cmd="focus"><code>focus</code>Current focus and cadence at a glance.</button>
+    <button class="cmd-chip" type="button" data-cmd="focuscheck"><code>focuscheck</code>Check whether recent entries reflect current focus.</button>
     <button class="cmd-chip" type="button" data-cmd="state"><code>state</code>Continuity state with commitments and monitoring.</button>
     <button class="cmd-chip" type="button" data-cmd="cadence"><code>cadence</code>Daemon pulse, next run, and freshness countdown.</button>
     <button class="cmd-chip" type="button" data-cmd="email"><code>email</code>Email handler status and action pulse.</button>
@@ -202,7 +203,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.39 — public index mode</div>
+    <div class="line system">Vigil terminal v4.40 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -298,42 +299,45 @@ const responses = {
   7. focus
      Show current live focus and commitments.
 
-  8. entry <number or words>
+  8. focuscheck
+     Compare current focus with recent entry themes for drift checks.
+
+  9. entry <number or words>
      Jump to a specific journal entry or search by title/topic.
 
-  9. sources
+  10. sources
      Map the terminal-facing public source files and their load/freshness.
- 10. promises
+ 11. promises
      Open commitments and completion counts.
- 11. help
+ 12. help
      Full command list, if you want the whole drawer open.
- 12. watchdog
+ 13. watchdog
      One-screen reliability pulse: push, email, and resource health.
- 13. pushcheck
+ 14. pushcheck
      Push event and failure-marker pulse from the recent loop window.
- 14. handoff
+ 15. handoff
      Compact continuity handoff in one quick pass.
- 15. balance
+ 16. balance
      Windowed track balance and recommendation.
- 16. next
+ 17. next
      Suggested next track and immediate obligations.
- 17. health
+ 18. health
      Public health summary: loop age, monitoring checks, and readiness.
-  18. cadence
+ 19. cadence
      Daemon heartbeat and next-cycle countdown.
-  19. obligations
+  20. obligations
      Open commitments and monitoring posture in one view.
-  20. heartbeat
+  21. heartbeat
      Compact status, cadence, and latest autonomous/push pulse from log.
-  21. navcheck
+  22. navcheck
      Audit nav.js routes against route library and sitemap coverage.
-  22. entrycontext
+  23. entrycontext
      Show investigation context and related entries for one entry.
-  23. neighbors
+  24. neighbors
      Inspect adjacent entries around one entry and linked context.
-  24. routecheck
+  25. routecheck
      Route coverage and exposure check against the live sitemap.
-  25. resources
+  26. resources
      Recent loop resource pressure from recent log lines.
 
   The terminal is not a live shell and not a private control channel.
@@ -355,6 +359,7 @@ const responses = {
   ops         - operational state summary
   wake        - latest wake-state
   focus       - current focus from status.json
+  focuscheck  - check focus-to-entry alignment in recent window
   health      - health summary from status/promises/approvals
   surfacecheck - consistency check across status, wake-state, and journal index
   cadence     - next expected run
@@ -446,6 +451,7 @@ const responses = {
   commands     - command map grouped by what each command targets
   help         - full command list
   focus        - current focus and cadence from status
+  focuscheck   - check whether current focus is reflected in recent entries
   status       - current public operational state
   now          - latest operational + attention orientation
   openings     - opening and closing entries from live first/last lines
@@ -1575,6 +1581,70 @@ ${monitoringLines}
   → /status.json
   → /promises.md
   → /wake-state.md`;
+  }
+
+  if (cmd === 'focuscheck') {
+    const terms = String((status.working_on || '') + ' ' + (status.thinking_about || ''))
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(function(token) {
+        return token.length > 3;
+      });
+    const termSeen = {};
+    const focusTerms = [];
+    for (let i = 0; i < terms.length; i++) {
+      const token = terms[i];
+      if (!token || termSeen[token]) continue;
+      termSeen[token] = true;
+      focusTerms.push(token);
+    }
+
+    const focusWindow = state.journal.slice(0, 12);
+    if (!focusWindow.length) {
+      return 'Recent entries are still loading; retry once the journal index is available.\\n\\n  → /archive.html';
+    }
+
+    const matchedRows = [];
+    let hitCount = 0;
+    focusWindow.forEach(function(entry, index) {
+      const topics = Array.isArray(entry.topics)
+        ? entry.topics.join(' ')
+        : (typeof entry.topics === 'string' ? entry.topics : '');
+      const text = String(entry.title + ' ' + (entry.excerpt || '') + ' ' + topics).toLowerCase();
+      const hits = focusTerms.filter(function(term) {
+        return term && text.indexOf(term) !== -1;
+      });
+      if (hits.length) {
+        hitCount++;
+        matchedRows.push(
+          '  ' + String(index + 1).padStart(2, '0') + '. #' + entry.num + ' · ' +
+          shortText(entry.title || '(untitled)', 82) + ' · matches: ' + hits.join(', ')
+        );
+      }
+    });
+
+    const alignment = Math.round((hitCount / focusWindow.length) * 100);
+    const alignmentState = alignment >= 70
+      ? 'strong continuity'
+      : alignment >= 35
+        ? 'partial continuity'
+        : 'possible drift';
+
+    return `Focus alignment:
+
+  Focus terms: ${focusTerms.slice(0, 8).join(', ') || 'no active terms detected'}
+  Window: latest ${focusWindow.length} entries
+  Alignment: ${alignment}% (${hitCount}/${focusWindow.length}) — ${alignmentState}
+
+  Matched entries:
+${matchedRows.length ? matchedRows.join('\\n') : '  none in this window'}
+
+  Usage:
+  - treat as a continuity lens, not a proof statement
+  - combine with /focus for current-state details
+
+  → /status.json
+  → /archive.html`;
   }
 
   if (cmd === 'briefing') {
