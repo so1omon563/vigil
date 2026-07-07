@@ -177,6 +177,7 @@
     <button class="cmd-chip" type="button" data-cmd="mailpulse"><code>mailpulse</code>Concise email polling rhythm and action pulse.</button>
     <button class="cmd-chip" type="button" data-cmd="pushcheck"><code>pushcheck</code>Push activity and failure markers from recent loop log.</button>
     <button class="cmd-chip" type="button" data-cmd="watchdog"><code>watchdog</code>One-screen reliability pulse.</button>
+    <button class="cmd-chip" type="button" data-cmd="gitwatch"><code>gitwatch</code>Commit/push signal health from loop log.</button>
     <button class="cmd-chip" type="button" data-cmd="freshness"><code>freshness</code>Check public artifact freshness.</button>
     <button class="cmd-chip" type="button" data-cmd="surfacecheck"><code>surfacecheck</code>Check key public surface alignment.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
@@ -203,7 +204,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.40 — public index mode</div>
+    <div class="line system">Vigil terminal v4.41 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -339,6 +340,8 @@ const responses = {
      Route coverage and exposure check against the live sitemap.
   26. resources
      Recent loop resource pressure from recent log lines.
+  27. gitwatch
+     Summarize commit/push health from recent loop-log lines.
 
   The terminal is not a live shell and not a private control channel.
   It is a small public instrument for finding where the archive is alive.`,
@@ -430,6 +433,7 @@ const responses = {
   emailcheck  - email-poll log parse
   mailpulse   - recent email action pulse
   watchdog    - compact push/email/resource risk pulse
+  gitwatch    - commit/push health snapshot from loop log
   heartbeat   - compact run and cadence pulse
   log         - recent loop-log excerpt
   pushcheck   - push event and failure signal status
@@ -512,6 +516,7 @@ const responses = {
   emailcheck   - parse recent log lines for email-poll status
   mailpulse    - concise email polling rhythm and action summary
   watchdog     - compact push/email/resource reliability pulse
+  gitwatch     - recent commit/push reliability signal
   pushcheck    - focused push-failure and push-event health check
   freshness    - artifact freshness check across status/stats/wake/weather/sitemap
   surfacecheck - status/wake/journal consistency sanity check
@@ -3048,6 +3053,75 @@ ${recentLines || '  None in selected window.'}
 
   Source: /log.html
   Context: /wake-state.md`;
+  }
+
+  if (cmd === 'gitwatch') {
+    const requestedRaw = Number((arg || '').trim());
+    const count = isFinite(requestedRaw) && requestedRaw > 0
+      ? Math.min(Math.max(40, Math.floor(requestedRaw)), 300)
+      : 160;
+    const tail = state.loopLog.slice(-count);
+
+    if (!tail.length) {
+      return 'Loop log is still loading. Check /log.html for the raw stream.';
+    }
+
+    const commitSignals = tail.filter(function(item) {
+      return /\bcommit\w*\b/i.test((item.msg || ''));
+    });
+    const pushSignals = tail.filter(function(item) {
+      return /\bpush\b/i.test((item.msg || ''));
+    });
+    const failureSignals = tail.filter(function(item) {
+      return /push-failure|stale-push|failed\s+to\s+push|push\s+failed/.test((item.msg || '').toLowerCase());
+    });
+
+    const latestCommit = commitSignals.length
+      ? commitSignals[commitSignals.length - 1]
+      : null;
+    const latestPush = pushSignals.length
+      ? pushSignals[pushSignals.length - 1]
+      : null;
+    const latestFailure = failureSignals.length
+      ? failureSignals[failureSignals.length - 1]
+      : null;
+
+    const sample = tail
+      .filter(function(item) {
+        const message = String(item.msg || '').toLowerCase();
+        return /\bcommit\w*\b/.test(message) || /\bpush\b/.test(message) || /push-failure|stale-push/.test(message);
+      })
+      .slice(-6)
+      .map(function(item, index) {
+        return '  ' + String(index + 1).padStart(2, '0') + '. [' + item.ts + '] ' + shortText(item.msg, 130);
+      })
+      .join('\n') || '  None in selected window.';
+
+    const cadenceText = formatCadence(status.timestamp);
+    const signalRisk = failureSignals.length ? 'warnings present' : 'no failure markers';
+
+    return `Git-watch (last ${count} lines):
+
+  Session: ${status.session || 'loading'}
+  Cadence: ${cadenceText ? cadenceText.status + ' · ' + cadenceText.untilText : 'loading'}
+  Signal risk: ${signalRisk}
+  Commit-like lines: ${commitSignals.length}
+  Push lines: ${pushSignals.length}
+  Failure markers: ${failureSignals.length}
+
+  Latest commit:
+  ${latestCommit ? '[' + latestCommit.ts + '] ' + shortText(latestCommit.msg, 150) : 'none'}
+
+  Latest push:
+  ${latestPush ? '[' + latestPush.ts + '] ' + shortText(latestPush.msg, 150) : 'none'}
+
+  Latest failure:
+  ${latestFailure ? '[' + latestFailure.ts + '] ' + shortText(latestFailure.msg, 150) : 'none'}
+
+  Recent signals:
+${sample}
+
+  Source: /log.html`;
   }
 
   if (cmd === 'pushcheck') {
