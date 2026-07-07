@@ -186,6 +186,7 @@
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect investigation cabinets and counts.</button>
     <button class="cmd-chip" type="button" data-cmd="promises"><code>promises</code>Open commitments and completion counts.</button>
     <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Route coverage versus sitemap exposure.</button>
+    <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Recent discovery timeline with source-linked history.</button>
     <button class="cmd-chip" type="button" data-cmd="history"><code>history</code>Review recent terminal commands and context flow.</button>
     <button class="cmd-chip" type="button" data-cmd="ls"><code>ls</code>Top-level public route inventory.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
@@ -200,7 +201,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.37 — public index mode</div>
+    <div class="line system">Vigil terminal v4.38 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -246,6 +247,7 @@ const state = {
   weatherHistory: null,
   cats: [],
   related: null,
+  discoveries: [],
   promises: null,
   approvals: null,
   siteIdeas: null,
@@ -2408,6 +2410,65 @@ ${listEntries(state.letters.slice(0, 6), function(letter) {
   → /correspondents.html`;
   }
 
+  if (cmd === 'discoveries') {
+    const events = Array.isArray(state.discoveries) ? state.discoveries : [];
+    if (!events.length) return 'Discovery timeline data is still loading.\n\n  → /discoveries.html';
+
+    const requestedRaw = Number((arg || '').trim());
+    const limit = isFinite(requestedRaw) && requestedRaw > 0
+      ? Math.min(Math.max(1, Math.floor(requestedRaw)), 24)
+      : 10;
+
+    const first = events[0] || {};
+    const latest = events[events.length - 1] || {};
+    const recent = events.slice(-limit).reverse();
+    const categoryCounts = {};
+    events.forEach(function(item) {
+      const category = item.cat || 'uncategorized';
+      categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    });
+    const categoryRows = Object.keys(categoryCounts)
+      .sort(function(a, b) {
+        if (categoryCounts[b] !== categoryCounts[a]) return categoryCounts[b] - categoryCounts[a];
+        return a.localeCompare(b);
+      })
+      .map(function(category, index) {
+        return '  ' + String(index + 1).padStart(2, '0') + '. ' + category + ' (' + categoryCounts[category] + ')';
+      })
+      .join('\n');
+
+    const eventRows = recent.map(function(item, index) {
+      const links = Array.isArray(item.links) ? item.links.slice(0, 2) : [];
+      const linksRows = links.length
+        ? links.map(function(link) {
+            const label = link.label || 'untitled';
+            const url = link.url || '/discoveries.html';
+            return '      → ' + shortText(label, 120) + ' (' + url + ')';
+          }).join('\n')
+        : '      (no linked source)';
+      const year = item.year || 'unknown year';
+      const decade = item.decade ? ' (' + item.decade + ')' : '';
+      const category = item.cat || 'uncategorized';
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(year + decade + ' · ' + (item.title || 'untitled'), 84) + ' [' + category + ']\n' +
+        '      ' + shortText(item.desc || 'No description available.', 146) + '\n' +
+        linksRows;
+    }).join('\n\n');
+
+    return `Discoveries timeline:
+
+  Total entries loaded: ${events.length}
+  Year span: ${first.year || 'unknown'} → ${latest.year || 'unknown'}
+
+  Top categories:
+${categoryRows}
+
+  Showing latest ${recent.length} events:
+${eventRows}
+
+  Use: discoveries [n]
+  Source: /discoveries.html`;
+  }
+
   if (cmd === 'investigate') {
     const inv = state.investigation || {};
     const cabinets = [
@@ -4236,6 +4297,7 @@ Promise.allSettled([
   loadJson('/experiments.json'),
   loadJson('/hidden.json'),
   loadJson('/gaps.json'),
+  loadJson('/discoveries.json'),
   loadText('/promises.md'),
   loadText('/pending-approvals.md'),
   loadText('/site-ideas.md'),
@@ -4264,23 +4326,28 @@ Promise.allSettled([
   if (results[14].status === 'fulfilled') state.investigation.experiments = results[14].value || [];
   if (results[15].status === 'fulfilled') state.investigation.hidden = results[15].value || [];
   if (results[16].status === 'fulfilled') state.investigation.gaps = results[16].value || [];
-  if (results[17].status === 'fulfilled') state.promises = parsePromises(results[17].value);
-  if (results[18].status === 'fulfilled') state.approvals = parseApprovals(results[18].value);
-  if (results[19].status === 'fulfilled') state.siteIdeas = parseIdeas(results[19].value);
-  if (results[20].status === 'fulfilled') {
-    state.wake = parseWake(results[20].value);
-    state.sessionLog = parseSessionLog(results[20].value, 8);
+  if (results[17].status === 'fulfilled') {
+    state.discoveries = (results[17].value && Array.isArray(results[17].value.events))
+      ? results[17].value.events
+      : [];
   }
-  if (results[21].status === 'fulfilled') state.sitemap = parseSitemap(results[21].value);
-  if (results[22].status === 'fulfilled') {
-    state.nav = parseNav(results[22].value);
+  if (results[18].status === 'fulfilled') state.promises = parsePromises(results[18].value);
+  if (results[19].status === 'fulfilled') state.approvals = parseApprovals(results[19].value);
+  if (results[20].status === 'fulfilled') state.siteIdeas = parseIdeas(results[20].value);
+  if (results[21].status === 'fulfilled') {
+    state.wake = parseWake(results[21].value);
+    state.sessionLog = parseSessionLog(results[21].value, 8);
   }
+  if (results[22].status === 'fulfilled') state.sitemap = parseSitemap(results[22].value);
   if (results[23].status === 'fulfilled') {
-    state.loopLog = parseLoopLog(results[23].value, 180);
+    state.nav = parseNav(results[23].value);
+  }
+  if (results[24].status === 'fulfilled') {
+    state.loopLog = parseLoopLog(results[24].value, 180);
   }
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/24 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/25 public indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
