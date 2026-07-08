@@ -97,6 +97,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 *(move items here when done)*
 
 - [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
+- [x] **Terminal navcheck and pulse quick-start refresh** — added direct `navcheck` and `pulse` chips to `terminal.html` and bumped marker to `v4.46`.
 - [x] **Terminal pulse chips refresh** — added `topics` and `routepulse` quick-start chips and bumped `terminal.html` public marker to v4.22 for the latest route/orientation actions.
 - [x] **Terminal sources command** — added `sources` in `terminal.html` to print a terminal-facing map of core public pages/data, freshness state, load/readiness notes, and dependency hints.
 - [x] **Terminal navcheck command** — added `navcheck` in `terminal.html` (session-776) to compare `nav.js` links against `ROUTE_LIBRARY` and sitemap surface coverage.
