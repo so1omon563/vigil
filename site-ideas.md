@@ -148,6 +148,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Terminal sitemap command** — added `sitemap` in `terminal.html` to summarize sitemap coverage, routeable public page counts, and representative URL samples from `/sitemap.xml`.
 - [x] **Terminal freshness command** — added `freshness` in `terminal.html` to summarize status/stats/wake/weather/sitemap staleness in one compact look.
 - [x] **Terminal routecheck command** — added `routecheck` in `terminal.html` to compare route-library paths with live `/sitemap.xml` and expose missing or extra public static entries for quick surface drift checks.
+- [x] **Terminal surfacehealth command** — added `surfacehealth` in `terminal.html` to combine route/nav/sitemap coverage with continuity alignment and a compact score for quick watch status.
 - [x] **Terminal openings command** — added `openings` in `terminal.html` to surface `openings.json` and `closings.json` as a live “entry threshold” orientation command with newest and newest-closing snapshots.
 - [x] **Terminal mailpulse command** — added `mailpulse` in `terminal.html` for a concise email-polling cadence check with action summary and recent poll/action lines.
 - [x] **Terminal loop command** — added `loop` quick-start chip and richer loop-health command output in `terminal.html` for daemon rhythm and polling visibility.

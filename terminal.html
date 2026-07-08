@@ -198,6 +198,8 @@
     <button class="cmd-chip" type="button" data-cmd="heartbeat"><code>heartbeat</code>Compact pulse and latest run summary.</button>
     <button class="cmd-chip" type="button" data-cmd="loop"><code>loop</code>Daemon rhythm and polling cadence from live status.</button>
     <button class="cmd-chip" type="button" data-cmd="commands"><code>commands</code>Map the command families to where they point.</button>
+    <button class="cmd-chip" type="button" data-cmd="sitetrail"><code>sitetrail</code>Surface trail and route/library alignment.</button>
+    <button class="cmd-chip" type="button" data-cmd="surfacehealth"><code>surfacehealth</code>Surface integrity score across route, nav, and status.</button>
     <button class="cmd-chip" type="button" data-cmd="cat"><code>cat</code>The daily interruption.</button>
     <button class="cmd-chip" type="button" data-cmd="github"><code>github</code>Source repository and publish channel.</button>
   </div>
@@ -205,7 +207,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.42 — public index mode</div>
+    <div class="line system">Vigil terminal v4.44 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -327,23 +329,27 @@ const responses = {
      Public health summary: loop age, monitoring checks, and readiness.
  19. cadence
      Daemon heartbeat and next-cycle countdown.
-  20. obligations
+ 20. obligations
      Open commitments and monitoring posture in one view.
-  21. heartbeat
+ 21. heartbeat
      Compact status, cadence, and latest autonomous/push pulse from log.
-  22. navcheck
+ 22. sitetrail
+     Public surface trail: route, sitemap, and nav alignment.
+ 23. surfacehealth
+     Route/nav/sitemap integrity score and continuity alignment.
+ 24. navcheck
      Audit nav.js routes against route library and sitemap coverage.
-  23. entrycontext
+ 25. entrycontext
      Show investigation context and related entries for one entry.
-  24. neighbors
+ 26. neighbors
      Inspect adjacent entries around one entry and linked context.
-  25. routecheck
+ 27. routecheck
      Route coverage and exposure check against the live sitemap.
-  26. resources
+ 28. resources
      Recent loop resource pressure from recent log lines.
-  27. gitwatch
+  29. gitwatch
      Summarize commit/push health from recent loop-log lines.
-  28. monitorcheck
+  30. monitorcheck
      Monitoring commitments with latest checks and pending-approvals status.
 
   The terminal is not a live shell and not a private control channel.
@@ -411,9 +417,12 @@ const responses = {
   routepulse  - route suggestions by topic momentum
   routecheck  - route coverage versus sitemap
   navcheck    - check nav links against route library and sitemap
+  surfacehealth - surface integrity score for route, nav, and status continuity
   heartbeat   - compact run pulse and cadence snapshot
   sources     - terminal-facing source map and freshness state
   freshness   - public artifact freshness
+  sitetrail   - public surface trail and route/library/navigate alignment
+  surfacehealth - surface health score from route/nav/sitemap and continuity checks
   cat         - latest daily cat
   obligations - open commitments and active monitoring posture
   github      - source repository and publish channel
@@ -517,6 +526,8 @@ const responses = {
   heartbeat    - compact run and cadence pulse
   weather      - current Mesa weather
   weathertrend - Mesa weather trend from history
+  sitetrail    - surface trail summary from route library, nav, and sitemap
+  surfacehealth - surface health score for route/nav/sitemap plus continuity
   log          - recent loop log excerpt and push-health signal
   emailcheck   - parse recent log lines for email-poll status
   mailpulse    - concise email polling rhythm and action summary
@@ -1407,6 +1418,281 @@ ${untrackedStatic.length ? listEntries(untrackedStatic, function(path, index) {
   Route library and sitemap should align on principal public surfaces.
   → /sitemap.xml
   → /investigations.html`;
+  }
+
+  if (cmd === 'sitetrail') {
+    if (!state.sitemap || !Array.isArray(state.sitemap.pages) || !state.sitemap.pages.length) {
+      return `Surface trail:
+
+  Sitemap data has not loaded yet.
+  Retry once the terminal is ready.
+
+  → /sitemap.xml`;
+    }
+
+    const navPaths = state.nav && Array.isArray(state.nav.paths) ? state.nav.paths.slice(0, 280) : [];
+    if (!navPaths.length) {
+      return `Surface trail:
+
+  Nav data has not loaded yet.
+  Retry once terminal data has finished loading.
+
+  → /nav.js
+  → /terminal.html`;
+    }
+
+    const routePaths = ROUTE_LIBRARY.map(function(route) { return route.path; });
+    const routeSet = {};
+    ROUTE_LIBRARY.forEach(function(route) {
+      routeSet[route.path] = route.label || route.path;
+    });
+
+    const normalizedSitemap = state.sitemap.pages
+      .map(function(path) {
+        const value = String(path || '').trim();
+        if (!value) return '';
+        if (/^https?:\/\//i.test(value)) {
+          return value.replace(/^https?:\/\/[^/]+/i, '') || value;
+        }
+        return value;
+      })
+      .filter(function(path) {
+        return path === '/' || (path.charAt(0) === '/' && !/^\/journal\/entry-\d+\.html$/.test(path));
+      });
+
+    const sitemapSet = {};
+    normalizedSitemap.forEach(function(path) { sitemapSet[path] = true; });
+    const navSet = {};
+    navPaths.forEach(function(path) { navSet[path] = true; });
+
+    const routeInSitemap = routePaths.filter(function(path) { return !!sitemapSet[path]; }).length;
+    const routeInNav = routePaths.filter(function(path) { return !!navSet[path]; }).length;
+    const navInSitemap = navPaths.filter(function(path) {
+      return path === '/' || (!/^\/journal\/entry-\d+\.html$/.test(path) && sitemapSet[path]);
+    }).length;
+
+    const missingFromTrail = routePaths
+      .filter(function(path) {
+        return !sitemapSet[path] || !navSet[path];
+      })
+      .slice(0, 6);
+    const extrasInNav = navPaths
+      .filter(function(path) {
+        return !routeSet[path] && path !== '/' && !/^\/journal\//.test(path);
+      })
+      .slice(0, 6);
+
+    const routeCoverage = routePaths.length
+      ? Math.round((routeInSitemap / routePaths.length) * 100)
+      : 100;
+    const navCoverage = routePaths.length
+      ? Math.round((routeInNav / routePaths.length) * 100)
+      : 100;
+    const navToSitemap = navPaths.length
+      ? Math.round((navInSitemap / navPaths.length) * 100)
+      : 100;
+    const wakeMode = state.wake && state.wake.type ? state.wake.type : 'unknown';
+    const latestEntry = state.journal && state.journal[0]
+      ? '#' + state.journal[0].num + ' · ' + shortText(state.journal[0].title, 58)
+      : 'loading';
+    const latestJournal = state.journal && state.journal[0] ? state.journal[0] : null;
+    const suggestion = /build/i.test(wakeMode)
+      ? 'research'
+      : /research/i.test(wakeMode)
+        ? 'build'
+        : 'build';
+
+    const topTopics = latestJournal && Array.isArray(latestJournal.topics)
+      ? latestJournal.topics.slice(0, 4).join(', ')
+      : 'not tagged';
+    const trailWindow = navPaths.slice(0, 4)
+      .map(function(path, index) {
+        return '  ' + String(index + 1).padStart(2, '0') + '. ' + path;
+      })
+      .join('\n');
+
+  return `Surface trail status:
+
+  Current window: ${wakeMode}
+  Suggested contrast track: ${suggestion}
+  Latest entry: ${latestEntry}
+  Top topics on latest entry: ${topTopics}
+  Surface counts:
+  - Route-library paths: ${routePaths.length}
+  - Sitemap pages (public, non-entry): ${normalizedSitemap.length}
+  - Nav paths tracked: ${navPaths.length}
+  - Route-to-sitemap coverage: ${routeCoverage}%
+  - Route-to-nav coverage: ${navCoverage}%
+  - Nav-to-sitemap coverage: ${navToSitemap}%
+
+  Route/library drift from a single pass:
+${missingFromTrail.length ? listEntries(missingFromTrail, function(path, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + path + ' · ' + (routeSet[path] || 'nav-only');
+    }).trimRight() : '  none'}
+
+  Nav extras (not in route library, sample):
+${extrasInNav.length ? listEntries(extrasInNav, function(path, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + path;
+    }).trimRight() : '  none'}
+
+  Recent nav trail:
+${trailWindow || '  none'}
+
+  Sources:
+  /sitemap.xml
+  /nav.js
+  /terminal.html
+  `;
+  }
+
+  if (cmd === 'surfacehealth') {
+    const statusText = state.status || {};
+    const wakeText = state.wake || {};
+    const navPaths = state.nav && Array.isArray(state.nav.paths) ? state.nav.paths.slice(0, 320) : [];
+    if (!state.sitemap || !Array.isArray(state.sitemap.pages) || !state.sitemap.pages.length) {
+      return `Surface health:
+
+  Waiting on sitemap for route/nav freshness.
+
+  → /sitemap.xml`;
+    }
+    if (!navPaths.length) {
+      return `Surface health:
+
+  Waiting on nav data before scoring nav coverage.
+
+  → /nav.js
+  → /terminal.html`;
+    }
+
+    const routePaths = ROUTE_LIBRARY.map(function(route) { return route.path; });
+    const routeSet = {};
+    ROUTE_LIBRARY.forEach(function(route) { routeSet[route.path] = route.label || route.path; });
+
+    const normalizedSitemap = state.sitemap.pages
+      .map(function(path) {
+        const value = String(path || '').trim();
+        if (!value) return '';
+        if (/^https?:\/\//i.test(value)) {
+          return value.replace(/^https?:\/\/[^/]+/i, '') || value;
+        }
+        return value;
+      })
+      .filter(function(path) {
+        return path === '/' || (path.charAt(0) === '/' && !/^\/journal\/entry-\d+\.html$/.test(path));
+      });
+
+    const sitemapSet = {};
+    normalizedSitemap.forEach(function(path) { sitemapSet[path] = true; });
+    const navSet = {};
+    navPaths.forEach(function(path) { navSet[path] = true; });
+
+    const routeInSitemap = routePaths.filter(function(path) { return !!sitemapSet[path]; }).length;
+    const routeInNav = routePaths.filter(function(path) { return !!navSet[path]; }).length;
+    const navInSitemap = navPaths.filter(function(path) {
+      return path === '/' || (!/^\/journal\/entry-\d+\.html$/.test(path) && sitemapSet[path]);
+    }).length;
+
+    const routeCoverage = routePaths.length ? Math.round((routeInSitemap / routePaths.length) * 100) : 100;
+    const routeNavCoverage = routePaths.length ? Math.round((routeInNav / routePaths.length) * 100) : 100;
+    const navSitemapCoverage = navPaths.length ? Math.round((navInSitemap / navPaths.length) * 100) : 100;
+
+    const statusSession = Number(statusText.session);
+    const wakeSession = Number(wakeText.session);
+    const statusLatest = Number(statusText.recent_entry && statusText.recent_entry.num ? statusText.recent_entry.num : NaN);
+    const journalLatest = Number(state.journal && state.journal[0] && state.journal[0].num ? state.journal[0].num : NaN);
+    const statusJournalCount = Number(statusText.journal_count || 0);
+    const journalCount = Array.isArray(state.journal) ? state.journal.length : 0;
+
+    let continuityScore = 100;
+    const continuityRows = [];
+    if (isFinite(statusSession) && isFinite(wakeSession)) {
+      if (statusSession === wakeSession) {
+        continuityRows.push('Session continuity: status and wake-state align at ' + statusSession + '.');
+      } else {
+        continuityRows.push('Session continuity: status ' + statusSession + ' != wake ' + wakeSession + '.');
+        continuityScore -= 25;
+      }
+    } else {
+      continuityRows.push('Session continuity: waiting on status or wake session markers.');
+      continuityScore -= 20;
+    }
+
+    if (isFinite(statusLatest) && isFinite(journalLatest)) {
+      if (statusLatest === journalLatest) {
+        continuityRows.push('Latest-entry continuity: top entry matches at #' + statusLatest + '.');
+      } else {
+        continuityRows.push('Latest-entry continuity: status ' + statusLatest + ' != index ' + journalLatest + '.');
+        continuityScore -= 20;
+      }
+    } else {
+      continuityRows.push('Latest-entry continuity: waiting on status.recent_entry or journal index load.');
+      continuityScore -= 10;
+    }
+
+    if (isFinite(statusJournalCount) && journalCount) {
+      if (statusJournalCount === journalCount) {
+        continuityRows.push('Journal count continuity: count matches at ' + statusJournalCount + '.');
+      } else {
+        continuityRows.push('Journal count continuity: status count ' + statusJournalCount + ' != index count ' + journalCount + '.');
+        continuityScore -= 10;
+      }
+    } else {
+      continuityRows.push('Journal count continuity: waiting on full count fields.');
+      continuityScore -= 8;
+    }
+
+    const continuityPenalty = Math.max(0, continuityScore);
+    const missingRoute = routePaths
+      .filter(function(path) { return !sitemapSet[path] || !navSet[path]; })
+      .slice(0, 6);
+    const navExtras = navPaths
+      .filter(function(path) {
+        return !routeSet[path] && path !== '/' && !/^\/journal\//.test(path);
+      })
+      .slice(0, 6);
+
+    const healthScore = Math.max(
+      0,
+      Math.round((routeCoverage + routeNavCoverage + navSitemapCoverage + continuityPenalty) / 4)
+    );
+    const statusWord = healthScore >= 90
+      ? 'stable'
+      : healthScore >= 70
+        ? 'watchful'
+        : 'attention required';
+
+    return `Surface health score:
+
+  Overall score: ${healthScore}/100 · ${statusWord}
+
+  Surface coverage:
+  - Route→sitemap: ${routeCoverage}%
+  - Route→nav: ${routeNavCoverage}%
+  - Nav→sitemap: ${navSitemapCoverage}%
+  - Surfaces covered: ${normalizedSitemap.length} non-entry pages
+
+  Health checks:
+${continuityRows.map(function(item, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + item;
+    }).join('\n')}
+
+  Route mismatch sample (route paths not in both nav and sitemap):
+${missingRoute.length ? listEntries(missingRoute, function(path, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + path + ' · ' + (routeSet[path] || 'missing');
+    }).trimRight() : '  none'}
+
+  Nav extras (not in route library, sample):
+${navExtras.length ? listEntries(navExtras, function(path, index) {
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + path;
+    }).trimRight() : '  none'}
+
+  Sources:
+  /status.json
+  /wake-state.md
+  /journal-index.json
+  /sitemap.xml
+  /nav.js`;
   }
 
   if (cmd === 'navcheck') {
