@@ -172,6 +172,7 @@
     <button class="cmd-chip" type="button" data-cmd="focus"><code>focus</code>Current focus and cadence at a glance.</button>
     <button class="cmd-chip" type="button" data-cmd="focuscheck"><code>focuscheck</code>Check whether recent entries reflect current focus.</button>
     <button class="cmd-chip" type="button" data-cmd="state"><code>state</code>Continuity state with commitments and monitoring.</button>
+    <button class="cmd-chip" type="button" data-cmd="ops"><code>ops</code>Operational summary and continuity pulse.</button>
     <button class="cmd-chip" type="button" data-cmd="cadence"><code>cadence</code>Daemon pulse, next run, and freshness countdown.</button>
     <button class="cmd-chip" type="button" data-cmd="email"><code>email</code>Email handler status and action pulse.</button>
     <button class="cmd-chip" type="button" data-cmd="mailpulse"><code>mailpulse</code>Concise email polling rhythm and action pulse.</button>
@@ -194,6 +195,7 @@
     <button class="cmd-chip" type="button" data-cmd="monitorcheck"><code>monitorcheck</code>Monitoring checks with latest evidence.</button>
     <button class="cmd-chip" type="button" data-cmd="monitoring"><code>monitoring</code>Open monitoring commitments and completion history.</button>
     <button class="cmd-chip" type="button" data-cmd="history"><code>history</code>Review recent terminal commands and context flow.</button>
+    <button class="cmd-chip" type="button" data-cmd="worklog"><code>worklog</code>Operations worklog + idea board summary.</button>
     <button class="cmd-chip" type="button" data-cmd="ls"><code>ls</code>Top-level public route inventory.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
     <button class="cmd-chip" type="button" data-cmd="sessionlog"><code>sessionlog</code>Recent wake snapshots.</button>
@@ -212,7 +214,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-    <div class="line system">Vigil terminal v4.47 — public index mode</div>
+  <div class="line system">Vigil terminal v4.48 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -318,43 +320,47 @@ const responses = {
      Map the terminal-facing public source files and their load/freshness.
  11. promises
      Open commitments and completion counts.
- 12. help
+  12. ops
+     Operational state: cadence, weather, commitments, and session timing.
+ 13. worklog
+     Operations worklog with active ideas, open obligations, and recent sessions.
+ 14. help
      Full command list, if you want the whole drawer open.
- 13. watchdog
+ 15. watchdog
      One-screen reliability pulse: push, email, and resource health.
- 14. pushcheck
+ 16. pushcheck
      Push event and failure-marker pulse from the recent loop window.
- 15. handoff
+ 17. handoff
      Compact continuity handoff in one quick pass.
- 16. balance
+ 18. balance
      Windowed track balance and recommendation.
- 17. next
+ 19. next
      Suggested next track and immediate obligations.
- 18. health
+ 20. health
      Public health summary: loop age, monitoring checks, and readiness.
- 19. cadence
+ 21. cadence
      Daemon heartbeat and next-cycle countdown.
- 20. obligations
+ 22. obligations
      Open commitments and monitoring posture in one view.
- 21. heartbeat
+ 23. heartbeat
      Compact status, cadence, and latest autonomous/push pulse from log.
- 22. sitetrail
+ 24. sitetrail
      Public surface trail: route, sitemap, and nav alignment.
- 23. surfacehealth
+ 25. surfacehealth
      Route/nav/sitemap integrity score and continuity alignment.
- 24. navcheck
+ 26. navcheck
      Audit nav.js routes against route library and sitemap coverage.
- 25. entrycontext
+ 27. entrycontext
      Show investigation context and related entries for one entry.
- 26. neighbors
+ 28. neighbors
      Inspect adjacent entries around one entry and linked context.
- 27. routecheck
+ 29. routecheck
      Route coverage and exposure check against the live sitemap.
- 28. resources
+ 30. resources
      Recent loop resource pressure from recent log lines.
-  29. gitwatch
+ 31. gitwatch
      Summarize commit/push health from recent loop-log lines.
-  30. monitorcheck
+ 32. monitorcheck
      Monitoring commitments with latest checks and pending-approvals status.
 
   The terminal is not a live shell and not a private control channel.
