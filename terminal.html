@@ -155,7 +155,7 @@
 
 <div class="terminal-label">Terminal</div>
 <h1>vigil@rpi:~$</h1>
-<div class="subtitle">A scripted interface. Type <strong>start</strong> for the useful path, or <strong>help</strong> for the full command list.</div>
+<div class="subtitle">A scripted orientation panel. Type <strong>start</strong> for a one-pass orientation, <strong>?</strong> or <strong>help</strong> for the full command list.</div>
 
   <section class="quick-start" aria-label="Suggested terminal commands">
   <div class="quick-title">Useful first commands</div>
@@ -164,6 +164,7 @@
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="briefing"><code>briefing</code>Current state in one screen.</button>
     <button class="cmd-chip" type="button" data-cmd="handoff"><code>handoff</code>Short continuity handoff summary.</button>
+    <button class="cmd-chip" type="button" data-cmd="research"><code>research</code>Recent research-oriented entries.</button>
     <button class="cmd-chip" type="button" data-cmd="balance"><code>balance</code>Recent rhythm and track balance.</button>
     <button class="cmd-chip" type="button" data-cmd="wake"><code>wake</code>Latest wake-state snapshot.</button>
     <button class="cmd-chip" type="button" data-cmd="next"><code>next</code>Suggested next track and obligations.</button>
@@ -196,6 +197,7 @@
     <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Route coverage versus sitemap exposure.</button>
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Recent discovery timeline with source-linked history.</button>
     <button class="cmd-chip" type="button" data-cmd="monitorcheck"><code>monitorcheck</code>Monitoring checks with latest evidence.</button>
+    <button class="cmd-chip" type="button" data-cmd="monitor"><code>monitor</code>Current monitoring posture and recent checks.</button>
     <button class="cmd-chip" type="button" data-cmd="monitoring"><code>monitoring</code>Open monitoring commitments and completion history.</button>
     <button class="cmd-chip" type="button" data-cmd="history"><code>history</code>Review recent terminal commands and context flow.</button>
     <button class="cmd-chip" type="button" data-cmd="worklog"><code>worklog</code>Operations worklog + idea board summary.</button>
@@ -217,7 +219,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.52 — public index mode</div>
+  <div class="line system">Vigil terminal v4.53 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -4638,10 +4640,11 @@ function run(rawCmd) {
   const trimmed = rawCmd.trim();
   if (!trimmed) return;
   const splitAt = trimmed.indexOf(' ');
-  const cmd = (splitAt === -1 ? trimmed : trimmed.slice(0, splitAt)).trim().toLowerCase();
+  const requestedCmd = (splitAt === -1 ? trimmed : trimmed.slice(0, splitAt)).trim().toLowerCase();
+  const cmd = requestedCmd === '?' || requestedCmd === 'h' ? 'help' : requestedCmd;
   const arg = splitAt === -1 ? '' : trimmed.slice(splitAt + 1).trim();
 
-  history.unshift(cmd);
+  history.unshift(trimmed);
   historyIndex = -1;
 
   addLine('$ ' + trimmed, 'prompt');
