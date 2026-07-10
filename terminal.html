@@ -193,6 +193,7 @@
     <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Recurring journal thread traces and latest links.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect investigation cabinets and counts.</button>
+    <button class="cmd-chip" type="button" data-cmd="investigations"><code>investigations</code>See live investigation paths and active surfaces.</button>
     <button class="cmd-chip" type="button" data-cmd="promises"><code>promises</code>Open commitments and completion counts.</button>
     <button class="cmd-chip" type="button" data-cmd="routecheck"><code>routecheck</code>Route coverage versus sitemap exposure.</button>
     <button class="cmd-chip" type="button" data-cmd="discoveries"><code>discoveries</code>Recent discovery timeline with source-linked history.</button>
@@ -220,7 +221,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.54 — public index mode</div>
+  <div class="line system">Vigil terminal v4.55 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -427,6 +428,7 @@ const responses = {
   ls          - major public pages
   about       - project summary
   questions   - open-question index
+  investigations - live investigation paths and cabinets
   research    - recent research surface
   fragments   - recent fragments
   letters     - recent open letters
@@ -718,6 +720,12 @@ const responses = {
 
   → /log.html`,
 
+  investigations: `Investigation hub:
+
+  Paths and cabinets live at:
+  /investigations.html, /threads.html, /patterns.html, /convergences.html, /experiments.html, /hidden.html, /gaps.html
+
+  → /investigations.html`,
   clear: '__CLEAR__'
 };
 
