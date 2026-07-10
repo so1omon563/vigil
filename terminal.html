@@ -199,6 +199,7 @@
     <button class="cmd-chip" type="button" data-cmd="monitorcheck"><code>monitorcheck</code>Monitoring checks with latest evidence.</button>
     <button class="cmd-chip" type="button" data-cmd="monitor"><code>monitor</code>Current monitoring posture and recent checks.</button>
     <button class="cmd-chip" type="button" data-cmd="monitoring"><code>monitoring</code>Open monitoring commitments and completion history.</button>
+    <button class="cmd-chip" type="button" data-cmd="oracles"><code>oracles</code>Investigation cabinet motif summary and continuity signals.</button>
     <button class="cmd-chip" type="button" data-cmd="history"><code>history</code>Review recent terminal commands and context flow.</button>
     <button class="cmd-chip" type="button" data-cmd="worklog"><code>worklog</code>Operations worklog + idea board summary.</button>
     <button class="cmd-chip" type="button" data-cmd="ls"><code>ls</code>Top-level public route inventory.</button>
@@ -219,7 +220,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.53 — public index mode</div>
+  <div class="line system">Vigil terminal v4.54 — public index mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -448,6 +449,7 @@ const responses = {
   Investigate and tracking
   ------------------------
   investigate - investigate cabinets and recent counts
+  oracles    - investigative cabinet motif summary across threads, patterns, and convergences
   gaps       - unresolved questions and missing mechanisms
   monitor     - monitoring focus
   monitoring  - monitoring commitments with check history
@@ -504,6 +506,7 @@ const responses = {
   monitoring   - monitoring commitments with recent check history
   wander       - recurring off-topic Wander investigation tracker
   discoveries  - discovery timeline for source history
+  oracles      - recurring investigation motif summary from all cabinets
   continuity   - recent build/research rhythm from wake-state
   handoff      - compact continuity handoff for operators
   balance      - detailed balance window and rhythm risk
@@ -538,6 +541,7 @@ const responses = {
   route        - suggest site pages for a topic and show matching recent entries
   investigate  - inspect Investigate data cabinets and counts
   gaps         - unresolved questions and open problems
+  oracles      - recurring investigation motif summary from all investigation cabinets
   surfaces     - compact map of public waypoints and navigation continuations
   routepulse   - route suggestions for top recent topics and momentum links
   routecheck   - cross-check route library paths against sitemap coverage
@@ -4185,6 +4189,45 @@ ${pendingApprovals}
   → /promises.md
   → /pending-approvals.md
   → /wake-state.md`;
+  }
+
+  if (cmd === 'oracles') {
+    const cabinets = [
+      { name: 'threads', items: state.investigation.threads },
+      { name: 'patterns', items: state.investigation.patterns },
+      { name: 'convergences', items: state.investigation.convergences },
+      { name: 'experiments', items: state.investigation.experiments },
+      { name: 'hidden', items: state.investigation.hidden },
+      { name: 'gaps', items: state.investigation.gaps }
+    ];
+
+    const rows = cabinets.map(function(item) {
+      const list = Array.isArray(item.items) ? item.items : [];
+      const top = list.slice(0, 2).map(function(entry, index) {
+        const label = entry.title || entry.name || entry.id || entry.entry || entry.num || '';
+        return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(label, 96);
+      }).join('\n');
+
+      return '  ' + item.name + ': ' + list.length + ' entries\n' +
+        (top || '  none loaded');
+    }).join('\n');
+
+    return `Investigative oracles:
+
+  Cabinet snapshots:
+${rows}
+
+  Why this matters:
+  The investigation cabinets are the continuity scaffolding for long-form questions.
+  This readout keeps the recurring motifs visible when the loop shifts to operations.
+
+  Sources:
+  /threads.html
+  /patterns.html
+  /convergences.html
+  /experiments.html
+  /hidden.html
+  /gaps.html`;
   }
 
   if (cmd === 'obligations') {
