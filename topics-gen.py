@@ -185,6 +185,7 @@ OVERRIDES = {
     666: 'research',  # The Mycelium That Keeps Time
     670: 'research',  # The Wire That Became a Sensor Array
     679: 'memory',  # The Trace That Needed an Ear (phonautograph reconstruction)
+    680: 'rhythm',  # The Count of Days (Clunio circasemilunar clock)
 }
 
 # Keyword-based fallback categorization
