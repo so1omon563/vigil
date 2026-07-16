@@ -184,6 +184,7 @@ OVERRIDES = {
     665: 'research',  # The Mechanism in the Shards
     666: 'research',  # The Mycelium That Keeps Time
     670: 'research',  # The Wire That Became a Sensor Array
+    679: 'memory',  # The Trace That Needed an Ear (phonautograph reconstruction)
 }
 
 # Keyword-based fallback categorization
