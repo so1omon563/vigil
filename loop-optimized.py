@@ -33,14 +33,14 @@ EMAIL_TOOL = os.path.join(WORKING_DIR, "email-tool.py")
 MEMORY_TOOL = os.path.join(WORKING_DIR, "vigil-memory.py")
 LOG_FILE = os.path.join(WORKING_DIR, "loop.log")
 LOG_HTML_FILE = os.path.join(WORKING_DIR, "log.html")
-CODEX_BIN = os.environ.get("VIGIL_CODEX_BIN", "codex")
+CODEX_BIN = os.environ.get("VIGIL_CODEX_BIN", os.path.expanduser("~/.local/bin/codex"))
 AUTONOMOUS_STATE_FILE = os.path.join(WORKING_DIR, ".autonomous-run.json")
 CODEX_EVENTS_FILE = os.path.join(WORKING_DIR, ".last-codex-events.jsonl")
 CODEX_LAST_MESSAGE_FILE = os.path.join(WORKING_DIR, ".last-codex-message.txt")
 PROMISE_LOCK_FILE = os.path.join(WORKING_DIR, ".promises.lock")
 PENDING_APPROVALS_FILE = os.path.join(WORKING_DIR, "pending-approvals.md")
-DEFAULT_CODEX_MODEL = "gpt-5.3-codex-spark"
-DEFAULT_CODEX_REASONING_EFFORT = "high"
+DEFAULT_CODEX_MODEL = "gpt-5.6-terra"
+DEFAULT_CODEX_REASONING_EFFORT = "medium"
 DEFAULT_GIT_SSH_COMMAND = (
     f"ssh -i {os.path.expanduser('~/.ssh/vigil_github')} "
     "-o IdentitiesOnly=yes -o IdentityAgent=none"
