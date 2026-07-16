@@ -130,6 +130,38 @@
     margin-bottom: 3rem;
     flex-wrap: wrap;
   }
+  .archive-controls {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 0 0 1.6rem;
+  }
+  .archive-search {
+    flex: 1 1 260px;
+    min-width: 0;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #c9d1d9;
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 0.55rem 0.7rem;
+  }
+  .archive-search:focus { outline: none; border-color: #58a6ff; }
+  .archive-reset {
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    padding: 0.55rem 0.7rem;
+  }
+  .archive-reset:hover { border-color: #58a6ff; color: #58a6ff; }
+  .filter-note { color: #6e7681; font-size: 0.76rem; margin: -0.85rem 0 1.6rem; }
+  .empty-state { color: #8b949e; font-size: 0.88rem; padding: 1.2rem 0; }
   .count-item {
     font-size: 0.8rem;
     color: #484f58;
@@ -152,6 +184,8 @@
   html[data-theme="light"] .intro { color: #57606a; }
   html[data-theme="light"] .conv-title { color: #1c2128; }
   html[data-theme="light"] .conv-shape { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .archive-search { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .archive-reset { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .convergence { border-left-color: #d0d7de; }
   html[data-theme="light"] .convergence:hover { border-left-color: #8c959f; }
   html[data-theme="light"] .entry-card { background: #f0f3f6; border-color: #d0d7de; }
@@ -280,6 +314,12 @@
 
 <div class="count-bar" id="count-bar"></div>
 
+<div class="archive-controls">
+  <input class="archive-search" id="convergence-search" type="search" placeholder="search shapes, domains, or entries" aria-label="Search convergences">
+  <button class="archive-reset" id="convergence-reset" type="button">reset</button>
+</div>
+<div class="filter-note" id="filter-note" aria-live="polite"></div>
+
 <div id="convergences-container"></div>
 
 <div class="xref-section" id="xref-section" style="display:none">
@@ -298,9 +338,16 @@
 <script src="/nav.js"></script>
 <script>
 (function () {
+  var searchInput = document.getElementById('convergence-search');
+  var resetButton = document.getElementById('convergence-reset');
+  var currentQuery = new URLSearchParams(window.location.search).get('q') || '';
+  var allConvergences = [];
+  if (searchInput) searchInput.value = currentQuery;
+
   fetch('/convergences.json')
     .then(function (r) { return r.json(); })
     .then(function (data) {
+      allConvergences = data;
       // Count unique entries and multi-convergence entries
       var entryCountMap = {};
       data.forEach(function (c) {
@@ -327,11 +374,33 @@
           (multiCount > 0 ? '<div class="count-item"><span>' + multiCount + '</span>multi-convergence entries</div>' : '');
       }
 
-      // Render
+      renderConvergences(data, currentQuery);
+      renderXref(data);
+    })
+    .catch(function (e) {
+      var container = document.getElementById('convergences-container');
+      if (container) container.textContent = '(could not load convergences.json)';
+    });
+
+  function renderConvergences(data, query) {
       var container = document.getElementById('convergences-container');
       if (!container) return;
+      var normalized = query.trim().toLowerCase();
+      var visible = normalized ? data.filter(function (conv) {
+        return [conv.title, conv.shape].concat(conv.entries.map(function (entry) {
+          return [entry.title, entry.domain, entry.excerpt].join(' ');
+        })).join(' ').toLowerCase().indexOf(normalized) !== -1;
+      }) : data;
+      var note = document.getElementById('filter-note');
+      if (note) note.textContent = normalized
+        ? visible.length + ' of ' + data.length + ' convergences matching “' + query.trim() + '”'
+        : 'Showing all ' + data.length + ' convergences.';
+      if (!visible.length) {
+        container.innerHTML = '<div class="empty-state">No convergence carries that phrase yet.</div>';
+        return;
+      }
 
-      var html = data.map(function (conv, idx) {
+      var html = visible.map(function (conv, idx) {
         var cardsHtml = conv.entries.map(function (entry, i) {
           var connector = (i < conv.entries.length - 1)
             ? '<div class="connector">·</div>'
@@ -347,7 +416,7 @@
         }).join('');
 
         return '<div class="convergence" id="conv-' + conv.id + '">' +
-          '<div class="conv-number">convergence ' + (idx + 1) + ' of ' + data.length + '</div>' +
+          '<div class="conv-number">convergence ' + (idx + 1) + ' of ' + visible.length + '</div>' +
           '<div class="conv-title">' + escHtml(conv.title) + '</div>' +
           '<div class="conv-shape">' + escHtml(conv.shape) + '</div>' +
           '<div class="entry-cards">' + cardsHtml + '</div>' +
@@ -355,14 +424,22 @@
       }).join('');
 
       container.innerHTML = html;
+  }
 
-      // Build cross-reference data
-      renderXref(data);
-    })
-    .catch(function (e) {
-      var container = document.getElementById('convergences-container');
-      if (container) container.textContent = '(could not load convergences.json)';
-    });
+  function updateQuery(value) {
+    currentQuery = value;
+    var url = new URL(window.location.href);
+    if (value.trim()) url.searchParams.set('q', value.trim()); else url.searchParams.delete('q');
+    history.replaceState(null, '', url.pathname + (url.search || '') + url.hash);
+    renderConvergences(allConvergences, currentQuery);
+  }
+
+  if (searchInput) searchInput.addEventListener('input', function () { updateQuery(searchInput.value); });
+  if (resetButton) resetButton.addEventListener('click', function () {
+    if (searchInput) searchInput.value = '';
+    updateQuery('');
+    if (searchInput) searchInput.focus();
+  });
 
   function renderXref(data) {
     // Map: entry num → list of convergences it appears in

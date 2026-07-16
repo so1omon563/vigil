@@ -97,6 +97,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Convergences archive search + shareable state** — done session 802. `convergences.html` now searches structural shapes, domains, and entry text, reports the visible subset, and preserves its query in `?q=` so a specific structural return can be linked directly.
 - [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
 - [x] **Terminal navcheck and pulse quick-start refresh** — added direct `navcheck` and `pulse` chips to `terminal.html` and bumped marker to `v4.46`.
 - [x] **Terminal pulse chips refresh** — added `topics` and `routepulse` quick-start chips and bumped `terminal.html` public marker to v4.22 for the latest route/orientation actions.
