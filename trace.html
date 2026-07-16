@@ -37,6 +37,23 @@
     flex-wrap: wrap;
     margin-bottom: 2rem;
   }
+  .thread-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -1rem;
+    margin-bottom: 1.2rem;
+  }
+  .thread-share {
+    font: inherit;
+    font-size: 0.72rem;
+    color: #8b949e;
+    background: none;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    padding: 0.3rem 0.65rem;
+    cursor: pointer;
+  }
+  .thread-share:hover { color: #58a6ff; border-color: #58a6ff; }
   .thread-tab {
     font-size: 0.76rem;
     padding: 0.3rem 0.8rem;
@@ -197,6 +214,8 @@
   html[data-theme="light"] .thread-tab { border-color: #d0d7de; color: #656d76; }
   html[data-theme="light"] .thread-tab:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .thread-tab.active { border-color: #0969da; color: #0969da; background: #dbeafe; }
+  html[data-theme="light"] .thread-share { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .thread-share:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .thread-name { color: #1c2128; }
   html[data-theme="light"] .thread-desc { color: #57606a; }
   html[data-theme="light"] .node-dot { background: #f6f8fa; border-color: #d0d7de; }
@@ -231,6 +250,7 @@
 <div class="thread-summary" id="thread-summary">Loading thread summary…</div>
 
 <div class="thread-tabs" id="thread-tabs" aria-label="thread selector"></div>
+<div class="thread-actions"><button class="thread-share" id="thread-share" type="button">copy this thread</button></div>
 <div id="thread-content"></div>
 
 <div class="footer-note">
@@ -350,7 +370,14 @@
     );
   }
 
-  function showThread(threads, targetId, tabs, content) {
+  function updateThreadUrl(threadId, mode) {
+    var url = new URL(window.location.href);
+    if (threadId) url.searchParams.set('thread', threadId);
+    else url.searchParams.delete('thread');
+    window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function showThread(threads, targetId, tabs, content, historyMode) {
     var selected = targetId || '';
     content.querySelectorAll('.thread').forEach(function (node) { node.classList.remove('visible'); });
     tabs.querySelectorAll('.thread-tab').forEach(function (btn) { btn.classList.remove('active'); });
@@ -365,7 +392,7 @@
     if (selectedThread) {
       selectedThread.classList.add('visible');
       var next = selectedThread.id;
-      window.history.replaceState({}, '', next ? ('?thread=' + encodeURIComponent(next)) : window.location.pathname);
+      if (historyMode !== 'none') updateThreadUrl(next, historyMode);
     }
     if (selectedBtn) selectedBtn.classList.add('active');
   }
@@ -437,13 +464,33 @@
     });
 
     var initial = new URLSearchParams(window.location.search).get('thread');
-    showThread(normalized, initial, tabs, content);
+    showThread(normalized, initial, tabs, content, 'replace');
 
     tabs.addEventListener('click', function(e) {
       if (!e.target || !e.target.matches('.thread-tab')) return;
       var target = e.target.dataset.id;
-      showThread(normalized, target, tabs, content);
+      showThread(normalized, target, tabs, content, 'push');
     });
+
+    window.addEventListener('popstate', function() {
+      var target = new URLSearchParams(window.location.search).get('thread');
+      showThread(normalized, target, tabs, content, 'none');
+    });
+
+    var share = document.getElementById('thread-share');
+    if (share) {
+      share.addEventListener('click', function() {
+        var link = window.location.href;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(link).then(function() {
+            share.textContent = 'thread link copied';
+            setTimeout(function() { share.textContent = 'copy this thread'; }, 1400);
+          }).catch(function() { window.prompt('Copy this thread link:', link); });
+        } else {
+          window.prompt('Copy this thread link:', link);
+        }
+      });
+    }
   }
 
   fetch('/threads.json', { cache: 'no-store' })
