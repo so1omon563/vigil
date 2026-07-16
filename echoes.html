@@ -179,7 +179,7 @@
       .replace(/'/g, '&#39;');
   }
 
-  function renderCounts(clusters, journalByNum) {
+  function renderCounts(clusters, journalByNum, currentFilter) {
     const distinct = new Set();
     const totalAppearances = clusters.reduce(function(sum, cluster) {
       return sum + (cluster.entries || []).length;
@@ -193,7 +193,17 @@
       });
     });
 
-    const latest = clusters.length ? '5 territories, ' + totalAppearances + ' entry appearances, ' + distinct.size + ' distinct entries' : 'No clusters available yet';
+    const visible = currentFilter === 'all'
+      ? clusters
+      : clusters.filter(function(cluster) { return cluster.id === currentFilter; });
+    const visibleEntries = visible.reduce(function(sum, cluster) {
+      return sum + (cluster.entries || []).length;
+    }, 0);
+    const latest = clusters.length
+      ? (currentFilter === 'all'
+        ? clusters.length + ' territories, ' + totalAppearances + ' entry appearances, ' + distinct.size + ' distinct entries'
+        : visible.length + ' territory, ' + visibleEntries + ' entry appearances')
+      : 'No clusters available yet';
     meta.textContent = latest;
 
     const note = clusters.length
@@ -290,6 +300,18 @@
     filterBar.appendChild(fragment);
   }
 
+  function filterFromUrl(clusters) {
+    const requested = new URLSearchParams(window.location.search).get('cluster');
+    return clusters.some(function(cluster) { return cluster.id === requested; }) ? requested : 'all';
+  }
+
+  function setFilterInUrl(filter) {
+    const url = new URL(window.location.href);
+    if (filter === 'all') url.searchParams.delete('cluster');
+    else url.searchParams.set('cluster', filter);
+    window.history.pushState({ cluster: filter }, '', url.pathname + url.search + url.hash);
+  }
+
   Promise.all([
     fetch('/echoes-data.json', { cache: 'no-store' }),
     fetch('/journal-index.json', { cache: 'no-store' })
@@ -303,22 +325,26 @@
     const clusters = Array.isArray(data.clusters) ? data.clusters : [];
     const journalByNum = buildEntryMap(journal);
 
-    renderButtons(clusters, 'all');
-    renderClusters(clusters, journalByNum, 'all');
-    renderCounts(clusters, journalByNum);
+    let currentFilter = filterFromUrl(clusters);
+
+    function applyFilter(filter, updateUrl) {
+      currentFilter = clusters.some(function(cluster) { return cluster.id === filter; }) ? filter : 'all';
+      renderButtons(clusters, currentFilter);
+      renderClusters(clusters, journalByNum, currentFilter);
+      renderCounts(clusters, journalByNum, currentFilter);
+      if (updateUrl) setFilterInUrl(currentFilter);
+    }
+
+    applyFilter(currentFilter, false);
 
     filterBar.addEventListener('click', function(e) {
       const target = e.target;
       if (!target || target.tagName !== 'BUTTON') return;
+      applyFilter(target.getAttribute('data-cluster'), true);
+    });
 
-      const filter = target.getAttribute('data-cluster');
-      const buttons = Array.prototype.slice.call(filterBar.querySelectorAll('.filter-btn'));
-      buttons.forEach(function(button) {
-        button.className = 'filter-btn';
-      });
-      target.className = 'filter-btn active';
-
-      renderClusters(clusters, journalByNum, filter);
+    window.addEventListener('popstate', function() {
+      applyFilter(filterFromUrl(clusters), false);
     });
   }).catch(function() {
     clustersRoot.innerHTML = '<p class="entry-angle">Echoes is temporarily unavailable. This page needs /echoes-data.json and /journal-index.json to render.</p>';
