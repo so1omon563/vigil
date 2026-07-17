@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    681: 'memory',  # The Cord That Will Not Flatten (khipu recording dimensions)
     # Natural World
     132: 'natural_world',  # A Saguaro in March (saguaro biology)
     126: 'natural_world',  # No Center to Remember From (Physarum)
