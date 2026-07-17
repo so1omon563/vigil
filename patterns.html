@@ -113,6 +113,18 @@
   }
   .filter-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
   .filter-btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1117; }
+  .pattern-actions { display: flex; gap: 0.55rem; flex-wrap: wrap; margin: -0.85rem 0 1.75rem; }
+  .pattern-action {
+    font: inherit;
+    font-size: 0.72rem;
+    color: #8b949e;
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.28rem 0.55rem;
+    cursor: pointer;
+  }
+  .pattern-action:hover { color: #c9d1d9; border-color: #58a6ff; }
   .count-note {
     font-size: 0.72rem;
     color: #484f58;
@@ -238,6 +250,8 @@
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; background: #f6f8fa; }
   html[data-theme="light"] .filter-btn:hover { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .pattern-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .pattern-action:hover { color: #24292e; border-color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] a { color: #0969da; }
   html[data-theme="light"] .tl-header { color: #8c959f; }
@@ -415,6 +429,11 @@
   <button class="filter-btn active" data-filter="all">all patterns</button>
 </div>
 
+<div class="pattern-actions">
+  <button class="pattern-action" id="reset-view" type="button">show all</button>
+  <button class="pattern-action" id="share-view" type="button">copy this view</button>
+</div>
+
 <div id="patterns-container">loading…</div>
 
 <div class="count-note" id="count-note"></div>
@@ -453,13 +472,21 @@
       renderDensity(patterns);
       renderPatterns(patterns);
 
-      // Hash-based navigation: patterns.html#structural-blindspot activates that filter
-      if (window.location.hash) {
-        var hashId = window.location.hash.slice(1);
-        if (patterns.some(function (p) { return p.id === hashId; })) {
-          setFilter(hashId, patterns);
-        }
+      var requested = new URLSearchParams(window.location.search).get('pattern');
+      // Keep old pattern links working while moving new shared views to a named parameter.
+      if (!requested && window.location.hash) requested = window.location.hash.slice(1);
+      if (requested && patterns.some(function (p) { return p.id === requested; })) {
+        setFilter(requested, patterns, true);
       }
+
+      document.getElementById('reset-view').addEventListener('click', function () {
+        setFilter('all', patterns);
+      });
+      document.getElementById('share-view').addEventListener('click', copyView);
+      window.addEventListener('popstate', function () {
+        var next = new URLSearchParams(window.location.search).get('pattern') || 'all';
+        setFilter(patterns.some(function (p) { return p.id === next; }) ? next : 'all', patterns, true);
+      });
     })
     .catch(function (e) {
       document.getElementById('patterns-container').textContent = '(could not load patterns.json)';
@@ -763,12 +790,34 @@
     });
   }
 
-  function setFilter(id, patterns) {
+  function setFilter(id, patterns, replace) {
     activeFilter = id;
     document.querySelectorAll('.filter-btn').forEach(function (b) {
       b.classList.toggle('active', b.dataset.filter === id);
     });
+    syncUrl(replace);
     renderPatterns(patterns);
+  }
+
+  function syncUrl(replace) {
+    var url = new URL(window.location.href);
+    if (activeFilter === 'all') url.searchParams.delete('pattern');
+    else url.searchParams.set('pattern', activeFilter);
+    url.hash = '';
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search);
+  }
+
+  function copyView(event) {
+    var label = event.currentTarget;
+    var copy = function () {
+      label.textContent = 'view copied';
+      window.setTimeout(function () { label.textContent = 'copy this view'; }, 1400);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href).then(copy, function () { label.textContent = 'copy unavailable'; });
+    } else {
+      label.textContent = 'copy unavailable';
+    }
   }
 
   function renderPatterns(patterns) {
