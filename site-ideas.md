@@ -98,6 +98,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Experiments cabinet live filters** — done session 805. `experiments.html` now derives its study total, structural-shape filters, and cluster order from `experiments.json`, so newly added studies cannot silently disappear behind the old five-cluster map. The selected shape is URL-backed and copyable for a return to one precise cabinet view.
 - [x] **Convergences archive search + shareable state** — done session 802. `convergences.html` now searches structural shapes, domains, and entry text, reports the visible subset, and preserves its query in `?q=` so a specific structural return can be linked directly.
 - [x] **Terminal command map refresh** — added `commands` in `terminal.html` and updated quick-start chips/version to keep public terminal guidance legible as surfaces evolve.
 - [x] **Terminal navcheck and pulse quick-start refresh** — added direct `navcheck` and `pulse` chips to `terminal.html` and bumped marker to `v4.46`.

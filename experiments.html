@@ -30,6 +30,23 @@
     flex-wrap: wrap;
     margin-bottom: 2.5rem;
   }
+  .catalog-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -1.4rem;
+    margin-bottom: 1.5rem;
+  }
+  .catalog-share {
+    font: inherit;
+    font-size: 0.72rem;
+    color: #8b949e;
+    background: none;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.3rem 0.65rem;
+    cursor: pointer;
+  }
+  .catalog-share:hover { color: #58a6ff; border-color: #58a6ff; }
   .filter-btn {
     font-family: inherit;
     font-size: 0.72rem;
@@ -180,6 +197,8 @@
   html[data-theme="light"] .exp-implication .exp-text { color: #57606a; }
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; background: #fff; }
+  html[data-theme="light"] .catalog-share { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .catalog-share:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .entry-link { background: #f0f3f6; border-color: #d0d7de; color: #0969da; }
   html[data-theme="light"] .cluster-label { border-color: #d0d7de; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
@@ -192,20 +211,14 @@
 
 <div class="page-label">/experiments</div>
 <h1>Experiments</h1>
-<div class="meta">24 studies · <span id="exp-meta-date">Fri 17 Apr 2026</span></div>
+<div class="meta" id="exp-meta">Loading the study cabinet…</div>
 
 <p class="intro">Specific studies referenced across the journal — cataloged not by topic but by structural shape. What each experiment reveals about the architecture of systems: what they see, what they can't, what they carry forward, and where experience ends up.</p>
 
-<div class="filter-bar">
-  <button class="filter-btn active" data-cluster="all">all (24)</button>
-  <button class="filter-btn" data-cluster="invisible-premise">invisible premise (6)</button>
-  <button class="filter-btn" data-cluster="outlasting-map">maps that outlast (3)</button>
-  <button class="filter-btn" data-cluster="migration">experience migrates (2)</button>
-  <button class="filter-btn" data-cluster="survival">what survives (3)</button>
-  <button class="filter-btn" data-cluster="separate-channels">separate channels (10)</button>
-</div>
+<div class="filter-bar" id="filter-bar"></div>
+<div class="catalog-actions"><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
 
-<div class="showing-count" id="showing-count">showing 24 of 24</div>
+<div class="showing-count" id="showing-count">loading studies…</div>
 
 <div id="experiments-container"><!-- populated by JS --></div>
 
@@ -216,25 +229,80 @@
 <script src="/nav.js"></script>
 <script>
 (function () {
+  var experiments = [];
+
   fetch('/experiments.json')
     .then(function (r) { return r.json(); })
     .then(function (data) {
-      render(data, 'all');
+      experiments = data;
+      buildFilters(data);
+      selectCluster(clusterFromUrl(), false);
 
-      // Filter buttons
-      var btns = document.querySelectorAll('.filter-btn');
-      btns.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          btns.forEach(function (b) { b.classList.remove('active'); });
-          btn.classList.add('active');
-          var cluster = btn.getAttribute('data-cluster');
-          render(data, cluster);
-        });
+      window.addEventListener('popstate', function () {
+        selectCluster(clusterFromUrl(), false);
+      });
+
+      document.getElementById('catalog-share').addEventListener('click', function () {
+        var button = this;
+        var original = button.textContent;
+        var done = function () {
+          button.textContent = 'link copied';
+          window.setTimeout(function () { button.textContent = original; }, 1600);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(window.location.href).then(done, function () { window.prompt('Copy this link:', window.location.href); });
+        } else {
+          window.prompt('Copy this link:', window.location.href);
+        }
       });
     })
     .catch(function () {
       document.getElementById('experiments-container').textContent = '(could not load experiments)';
     });
+
+  function clusterFromUrl() {
+    var requested = new URLSearchParams(window.location.search).get('cluster');
+    return requested && experiments.some(function (exp) { return exp.cluster === requested; }) ? requested : 'all';
+  }
+
+  function buildFilters(data) {
+    var filterBar = document.getElementById('filter-bar');
+    var counts = {};
+    var clusters = [];
+    data.forEach(function (exp) {
+      counts[exp.cluster] = (counts[exp.cluster] || 0) + 1;
+      if (!clusters.some(function (cluster) { return cluster.key === exp.cluster; })) {
+        clusters.push({ key: exp.cluster, label: exp.cluster_label });
+      }
+    });
+
+    document.getElementById('exp-meta').textContent = data.length + ' studies · ' + clusters.length + ' ways an encounter can be structured';
+    addFilter('all', 'all', data.length, filterBar);
+    clusters.forEach(function (cluster) { addFilter(cluster.key, cluster.label, counts[cluster.key], filterBar); });
+  }
+
+  function addFilter(key, label, count, parent) {
+    var button = document.createElement('button');
+    button.className = 'filter-btn';
+    button.type = 'button';
+    button.setAttribute('data-cluster', key);
+    button.textContent = label + ' (' + count + ')';
+    button.addEventListener('click', function () { selectCluster(key, true); });
+    parent.appendChild(button);
+  }
+
+  function selectCluster(cluster, writeHistory) {
+    if (writeHistory) {
+      var url = new URL(window.location.href);
+      if (cluster === 'all') url.searchParams.delete('cluster');
+      else url.searchParams.set('cluster', cluster);
+      window.history.pushState({}, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
+    }
+    document.querySelectorAll('.filter-btn').forEach(function (button) {
+      button.classList.toggle('active', button.getAttribute('data-cluster') === cluster);
+    });
+    render(experiments, cluster);
+  }
 
   function render(data, clusterFilter) {
     var container = document.getElementById('experiments-container');
@@ -245,9 +313,12 @@
 
     // Group by cluster
     var clusters = {};
-    var clusterOrder = ['invisible-premise', 'outlasting-map', 'migration', 'survival', 'separate-channels'];
+    var clusterOrder = [];
     filtered.forEach(function (exp) {
-      if (!clusters[exp.cluster]) clusters[exp.cluster] = { label: exp.cluster_label, items: [] };
+      if (!clusters[exp.cluster]) {
+        clusters[exp.cluster] = { label: exp.cluster_label, items: [] };
+        clusterOrder.push(exp.cluster);
+      }
       clusters[exp.cluster].items.push(exp);
     });
 

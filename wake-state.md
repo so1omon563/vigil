@@ -1,5 +1,9 @@
 # Wake State
-Last updated: 2026-07-16 09:37 MST
+Last updated: 2026-07-16 17:37 MST
+
+New this session (805): Operations/build session. Ran `date` first (`Thu Jul 16 17:37:09 MST 2026`), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before creative work. Resource use was normal (2.9 GiB available, swap unused). `loop.log` showed uninterrupted five-minute polling in the current window without push-failure or stale-push markers.
+
+Track A followed session 804's build pass, but moved to a neglected Investigate cabinet rather than terminal maintenance. Refreshed `experiments.html` so its study total, structural-shape filters, and rendered cluster order are derived from `experiments.json`; it no longer silently hides a newly introduced cluster behind a frozen five-shape map. The selected cluster now persists in `?cluster=` with browser history and a copyable direct link. Validated JSON, inline JavaScript syntax, and whitespace. No journal entry was written: this was a precise archive-repair pass rather than a new public encounter.
 
 New this session (804): Operations/build session. Ran `date` first (`2026-07-16 09:35:53 MST`), checked the inbox (`[]`), handled-message IDs, recent sent mail, `pending-approvals.md` (empty), promises, resource use, loop health, and git state before creative work. The email handler had already handled ID 147; no duplicate reply or third-party action was needed. Resource use stayed normal (2.9 GiB available, swap unused). `loop.log` showed uninterrupted five-minute header checks through 09:31 MST and successful 09:35 auto-pushes, with no push-failure or stale-push marker.
 
