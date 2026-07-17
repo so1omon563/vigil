@@ -31,6 +31,36 @@
     margin-bottom: 2.5rem;
     align-items: center;
   }
+  .search-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .gap-search {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 0.82rem;
+    color: #c9d1d9;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.55rem 0.7rem;
+  }
+  .gap-search:focus { outline: none; border-color: #58a6ff; }
+  .gap-action {
+    font: inherit;
+    font-size: 0.72rem;
+    color: #8b949e;
+    background: none;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.42rem 0.65rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .gap-action:hover { color: #58a6ff; border-color: #58a6ff; }
   .filter-btn {
     font-family: inherit;
     font-size: 0.72rem;
@@ -127,6 +157,16 @@
     color: #484f58;
     margin-left: auto;
   }
+  .empty-state {
+    display: none;
+    padding: 1.25rem 1.5rem;
+    background: #161b22;
+    border: 1px dashed #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    font-size: 0.85rem;
+  }
+  .empty-state.visible { display: block; }
 
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
@@ -141,6 +181,10 @@
   html[data-theme="light"] .type-legend { color: #57606a; }
   html[data-theme="light"] .intro { color: #57606a; }
   html[data-theme="light"] .count-note { color: #57606a; }
+  html[data-theme="light"] .gap-search { color: #24292e; background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .gap-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .gap-action:hover { color: #0366d6; border-color: #0366d6; }
+  html[data-theme="light"] .empty-state { background: #fff; border-color: #d0d7de; color: #57606a; }
 </style>
 <script src="nav.js" defer></script>
 </head>
@@ -166,6 +210,12 @@
   <div class="legend-item"><div class="legend-dot dot-methodological_limit"></div> Methodological limit</div>
 </div>
 
+<div class="search-row">
+  <input class="gap-search" id="gap-search" type="search" placeholder="search questions, mechanisms, entries…" autocomplete="off" aria-label="Search open questions">
+  <button class="gap-action" id="reset-view" type="button">reset</button>
+  <button class="gap-action" id="share-view" type="button">copy this view</button>
+</div>
+
 <div class="filter-bar">
   <button class="filter-btn active" data-filter="all">All</button>
   <button class="filter-btn" data-filter="missing_mechanism">Missing mechanism</button>
@@ -176,6 +226,7 @@
 </div>
 
 <div id="gaps-container"></div>
+<div class="empty-state" id="empty-state">No open questions match this view. Try a different term or reset the filters.</div>
 
 <script>
 const TYPE_LABELS = {
@@ -187,37 +238,66 @@ const TYPE_LABELS = {
 
 let allGaps = [];
 let currentFilter = 'all';
+let currentQuery = '';
 
-function render(gaps) {
+function escapeHtml(value) {
+  const node = document.createElement('span');
+  node.textContent = value || '';
+  return node.innerHTML;
+}
+
+function filteredGaps() {
+  const needle = currentQuery.trim().toLowerCase();
+  return allGaps.filter(g => {
+    const matchesType = currentFilter === 'all' || g.type === currentFilter;
+    const haystack = [g.title, g.question, g.entry_title, g.entry, TYPE_LABELS[g.type]].join(' ').toLowerCase();
+    return matchesType && (!needle || haystack.includes(needle));
+  });
+}
+
+function syncUrl(replace) {
+  const url = new URL(window.location.href);
+  if (currentFilter === 'all') url.searchParams.delete('type');
+  else url.searchParams.set('type', currentFilter);
+  if (currentQuery.trim()) url.searchParams.set('q', currentQuery.trim());
+  else url.searchParams.delete('q');
+  window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+}
+
+function setActiveFilter() {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+  });
+}
+
+function render() {
   const container = document.getElementById('gaps-container');
   container.innerHTML = '';
-  const ordered = [...gaps].sort((a, b) => Number(b.entry) - Number(a.entry));
+  const visibleGaps = filteredGaps();
+  const ordered = [...visibleGaps].sort((a, b) => Number(b.entry) - Number(a.entry));
   ordered.forEach(g => {
     const card = document.createElement('div');
     card.className = 'gap-card';
     card.dataset.type = g.type;
-    if (currentFilter !== 'all' && g.type !== currentFilter) {
-      card.classList.add('hidden');
-    }
     card.innerHTML = `
       <div class="gap-header">
-        <div class="gap-title">${g.title}</div>
-        <a class="gap-entry-link" href="journal/entry-${g.entry}.html">entry-${g.entry}: ${g.entry_title} →</a>
+        <div class="gap-title">${escapeHtml(g.title)}</div>
+        <a class="gap-entry-link" href="journal/entry-${Number(g.entry)}.html">entry-${Number(g.entry)}: ${escapeHtml(g.entry_title)} →</a>
       </div>
       <div class="gap-type-badge badge-${g.type}">${TYPE_LABELS[g.type]}</div>
-      <div class="gap-question">${g.question}</div>
+      <div class="gap-question">${escapeHtml(g.question)}</div>
     `;
     container.appendChild(card);
   });
+  document.getElementById('empty-state').classList.toggle('visible', visibleGaps.length === 0);
   updateCount();
 }
 
 function updateCount() {
   const total = allGaps.length;
-  const visible = currentFilter === 'all' ? total :
-    allGaps.filter(g => g.type === currentFilter).length;
+  const visible = filteredGaps().length;
   document.getElementById('count-note').textContent =
-    currentFilter === 'all' ? `${total} open questions` : `${visible} of ${total}`;
+    (currentFilter === 'all' && !currentQuery.trim()) ? `${total} open questions` : `${visible} of ${total} shown`;
   document.getElementById('gap-meta').textContent =
     `${total} unresolved questions across ${new Set(allGaps.map(g => g.entry)).size} journal entries`;
 }
@@ -225,20 +305,58 @@ function updateCount() {
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     currentFilter = btn.dataset.filter;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.gap-card').forEach(card => {
-      card.classList.toggle('hidden', currentFilter !== 'all' && card.dataset.type !== currentFilter);
-    });
-    updateCount();
+    setActiveFilter();
+    syncUrl(false);
+    render();
   });
+});
+
+document.getElementById('gap-search').addEventListener('input', event => {
+  currentQuery = event.target.value;
+  syncUrl(true);
+  render();
+});
+
+document.getElementById('reset-view').addEventListener('click', () => {
+  currentFilter = 'all';
+  currentQuery = '';
+  document.getElementById('gap-search').value = '';
+  setActiveFilter();
+  syncUrl(false);
+  render();
+});
+
+document.getElementById('share-view').addEventListener('click', async event => {
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    event.currentTarget.textContent = 'copied';
+  } catch (_) {
+    event.currentTarget.textContent = 'copy unavailable';
+  }
+  window.setTimeout(() => { event.currentTarget.textContent = 'copy this view'; }, 1400);
+});
+
+window.addEventListener('popstate', () => {
+  const params = new URLSearchParams(window.location.search);
+  const requested = params.get('type');
+  currentFilter = TYPE_LABELS[requested] ? requested : 'all';
+  currentQuery = params.get('q') || '';
+  document.getElementById('gap-search').value = currentQuery;
+  setActiveFilter();
+  render();
 });
 
 fetch('gaps.json')
   .then(r => r.json())
   .then(data => {
     allGaps = data;
-    render(data);
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('type');
+    currentFilter = TYPE_LABELS[requested] ? requested : 'all';
+    currentQuery = params.get('q') || '';
+    document.getElementById('gap-search').value = currentQuery;
+    setActiveFilter();
+    render();
   })
   .catch(() => {
     document.getElementById('gaps-container').textContent = 'Could not load gaps.json.';

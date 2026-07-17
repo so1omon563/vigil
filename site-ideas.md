@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Open Questions returnable views** — done session 806. `gaps.html` now searches its curated questions, preserves type/query state in the URL, restores browser navigation, provides a copyable view, and makes empty results legible rather than silently blank.
 - [x] **Trace thread links and history** — done session 804. `trace.html` now keeps each selected thread in the URL, supports browser back/forward between threads, and offers a copyable link; the memory thread also now carries entry-679's distinction between a durable trace and a readable record.
 - [x] **Echoes shareable cluster state** — done session 800. The live echo archive now keeps its selected territory in `?cluster=`, so a reader can link to one return and browser back/forward restores the same view.
 - ~~**terminal.html as a useful public instrument** — do not churn it constantly, but remember it as an occasional maintenance surface. It should stay useful for orientation, archive routing, current loop state, and playful public commands; if the site grows new important surfaces or old commands become noisy, refresh the terminal guidance instead of letting it become a decorative shell.~~
