@@ -31,12 +31,13 @@
   }
   .controls {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
     gap: 0.6rem;
     margin-bottom: 1.25rem;
   }
   .search-box,
-  .sort-select {
+  .sort-select,
+  .utility-button {
     font-family: inherit;
     font-size: 0.78rem;
     background: #161b22;
@@ -46,10 +47,13 @@
     padding: 0.45rem 0.6rem;
   }
   .search-box:focus,
-  .sort-select:focus {
+  .sort-select:focus,
+  .utility-button:focus {
     outline: none;
     border-color: #58a6ff;
   }
+  .utility-button { cursor: pointer; }
+  .utility-button:hover { border-color: #58a6ff; color: #58a6ff; }
   .filter-meta {
     font-size: 0.72rem;
     color: #484f58;
@@ -172,7 +176,8 @@
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
   html[data-theme="light"] .entry-note { color: #57606a; }
   html[data-theme="light"] .search-box,
-  html[data-theme="light"] .sort-select {
+  html[data-theme="light"] .sort-select,
+  html[data-theme="light"] .utility-button {
     background: #ffffff;
     color: #24292e;
     border-color: #d0d7de;
@@ -211,6 +216,8 @@
     <option value="count">entry count</option>
     <option value="name">name</option>
   </select>
+  <button class="utility-button" id="copy-view" type="button">copy view</button>
+  <button class="utility-button" id="reset-view" type="button">reset</button>
 </div>
 <div class="filter-meta" id="filter-meta">Loading thread index…</div>
 
@@ -233,6 +240,8 @@
     query: '',
     sort: 'recent'
   };
+
+  restoreView();
 
   Promise.all([
     fetch('/threads.json').then(function (r) { return r.json(); }),
@@ -257,12 +266,50 @@
       metaEl.textContent = state.threads.length + ' threads · ' + Object.keys(seen).length + ' entries referenced';
     }
 
-    document.getElementById('thread-search').addEventListener('input', function (ev) {
+    var search = document.getElementById('thread-search');
+    var sort = document.getElementById('thread-sort');
+    search.value = state.query;
+    sort.value = state.sort;
+
+    search.addEventListener('input', function (ev) {
       state.query = ev.target.value.trim().toLowerCase();
+      writeView(true);
       render();
     });
-    document.getElementById('thread-sort').addEventListener('change', function (ev) {
+    sort.addEventListener('change', function (ev) {
       state.sort = ev.target.value;
+      writeView();
+      render();
+    });
+    document.getElementById('reset-view').addEventListener('click', function () {
+      state.query = '';
+      state.sort = 'recent';
+      search.value = '';
+      sort.value = 'recent';
+      writeView();
+      render();
+      search.focus();
+    });
+    document.getElementById('copy-view').addEventListener('click', function () {
+      var button = this;
+      var url = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () {
+          button.textContent = 'copied';
+          window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+        }, function () {
+          button.textContent = 'copy unavailable';
+          window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+        });
+      } else {
+        button.textContent = 'copy unavailable';
+        window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+      }
+    });
+    window.addEventListener('popstate', function () {
+      restoreView();
+      search.value = state.query;
+      sort.value = state.sort;
       render();
     });
 
@@ -319,6 +366,22 @@
     container.innerHTML = visible.map(function (item) {
       return renderThread(item.thread, item.entries, q);
     }).join('') + renderCrossReferences(visible, q);
+  }
+
+  function restoreView() {
+    var params = new URLSearchParams(window.location.search);
+    state.query = (params.get('q') || '').trim().toLowerCase();
+    var requestedSort = params.get('sort') || 'recent';
+    state.sort = ['recent', 'count', 'name'].indexOf(requestedSort) !== -1 ? requestedSort : 'recent';
+  }
+
+  function writeView(replace) {
+    var url = new URL(window.location.href);
+    if (state.query) url.searchParams.set('q', state.query);
+    else url.searchParams.delete('q');
+    if (state.sort !== 'recent') url.searchParams.set('sort', state.sort);
+    else url.searchParams.delete('sort');
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + (url.search || '') + url.hash);
   }
 
   function renderThread(thread, entries, q) {
