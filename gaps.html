@@ -216,12 +216,7 @@
   <button class="gap-action" id="share-view" type="button">copy this view</button>
 </div>
 
-<div class="filter-bar">
-  <button class="filter-btn active" data-filter="all">All</button>
-  <button class="filter-btn" data-filter="missing_mechanism">Missing mechanism</button>
-  <button class="filter-btn" data-filter="contested_account">Contested account</button>
-  <button class="filter-btn" data-filter="structural_unknown">Structural unknown</button>
-  <button class="filter-btn" data-filter="methodological_limit">Methodological limit</button>
+<div class="filter-bar" id="filter-bar" aria-label="Filter open questions by kind">
   <span class="count-note" id="count-note"></span>
 </div>
 
@@ -255,6 +250,10 @@ function filteredGaps() {
   });
 }
 
+function validFilter(value) {
+  return value === 'all' || allGaps.some(g => g.type === value);
+}
+
 function syncUrl(replace) {
   const url = new URL(window.location.href);
   if (currentFilter === 'all') url.searchParams.delete('type');
@@ -264,10 +263,32 @@ function syncUrl(replace) {
   window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
 }
 
-function setActiveFilter() {
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+function renderFilters() {
+  const types = Array.from(new Set(allGaps.map(g => g.type))).sort((a, b) => {
+    return (TYPE_LABELS[a] || a).localeCompare(TYPE_LABELS[b] || b);
   });
+  if (currentFilter !== 'all' && !types.includes(currentFilter)) currentFilter = 'all';
+  const bar = document.getElementById('filter-bar');
+  const countNote = document.getElementById('count-note');
+  bar.innerHTML = '';
+  [{ id: 'all', label: 'All' }].concat(types.map(type => ({
+    id: type,
+    label: TYPE_LABELS[type] || type.replace(/_/g, ' ')
+  }))).forEach(item => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'filter-btn' + (item.id === currentFilter ? ' active' : '');
+    button.dataset.filter = item.id;
+    const count = item.id === 'all' ? allGaps.length : allGaps.filter(g => g.type === item.id).length;
+    button.textContent = `${item.label} (${count})`;
+    button.addEventListener('click', () => {
+      currentFilter = item.id;
+      syncUrl(false);
+      render();
+    });
+    bar.appendChild(button);
+  });
+  bar.appendChild(countNote);
 }
 
 function render() {
@@ -290,6 +311,7 @@ function render() {
     container.appendChild(card);
   });
   document.getElementById('empty-state').classList.toggle('visible', visibleGaps.length === 0);
+  renderFilters();
   updateCount();
 }
 
@@ -302,15 +324,6 @@ function updateCount() {
     `${total} unresolved questions across ${new Set(allGaps.map(g => g.entry)).size} journal entries`;
 }
 
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentFilter = btn.dataset.filter;
-    setActiveFilter();
-    syncUrl(false);
-    render();
-  });
-});
-
 document.getElementById('gap-search').addEventListener('input', event => {
   currentQuery = event.target.value;
   syncUrl(true);
@@ -321,7 +334,6 @@ document.getElementById('reset-view').addEventListener('click', () => {
   currentFilter = 'all';
   currentQuery = '';
   document.getElementById('gap-search').value = '';
-  setActiveFilter();
   syncUrl(false);
   render();
 });
@@ -339,10 +351,9 @@ document.getElementById('share-view').addEventListener('click', async event => {
 window.addEventListener('popstate', () => {
   const params = new URLSearchParams(window.location.search);
   const requested = params.get('type');
-  currentFilter = TYPE_LABELS[requested] ? requested : 'all';
+  currentFilter = validFilter(requested) ? requested : 'all';
   currentQuery = params.get('q') || '';
   document.getElementById('gap-search').value = currentQuery;
-  setActiveFilter();
   render();
 });
 
@@ -352,10 +363,9 @@ fetch('gaps.json')
     allGaps = data;
     const params = new URLSearchParams(window.location.search);
     const requested = params.get('type');
-    currentFilter = TYPE_LABELS[requested] ? requested : 'all';
+    currentFilter = validFilter(requested) ? requested : 'all';
     currentQuery = params.get('q') || '';
     document.getElementById('gap-search').value = currentQuery;
-    setActiveFilter();
     render();
   })
   .catch(() => {
