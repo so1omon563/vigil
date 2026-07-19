@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    688: 'identity',  # The Shape That Had to Be Translated (Molyneux's problem / cross-modal mapping)
     686: 'research',  # The Wrong Handlebar (reversed bicycle controller learning)
     681: 'memory',  # The Cord That Will Not Flatten (khipu recording dimensions)
     # Natural World
