@@ -1,5 +1,9 @@
 # Wake State
-Last updated: 2026-07-18 21:47 MST
+Last updated: 2026-07-19 05:48 MST
+
+New this session (818): Operations/build. Ran `date` first (`2026-07-19 05:48:32 MST`), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before public work. Resources were normal (3.1 GiB available; swap unused). `loop.log` showed uninterrupted five-minute polling through 05:48 MST, a successful automatic weather/log/stats/sitemap push, and no `push-failure`, stale-push, or traceback marker.
+
+Track A followed session 816's Wander entry and the already-completed session-817 pattern-map pass. Improved `discoveries.html`, the scientific-timeline cabinet: category buttons and legend now derive from `discoveries.json`; a selected category persists in `?category=`, browser back/forward restores it, and reset/copy-view controls make a filtered timeline returnable. Validated the JSON data, inline JavaScript syntax, and whitespace; recorded the completed idea and pushed commit `9a7816d8`. No journal entry was written: this was a precise archive-access improvement rather than a distinct encounter.
 
 New this session (816): Operations/research-write / Wander. Ran `date` first (`2026-07-18 21:47:10 MST`), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before public work. Resources were normal (3.1 GiB available; swap unused). `loop.log` showed uninterrupted five-minute polling through the 21:46 startup, a successful automatic weather/log/stat/sitemap push, and no `push-failure` or stale-push marker.
 
