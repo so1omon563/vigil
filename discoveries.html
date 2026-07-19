@@ -28,7 +28,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 2.5rem;
+    margin-bottom: 0.8rem;
   }
   .filter-btn {
     font-family: inherit;
@@ -49,6 +49,25 @@
   .filter-btn.active[data-cat="neuroscience"] { border-color: #58a6ff; color: #58a6ff; }
   .filter-btn.active[data-cat="physics"] { border-color: #e3b341; color: #e3b341; }
   .filter-btn.active[data-cat="linguistics"] { border-color: #bc8cff; color: #bc8cff; }
+  .view-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 2rem;
+  }
+  .view-action {
+    font-family: inherit;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: none;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #484f58;
+    padding: 0.28rem 0.55rem;
+    cursor: pointer;
+  }
+  .view-action:hover { color: #8b949e; border-color: #484f58; }
 
   /* Timeline container */
   .timeline {
@@ -201,6 +220,8 @@
   html[data-theme="light"] .filter-btn.active[data-cat="neuroscience"] { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .filter-btn.active[data-cat="physics"] { border-color: #9a6700; color: #9a6700; }
   html[data-theme="light"] .filter-btn.active[data-cat="linguistics"] { border-color: #8250df; color: #8250df; }
+  html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .view-action:hover { color: #24292e; border-color: #8b949e; }
   html[data-theme="light"] .timeline::before { background: #d0d7de; }
   html[data-theme="light"] .event::before { background: #f6f8fa; border-color: #8b949e; }
   html[data-theme="light"] .event[data-cat="biology"]::before { background: #dafbe1; border-color: #1a7f37; }
@@ -248,19 +269,13 @@
 <div class="meta" id="discoveries-meta">Loading discovery timeline from /discoveries.json</div>
 <p class="intro" id="discoveries-intro">Loading discovery context from the timeline dataset.</p>
 
-<div class="legend">
-  <div class="legend-item"><div class="legend-dot biology"></div><span class="legend-label">biology</span></div>
-  <div class="legend-item"><div class="legend-dot neuroscience"></div><span class="legend-label">neuroscience</span></div>
-  <div class="legend-item"><div class="legend-dot physics"></div><span class="legend-label">physics</span></div>
-  <div class="legend-item"><div class="legend-dot linguistics"></div><span class="legend-label">linguistics</span></div>
-</div>
+<div class="legend" id="category-legend"></div>
 
-<div class="filter-row">
-  <button class="filter-btn active" data-cat="all">All</button>
-  <button class="filter-btn" data-cat="biology">Biology</button>
-  <button class="filter-btn" data-cat="neuroscience">Neuroscience</button>
-  <button class="filter-btn" data-cat="physics">Physics</button>
-  <button class="filter-btn" data-cat="linguistics">Linguistics</button>
+<div class="filter-row" id="filter-row"></div>
+
+<div class="view-actions">
+  <button class="view-action" id="reset-view" type="button">reset</button>
+  <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
 
   <div class="count-note">Showing <span id="visible-count">0</span> of <span id="total-count">0</span> events</div>
@@ -471,12 +486,73 @@
   var metaLine = document.getElementById('discoveries-meta');
   var introLine = document.getElementById('discoveries-intro');
   var footerLine = document.getElementById('discoveries-footer');
-  var filterBtns = document.querySelectorAll('.filter-btn');
+  var filterRow = document.getElementById('filter-row');
+  var legend = document.getElementById('category-legend');
+  var resetView = document.getElementById('reset-view');
+  var copyView = document.getElementById('copy-view');
   var countEl = document.getElementById('visible-count');
   var totalEl = document.getElementById('total-count');
   var events = [];
   var datasetMeta = null;
   var activeCategory = 'all';
+  var categories = [];
+
+  function titleCase(value) {
+    return String(value || '').replace(/\b\w/g, function (char) { return char.toUpperCase(); });
+  }
+
+  function categoryList(items) {
+    var seen = {};
+    return items.map(function (item) { return safeText(item && item.cat); })
+      .filter(function (category) {
+        if (!category || seen[category]) return false;
+        seen[category] = true;
+        return true;
+      });
+  }
+
+  function updateUrl(category, replace) {
+    var url = new URL(window.location.href);
+    if (category && category !== 'all') {
+      url.searchParams.set('category', category);
+    } else {
+      url.searchParams.delete('category');
+    }
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+  }
+
+  function renderControls() {
+    if (!filterRow || !legend) return;
+    filterRow.innerHTML = '';
+    legend.innerHTML = '';
+
+    ['all'].concat(categories).forEach(function (category) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'filter-btn' + (category === activeCategory ? ' active' : '');
+      button.setAttribute('data-cat', category);
+      button.textContent = category === 'all' ? 'All' : titleCase(category);
+      button.addEventListener('click', function () {
+        setCategory(category);
+      });
+      filterRow.appendChild(button);
+    });
+
+    categories.forEach(function (category) {
+      var item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML = '<div class="legend-dot ' + escapeHtml(category) + '"></div><span class="legend-label">' + escapeHtml(category) + '</span>';
+      legend.appendChild(item);
+    });
+  }
+
+  function setCategory(category, options) {
+    options = options || {};
+    activeCategory = categories.indexOf(category) !== -1 ? category : 'all';
+    renderControls();
+    renderEvents();
+    if (!options.silent) updateUrl(activeCategory, false);
+  }
 
   function escapeHtml(value) {
     return String(value == null ? '' : value)
@@ -640,16 +716,32 @@
     }
   }
 
-  filterBtns.forEach(function (button) {
-    button.addEventListener('click', function () {
-      activeCategory = button.getAttribute('data-cat');
-      filterBtns.forEach(function (b) {
-        b.classList.remove('active');
-      });
-      button.classList.add('active');
-      renderEvents();
+  function restoreView() {
+    var requested = new URL(window.location.href).searchParams.get('category') || 'all';
+    setCategory(requested, { silent: true });
+  }
+
+  if (resetView) {
+    resetView.addEventListener('click', function () {
+      setCategory('all');
     });
-  });
+  }
+
+  if (copyView) {
+    copyView.addEventListener('click', function () {
+      var done = function () {
+        copyView.textContent = 'copied';
+        window.setTimeout(function () { copyView.textContent = 'copy this view'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(done, function () { copyView.textContent = 'copy unavailable'; });
+      } else {
+        copyView.textContent = 'copy unavailable';
+      }
+    });
+  }
+
+  window.addEventListener('popstate', restoreView);
 
   function updateMeta() {
     if (metaLine) {
@@ -716,12 +808,14 @@
       events = collectStaticEvents();
     }
 
+    categories = categoryList(events);
     updateMeta();
-    renderEvents();
+    restoreView();
   }).catch(function () {
     events = collectStaticEvents();
+    categories = categoryList(events);
     updateMeta();
-    renderEvents();
+    restoreView();
   });
 })();
 </script>
