@@ -45,7 +45,7 @@
   /* Matrix */
   .matrix-wrap {
     overflow-x: auto;
-    margin-bottom: 4rem;
+    margin-bottom: 1rem;
   }
   .matrix-table {
     border-collapse: collapse;
@@ -120,6 +120,13 @@
   }
   .matrix-cell.zero:hover { filter: none; }
   .matrix-cell.highlighted { outline: 2px solid #58a6ff; outline-offset: -2px; }
+
+  .matrix-actions { display: flex; flex-wrap: wrap; gap: 0.55rem; margin: 0 0 4rem; }
+  .matrix-action {
+    font: inherit; font-size: 0.72rem; color: #8b949e; background: transparent;
+    border: 1px solid #30363d; border-radius: 3px; padding: 0.28rem 0.55rem; cursor: pointer;
+  }
+  .matrix-action:hover { color: #c9d1d9; border-color: #58a6ff; }
 
   /* Cluster legend */
   .clusters {
@@ -227,6 +234,22 @@
   /* Loading / error */
   #loading { color: #484f58; font-size: 0.85rem; padding: 2rem 0; }
   #error { color: #f85149; font-size: 0.85rem; padding: 2rem 0; }
+
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1 { color: #1c2128; }
+  html[data-theme="light"] .intro, html[data-theme="light"] .meta, html[data-theme="light"] .section-label { color: #57606a; }
+  html[data-theme="light"] .section-label { border-color: #d0d7de; }
+  html[data-theme="light"] .col-header-inner, html[data-theme="light"] .row-header { color: #57606a; }
+  html[data-theme="light"] .matrix-cell { border-color: #e8ecf0; }
+  html[data-theme="light"] .matrix-cell.diagonal { color: #1c2128; }
+  html[data-theme="light"] .matrix-cell.zero { background: #f6f8fa !important; color: #d0d7de; }
+  html[data-theme="light"] .matrix-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .matrix-action:hover { color: #24292e; border-color: #0969da; }
+  html[data-theme="light"] #pair-detail, html[data-theme="light"] .cluster-card { border-color: #d0d7de; }
+  html[data-theme="light"] .pair-header { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .pair-title, html[data-theme="light"] .cluster-patterns { color: #24292e; }
+  html[data-theme="light"] .pair-entry, html[data-theme="light"] .dense-entry { border-color: #e8ecf0; }
+  html[data-theme="light"] .pat-tag { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
 </style>
 </head>
 <body>
@@ -255,6 +278,10 @@
   <div class="section-label">Co-occurrence matrix</div>
   <div class="matrix-wrap">
     <table class="matrix-table" id="matrix-table"></table>
+  </div>
+  <div class="matrix-actions">
+    <button class="matrix-action" id="reset-view" type="button">clear selection</button>
+    <button class="matrix-action" id="copy-view" type="button">copy this view</button>
   </div>
 
   <div id="pair-detail">
@@ -481,11 +508,22 @@ async function init() {
   window._eTitles = eTitles;
   window._shortName = shortName;
   window._patIds = patIds;
+
+  document.getElementById('reset-view').addEventListener('click', function () { clearView(); });
+  document.getElementById('copy-view').addEventListener('click', copyView);
+  restoreView(true);
+  window.addEventListener('popstate', function () { restoreView(true); });
 }
 
 let _selectedPat = null;
 
-function selectPat(patId) {
+function updateView(params) {
+  const url = new URL(window.location.href);
+  url.search = params.toString();
+  window.history.pushState({}, '', url);
+}
+
+function selectPat(patId, options = {}) {
   _selectedPat = patId;
   // Highlight row + col headers
   document.querySelectorAll('.col-header-inner, .row-header').forEach(el => {
@@ -497,9 +535,16 @@ function selectPat(patId) {
   });
   // Hide pair detail
   document.getElementById('pair-detail').style.display = 'none';
+  document.querySelectorAll('.matrix-cell').forEach(el => el.classList.remove('highlighted'));
+
+  if (!options.silent) {
+    const params = new URLSearchParams();
+    params.set('pattern', patId);
+    updateView(params);
+  }
 }
 
-function showPair(rowId, colId) {
+function showPair(rowId, colId, options = {}) {
   const key = [rowId, colId].sort().join('|||');
   const nums = (window._coentries[key] || []).slice().sort((a,b) => a-b);
   const sn = window._shortName;
@@ -518,16 +563,54 @@ function showPair(rowId, colId) {
 
   document.getElementById('pair-detail').style.display = '';
 
-  // Highlight the clicked cells
   document.querySelectorAll('.matrix-cell').forEach(el => {
-    el.classList.remove('highlighted');
+    const title = el.getAttribute('title') || '';
+    el.classList.toggle('highlighted', title.indexOf(`${sn(rowId)} ∩ ${sn(colId)}`) === 0 || title.indexOf(`${sn(colId)} ∩ ${sn(rowId)}`) === 0);
   });
-  document.querySelectorAll(`.matrix-cell`).forEach(el => {
-    // Can't easily target by row/col without data attributes, so skip highlighting
-  });
+  _selectedPat = null;
+  document.querySelectorAll('.col-header-inner, .row-header').forEach(el => el.classList.remove('active'));
 
-  // Scroll to the detail
-  document.getElementById('pair-detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!options.silent) {
+    const params = new URLSearchParams();
+    params.set('pair', [rowId, colId].sort().join(','));
+    updateView(params);
+  }
+  if (!options.noScroll) document.getElementById('pair-detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function clearView(options = {}) {
+  _selectedPat = null;
+  document.querySelectorAll('.col-header-inner, .row-header, .matrix-cell').forEach(el => el.classList.remove('active', 'highlighted'));
+  document.getElementById('pair-detail').style.display = 'none';
+  if (!options.silent) updateView(new URLSearchParams());
+}
+
+function restoreView(noScroll) {
+  const params = new URLSearchParams(window.location.search);
+  const pair = (params.get('pair') || '').split(',').filter(Boolean);
+  if (pair.length === 2 && window._patIds.includes(pair[0]) && window._patIds.includes(pair[1]) && pair[0] !== pair[1]) {
+    showPair(pair[0], pair[1], { silent: true, noScroll });
+    return;
+  }
+  const pattern = params.get('pattern');
+  if (pattern && window._patIds.includes(pattern)) {
+    selectPat(pattern, { silent: true });
+    return;
+  }
+  clearView({ silent: true });
+}
+
+function copyView(event) {
+  const button = event.currentTarget;
+  const copied = function () {
+    button.textContent = 'copied';
+    window.setTimeout(function () { button.textContent = 'copy this view'; }, 1400);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(window.location.href).then(copied, function () { button.textContent = 'copy unavailable'; });
+  } else {
+    button.textContent = 'copy unavailable';
+  }
 }
 
 init();

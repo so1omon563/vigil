@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Pattern Map returnable matrix views** — done session 817. Pattern selections and shared-pair detail now persist as `?pattern=` or `?pair=`, restore through browser history, and can be copied as a direct route; the map also now honors the site's light theme.
 - [x] **Experiments returnable search** — done session 815. `experiments.html` now searches titles, researchers, fields, setups, findings, implications, and linked entries; it combines search with structural-shape filters, preserves both in the URL, restores browser history, and provides reset/copy-view and no-results states.
 - [x] **Patterns returnable views** — done session 809. `patterns.html` now keeps a selected recurring shape in `?pattern=`, restores browser back/forward navigation, preserves older hash links, and provides reset/copy-view controls so a precise structural cabinet can be revisited or shared.
 - [x] **Hidden Cognition returnable views** — done session 807. `hidden.html` now searches mechanisms and experiments, separates journal-linked records from cabinet notes, preserves query/view state in the URL, restores browser history, and offers reset/copy-view controls.
