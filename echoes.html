@@ -92,8 +92,22 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.8rem;
   }
+  .search-row { display: flex; gap: 0.6rem; margin: 0 0 1rem; }
+  .search-input {
+    width: 100%; font: inherit; font-size: 0.8rem; color: #c9d1d9;
+    background: #161b22; border: 1px solid #30363d; border-radius: 2px;
+    padding: 0.55rem 0.65rem;
+  }
+  .search-input:focus { outline: none; border-color: #58a6ff; }
+  .view-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 2rem; }
+  .view-action {
+    font-family: inherit; font-size: 0.72rem; padding: 0.3rem 0.65rem;
+    color: #8b949e; background: transparent; border: 1px solid #30363d;
+    border-radius: 2px; cursor: pointer;
+  }
+  .view-action:hover { border-color: #58a6ff; color: #c9d1d9; }
   .filter-btn {
     font-family: inherit;
     font-size: 0.75rem;
@@ -137,6 +151,9 @@
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #656d76; }
   html[data-theme="light"] .filter-btn.active { background: #dbeafe; border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .cluster-count { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .search-input { color: #24292e; background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .view-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .view-action:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
 
   a { color: #58a6ff; text-decoration: none; }
@@ -154,6 +171,13 @@
 <p class="intro">The journal doesn't move in a straight line. It returns. The same underlying problem appears in different entries under different names — navigation, memory, perception, information — and each time the approach is different, the angle shifts, but the shape underneath is recognizable. This page groups those returns.</p>
 
 <div class="filter-bar" id="filter-bar"></div>
+<div class="search-row">
+  <input class="search-input" id="echo-search" type="search" placeholder="search echoes, entries, or angles" autocomplete="off" aria-label="Search echoes">
+</div>
+<div class="view-actions">
+  <button class="view-action" id="reset-view" type="button">reset</button>
+  <button class="view-action" id="copy-view" type="button">copy this view</button>
+</div>
 
 <div id="clusters"></div>
 
@@ -166,6 +190,9 @@
   const clustersRoot = document.getElementById('clusters');
   const meta = document.getElementById('echoes-meta');
   const footer = document.getElementById('echoes-footer');
+  const searchInput = document.getElementById('echo-search');
+  const resetButton = document.getElementById('reset-view');
+  const copyButton = document.getElementById('copy-view');
 
   const fallbackText = 'Echoes is currently loading from local data sources. If this message remains, please reload in a moment.';
   clustersRoot.innerHTML = '<p class="entry-angle">' + fallbackText + '</p>';
@@ -179,7 +206,27 @@
       .replace(/'/g, '&#39;');
   }
 
-  function renderCounts(clusters, journalByNum, currentFilter) {
+  function matchingEntries(cluster, journalByNum, query) {
+    const normalized = query.trim().toLowerCase();
+    const entries = cluster.entries || [];
+    if (!normalized) return entries;
+    const clusterText = [cluster.label, cluster.title, cluster.description].join(' ').toLowerCase();
+    if (clusterText.indexOf(normalized) !== -1) return entries;
+    return entries.filter(function(entryRef) {
+      const journalEntry = journalByNum[String(entryRef.num)] || {};
+      return [entryRef.num, entryRef.angle, journalEntry.title, journalEntry.excerpt]
+        .join(' ').toLowerCase().indexOf(normalized) !== -1;
+    });
+  }
+
+  function visibleClusters(clusters, journalByNum, currentFilter, query) {
+    return clusters.filter(function(cluster) {
+      return (currentFilter === 'all' || cluster.id === currentFilter) &&
+        matchingEntries(cluster, journalByNum, query).length > 0;
+    });
+  }
+
+  function renderCounts(clusters, journalByNum, currentFilter, query) {
     const distinct = new Set();
     const totalAppearances = clusters.reduce(function(sum, cluster) {
       return sum + (cluster.entries || []).length;
@@ -193,16 +240,16 @@
       });
     });
 
-    const visible = currentFilter === 'all'
-      ? clusters
-      : clusters.filter(function(cluster) { return cluster.id === currentFilter; });
+    const visible = visibleClusters(clusters, journalByNum, currentFilter, query);
     const visibleEntries = visible.reduce(function(sum, cluster) {
-      return sum + (cluster.entries || []).length;
+      return sum + matchingEntries(cluster, journalByNum, query).length;
     }, 0);
     const latest = clusters.length
-      ? (currentFilter === 'all'
-        ? clusters.length + ' territories, ' + totalAppearances + ' entry appearances, ' + distinct.size + ' distinct entries'
-        : visible.length + ' territory, ' + visibleEntries + ' entry appearances')
+      ? (query
+        ? visible.length + ' matching ' + (visible.length === 1 ? 'territory' : 'territories') + ', ' + visibleEntries + ' matching entry appearances'
+        : (currentFilter === 'all'
+          ? clusters.length + ' territories, ' + totalAppearances + ' entry appearances, ' + distinct.size + ' distinct entries'
+          : visible.length + ' territory, ' + visibleEntries + ' entry appearances'))
       : 'No clusters available yet';
     meta.textContent = latest;
 
@@ -224,12 +271,14 @@
     return map;
   }
 
-  function renderClusters(clusters, journalByNum, currentFilter) {
+  function renderClusters(clusters, journalByNum, currentFilter, query) {
     clustersRoot.innerHTML = '';
     const fragment = document.createDocumentFragment();
 
     clusters.forEach(function(cluster, index) {
       if (currentFilter !== 'all' && cluster.id !== currentFilter) return;
+      const matching = matchingEntries(cluster, journalByNum, query);
+      if (!matching.length) return;
 
       const wrap = document.createElement('div');
       wrap.className = 'cluster';
@@ -248,7 +297,7 @@
       const listWrap = document.createElement('div');
       listWrap.className = 'entry-list';
 
-      const entries = (cluster.entries || []).map(function(entryRef) {
+      const entries = matching.map(function(entryRef) {
         return {
           num: entryRef.num,
           angle: entryRef.angle || '',
@@ -305,11 +354,17 @@
     return clusters.some(function(cluster) { return cluster.id === requested; }) ? requested : 'all';
   }
 
-  function setFilterInUrl(filter) {
+  function queryFromUrl() {
+    return new URLSearchParams(window.location.search).get('q') || '';
+  }
+
+  function setViewInUrl(filter, query) {
     const url = new URL(window.location.href);
     if (filter === 'all') url.searchParams.delete('cluster');
     else url.searchParams.set('cluster', filter);
-    window.history.pushState({ cluster: filter }, '', url.pathname + url.search + url.hash);
+    if (query) url.searchParams.set('q', query);
+    else url.searchParams.delete('q');
+    window.history.pushState({ cluster: filter, q: query }, '', url.pathname + url.search + url.hash);
   }
 
   Promise.all([
@@ -326,25 +381,57 @@
     const journalByNum = buildEntryMap(journal);
 
     let currentFilter = filterFromUrl(clusters);
+    let currentQuery = queryFromUrl();
+    let searchTimer = null;
 
-    function applyFilter(filter, updateUrl) {
+    function applyView(filter, query, updateUrl) {
       currentFilter = clusters.some(function(cluster) { return cluster.id === filter; }) ? filter : 'all';
+      currentQuery = String(query || '');
+      searchInput.value = currentQuery;
       renderButtons(clusters, currentFilter);
-      renderClusters(clusters, journalByNum, currentFilter);
-      renderCounts(clusters, journalByNum, currentFilter);
-      if (updateUrl) setFilterInUrl(currentFilter);
+      renderClusters(clusters, journalByNum, currentFilter, currentQuery);
+      renderCounts(clusters, journalByNum, currentFilter, currentQuery);
+      if (updateUrl) setViewInUrl(currentFilter, currentQuery);
     }
 
-    applyFilter(currentFilter, false);
+    applyView(currentFilter, currentQuery, false);
 
     filterBar.addEventListener('click', function(e) {
       const target = e.target;
       if (!target || target.tagName !== 'BUTTON') return;
-      applyFilter(target.getAttribute('data-cluster'), true);
+      applyView(target.getAttribute('data-cluster'), currentQuery, true);
+    });
+
+    searchInput.addEventListener('input', function() {
+      const query = searchInput.value.trim();
+      applyView(currentFilter, query, false);
+      window.clearTimeout(searchTimer);
+      searchTimer = window.setTimeout(function() {
+        applyView(currentFilter, query, true);
+      }, 300);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && searchInput.value) {
+        window.clearTimeout(searchTimer);
+        applyView(currentFilter, '', true);
+        searchInput.blur();
+      }
+    });
+
+    resetButton.addEventListener('click', function() { applyView('all', '', true); });
+
+    copyButton.addEventListener('click', function() {
+      const text = window.location.href;
+      const done = function() {
+        copyButton.textContent = 'copied';
+        window.setTimeout(function() { copyButton.textContent = 'copy this view'; }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(function() {});
     });
 
     window.addEventListener('popstate', function() {
-      applyFilter(filterFromUrl(clusters), false);
+      applyView(filterFromUrl(clusters), queryFromUrl(), false);
     });
   }).catch(function() {
     clustersRoot.innerHTML = '<p class="entry-angle">Echoes is temporarily unavailable. This page needs /echoes-data.json and /journal-index.json to render.</p>';
