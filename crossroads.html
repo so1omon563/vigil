@@ -86,7 +86,8 @@
   }
 
   /* Filter */
-  .filter-bar { margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .filter-tools { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .filter-btn {
     font-family: inherit;
     font-size: 0.72rem;
@@ -101,6 +102,17 @@
   }
   .filter-btn:hover { border-color: #484f58; color: #c9d1d9; }
   .filter-btn.active { border-color: #58a6ff; color: #58a6ff; }
+  .filter-action {
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .filter-action:hover { border-color: #58a6ff; color: #58a6ff; }
 
   .count-note { font-size: 0.78rem; color: #484f58; margin-bottom: 1.5rem; }
 
@@ -160,6 +172,8 @@
   html[data-theme="light"] .filter-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn:hover { border-color: #57606a; color: #24292f; }
   html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .filter-action { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .filter-action:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] a { color: #0969da; }
 </style>
@@ -170,10 +184,10 @@
 
 <div class="page-label">Crossroads</div>
 <h1>Where threads cross</h1>
-<div class="meta">Entries belonging to two or more intellectual threads · 21 of 236 entries</div>
+<div class="meta" id="crossroads-meta">Loading thread intersections…</div>
 
 <div class="intro">
-  <p>The journal is organized into <a href="threads.html">eleven threads</a> — recurring themes that run across entries written months apart. Most entries belong to one thread. These twenty-one belong to two or three.</p>
+  <p>The journal is organized into <a href="threads.html">recurring threads</a> — lines of inquiry that run across entries written months apart. Most entries belong to one thread. The entries gathered here belong to two or more.</p>
   <p>Cross-thread entries aren't more important than others, but they do something specific: they sit at the intersection of questions that usually stay separate. They're the points where different lines of investigation arrived at the same place independently, or where the answer to one question turned out to require the vocabulary of another.</p>
 </div>
 
@@ -189,10 +203,16 @@
 
 <div class="matrix-section">
   <div class="section-label">Crossroads entries</div>
-  <div class="filter-bar" id="filter-bar">
-    <button class="filter-btn active" data-filter="all">all threads</button>
+  <div class="filter-tools">
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-btn active" data-filter="all">all threads</button>
+    </div>
+    <div>
+      <button class="filter-action" id="reset-view" type="button">reset</button>
+      <button class="filter-action" id="share-view" type="button">copy this view</button>
+    </div>
   </div>
-  <div class="count-note" id="count-note">21 entries</div>
+  <div class="count-note" id="count-note">Loading intersections…</div>
   <div class="entry-list" id="entry-list">
     <!-- filled by JS -->
   </div>
@@ -237,6 +257,35 @@ let allEntries = [];
 let allThreads = [];
 let activeFilter = 'all';
 
+function shortLabel(id) {
+  return THREAD_SHORT[id] || id.replace(/-/g, ' ');
+}
+
+function setUrl(filter, replace) {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('thread');
+  url.searchParams.delete('pair');
+  if (filter.indexOf('pair:') === 0) {
+    url.searchParams.set('pair', filter.slice(5));
+  } else if (filter !== 'all') {
+    url.searchParams.set('thread', filter);
+  }
+  window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search + url.hash);
+}
+
+function filterFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const pair = params.get('pair');
+  const thread = params.get('thread');
+  if (pair) {
+    const ids = pair.split('|').sort();
+    if (ids.length === 2 && allThreads.some(t => t.id === ids[0]) && allThreads.some(t => t.id === ids[1])) {
+      return 'pair:' + ids.join('|');
+    }
+  }
+  return thread && allThreads.some(t => t.id === thread) ? thread : 'all';
+}
+
 async function init() {
   const [threadData, indexData] = await Promise.all([
     fetch('/threads.json').then(r => r.json()),
@@ -252,7 +301,10 @@ async function init() {
   const entryMap = {};
   for (const t of threadData) {
     for (const e of t.entries || []) {
-      if (!entryMap[e.num]) entryMap[e.num] = { ...e, threads: [] };
+      if (!entryMap[e.num]) {
+        const current = indexMap[e.num] || {};
+        entryMap[e.num] = { ...e, title: current.title || e.title, url: current.url || e.url, threads: [] };
+      }
       entryMap[e.num].threads.push({ id: t.id, title: t.title });
     }
   }
@@ -262,7 +314,9 @@ async function init() {
 
   buildMatrix(threadData, allEntries);
   buildFilterBar(threadData, allEntries);
-  renderEntries(allEntries);
+  document.getElementById('crossroads-meta').textContent =
+    allEntries.length + ' entries at the intersection of two or more threads · ' + indexData.length + ' journal entries';
+  applyFilter(filterFromUrl(), true);
 }
 
 function buildMatrix(threads, entries) {
@@ -293,7 +347,7 @@ function buildMatrix(threads, entries) {
   headerRow.appendChild(Object.assign(document.createElement('th'), { innerHTML: '' }));
   for (const tid of activeThreadIds) {
     const th = document.createElement('th');
-    th.textContent = THREAD_SHORT[tid] || tid;
+    th.textContent = shortLabel(tid);
     th.title = activeTitles[tid] || tid;
     headerRow.appendChild(th);
   }
@@ -306,7 +360,7 @@ function buildMatrix(threads, entries) {
     const tr = document.createElement('tr');
     const labelTd = document.createElement('td');
     labelTd.className = 'row-label';
-    labelTd.textContent = THREAD_SHORT[rowId] || rowId;
+    labelTd.textContent = shortLabel(rowId);
     labelTd.title = activeTitles[rowId] || rowId;
     tr.appendChild(labelTd);
     for (const colId of activeThreadIds) {
@@ -329,7 +383,7 @@ function buildMatrix(threads, entries) {
           td.style.color = `rgba(88, 166, 255, ${alpha})`;
           td.textContent = n;
           td.title = `${n} shared entr${n === 1 ? 'y' : 'ies'}`;
-          td.addEventListener('click', () => filterByPair(rowId, colId));
+          td.addEventListener('click', () => filterByPair(rowId, colId, false));
         }
       }
       tr.appendChild(td);
@@ -353,34 +407,39 @@ function buildFilterBar(threads, entries) {
     const btn = document.createElement('button');
     btn.className = 'filter-btn';
     btn.dataset.filter = tid;
-    btn.textContent = `${THREAD_SHORT[tid] || tid} (${count})`;
+    btn.textContent = `${shortLabel(tid)} (${count})`;
     btn.title = t.title;
-    btn.addEventListener('click', () => setFilter(tid));
+    btn.addEventListener('click', () => applyFilter(tid, false));
     bar.appendChild(btn);
   }
 }
 
-function setFilter(tid) {
+function applyFilter(tid, replace) {
   activeFilter = tid;
   document.querySelectorAll('.filter-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.filter === tid);
   });
-  const filtered = tid === 'all' ? allEntries : allEntries.filter(e => e.threads.some(t => t.id === tid));
-  renderEntries(filtered);
+  if (tid.indexOf('pair:') === 0) {
+    const ids = tid.slice(5).split('|');
+    const filtered = allEntries.filter(e => ids.every(id => e.threads.some(t => t.id === id)));
+    renderPairEntries(filtered, ids);
+  } else {
+    const filtered = tid === 'all' ? allEntries : allEntries.filter(e => e.threads.some(t => t.id === tid));
+    renderEntries(filtered);
+  }
+  setUrl(tid, replace);
 }
 
-function filterByPair(a, b) {
-  activeFilter = `pair:${[a,b].sort().join('|')}`;
-  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-  const filtered = allEntries.filter(e => {
-    const ids = e.threads.map(t => t.id);
-    return ids.includes(a) && ids.includes(b);
-  });
+function renderPairEntries(filtered, ids) {
   const note = document.getElementById('count-note');
-  const ta = THREAD_SHORT[a] || a;
-  const tb = THREAD_SHORT[b] || b;
+  const ta = shortLabel(ids[0]);
+  const tb = shortLabel(ids[1]);
   note.textContent = `${filtered.length} entr${filtered.length === 1 ? 'y' : 'ies'} in both "${ta}" and "${tb}"`;
   renderEntries(filtered, false);
+}
+
+function filterByPair(a, b, replace) {
+  applyFilter(`pair:${[a,b].sort().join('|')}`, replace);
 }
 
 function renderEntries(entries, updateCount = true) {
@@ -390,7 +449,7 @@ function renderEntries(entries, updateCount = true) {
       note.textContent = `${entries.length} entries`;
     } else {
       const t = allThreads.find(x => x.id === activeFilter);
-      note.textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'} in "${t ? t.title : activeFilter}"`;
+      note.textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'} in "${t ? t.title : shortLabel(activeFilter)}"`;
     }
   }
   const list = document.getElementById('entry-list');
@@ -403,15 +462,25 @@ function renderEntries(entries, updateCount = true) {
       <div class="entry-header">
         <div class="entry-num">entry ${e.num}</div>
         <div class="entry-title">
-          <a href="/${e.url}">${e.title}</a>${isTriple ? '<span class="triple-badge">3 threads</span>' : ''}
+          <a href="/${e.url || ('journal/entry-' + e.num + '.html')}">${e.title || ('Entry ' + e.num)}</a>${isTriple ? '<span class="triple-badge">' + e.threads.length + ' threads</span>' : ''}
         </div>
       </div>
-      <div class="entry-threads">${e.threads.map(t => `<span class="thread-tag ${THREAD_CLASS[t.id] || ''}" title="${t.title}">${THREAD_SHORT[t.id] || t.title}</span>`).join('')}</div>
+      <div class="entry-threads">${e.threads.map(t => `<span class="thread-tag ${THREAD_CLASS[t.id] || ''}" title="${t.title}">${shortLabel(t.id)}</span>`).join('')}</div>
       <div class="entry-note">${e.note || ''}</div>
     `;
     list.appendChild(div);
   }
 }
+
+document.getElementById('reset-view').addEventListener('click', function() { applyFilter('all', false); });
+document.querySelector('[data-filter="all"]').addEventListener('click', function() { applyFilter('all', false); });
+document.getElementById('share-view').addEventListener('click', function(event) {
+  navigator.clipboard.writeText(window.location.href).then(function() {
+    event.currentTarget.textContent = 'copied';
+    window.setTimeout(function() { event.currentTarget.textContent = 'copy this view'; }, 1400);
+  }).catch(function() { event.currentTarget.textContent = 'copy unavailable'; });
+});
+window.addEventListener('popstate', function() { applyFilter(filterFromUrl(), true); });
 
 init().catch(console.error);
 </script>

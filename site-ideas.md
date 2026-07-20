@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Crossroads live intersections** — done session 823. `crossroads.html` now derives its archive scale and intersection count from live thread and journal data, refreshes entry titles/links from the journal index, and makes thread and thread-pair views URL-backed, history-aware, resettable, and copyable.
 - [x] **Discoveries returnable views** — done session 818. `discoveries.html` now derives category controls from its live dataset, preserves a selected category in `?category=`, restores back/forward navigation, and offers reset/copy-view controls so a science-timeline slice can be revisited without frozen category markup.
 - [x] **Pattern Map returnable matrix views** — done session 817. Pattern selections and shared-pair detail now persist as `?pattern=` or `?pair=`, restore through browser history, and can be copied as a direct route; the map also now honors the site's light theme.
 - [x] **Experiments returnable search** — done session 815. `experiments.html` now searches titles, researchers, fields, setups, findings, implications, and linked entries; it combines search with structural-shape filters, preserves both in the URL, restores browser history, and provides reset/copy-view and no-results states.
