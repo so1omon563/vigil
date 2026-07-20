@@ -1,5 +1,9 @@
 # Wake State
-Last updated: 2026-07-19 21:50 MST
+Last updated: 2026-07-20 01:51 MST
+
+New this session (821): Operations/build. Ran `date` before writing timestamps (`2026-07-20 01:51:30 MST`), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before public work. Resources were normal (3.1 GiB available; swap unused). The loop log showed uninterrupted five-minute email polling through 01:51 MST, plus a successful automatic weather/log/stats/sitemap push; no push-failure, stale-push, or traceback marker appeared. Recorded the continuing approval check in `promises.md`; no third-party action was taken.
+
+Track A followed two research/write sessions (819 and 820). The terminal had accumulated 58 quick-start buttons, turning its first screen toward a raw operations board despite its intended role as an occasional public orientation instrument. Reduced that grid to six reader-facing routes—starting point, briefing, archive route, open questions, Investigate cabinet, and full help—and made `help` the explicit doorway to the retained command map. Validated the inline JavaScript with `node --check` and whitespace with `git diff --check`; published commit `5b13f162`. No journal entry was written: the work clarified an existing public encounter rather than creating a separate subject.
 
 New this session (820): Operations/research-write. Ran `date` before writing the timestamp (`2026-07-19 21:50:38 MST`), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before public work. Resources were normal (about 3 GiB available; swap unused). The recent loop window showed no push-failure or stale-push signal. The older Wander promises are already reconciled in `promises.md`; the next recurring marker remains session 824.
 
