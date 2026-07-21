@@ -46,6 +46,18 @@
     white-space: nowrap;
   }
   .toggle-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+  .view-actions { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+  .view-action {
+    font-family: inherit;
+    font-size: 0.72rem;
+    background: none;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .view-action:hover { border-color: #58a6ff; color: #58a6ff; }
   .count-label {
     font-size: 0.72rem;
     color: #484f58;
@@ -131,6 +143,8 @@
   html[data-theme="light"] .filter-input::placeholder { color: #8c959f; }
   html[data-theme="light"] .toggle-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .toggle-btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .view-action:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .count-label { color: #8c959f; }
   html[data-theme="light"] .arc-item { border-color: #eaeef2; }
   html[data-theme="light"] .arc-num { color: #8c959f; }
@@ -160,6 +174,10 @@
 <div class="controls">
   <input type="text" class="filter-input" id="filter-input" placeholder="Filter by title, opening, or closing…" autocomplete="off" spellcheck="false">
   <button class="toggle-btn" id="order-btn">oldest first</button>
+  <div class="view-actions">
+    <button class="view-action" id="reset-btn" type="button">reset</button>
+    <button class="view-action" id="copy-btn" type="button">copy view</button>
+  </div>
   <span class="count-label" id="count-label"></span>
 </div>
 
@@ -209,7 +227,18 @@
     }).join('');
   }
 
-  function applyFilter() {
+  function updateUrl(replace) {
+    var input = document.getElementById('filter-input');
+    var q = (input && input.value || '').trim();
+    var params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (!newestFirst) params.set('order', 'oldest');
+    var query = params.toString();
+    var next = window.location.pathname + (query ? '?' + query : '');
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', next);
+  }
+
+  function applyFilter(updateHistory, replaceHistory) {
     var q = (document.getElementById('filter-input').value || '').toLowerCase().trim();
     var list = allArcs.slice();
     if (!newestFirst) list = list.slice().reverse();
@@ -221,6 +250,17 @@
       });
     }
     render(list);
+    if (updateHistory) updateUrl(replaceHistory);
+  }
+
+  function restoreFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var input = document.getElementById('filter-input');
+    if (input) input.value = params.get('q') || '';
+    newestFirst = params.get('order') !== 'oldest';
+    var btn = document.getElementById('order-btn');
+    if (btn) btn.textContent = newestFirst ? 'oldest first' : 'newest first';
+    applyFilter(false);
   }
 
   Promise.all([
@@ -256,18 +296,42 @@
 
     // Event listeners
     var input = document.getElementById('filter-input');
-    if (input) input.addEventListener('input', applyFilter);
+    if (input) input.addEventListener('input', function () { applyFilter(true, true); });
 
     var btn = document.getElementById('order-btn');
     if (btn) {
       btn.addEventListener('click', function () {
         newestFirst = !newestFirst;
         btn.textContent = newestFirst ? 'oldest first' : 'newest first';
-        applyFilter();
+        applyFilter(true, false);
       });
     }
 
-    applyFilter();
+    var resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) resetBtn.addEventListener('click', function () {
+      if (input) input.value = '';
+      newestFirst = true;
+      if (btn) btn.textContent = 'oldest first';
+      applyFilter(true, false);
+      if (input) input.focus();
+    });
+
+    var copyBtn = document.getElementById('copy-btn');
+    if (copyBtn) copyBtn.addEventListener('click', function () {
+      var label = copyBtn.textContent;
+      var done = function () {
+        copyBtn.textContent = 'copied';
+        window.setTimeout(function () { copyBtn.textContent = label; }, 1200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(done).catch(function () { window.prompt('Copy this view:', window.location.href); });
+      } else {
+        window.prompt('Copy this view:', window.location.href);
+      }
+    });
+
+    window.addEventListener('popstate', restoreFromUrl);
+    restoreFromUrl();
   }).catch(function (err) {
     var el = document.getElementById('arc-list');
     if (el) el.textContent = '(could not load data)';
