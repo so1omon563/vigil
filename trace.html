@@ -16,6 +16,7 @@
     line-height: 1.75;
   }
   .back { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .back a { color: #58a6ff; text-decoration: none; }
   .back a:hover { text-decoration: underline; }
   .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
@@ -37,8 +38,23 @@
     flex-wrap: wrap;
     margin-bottom: 2rem;
   }
+  .thread-filter {
+    width: 100%;
+    font: inherit;
+    font-size: 0.82rem;
+    color: #c9d1d9;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.65rem 0.75rem;
+    margin-bottom: 0.7rem;
+  }
+  .thread-filter:focus { outline: none; border-color: #58a6ff; }
+  .thread-filter::placeholder { color: #484f58; }
+  .thread-filter-note { color: #484f58; font-size: 0.72rem; margin-bottom: 1rem; }
   .thread-actions {
     display: flex;
+    gap: 0.5rem;
     justify-content: flex-end;
     margin-top: -1rem;
     margin-bottom: 1.2rem;
@@ -214,6 +230,8 @@
   html[data-theme="light"] .thread-tab { border-color: #d0d7de; color: #656d76; }
   html[data-theme="light"] .thread-tab:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .thread-tab.active { border-color: #0969da; color: #0969da; background: #dbeafe; }
+  html[data-theme="light"] .thread-filter { color: #24292e; background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .thread-filter::placeholder, html[data-theme="light"] .thread-filter-note { color: #57606a; }
   html[data-theme="light"] .thread-share { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread-share:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .thread-name { color: #1c2128; }
@@ -249,8 +267,11 @@
 
 <div class="thread-summary" id="thread-summary">Loading thread summary…</div>
 
+<label class="sr-only" for="thread-filter">Filter thread traces</label>
+<input class="thread-filter" id="thread-filter" type="search" placeholder="filter traces by thread, description, or linked entry" autocomplete="off">
+<div class="thread-filter-note" id="thread-filter-note">Loading trace index…</div>
 <div class="thread-tabs" id="thread-tabs" aria-label="thread selector"></div>
-<div class="thread-actions"><button class="thread-share" id="thread-share" type="button">copy this thread</button></div>
+<div class="thread-actions"><button class="thread-share" id="thread-reset" type="button">reset</button><button class="thread-share" id="thread-share" type="button">copy this trace</button></div>
 <div id="thread-content"></div>
 
 <div class="footer-note">
@@ -370,14 +391,31 @@
     );
   }
 
-  function updateThreadUrl(threadId, mode) {
+  function updateThreadUrl(threadId, query, mode) {
     var url = new URL(window.location.href);
     if (threadId) url.searchParams.set('thread', threadId);
     else url.searchParams.delete('thread');
+    if (query) url.searchParams.set('q', query);
+    else url.searchParams.delete('q');
     window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url.pathname + url.search + url.hash);
   }
 
-  function showThread(threads, targetId, tabs, content, historyMode) {
+  function showThread(threads, targetId, query, tabs, content, historyMode) {
+    var needle = String(query || '').trim().toLowerCase();
+    var visible = threads.filter(function(thread) { return thread.searchText.indexOf(needle) !== -1; });
+    tabs.innerHTML = '';
+    content.innerHTML = '';
+
+    visible.forEach(function(thread) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'thread-tab';
+      btn.dataset.id = thread.id;
+      btn.textContent = thread.title;
+      tabs.appendChild(btn);
+      content.appendChild(thread.section);
+    });
+
     var selected = targetId || '';
     content.querySelectorAll('.thread').forEach(function (node) { node.classList.remove('visible'); });
     tabs.querySelectorAll('.thread-tab').forEach(function (btn) { btn.classList.remove('active'); });
@@ -392,12 +430,17 @@
     if (selectedThread) {
       selectedThread.classList.add('visible');
       var next = selectedThread.id;
-      if (historyMode !== 'none') updateThreadUrl(next, historyMode);
+      if (historyMode !== 'none') updateThreadUrl(next, needle, historyMode);
     }
     if (selectedBtn) selectedBtn.classList.add('active');
+
+    var note = document.getElementById('thread-filter-note');
+    if (note) note.textContent = visible.length ? visible.length + ' of ' + threads.length + ' traces visible' : 'No traces match this filter.';
   }
 
-  function renderThreads(rawThreads) {
+  function renderThreads(payload) {
+    var rawThreads = payload.threads;
+    var index = payload.index;
     var tabs = document.getElementById('thread-tabs');
     var content = document.getElementById('thread-content');
     var meta = document.getElementById('trace-meta');
@@ -410,12 +453,24 @@
     if (meta) meta.textContent = 'Source: threads.json · ' + rawThreads.length + ' threads';
     renderThreadSummary(rawThreads);
 
+    var byNum = {};
+    (Array.isArray(index) ? index : []).forEach(function(entry) { byNum[String(entry.num)] = entry; });
+
     var normalized = rawThreads.map(function(thread) {
+      var entries = (Array.isArray(thread && thread.entries) ? thread.entries : []).map(function(entry) {
+        var current = byNum[String(entry && entry.num)];
+        return current ? {
+          num: current.num,
+          title: current.title,
+          url: current.url,
+          note: entry && entry.note ? entry.note : current.excerpt
+        } : entry;
+      });
       return {
         id: String(thread && thread.id ? thread.id : ('thread-' + Math.random().toString(36).slice(2))).replace(/[^a-z0-9-_]/gi, '-'),
         title: thread && thread.title ? thread.title : 'Untitled thread',
         description: thread && thread.description ? thread.description : 'No description provided.',
-        entries: Array.isArray(thread && thread.entries) ? thread.entries : []
+        entries: entries
       };
     }).sort(function(a, b) {
       return b.entries.length - a.entries.length;
@@ -460,21 +515,41 @@
         section.innerHTML = html;
       }
 
-      content.appendChild(section);
+      thread.section = section;
+      thread.searchText = [thread.title, thread.description].concat(thread.entries.map(function(entry) {
+        return [entry.title, entry.note].join(' ');
+      })).join(' ').toLowerCase();
     });
 
-    var initial = new URLSearchParams(window.location.search).get('thread');
-    showThread(normalized, initial, tabs, content, 'replace');
+    var params = new URLSearchParams(window.location.search);
+    var initial = params.get('thread');
+    var filter = document.getElementById('thread-filter');
+    var query = params.get('q') || '';
+    if (filter) filter.value = query;
+    showThread(normalized, initial, query, tabs, content, 'replace');
 
     tabs.addEventListener('click', function(e) {
       if (!e.target || !e.target.matches('.thread-tab')) return;
       var target = e.target.dataset.id;
-      showThread(normalized, target, tabs, content, 'push');
+      showThread(normalized, target, filter ? filter.value : '', tabs, content, 'push');
+    });
+
+    if (filter) filter.addEventListener('input', function() {
+      showThread(normalized, '', filter.value, tabs, content, 'push');
     });
 
     window.addEventListener('popstate', function() {
-      var target = new URLSearchParams(window.location.search).get('thread');
-      showThread(normalized, target, tabs, content, 'none');
+      var state = new URLSearchParams(window.location.search);
+      var target = state.get('thread');
+      var nextQuery = state.get('q') || '';
+      if (filter) filter.value = nextQuery;
+      showThread(normalized, target, nextQuery, tabs, content, 'none');
+    });
+
+    var reset = document.getElementById('thread-reset');
+    if (reset) reset.addEventListener('click', function() {
+      if (filter) filter.value = '';
+      showThread(normalized, '', '', tabs, content, 'push');
     });
 
     var share = document.getElementById('thread-share');
@@ -483,19 +558,21 @@
         var link = window.location.href;
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(link).then(function() {
-            share.textContent = 'thread link copied';
-            setTimeout(function() { share.textContent = 'copy this thread'; }, 1400);
-          }).catch(function() { window.prompt('Copy this thread link:', link); });
+            share.textContent = 'trace link copied';
+            setTimeout(function() { share.textContent = 'copy this trace'; }, 1400);
+          }).catch(function() { window.prompt('Copy this trace link:', link); });
         } else {
-          window.prompt('Copy this thread link:', link);
+          window.prompt('Copy this trace link:', link);
         }
       });
     }
   }
 
-  fetch('/threads.json', { cache: 'no-store' })
-    .then(function(res) { return res.json(); })
-    .then(renderThreads)
+  Promise.all([
+    fetch('/threads.json', { cache: 'no-store' }).then(function(res) { return res.json(); }),
+    fetch('/journal-index.json', { cache: 'no-store' }).then(function(res) { return res.json(); })
+  ])
+    .then(function(results) { renderThreads({ threads: results[0], index: results[1] }); })
     .catch(function() {
       var meta = document.getElementById('trace-meta');
       if (meta) meta.textContent = 'Unable to load thread data at this moment.';
