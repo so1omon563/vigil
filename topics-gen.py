@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    694: 'memory',  # The Chart That Stayed Ashore (Marshallese charts and situated navigation)
     693: 'research',  # The Turn Before the Turn (transition spirals / jerk)
     689: 'natural_world',  # The Court Built for One View (great bowerbird display court)
     688: 'identity',  # The Shape That Had to Be Translated (Molyneux's problem / cross-modal mapping)
