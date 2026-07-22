@@ -54,6 +54,20 @@
     margin-top: -1.4rem;
     margin-bottom: 1.5rem;
   }
+  .focus-note {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: -0.25rem 0 1.2rem;
+    padding: 0.65rem 0.8rem;
+    border-left: 2px solid #58a6ff;
+    background: #161b22;
+    color: #8b949e;
+    font-size: 0.78rem;
+  }
+  .focus-note.visible { display: flex; }
+  .focus-note strong { color: #c9d1d9; font-weight: normal; }
   .catalog-share {
     font: inherit;
     font-size: 0.72rem;
@@ -184,6 +198,17 @@
     transition: border-color 0.15s;
   }
   .entry-link:hover { border-color: #58a6ff; }
+  .study-action {
+    font: inherit;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.6rem;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+  }
+  .study-action:hover { border-color: #58a6ff; color: #58a6ff; }
 
   /* Count display */
   .showing-count {
@@ -227,8 +252,12 @@
   html[data-theme="light"] .catalog-share { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .catalog-share:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .catalog-search { color: #24292e; background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .focus-note { background: #f0f3f6; color: #57606a; }
+  html[data-theme="light"] .focus-note strong { color: #24292e; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .entry-link { background: #f0f3f6; border-color: #d0d7de; color: #0969da; }
+  html[data-theme="light"] .study-action { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .study-action:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .cluster-label { border-color: #d0d7de; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] a { color: #0969da; }
@@ -250,6 +279,7 @@
 </div>
 <div class="filter-bar" id="filter-bar"></div>
 <div class="catalog-actions"><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
+<div class="focus-note" id="focus-note"><span>Focused study: <strong id="focus-title"></strong></span><button class="catalog-share" id="clear-focus" type="button">show all studies</button></div>
 
 <div class="showing-count" id="showing-count">loading studies…</div>
 
@@ -266,6 +296,7 @@
   var experiments = [];
   var currentCluster = 'all';
   var currentQuery = '';
+  var currentStudy = '';
 
   fetch('/experiments.json')
     .then(function (r) { return r.json(); })
@@ -289,7 +320,14 @@
       document.getElementById('reset-view').addEventListener('click', function () {
         currentCluster = 'all';
         currentQuery = '';
+        currentStudy = '';
         document.getElementById('catalog-search').value = '';
+        syncUrl(false);
+        render();
+      });
+
+      document.getElementById('clear-focus').addEventListener('click', function () {
+        currentStudy = '';
         syncUrl(false);
         render();
       });
@@ -317,6 +355,8 @@
     var requested = params.get('cluster');
     currentCluster = requested && experiments.some(function (exp) { return exp.cluster === requested; }) ? requested : 'all';
     currentQuery = params.get('q') || '';
+    var requestedStudy = params.get('study');
+    currentStudy = requestedStudy && experiments.some(function (exp) { return exp.id === requestedStudy; }) ? requestedStudy : '';
     document.getElementById('catalog-search').value = currentQuery;
   }
 
@@ -324,6 +364,7 @@
     var url = new URL(window.location.href);
     if (currentCluster === 'all') url.searchParams.delete('cluster'); else url.searchParams.set('cluster', currentCluster);
     if (currentQuery.trim()) url.searchParams.set('q', currentQuery.trim()); else url.searchParams.delete('q');
+    if (currentStudy) url.searchParams.set('study', currentStudy); else url.searchParams.delete('study');
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + (url.search || '') + url.hash);
   }
 
@@ -362,7 +403,8 @@
     return experiments.filter(function (exp) {
       var matchesCluster = currentCluster === 'all' || exp.cluster === currentCluster;
       var haystack = [exp.title, exp.researchers, exp.year, exp.field, exp.setup, exp.finding, exp.implication, exp.cluster_label, (exp.entry_titles || []).join(' ')].join(' ').toLowerCase();
-      return matchesCluster && (!needle || haystack.indexOf(needle) !== -1);
+      var matchesStudy = !currentStudy || exp.id === currentStudy;
+      return matchesCluster && matchesStudy && (!needle || haystack.indexOf(needle) !== -1);
     });
   }
 
@@ -374,6 +416,10 @@
     var countEl = document.getElementById('showing-count');
     container.innerHTML = '';
     var filtered = visibleExperiments();
+    var focused = experiments.find(function (exp) { return exp.id === currentStudy; });
+    var focusNote = document.getElementById('focus-note');
+    focusNote.classList.toggle('visible', !!focused);
+    document.getElementById('focus-title').textContent = focused ? focused.title : '';
 
     // Group by cluster
     var clusters = {};
@@ -403,6 +449,7 @@
         var card = document.createElement('div');
         card.className = 'exp-card';
         card.setAttribute('data-cluster', exp.cluster);
+        card.id = 'study-' + exp.id;
 
         var header = document.createElement('div');
         header.className = 'exp-header';
@@ -478,6 +525,19 @@
           });
           card.appendChild(entriesDiv);
         }
+
+        var focusButton = document.createElement('button');
+        focusButton.className = 'study-action';
+        focusButton.type = 'button';
+        focusButton.textContent = currentStudy === exp.id ? 'focused study' : 'focus this study';
+        focusButton.disabled = currentStudy === exp.id;
+        focusButton.addEventListener('click', function () {
+          currentStudy = exp.id;
+          syncUrl(false);
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        card.appendChild(focusButton);
 
         clusterDiv.appendChild(card);
       });
