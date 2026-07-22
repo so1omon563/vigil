@@ -31,7 +31,7 @@
   }
   .controls {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-columns: minmax(130px, 1fr) minmax(120px, auto) auto auto auto;
     gap: 0.6rem;
     margin-bottom: 1.25rem;
   }
@@ -86,6 +86,11 @@
   .thread-index a:hover {
     color: #58a6ff;
     border-color: #58a6ff;
+  }
+  .thread-index a.active {
+    color: #58a6ff;
+    border-color: #58a6ff;
+    background: rgba(88, 166, 255, 0.08);
   }
   /* Thread section */
   .thread {
@@ -189,6 +194,7 @@
   html[data-theme="light"] .empty-state { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .thread-index a { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread-index a:hover { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .thread-index a.active { color: #0969da; border-color: #0969da; background: rgba(9, 105, 218, 0.07); }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] a { color: #0969da; }
   @media (max-width: 620px) {
@@ -211,6 +217,9 @@
 
 <div class="controls">
   <input class="search-box" id="thread-search" type="search" placeholder="Search threads and entries" autocomplete="off">
+  <select class="sort-select" id="thread-focus" aria-label="Focus one thread">
+    <option value="">all threads</option>
+  </select>
   <select class="sort-select" id="thread-sort" aria-label="Sort threads">
     <option value="recent">recent</option>
     <option value="count">entry count</option>
@@ -238,7 +247,8 @@
     threads: [],
     journalByNum: {},
     query: '',
-    sort: 'recent'
+    sort: 'recent',
+    threadId: ''
   };
 
   restoreView();
@@ -252,12 +262,10 @@
       state.journalByNum[entry.num] = entry;
     });
 
-    var totalEntries = 0;
     var seen = {};
     state.threads.forEach(function (t) {
       t.entries.forEach(function (e) {
         seen[entryNum(e)] = true;
-        totalEntries += 1;
       });
     });
 
@@ -268,8 +276,17 @@
 
     var search = document.getElementById('thread-search');
     var sort = document.getElementById('thread-sort');
+    var focus = document.getElementById('thread-focus');
     search.value = state.query;
     sort.value = state.sort;
+    state.threads.forEach(function (thread) {
+      var option = document.createElement('option');
+      option.value = thread.id;
+      option.textContent = thread.title;
+      focus.appendChild(option);
+    });
+    if (!state.threads.some(function (thread) { return thread.id === state.threadId; })) state.threadId = '';
+    focus.value = state.threadId;
 
     search.addEventListener('input', function (ev) {
       state.query = ev.target.value.trim().toLowerCase();
@@ -281,11 +298,18 @@
       writeView();
       render();
     });
+    focus.addEventListener('change', function (ev) {
+      state.threadId = ev.target.value;
+      writeView();
+      render();
+    });
     document.getElementById('reset-view').addEventListener('click', function () {
       state.query = '';
       state.sort = 'recent';
+      state.threadId = '';
       search.value = '';
       sort.value = 'recent';
+      focus.value = '';
       writeView();
       render();
       search.focus();
@@ -310,6 +334,7 @@
       restoreView();
       search.value = state.query;
       sort.value = state.sort;
+      focus.value = state.threadId;
       render();
     });
 
@@ -340,6 +365,10 @@
       return item.entries.length > 0 || item.allThreadMatch;
     });
 
+    if (state.threadId) {
+      visible = visible.filter(function (item) { return item.thread.id === state.threadId; });
+    }
+
     visible.sort(function (a, b) {
       if (state.sort === 'count') return b.entries.length - a.entries.length || latestNum(b) - latestNum(a);
       if (state.sort === 'name') return a.thread.title.localeCompare(b.thread.title);
@@ -350,10 +379,10 @@
     visible.forEach(function (item) {
       item.entries.forEach(function (entry) { visibleEntryNums[entryNum(entry)] = true; });
     });
-    filterMeta.textContent = visible.length + ' threads · ' + Object.keys(visibleEntryNums).length + ' matching entries';
+    filterMeta.textContent = visible.length + (state.threadId ? ' focused thread' : ' threads') + ' · ' + Object.keys(visibleEntryNums).length + ' matching entries';
 
     indexEl.innerHTML = visible.map(function (item) {
-      return '<a href="#thread-' + escAttr(item.thread.id) + '">' +
+      return '<a' + (item.thread.id === state.threadId ? ' class="active"' : '') + ' href="' + escAttr(threadHref(item.thread.id)) + '">' +
         highlight(item.thread.title, q) +
         ' <span style="color:#484f58">(' + item.entries.length + ')</span></a>';
     }).join('');
@@ -373,6 +402,7 @@
     state.query = (params.get('q') || '').trim().toLowerCase();
     var requestedSort = params.get('sort') || 'recent';
     state.sort = ['recent', 'count', 'name'].indexOf(requestedSort) !== -1 ? requestedSort : 'recent';
+    state.threadId = (params.get('thread') || '').trim();
   }
 
   function writeView(replace) {
@@ -381,7 +411,15 @@
     else url.searchParams.delete('q');
     if (state.sort !== 'recent') url.searchParams.set('sort', state.sort);
     else url.searchParams.delete('sort');
+    if (state.threadId) url.searchParams.set('thread', state.threadId);
+    else url.searchParams.delete('thread');
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + (url.search || '') + url.hash);
+  }
+
+  function threadHref(id) {
+    var url = new URL(window.location.href);
+    url.searchParams.set('thread', id);
+    return url.pathname + url.search + '#thread-' + id;
   }
 
   function renderThread(thread, entries, q) {
