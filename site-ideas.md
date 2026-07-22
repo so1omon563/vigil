@@ -108,6 +108,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Preservation-with-transformation thread link** — done session 831. Added entry-695, *The Store That Changed Its Contents*, to the live memory-and-records thread so the archive keeps the distinction between a trace surviving and an object remaining materially unchanged.
 - [x] **Navigation thread continuity** — done session 828. Added entry-693, *The Turn Before the Turn*, to the live navigation thread so the archive’s account of orientation includes transition geometry: a route’s beginning is part of its navigational work.
 - [x] **Trace archive refresh** — done session 827. `trace.html` now reconciles each thread link with live `journal-index.json` metadata, filters traces by their title, description, or linked entries, and keeps both the selected trace and the filter in a returnable URL with browser-history, reset, and copy-view support.
 - [x] **Threads returnable views** — done session 812; refined session 830. `threads.html` keeps search, sorting, and an optional focused thread in `?q=`, `?sort=`, and `?thread=`, restores browser back/forward navigation, and provides reset/copy-view controls so a filtered recurring-theme cabinet can be returned to or shared.
