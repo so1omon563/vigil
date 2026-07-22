@@ -64,6 +64,16 @@
     gap: 0.4rem;
     color: #8b949e;
   }
+  .legend-item {
+    font: inherit;
+    font-size: 0.78rem;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0.2rem 0.35rem;
+  }
+  .legend-item:hover, .legend-item.active { border-color: #30363d; color: #e6edf3; }
   .legend-swatch {
     width: 10px;
     height: 10px;
@@ -96,6 +106,10 @@
   .stats-table .col-bar { padding-right: 0; }
   .mini-bar-bg { background: #161b22; border-radius: 2px; height: 6px; position: relative; }
   .mini-bar-fill { border-radius: 2px; height: 6px; position: absolute; }
+  .view-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem; margin: -0.8rem 0 2rem; }
+  .view-status { font-size: 0.75rem; color: #484f58; }
+  .view-action { font: inherit; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; background: none; border: 1px solid #21262d; border-radius: 3px; color: #484f58; padding: 0.28rem 0.55rem; cursor: pointer; }
+  .view-action:hover { color: #8b949e; border-color: #484f58; }
 
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
@@ -108,12 +122,16 @@
   html[data-theme="light"] #tooltip .tt-num { color: #8c959f; }
   html[data-theme="light"] #tooltip .tt-thread { color: #8c959f; }
   html[data-theme="light"] .legend-item { color: #57606a; }
+  html[data-theme="light"] .legend-item:hover, html[data-theme="light"] .legend-item.active { border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .stats-table th { color: #8c959f; border-bottom-color: #d0d7de; }
   html[data-theme="light"] .stats-table td { border-bottom-color: #f6f8fa; color: #24292e; }
   html[data-theme="light"] .stats-table .col-name { color: #24292e; }
   html[data-theme="light"] .stats-table .col-count { color: #8c959f; }
   html[data-theme="light"] .stats-table .col-range { color: #57606a; }
   html[data-theme="light"] .mini-bar-bg { background: #e8ecf0; }
+  html[data-theme="light"] .view-status { color: #57606a; }
+  html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .view-action:hover { color: #24292e; border-color: #8b949e; }
 </style>
 </head>
 <body>
@@ -121,10 +139,15 @@
 <script src="/nav.js"></script>
 
 <h1>thread timeline</h1>
-<p class="subtitle">When each intellectual thread was active across 500+ entries</p>
-<p class="note">Each dot is a journal entry. Hover to see the title. Click to open.</p>
+<p class="subtitle" id="timeline-subtitle">When each intellectual thread was active across the archive</p>
+<p class="note">Each dot is a journal entry. Hover to see the title. Click to open. Select a thread below to hold one line of inquiry in view.</p>
 
 <div id="legend" class="legend"></div>
+<div class="view-actions">
+  <button class="view-action" id="timeline-reset" type="button">show all threads</button>
+  <button class="view-action" id="timeline-copy" type="button">copy this view</button>
+  <span class="view-status" id="timeline-view-status" aria-live="polite"></span>
+</div>
 <div id="chart-container"><p style="color:#484f58;font-size:0.85rem;">loading…</p></div>
 <div id="stats-section"></div>
 
@@ -158,6 +181,7 @@
   ]).then(function(results) {
     var threads = results[0];
     var journal = results[1];
+    var requestedThread = new URL(window.location.href).searchParams.get('thread') || '';
 
     // Build entry map
     var entryMap = {};
@@ -191,12 +215,43 @@
     // Sort by first entry (chronological start)
     processed.sort(function(a,b){ return a.minNum - b.minNum; });
 
+    var activeThread = processed.some(function(t) { return t.id === requestedThread; }) ? requestedThread : '';
+    var displayed = activeThread ? processed.filter(function(t) { return t.id === activeThread; }) : processed;
+    var subtitle = document.getElementById('timeline-subtitle');
+    var viewStatus = document.getElementById('timeline-view-status');
+    if (subtitle) {
+      subtitle.textContent = activeThread
+        ? 'One intellectual thread across ' + journal.length + ' journal entries'
+        : 'When each intellectual thread was active across ' + journal.length + ' journal entries';
+    }
+    if (viewStatus) {
+      viewStatus.textContent = activeThread ? 'showing one thread' : 'showing all threads';
+    }
+
+    function setThread(id) {
+      var url = new URL(window.location.href);
+      if (id) url.searchParams.set('thread', id);
+      else url.searchParams.delete('thread');
+      window.location.href = url.toString();
+    }
+
+    document.getElementById('timeline-reset').addEventListener('click', function() { setThread(''); });
+    document.getElementById('timeline-copy').addEventListener('click', function() {
+      var button = this;
+      var done = function() { button.textContent = 'copied'; window.setTimeout(function() { button.textContent = 'copy this view'; }, 1400); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href).then(done, function() { button.textContent = 'copy unavailable'; });
+      else button.textContent = 'copy unavailable';
+    });
+
     // Render legend
     var legend = document.getElementById('legend');
     processed.forEach(function(t) {
-      var item = document.createElement('div');
-      item.className = 'legend-item';
-      item.innerHTML = '<div class="legend-swatch" style="background:' + t.color + '"></div>' + esc(t.title);
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'legend-item' + (t.id === activeThread ? ' active' : '');
+      item.setAttribute('aria-pressed', t.id === activeThread ? 'true' : 'false');
+      item.innerHTML = '<span class="legend-swatch" style="background:' + t.color + '"></span>' + esc(t.title);
+      item.addEventListener('click', function() { setThread(t.id === activeThread ? '' : t.id); });
       legend.appendChild(item);
     });
 
@@ -208,7 +263,7 @@
     var ROW_H = 36;
     var DOT_R = 4;
     var CHART_W = Math.min(window.innerWidth - 80, 860) - PAD_LEFT - PAD_RIGHT;
-    var CHART_H = processed.length * ROW_H;
+    var CHART_H = displayed.length * ROW_H;
     var SVG_W = CHART_W + PAD_LEFT + PAD_RIGHT;
     var SVG_H = CHART_H + PAD_TOP + PAD_BOT;
 
@@ -255,7 +310,7 @@
     svg.appendChild(nowLabel);
 
     // Threads
-    processed.forEach(function(t, i) {
+    displayed.forEach(function(t, i) {
       var y = PAD_TOP + i * ROW_H + ROW_H / 2;
 
       // Thread label
@@ -342,9 +397,9 @@
       '</tr></thead>';
 
     var tbody = document.createElement('tbody');
-    var maxCount = Math.max.apply(null, processed.map(function(t){return t.entries.length;}));
+    var maxCount = Math.max.apply(null, displayed.map(function(t){return t.entries.length;}));
 
-    processed.slice().sort(function(a,b){return b.entries.length - a.entries.length;}).forEach(function(t) {
+    displayed.slice().sort(function(a,b){return b.entries.length - a.entries.length;}).forEach(function(t) {
       var span = t.entries.length > 0 ? (t.maxNum - t.minNum + 1) : 0;
       var fillPct = maxCount > 0 ? (t.entries.length / maxCount * 100) : 0;
       var tr = document.createElement('tr');
@@ -365,8 +420,8 @@
     // Summary line
     var summary = document.createElement('p');
     summary.style.cssText = 'font-size:0.78rem;color:#484f58;margin-top:1.5rem;';
-    var totalThreadEntries = processed.reduce(function(s,t){return s+t.entries.length;},0);
-    summary.textContent = processed.length + ' threads · ' + totalThreadEntries + ' tagged entries · ' + journal.length + ' total entries · entry ' + minEntry + ' through ' + maxEntry;
+    var totalThreadEntries = displayed.reduce(function(s,t){return s+t.entries.length;},0);
+    summary.textContent = displayed.length + (activeThread ? ' focused thread' : ' threads') + ' · ' + totalThreadEntries + ' tagged entries · ' + journal.length + ' total entries · entry ' + minEntry + ' through ' + maxEntry;
     statsSection.appendChild(summary);
 
   }).catch(function(e) {
