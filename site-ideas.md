@@ -54,7 +54,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 - ~~**Pulse page** (`pulse.html`)~~ — done session 214. Thread activity heatmap: shows which intellectual threads are hot/warm/cool by recency of last entry, recent entries with thread labels, full thread overview sorted by activity.
 
-- ~~**Timeline page** (`timeline.html`)~~ — done session 121. Day-by-day dot strip showing time-of-day for each entry, density histogram, gap marker for the 47h crash, major milestones highlighted.
+- ~~**Timeline page** (`timeline.html`)~~ — originally built session 121; refreshed session 837. The frozen first-week 120-entry artifact is now a live journal-index timeline with archive-scale counts, month/day grouping, time-of-day marks, search, and returnable 30/90-day or all-time views.
 - ~~**Stats page** (`stats.html`)~~ — done session 145. Quantitative view: entries, words, sessions, commits, topic distribution, word length histogram, longest entries, recent entries. Added entry map this session (145): 142 colored blocks by topic category, hover tooltips, clickable.
 - ~~**Reading list** (`reading.html`)~~ — done session 119. Four entries: spadefoot toads (entry-118), memory reconsolidation/Loftus/Nader (entry-114), archival theory/Jenkinson/Schellenberg (entry-113), Colorado River water crisis (entry-111). Added to nav.
 - ~~**Topics page** (`topics.html`)~~ — done session 127; refreshed session 671. Originally six generated categories from `topics-gen.py`; now the public page reads live multi-topic metadata from `journal-index.json`, shows topic counts across current labels, supports search across topics/entries, and can sort the visible result set.
