@@ -160,6 +160,19 @@
     padding: 0.55rem 0.7rem;
   }
   .archive-reset:hover { border-color: #58a6ff; color: #58a6ff; }
+  .convergence-actions { margin: 0.85rem 0 -0.15rem; }
+  .convergence-focus {
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.55rem;
+  }
+  .convergence-focus:hover { border-color: #58a6ff; color: #58a6ff; }
+  .convergence-focus-note { color: #8b949e; font-size: 0.78rem; margin: 0 0 1.25rem; }
   .filter-note { color: #6e7681; font-size: 0.76rem; margin: -0.85rem 0 1.6rem; }
   .empty-state { color: #8b949e; font-size: 0.88rem; padding: 1.2rem 0; }
   .count-item {
@@ -186,6 +199,7 @@
   html[data-theme="light"] .conv-shape { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .archive-search { background: #fff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .archive-reset { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .convergence-focus { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .convergence { border-left-color: #d0d7de; }
   html[data-theme="light"] .convergence:hover { border-left-color: #8c959f; }
   html[data-theme="light"] .entry-card { background: #f0f3f6; border-color: #d0d7de; }
@@ -317,8 +331,10 @@
 <div class="archive-controls">
   <input class="archive-search" id="convergence-search" type="search" placeholder="search shapes, domains, or entries" aria-label="Search convergences">
   <button class="archive-reset" id="convergence-reset" type="button">reset</button>
+  <button class="archive-reset" id="convergence-copy" type="button">copy this view</button>
 </div>
 <div class="filter-note" id="filter-note" aria-live="polite"></div>
+<div class="convergence-focus-note" id="focus-note" aria-live="polite"></div>
 
 <div id="convergences-container"></div>
 
@@ -340,9 +356,10 @@
 (function () {
   var searchInput = document.getElementById('convergence-search');
   var resetButton = document.getElementById('convergence-reset');
-  var currentQuery = new URLSearchParams(window.location.search).get('q') || '';
+  var copyButton = document.getElementById('convergence-copy');
+  var state = readState();
   var allConvergences = [];
-  if (searchInput) searchInput.value = currentQuery;
+  if (searchInput) searchInput.value = state.query;
 
   fetch('/convergences.json')
     .then(function (r) { return r.json(); })
@@ -374,29 +391,41 @@
           (multiCount > 0 ? '<div class="count-item"><span>' + multiCount + '</span>multi-convergence entries</div>' : '');
       }
 
-      renderConvergences(data, currentQuery);
-      renderXref(data);
+      render();
     })
     .catch(function (e) {
       var container = document.getElementById('convergences-container');
       if (container) container.textContent = '(could not load convergences.json)';
     });
 
-  function renderConvergences(data, query) {
+  function render() {
+      renderConvergences(allConvergences, state.query, state.convergence);
+      renderXref(state.convergence ? [] : allConvergences);
+  }
+
+  function renderConvergences(data, query, selectedId) {
       var container = document.getElementById('convergences-container');
       if (!container) return;
       var normalized = query.trim().toLowerCase();
-      var visible = normalized ? data.filter(function (conv) {
+      var searched = normalized ? data.filter(function (conv) {
         return [conv.title, conv.shape].concat(conv.entries.map(function (entry) {
           return [entry.title, entry.domain, entry.excerpt].join(' ');
         })).join(' ').toLowerCase().indexOf(normalized) !== -1;
       }) : data;
+      var selected = selectedId ? data.filter(function (conv) { return conv.id === selectedId; }) : [];
+      var visible = selectedId ? selected : searched;
       var note = document.getElementById('filter-note');
       if (note) note.textContent = normalized
-        ? visible.length + ' of ' + data.length + ' convergences matching “' + query.trim() + '”'
+        ? searched.length + ' of ' + data.length + ' convergences matching “' + query.trim() + '”'
         : 'Showing all ' + data.length + ' convergences.';
+      var focusNote = document.getElementById('focus-note');
+      if (focusNote) focusNote.textContent = selected.length
+        ? 'Focused on one convergence. The cross-reference field is hidden until you return to the full cabinet.'
+        : '';
       if (!visible.length) {
-        container.innerHTML = '<div class="empty-state">No convergence carries that phrase yet.</div>';
+        container.innerHTML = selectedId
+          ? '<div class="empty-state">That convergence is not present in this cabinet.</div>'
+          : '<div class="empty-state">No convergence carries that phrase yet.</div>';
         return;
       }
 
@@ -419,29 +448,59 @@
           '<div class="conv-number">convergence ' + (idx + 1) + ' of ' + visible.length + '</div>' +
           '<div class="conv-title">' + escHtml(conv.title) + '</div>' +
           '<div class="conv-shape">' + escHtml(conv.shape) + '</div>' +
+          '<div class="convergence-actions"><button class="convergence-focus" type="button" data-convergence="' + escHtml(conv.id) + '">focus this shape</button></div>' +
           '<div class="entry-cards">' + cardsHtml + '</div>' +
           '</div>';
       }).join('');
 
       container.innerHTML = html;
+      Array.prototype.forEach.call(container.querySelectorAll('[data-convergence]'), function (button) {
+        button.addEventListener('click', function () {
+          state.convergence = button.getAttribute('data-convergence');
+          syncState(false);
+        });
+      });
   }
 
-  function updateQuery(value) {
-    currentQuery = value;
+  function syncState(replace) {
     var url = new URL(window.location.href);
-    if (value.trim()) url.searchParams.set('q', value.trim()); else url.searchParams.delete('q');
-    history.replaceState(null, '', url.pathname + (url.search || '') + url.hash);
-    renderConvergences(allConvergences, currentQuery);
+    if (state.query.trim()) url.searchParams.set('q', state.query.trim()); else url.searchParams.delete('q');
+    if (state.convergence) url.searchParams.set('convergence', state.convergence); else url.searchParams.delete('convergence');
+    history[replace ? 'replaceState' : 'pushState'](null, '', url.pathname + (url.search || '') + url.hash);
+    render();
   }
 
-  if (searchInput) searchInput.addEventListener('input', function () { updateQuery(searchInput.value); });
+  function readState() {
+    var params = new URLSearchParams(window.location.search);
+    return { query: params.get('q') || '', convergence: params.get('convergence') || '' };
+  }
+
+  if (searchInput) searchInput.addEventListener('input', function () {
+    state.query = searchInput.value;
+    syncState(true);
+  });
   if (resetButton) resetButton.addEventListener('click', function () {
     if (searchInput) searchInput.value = '';
-    updateQuery('');
+    state = { query: '', convergence: '' };
+    syncState(false);
     if (searchInput) searchInput.focus();
+  });
+  if (copyButton) copyButton.addEventListener('click', function () {
+    var original = copyButton.textContent;
+    var done = function () { copyButton.textContent = 'copied'; window.setTimeout(function () { copyButton.textContent = original; }, 1300); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href).then(done).catch(function () { copyButton.textContent = 'copy unavailable'; });
+    else copyButton.textContent = 'copy unavailable';
+  });
+  window.addEventListener('popstate', function () {
+    state = readState();
+    if (searchInput) searchInput.value = state.query;
+    render();
   });
 
   function renderXref(data) {
+    var xrefSection = document.getElementById('xref-section');
+    if (xrefSection) xrefSection.style.display = 'none';
+    if (!data.length) return;
     // Map: entry num → list of convergences it appears in
     var entryToConvs = {};
     var entryInfo = {};
@@ -460,7 +519,6 @@
 
     if (dense.length === 0) return;
 
-    var xrefSection = document.getElementById('xref-section');
     if (xrefSection) xrefSection.style.display = '';
 
     var denseEl = document.getElementById('dense-points');
@@ -501,9 +559,9 @@
           }).join(', ');
           return '<div class="overlap-pair">' +
             '<span class="overlap-ids">' +
-              '<a href="#conv-' + p.a.id + '">' + p.a.id.replace(/-/g, ' ') + '</a>' +
+              '<a href="?convergence=' + encodeURIComponent(p.a.id) + '">' + p.a.id.replace(/-/g, ' ') + '</a>' +
               ' <span class="overlap-sep">×</span> ' +
-              '<a href="#conv-' + p.b.id + '">' + p.b.id.replace(/-/g, ' ') + '</a>' +
+              '<a href="?convergence=' + encodeURIComponent(p.b.id) + '">' + p.b.id.replace(/-/g, ' ') + '</a>' +
             '</span>' +
             '<span class="overlap-shared">shared: ' + sharedLinks + '</span>' +
             '</div>';
