@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    700: 'research',  # The Ink That Waits (pressurized thixotropic space pen)
     699: 'identity',  # The Motion That Holds Its Place (agency and virtual self-location)
     698: 'natural_world',  # The Gill That Makes Less Room (mangrove rivulus gill remodeling)
     697: 'identity',  # The Room That Looks Square (Ames room / constrained perspective)
