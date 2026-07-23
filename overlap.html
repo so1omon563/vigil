@@ -182,6 +182,19 @@
     margin-bottom: 0.9rem;
   }
   .analysis-para:last-child { margin-bottom: 0; }
+  .relationship {
+    margin: 0 0 2.5rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #21262d;
+    border-left: 3px solid #58a6ff;
+    background: #161b22;
+  }
+  .relationship[hidden] { display: none; }
+  .relationship-title { color: #e6edf3; font-size: 0.9rem; margin-bottom: 0.35rem; }
+  .relationship-copy { font: inherit; font-size: 0.7rem; color: #58a6ff; background: transparent; border: 0; padding: 0; cursor: pointer; }
+  .relationship-copy:hover { text-decoration: underline; }
+  .relationship-note { color: #8b949e; font-size: 0.78rem; margin: 0.4rem 0 0.65rem; }
+  .relationship-entries { display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem; font-size: 0.76rem; }
   .chain {
     margin: 1.2rem 0 1.2rem 0;
     padding: 0.9rem 1rem;
@@ -231,6 +244,9 @@
   html[data-theme="light"] .analysis-para { color: #57606a; }
   html[data-theme="light"] .back { color: #8c959f; }
   html[data-theme="light"] .meta { color: #8c959f; }
+  html[data-theme="light"] .relationship { background: #f6f8fa; border-color: #d0d7de; border-left-color: #0969da; }
+  html[data-theme="light"] .relationship-title { color: #24292e; }
+  html[data-theme="light"] .relationship-note { color: #57606a; }
 </style>
 </head>
 <body>
@@ -242,8 +258,8 @@
 <div class="meta" id="meta-counts">loading…</div>
 
 <div class="intro">
-  <p>Which analytical frameworks share entries? This page maps co-occurrence across all three framework types — convergences (recurring structural shapes), patterns (behavioral regularities), and threads (topical threads).</p>
-  <p>A high co-occurrence between two frameworks doesn't mean they're redundant. It means a phenomenon was dense enough to be captured by both simultaneously, from different angles.</p>
+  <p>Some entries are held by more than one way of looking. This page compares recurring structural shapes, patterns, and subject threads to show where the archive has made the same encounter legible from different directions.</p>
+  <p>Choose a numbered cell to hold that relationship open. A shared entry is not proof that two frameworks are interchangeable; it is a place where they both have something to say.</p>
 </div>
 
 <div id="page-root"></div>
@@ -339,6 +355,60 @@ Promise.all([
 
   const root = document.getElementById('page-root');
 
+  // A chosen pair becomes a small, returnable reading route rather than a tooltip
+  // that disappears as soon as the pointer leaves the matrix.
+  const relationship = document.createElement('section');
+  relationship.className = 'relationship';
+  relationship.setAttribute('aria-live', 'polite');
+  const relationshipTitle = document.createElement('div');
+  relationshipTitle.className = 'relationship-title';
+  const relationshipNote = document.createElement('div');
+  relationshipNote.className = 'relationship-note';
+  const relationshipEntries = document.createElement('div');
+  relationshipEntries.className = 'relationship-entries';
+  relationship.append(relationshipTitle, relationshipNote, relationshipEntries);
+  root.appendChild(relationship);
+
+  function frameworkToken(f) { return f.type + ':' + f.id; }
+  function findFramework(token) { return all.find(f => frameworkToken(f) === token); }
+  function showRelationship(a, b, writeHistory) {
+    const shared = overlap(a, b);
+    relationshipTitle.textContent = a.label + ' ∩ ' + b.label;
+    relationshipNote.textContent = shared.length + ' shared ' + (shared.length === 1 ? 'entry' : 'entries') + '. These are the places where both lenses touch the same record.';
+    relationshipEntries.innerHTML = '';
+    shared.forEach(n => {
+      const link = document.createElement('a');
+      link.href = entryUrl(n);
+      link.textContent = 'entry-' + n + ': ' + ((entryMeta[n] || {}).title || 'untitled');
+      relationshipEntries.appendChild(link);
+    });
+    const copy = document.createElement('button');
+    copy.className = 'relationship-copy';
+    copy.type = 'button';
+    copy.textContent = 'copy this relationship';
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(location.href); copy.textContent = 'copied'; }
+      catch (_) { copy.textContent = 'copy unavailable'; }
+    });
+    relationshipEntries.appendChild(copy);
+    relationship.hidden = false;
+    if (writeHistory) {
+      const url = new URL(location.href);
+      url.searchParams.set('a', frameworkToken(a));
+      url.searchParams.set('b', frameworkToken(b));
+      history.pushState({ a: frameworkToken(a), b: frameworkToken(b) }, '', url);
+    }
+    relationship.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function restoreRelationship() {
+    const params = new URLSearchParams(location.search);
+    const a = findFramework(params.get('a'));
+    const b = findFramework(params.get('b'));
+    if (a && b && a !== b) showRelationship(a, b, false);
+    else relationship.hidden = true;
+  }
+  window.addEventListener('popstate', restoreRelationship);
+
   // ─── Section 1: Convergence matrix ─────────────────────
   {
     const sec = document.createElement('div');
@@ -346,7 +416,7 @@ Promise.all([
 
     const note = document.createElement('div');
     note.className = 'matrix-note';
-    note.textContent = 'Each cell shows the number of entries that appear in both convergences. Hover for entry titles. Most overlap traces back to one or two dense entries — particularly entry-285 (The Ratchet), which instantiates five convergences simultaneously.';
+    note.textContent = 'Each cell shows the number of entries that appear in both convergences. Hover for titles; select a numbered cell to keep its shared entries in view.';
     sec.appendChild(note);
 
     const wrap = document.createElement('div');
@@ -407,6 +477,7 @@ Promise.all([
               positionTooltip(ev);
             });
             td.addEventListener('mouseleave', hideTooltip);
+            td.addEventListener('click', function() { showRelationship(rowFw, colFw, true); });
           }
         }
       });
@@ -442,31 +513,7 @@ Promise.all([
     root.appendChild(sec);
   }
 
-  // ─── Section 2: Structural analysis ─────────────────────
-  {
-    const sec = document.createElement('div');
-    sec.className = 'analysis-block';
-    sec.innerHTML = `
-      <div class="section-header">structural relationships</div>
-      <div class="analysis-para">Entry-285, <a href="/journal/entry-285.html">The Ratchet</a>, is the source of most convergence overlap. It's the critical period for visual cortex development: perineuronal nets condense based on cumulative activity, closing plasticity regardless of whether the activity was correct.</div>
-      <div class="analysis-para">Five convergences apply simultaneously — not because they're measuring the same thing, but because the critical period instantiates a configuration that satisfies all five conditions at once. The shapes are entangled:</div>
-      <div class="chain">
-        <div class="chain-step"><span class="chain-arrow">1.</span><span><span class="chain-label">commits-without-verification</span> — no upstream quality check; activity is the only available signal</span></div>
-        <div class="chain-step"><span class="chain-arrow">↓</span><span>if activity is the only signal, the mechanism counts uses rather than correctness</span></div>
-        <div class="chain-step"><span class="chain-arrow">2.</span><span><span class="chain-label">use-closes-mechanism</span> — accumulated use triggers closure; the window closes because it was open, not because it was done</span></div>
-        <div class="chain-step"><span class="chain-arrow">↓</span><span>the substrate tracking use (perineuronal nets, chromatin) becomes the actual governor</span></div>
-        <div class="chain-step"><span class="chain-arrow">3.</span><span><span class="chain-label">infrastructure-invisible-to-process</span> — the cortical activity running on top cannot observe or negotiate with the substrate governing it</span></div>
-        <div class="chain-step"><span class="chain-arrow">↓</span><span>the threshold isn't a fixed wall; it's a state the use-tracking substrate reaches</span></div>
-        <div class="chain-step"><span class="chain-arrow">4.</span><span><span class="chain-label">threshold-as-calibration-state</span> — the period ends when suppressor deployment reaches a state, not when a clock runs out</span></div>
-        <div class="chain-step"><span class="chain-arrow">5.</span><span><span class="chain-label">capacity-held-under-suppression</span> — plasticity machinery persists in adult tissue; it's suppressed, not removed</span></div>
-      </div>
-      <div class="analysis-para">The five shapes aren't independent structural patterns that happen to co-occur. They're facets of a single configuration: a system in which the only feedback channel is activity-quantity, where that quantity governs a substrate invisible to the process, and where the substrate transitions the mechanism from open to suppressed rather than open to absent.</div>
-      <div class="analysis-para">Compare entry-253, <a href="/journal/entry-253.html">Already Decided</a>, which also has five framework appearances — but a different combination: two convergences, two patterns, one thread. The hollow face illusion involves a different configuration (top-down prior overriding explicit knowledge), and the frameworks that stack on it reflect that difference.</div>
-    `;
-    root.appendChild(sec);
-  }
-
-  // ─── Section 3: Densest entries ─────────────────────────
+  // ─── Section 2: Densest entries ─────────────────────────
   {
     const sec = document.createElement('div');
     sec.innerHTML = '<div class="section-header">dense entries — most frameworks</div>';
@@ -520,14 +567,14 @@ Promise.all([
     root.appendChild(sec);
   }
 
-  // ─── Section 4: Full overlap matrix (all frameworks) ────
+  // ─── Section 3: Full overlap matrix (all frameworks) ────
   {
     const sec = document.createElement('div');
     sec.innerHTML = '<div class="section-header">all frameworks — cross-type overlap</div>';
 
     const note = document.createElement('div');
     note.className = 'matrix-note';
-    note.textContent = 'Convergences (blue labels) × Patterns (yellow labels) × Threads (grey labels). Hover for shared entries. The consciousness thread and structural-blindspot pattern show the widest overlap — both span many entries across multiple decades of journal material.';
+    note.textContent = 'Convergences (blue labels), patterns (yellow labels), and threads (grey labels). Hover for shared titles; select a numbered cell to make a direct route through that overlap.';
     sec.appendChild(note);
 
     // Type-ordered groups for full matrix
@@ -589,6 +636,7 @@ Promise.all([
               positionTooltip(ev);
             });
             td.addEventListener('mouseleave', hideTooltip);
+            td.addEventListener('click', function() { showRelationship(rowFw, colFw, true); });
           }
         }
       });
@@ -598,6 +646,8 @@ Promise.all([
     sec.appendChild(wrap);
     root.appendChild(sec);
   }
+
+  restoreRelationship();
 
 }).catch(err => {
   document.getElementById('page-root').textContent = 'error: ' + err.message;

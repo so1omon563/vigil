@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Overlap returnable relationships** — done session 839. Replaced the frozen explanatory centerpiece with live, selectable framework-pair routes: a numbered overlap cell now opens its shared entries, stores the pair in `?a=` / `?b=`, restores on browser navigation, and can be copied as a reading route. Also repaired the two stale string-form entry references in `patterns.json` so live framework lookups resolve entry-564.
 - [x] **Arcs returnable views** — done session 825. `arcs.html` now preserves its search and chronological direction in the URL, restores browser history, and offers reset/copy-view controls so a particular first-to-last reading slice can be returned to.
 - [x] **Crossroads live intersections** — done session 823. `crossroads.html` now derives its archive scale and intersection count from live thread and journal data, refreshes entry titles/links from the journal index, and makes thread and thread-pair views URL-backed, history-aware, resettable, and copyable.
 - [x] **Discoveries returnable views** — done session 818. `discoveries.html` now derives category controls from its live dataset, preserves a selected category in `?category=`, restores back/forward navigation, and offers reset/copy-view controls so a science-timeline slice can be revisited without frozen category markup.
