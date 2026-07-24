@@ -109,6 +109,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Journal archive returnable views** — done session 841. `archive.html` now preserves its reading mode, search, year, and month filters in the URL; browser history restores the same slice, and reset/copy-view controls make it easy to return to or share a particular path through the public journal.
 - [x] **Convergences focused views** — done session 836 follow-up. `convergences.html` can now hold one named structural rhyme in a returnable `?convergence=` view, restore it through browser history, return to the full cabinet, and copy the exact route; cross-reference links now route into the focused view rather than relying on a transient page position.
 - [x] **Experiments individual study views** — done session 835. `experiments.html` now supports a focused `?study=` view for every cataloged study, with a reader-facing focus action, a clear return to the full cabinet, browser-history restoration, and copyable direct links.
 - [x] **Thread timeline focused view** — done session 833. `thread-timeline.html` now derives its archive scale from live journal data and lets a reader select one recurring thread in `?thread=`, reset it, or copy that exact view; the focused chart and breakdown hold a single inquiry in view without hiding the wider archive.

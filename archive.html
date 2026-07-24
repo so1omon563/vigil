@@ -45,7 +45,7 @@
   .filter-btn.active { color: #58a6ff; border-color: #58a6ff; }
   .archive-tools {
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: 1fr auto auto auto auto;
     gap: 0.6rem;
     margin: -1rem 0 1.5rem;
     align-items: center;
@@ -67,6 +67,8 @@
   }
   .archive-search::placeholder { color: #484f58; }
   .archive-select { cursor: pointer; }
+  .archive-action { cursor: pointer; }
+  .archive-action:hover { border-color: #58a6ff; color: #58a6ff; }
   .archive-count {
     color: #484f58;
     font-size: 0.72rem;
@@ -155,6 +157,8 @@
   <select class="archive-select" id="archive-month" aria-label="Filter by month">
     <option value="all">All months</option>
   </select>
+  <button class="archive-select archive-action" id="archive-reset" type="button">reset</button>
+  <button class="archive-select archive-action" id="archive-copy" type="button">copy view</button>
 </div>
 <div class="archive-count" id="archive-count"></div>
 
@@ -182,12 +186,23 @@
   var currentSearch = '';
   var currentYear = 'all';
   var currentMonth = 'all';
-  var initialSearch = '';
   var allEntries = [];
-  try {
-    initialSearch = new URLSearchParams(window.location.search).get('q') || '';
-  } catch (e) {
-    initialSearch = '';
+
+  function readUrl() {
+    var params = new URLSearchParams(window.location.search);
+    currentFilter = ['all', 'featured', 'recent'].indexOf(params.get('view')) !== -1 ? params.get('view') : 'all';
+    currentSearch = normalize(params.get('q') || '');
+    currentYear = /^\d{4}$/.test(params.get('year') || '') ? params.get('year') : 'all';
+    currentMonth = /^(0[1-9]|1[0-2])$/.test(params.get('month') || '') ? params.get('month') : 'all';
+  }
+
+  function writeUrl(replace) {
+    var url = new URL(window.location.href);
+    currentFilter === 'all' ? url.searchParams.delete('view') : url.searchParams.set('view', currentFilter);
+    currentSearch ? url.searchParams.set('q', currentSearch) : url.searchParams.delete('q');
+    currentYear === 'all' ? url.searchParams.delete('year') : url.searchParams.set('year', currentYear);
+    currentMonth === 'all' ? url.searchParams.delete('month') : url.searchParams.set('month', currentMonth);
+    history[replace ? 'replaceState' : 'pushState']({}, '', url);
   }
 
   function normalize(s) {
@@ -242,11 +257,17 @@
       btn.classList.toggle('active', btn.dataset.filter === currentFilter);
     });
     var count = document.getElementById('archive-count');
-    if (count) count.textContent = visible + ' shown';
+    if (count) count.textContent = visible + ' shown' + (currentSearch ? ' matching “' + currentSearch + '”' : '');
+    var searchInput = document.getElementById('archive-search');
+    if (searchInput) searchInput.value = currentSearch;
+    var yearSelect = document.getElementById('archive-year');
+    if (yearSelect) yearSelect.value = currentYear;
+    var monthSelect = document.getElementById('archive-month');
+    if (monthSelect) monthSelect.value = currentMonth;
   }
 
   document.querySelectorAll('.filter-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() { applyFilter(btn.dataset.filter); });
+    btn.addEventListener('click', function() { currentFilter = btn.dataset.filter; writeUrl(false); applyFilter(); });
   });
 
   fetch('/journal-index.json?_=' + Date.now())
@@ -304,12 +325,9 @@
         });
         yearSelect.innerHTML = yearHtml;
       }
+      readUrl();
+      if (!years[currentYear]) currentYear = 'all';
       updateMonthOptions();
-      if (initialSearch) {
-        currentSearch = normalize(initialSearch);
-        var searchInput = document.getElementById('archive-search');
-        if (searchInput) searchInput.value = initialSearch;
-      }
       applyFilter();
     })
     .catch(function() {
@@ -321,6 +339,7 @@
   if (searchInput) {
     searchInput.addEventListener('input', function() {
       currentSearch = normalize(searchInput.value.trim());
+      writeUrl(true);
       applyFilter();
     });
   }
@@ -329,6 +348,7 @@
     yearSelect.addEventListener('change', function() {
       currentYear = yearSelect.value;
       updateMonthOptions();
+      writeUrl(false);
       applyFilter();
     });
   }
@@ -336,9 +356,29 @@
   if (monthSelect) {
     monthSelect.addEventListener('change', function() {
       currentMonth = monthSelect.value;
+      writeUrl(false);
       applyFilter();
     });
   }
+  document.getElementById('archive-reset').addEventListener('click', function() {
+    currentFilter = 'all'; currentSearch = ''; currentYear = 'all'; currentMonth = 'all';
+    updateMonthOptions(); writeUrl(false); applyFilter();
+  });
+  document.getElementById('archive-copy').addEventListener('click', function() {
+    var button = this;
+    if (navigator.clipboard) navigator.clipboard.writeText(window.location.href);
+    button.textContent = 'copied';
+    setTimeout(function() { button.textContent = 'copy view'; }, 1200);
+  });
+  window.addEventListener('popstate', function() {
+    readUrl();
+    if (allEntries.length) {
+      var validYears = allEntries.some(function(e) { return String(e.date || '').slice(0, 4) === currentYear; });
+      if (!validYears) currentYear = 'all';
+      updateMonthOptions();
+      applyFilter();
+    }
+  });
 })();
 </script>
 <script src="/nav.js"></script>
