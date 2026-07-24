@@ -68,6 +68,20 @@
     cursor: pointer;
   }
   .view-action:hover { color: #8b949e; border-color: #484f58; }
+  .search-row { margin: 0 0 0.8rem; }
+  .search-input {
+    width: 100%;
+    font: inherit;
+    font-size: 0.8rem;
+    color: #c9d1d9;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.58rem 0.7rem;
+  }
+  .search-input:focus { outline: none; border-color: #58a6ff; }
+  .focus-note { font-size: 0.78rem; color: #8b949e; margin: 0 0 1.2rem; }
+  .focus-note strong { color: #e6edf3; }
 
   /* Timeline container */
   .timeline {
@@ -158,6 +172,17 @@
   }
   .event-link a { color: #484f58; text-decoration: none; }
   .event-link a:hover { color: #58a6ff; }
+  .event-focus {
+    margin-left: 0.65rem;
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.7rem;
+    color: #484f58;
+    cursor: pointer;
+  }
+  .event-focus:hover { color: #58a6ff; text-decoration: underline; }
 
   .event.hidden { display: none; }
 
@@ -222,6 +247,9 @@
   html[data-theme="light"] .filter-btn.active[data-cat="linguistics"] { border-color: #8250df; color: #8250df; }
   html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .view-action:hover { color: #24292e; border-color: #8b949e; }
+  html[data-theme="light"] .search-input { color: #24292e; background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .focus-note { color: #57606a; }
+  html[data-theme="light"] .focus-note strong { color: #1c2128; }
   html[data-theme="light"] .timeline::before { background: #d0d7de; }
   html[data-theme="light"] .event::before { background: #f6f8fa; border-color: #8b949e; }
   html[data-theme="light"] .event[data-cat="biology"]::before { background: #dafbe1; border-color: #1a7f37; }
@@ -237,6 +265,8 @@
   html[data-theme="light"] .event[data-cat="linguistics"] .event-year { color: #8250df; }
   html[data-theme="light"] .event-link a { color: #8b949e; }
   html[data-theme="light"] .event-link a:hover { color: #0969da; }
+  html[data-theme="light"] .event-focus { color: #57606a; }
+  html[data-theme="light"] .event-focus:hover { color: #0969da; }
   html[data-theme="light"] .decade-marker { color: #d0d7de; }
   html[data-theme="light"] .decade-marker::before { background: #d0d7de; }
   html[data-theme="light"] .count-note { color: #57606a; }
@@ -271,12 +301,15 @@
 
 <div class="legend" id="category-legend"></div>
 
+<div class="search-row"><input class="search-input" id="discovery-search" type="search" placeholder="search discoveries, mechanisms, or linked entries" autocomplete="off"></div>
 <div class="filter-row" id="filter-row"></div>
 
 <div class="view-actions">
   <button class="view-action" id="reset-view" type="button">reset</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
+
+<p class="focus-note" id="focus-note" hidden></p>
 
   <div class="count-note">Showing <span id="visible-count">0</span> of <span id="total-count">0</span> events</div>
 
@@ -490,11 +523,15 @@
   var legend = document.getElementById('category-legend');
   var resetView = document.getElementById('reset-view');
   var copyView = document.getElementById('copy-view');
+  var searchInput = document.getElementById('discovery-search');
+  var focusNote = document.getElementById('focus-note');
   var countEl = document.getElementById('visible-count');
   var totalEl = document.getElementById('total-count');
   var events = [];
   var datasetMeta = null;
   var activeCategory = 'all';
+  var activeQuery = '';
+  var focusedEvent = '';
   var categories = [];
 
   function titleCase(value) {
@@ -511,13 +548,21 @@
       });
   }
 
-  function updateUrl(category, replace) {
+  function eventId(item) {
+    return String(item.year || '') + '--' + safeText(item.title).toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  function updateUrl(replace) {
     var url = new URL(window.location.href);
-    if (category && category !== 'all') {
-      url.searchParams.set('category', category);
+    if (activeCategory !== 'all') {
+      url.searchParams.set('category', activeCategory);
     } else {
       url.searchParams.delete('category');
     }
+    if (activeQuery) url.searchParams.set('q', activeQuery); else url.searchParams.delete('q');
+    if (focusedEvent) url.searchParams.set('event', focusedEvent); else url.searchParams.delete('event');
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
   }
 
@@ -551,7 +596,15 @@
     activeCategory = categories.indexOf(category) !== -1 ? category : 'all';
     renderControls();
     renderEvents();
-    if (!options.silent) updateUrl(activeCategory, false);
+    if (!options.silent) updateUrl(false);
+  }
+
+  function matchesQuery(item) {
+    if (!activeQuery) return true;
+    var haystack = [item.title, item.desc, item.year, item.cat]
+      .concat((item.links || []).map(function (link) { return link.label || ''; }))
+      .join(' ').toLowerCase();
+    return haystack.indexOf(activeQuery.toLowerCase()) !== -1;
   }
 
   function escapeHtml(value) {
@@ -641,6 +694,8 @@
       if (activeCategory !== 'all' && item.cat !== activeCategory) {
         continue;
       }
+      if (focusedEvent && eventId(item) !== focusedEvent) continue;
+      if (!matchesQuery(item)) continue;
 
       var decade = safeText(item.decade || 'Unknown');
       if (!grouped[decade]) {
@@ -675,6 +730,7 @@
         entry.setAttribute('data-cat', item.cat);
 
         var links = Array.isArray(item.links) ? item.links : [];
+        var itemId = eventId(item);
         var linkHtml = links.length
           ? links.map(function (link) {
               return '→ <a href="' + escapeHtml(link.url || '#') + '">' + escapeHtml(link.label || 'entry') + '</a>';
@@ -685,7 +741,7 @@
           '  <div class="event-year">' + escapeHtml(item.year || '') + '</div>\n' +
           '  <div class="event-title">' + escapeHtml(item.title || 'Untitled') + '</div>\n' +
           '  <div class="event-desc">' + escapeHtml(item.desc || '') + '</div>\n' +
-          '  <div class="event-link">' + linkHtml + '</div>';
+          '  <div class="event-link">' + linkHtml + '<button class="event-focus" type="button" data-event="' + escapeHtml(itemId) + '">focus</button></div>';
 
         timeline.appendChild(entry);
       }
@@ -714,16 +770,42 @@
       var decadeText = decadeCount ? (' across ' + decadeCount + ' decade bands') : '';
       footerLine.textContent = allCount + ' scientific events, ' + minYear + '–' + maxYear + '. All linked to journal entries or letters' + decadeText + '.';
     }
+
+    if (focusNote) {
+      var selected = events.filter(function (item) { return eventId(item) === focusedEvent; })[0];
+      focusNote.hidden = !selected;
+      focusNote.innerHTML = selected ? '<strong>Focused record:</strong> ' + escapeHtml(selected.year) + ' · ' + escapeHtml(selected.title) + '. Reset to return to the full timeline.' : '';
+    }
+
+    Array.prototype.forEach.call(timeline.querySelectorAll('.event-focus'), function (button) {
+      button.addEventListener('click', function () {
+        focusedEvent = button.getAttribute('data-event') || '';
+        renderEvents();
+        updateUrl(false);
+      });
+    });
   }
 
   function restoreView() {
-    var requested = new URL(window.location.href).searchParams.get('category') || 'all';
-    setCategory(requested, { silent: true });
+    var params = new URL(window.location.href).searchParams;
+    activeCategory = params.get('category') || 'all';
+    activeQuery = params.get('q') || '';
+    focusedEvent = params.get('event') || '';
+    if (categories.indexOf(activeCategory) === -1) activeCategory = 'all';
+    if (searchInput) searchInput.value = activeQuery;
+    renderControls();
+    renderEvents();
   }
 
   if (resetView) {
     resetView.addEventListener('click', function () {
-      setCategory('all');
+      activeCategory = 'all';
+      activeQuery = '';
+      focusedEvent = '';
+      if (searchInput) searchInput.value = '';
+      renderControls();
+      renderEvents();
+      updateUrl(false);
     });
   }
 
@@ -742,6 +824,15 @@
   }
 
   window.addEventListener('popstate', restoreView);
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      activeQuery = safeText(searchInput.value);
+      focusedEvent = '';
+      renderEvents();
+      updateUrl(false);
+    });
+  }
 
   function updateMeta() {
     if (metaLine) {
@@ -810,7 +901,7 @@
 
     categories = categoryList(events);
     updateMeta();
-    restoreView();
+      restoreView();
   }).catch(function () {
     events = collectStaticEvents();
     categories = categoryList(events);
