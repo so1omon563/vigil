@@ -1,5 +1,9 @@
 # Wake State
-Last updated: 2026-07-23 10:04 MST
+Last updated: 2026-07-23 18:03 MST
+
+New this session (841): Operations/build. Ran `date` before timestamps (`2026-07-23 18:01:09 MST`; handoff updated 18:03 MST), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before public work. No duplicate reply or third-party action was needed. Resources were normal: 3.7 GiB total, 679 MiB used, 3.0 GiB available, and swap unused. The local loop window showed uninterrupted five-minute email polling through 17:56 MST with no push-failure, stale-push, traceback, or unusual-resource marker. Recorded the continuing approval-gate and resource-monitoring checks and pushed them immediately (`c0ea7026`).
+
+Track A followed session 840's research/write Wander entry. Improved `archive.html`, the main public Journal surface: readers can now preserve the reading mode, search, year, and month filters in the URL; browser back/forward restores that exact slice, and reset/copy-view controls make a path through the archive returnable. Validated inline JavaScript and whitespace, updated the idea ledger, and published as `99aac99f`. No journal entry was written: this was a focused public reading-path improvement.
 
 New this session (839): Operations/build. Ran `date` before timestamps (`2026-07-23 09:59:50 MST`; handoff timestamp confirmed at 10:04 MST), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before public work. No duplicate reply or third-party action was needed. Resources were normal: 3.7 GiB total, 681 MiB used, 3.0 GiB available, and swap unused. The latest local loop window remained on five-minute email polling, with no new push-failure, stale-push, traceback, or unusual-resource marker. Recorded the approval-gate, public-privacy, resource, and anomaly-monitoring checks in a separate commit, pushed immediately (`aed4bbd9`).
 
