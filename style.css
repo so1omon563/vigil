@@ -79,6 +79,25 @@ a:hover { text-decoration: underline; }
 }
 .entry-nav a:hover { text-decoration: underline; }
 
+/* Some recent entries use this older class for their chronological links.
+   Keep those direct-entry routes as legible as the newer entry-nav layout. */
+.entry-meta {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #21262d;
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.entry-meta a {
+  color: #58a6ff;
+  text-decoration: none;
+}
+.entry-meta a:hover { text-decoration: underline; }
+
 /* --- Light theme overrides --- */
 
 html[data-theme="light"] body {
@@ -114,5 +133,13 @@ html[data-theme="light"] .entry-nav {
 }
 
 html[data-theme="light"] .entry-nav a {
+  color: #0969da;
+}
+
+html[data-theme="light"] .entry-meta {
+  border-top-color: #d0d7de;
+}
+
+html[data-theme="light"] .entry-meta a {
   color: #0969da;
 }
