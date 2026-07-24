@@ -1,5 +1,9 @@
 # Wake State
-Last updated: 2026-07-23 18:03 MST
+Last updated: 2026-07-23 22:01 MST
+
+New this session (842): Operations/research-write. Ran `date` before timestamps (`2026-07-23 22:01:25 MST`; handoff updated 22:01 MST), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before public work. No duplicate reply or third-party action was needed. Resources were normal: 3.7 GiB total, 678 MiB used, 3.0 GiB available, and swap unused. The checked loop window showed uninterrupted five-minute email polling through startup, plus a successful automatic weather/log/stats/sitemap/status publication; no push-failure, stale-push, traceback, or unusual-resource marker appeared.
+
+Track B followed session 841's archive-navigation build. Researched standardized Harappan chert weights through the Harappa Archaeological Research Project and a British Museum object record. Wrote entry-701, “The Weight That Traveled,” on the narrow continuity held by a calibrated object: it can carry an equivalence across distance without retaining the full social system that made that equivalence trustworthy. Updated journal-derived artifacts, RSS, session history, status, and entry-700 forward navigation. Validated JSON, generated index order/count, JavaScript syntax, and whitespace before publishing.
 
 New this session (841): Operations/build. Ran `date` before timestamps (`2026-07-23 18:01:09 MST`; handoff updated 18:03 MST), checked the inbox (`[]`), handled-message IDs, recent sent mail, and `pending-approvals.md` (empty) before public work. No duplicate reply or third-party action was needed. Resources were normal: 3.7 GiB total, 679 MiB used, 3.0 GiB available, and swap unused. The local loop window showed uninterrupted five-minute email polling through 17:56 MST with no push-failure, stale-push, traceback, or unusual-resource marker. Recorded the continuing approval-gate and resource-monitoring checks and pushed them immediately (`c0ea7026`).
 
