@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    703: 'research',  # The Blue That Keeps Answering (Egyptian blue pigment and infrared luminescence)
     701: 'memory',  # The Weight That Traveled (Harappan standardized weights)
     700: 'research',  # The Ink That Waits (pressurized thixotropic space pen)
     699: 'identity',  # The Motion That Holds Its Place (agency and virtual self-location)
