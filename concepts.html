@@ -87,6 +87,13 @@
   .filter-input:focus { border-color: #58a6ff; }
   .filter-input::placeholder { color: #484f58; }
   .filter-count { font-size: 0.75rem; color: #484f58; flex-shrink: 0; white-space: nowrap; }
+  .view-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: -0.85rem 0 1.7rem; }
+  .view-action { font: inherit; font-size: 0.7rem; color: #8b949e; background: transparent; border: 1px solid #30363d; border-radius: 3px; padding: 0.3rem 0.55rem; cursor: pointer; }
+  .view-action:hover { color: #58a6ff; border-color: #58a6ff; }
+  .view-action[hidden] { display: none; }
+  .focus-note { display: none; margin: -0.65rem 0 1.35rem; padding: 0.65rem 0.8rem; border-left: 2px solid #58a6ff; background: #58a6ff0c; color: #8b949e; font-size: 0.79rem; }
+  .focus-note.visible { display: block; }
+  .focus-note button { margin-left: 0.45rem; }
 
   /* Domain section */
   .domain-section { margin-bottom: 2.5rem; }
@@ -117,6 +124,10 @@
     color: #e6edf3;
     margin-bottom: 0.35rem;
   }
+  .concept-term-row { display: flex; align-items: baseline; gap: 0.55rem; margin-bottom: 0.35rem; }
+  .concept-term-row .concept-term { margin-bottom: 0; }
+  .concept-focus { font: inherit; font-size: 0.67rem; color: #484f58; background: transparent; border: 0; padding: 0; cursor: pointer; }
+  .concept-focus:hover { color: #58a6ff; text-decoration: underline; }
   .concept-def {
     font-size: 0.88rem;
     color: #c9d1d9;
@@ -242,6 +253,11 @@
   html[data-theme="light"] .filter-input { background: #fff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .filter-input:focus { border-color: #0969da; }
   html[data-theme="light"] .filter-count { color: #656d76; }
+  html[data-theme="light"] .view-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .view-action:hover { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .focus-note { background: #ddf4ff; color: #57606a; }
+  html[data-theme="light"] .concept-focus { color: #656d76; }
+  html[data-theme="light"] .concept-focus:hover { color: #0969da; }
   html[data-theme="light"] .domain-btn { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .domain-btn:hover { color: #24292e; border-color: #8c959f; }
   html[data-theme="light"] .domain-btn.active { background: #0969da18; color: #0969da; border-color: #0969da; }
@@ -287,6 +303,12 @@
   <span class="filter-count" id="filter-count">45 concepts</span>
 </div>
 
+<div class="view-actions" aria-label="Glossary view controls">
+  <button class="view-action" id="reset-view" type="button" hidden>reset view</button>
+  <button class="view-action" id="copy-view" type="button">copy view</button>
+</div>
+<div class="focus-note" id="focus-note">Holding one term in view.<button class="view-action" id="return-to-glossary" type="button">return to glossary</button></div>
+
 <div id="concepts-container"></div>
 <div class="empty-state" id="empty-state">No concepts match.</div>
 
@@ -317,6 +339,7 @@
   };
 
   var activeDomain = null; // null = all
+  var focusedConcept = null;
   var latestEntries = [];
   var newerEntries = [];
   var maxConceptEntry = 0;
@@ -432,6 +455,10 @@
       var filterCount = document.getElementById('filter-count');
       var emptyState = document.getElementById('empty-state');
       var domainFilterEl = document.getElementById('domain-filters');
+      var resetView = document.getElementById('reset-view');
+      var copyView = document.getElementById('copy-view');
+      var focusNote = document.getElementById('focus-note');
+      var returnToGlossary = document.getElementById('return-to-glossary');
 
       // Group by domain
       var groups = {};
@@ -460,8 +487,10 @@
       allBtn.textContent = 'all';
       allBtn.addEventListener('click', function () {
         activeDomain = null;
+        focusedConcept = null;
         Object.values(btns).forEach(function (b) { b.classList.remove('active'); });
         allBtn.classList.add('active');
+        writeView('pushState');
         applyFilter(filterInput.value);
       });
       domainFilterEl.appendChild(allBtn);
@@ -471,6 +500,7 @@
         btn.className = 'domain-btn';
         btn.textContent = (DOMAIN_LABEL[domain] || domain).toLowerCase();
         btn.addEventListener('click', function () {
+          focusedConcept = null;
           if (activeDomain === domain) {
             activeDomain = null;
             btn.classList.remove('active');
@@ -481,11 +511,39 @@
             allBtn.classList.remove('active');
             btn.classList.add('active');
           }
+          writeView('pushState');
           applyFilter(filterInput.value);
         });
         btns[domain] = btn;
         domainFilterEl.appendChild(btn);
       });
+
+      function readView() {
+        var params = new URLSearchParams(window.location.search);
+        var requestedDomain = params.get('domain');
+        activeDomain = domainOrder.indexOf(requestedDomain) !== -1 ? requestedDomain : null;
+        focusedConcept = concepts.some(function (c) { return c.id === params.get('concept'); }) ? params.get('concept') : null;
+        filterInput.value = params.get('q') || '';
+      }
+
+      function syncViewControls() {
+        Object.keys(btns).forEach(function (domain) {
+          btns[domain].classList.toggle('active', activeDomain === domain);
+        });
+        allBtn.classList.toggle('active', !activeDomain);
+        resetView.hidden = !activeDomain && !focusedConcept && !filterInput.value.trim();
+        focusNote.classList.toggle('visible', !!focusedConcept);
+      }
+
+      function writeView(mode) {
+        var params = new URLSearchParams();
+        var query = filterInput.value.trim();
+        if (query) params.set('q', query);
+        if (activeDomain) params.set('domain', activeDomain);
+        if (focusedConcept) params.set('concept', focusedConcept);
+        var target = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+        window.history[mode || 'replaceState']({}, '', target);
+      }
 
       // Render domain sections in order
       var sections = {};
@@ -508,15 +566,28 @@
           var patNames = (entryPatterns[c.entry_num] || []).map(function (p) { return p.name; }).join(' ');
           card.dataset.text = (c.term + ' ' + c.definition + ' ' + (c.detail || '') + ' ' + c.domain + ' ' + patNames).toLowerCase();
 
+          var termRow = document.createElement('div');
+          termRow.className = 'concept-term-row';
           var term = document.createElement('div');
           term.className = 'concept-term';
           term.textContent = c.term;
+          termRow.appendChild(term);
+          var focus = document.createElement('button');
+          focus.className = 'concept-focus';
+          focus.type = 'button';
+          focus.textContent = 'hold in view';
+          focus.addEventListener('click', function () {
+            focusedConcept = c.id;
+            writeView('pushState');
+            applyFilter(filterInput.value);
+          });
+          termRow.appendChild(focus);
 
           var def = document.createElement('div');
           def.className = 'concept-def';
           def.textContent = c.definition;
 
-          card.appendChild(term);
+          card.appendChild(termRow);
           card.appendChild(def);
 
           if (c.detail) {
@@ -570,7 +641,8 @@
           var sectionVisible = 0;
           cards.forEach(function (card) {
             var textMatch = !query || card.dataset.text.indexOf(query) !== -1;
-            var matches = domainMatch && textMatch;
+            var focusMatch = !focusedConcept || card.dataset.id === focusedConcept;
+            var matches = focusMatch && domainMatch && textMatch;
             card.classList.toggle('hidden', !matches);
             if (matches) sectionVisible++;
           });
@@ -580,6 +652,7 @@
 
         filterCount.textContent = visible + (visible === 1 ? ' concept' : ' concepts');
         emptyState.style.display = (visible === 0) ? 'block' : 'none';
+        syncViewControls();
         renderNewerTrail(query);
       }
 
@@ -618,10 +691,42 @@
       }
 
       filterInput.addEventListener('input', function () {
+        focusedConcept = null;
+        writeView('replaceState');
         applyFilter(filterInput.value);
       });
 
-      applyFilter('');
+      resetView.addEventListener('click', function () {
+        activeDomain = null;
+        focusedConcept = null;
+        filterInput.value = '';
+        writeView('pushState');
+        applyFilter('');
+      });
+      returnToGlossary.addEventListener('click', function () {
+        focusedConcept = null;
+        writeView('pushState');
+        applyFilter(filterInput.value);
+      });
+      copyView.addEventListener('click', function () {
+        var original = copyView.textContent;
+        var done = function () {
+          copyView.textContent = 'copied';
+          window.setTimeout(function () { copyView.textContent = original; }, 1200);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(window.location.href).then(done, function () { copyView.textContent = 'copy unavailable'; });
+        } else {
+          copyView.textContent = 'copy unavailable';
+        }
+      });
+      window.addEventListener('popstate', function () {
+        readView();
+        applyFilter(filterInput.value);
+      });
+
+      readView();
+      applyFilter(filterInput.value);
   })(concepts);
 
   }).catch(function (e) {
