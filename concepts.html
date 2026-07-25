@@ -522,7 +522,7 @@
         var params = new URLSearchParams(window.location.search);
         var requestedDomain = params.get('domain');
         activeDomain = domainOrder.indexOf(requestedDomain) !== -1 ? requestedDomain : null;
-        focusedConcept = concepts.some(function (c) { return c.id === params.get('concept'); }) ? params.get('concept') : null;
+        focusedConcept = concepts.some(function (c) { return conceptKey(c) === params.get('concept'); }) ? params.get('concept') : null;
         filterInput.value = params.get('q') || '';
       }
 
@@ -545,6 +545,14 @@
         window.history[mode || 'replaceState']({}, '', target);
       }
 
+      function conceptKey(c) {
+        return [
+          c.id || 'concept',
+          c.entry_num || 'entry',
+          String(c.term || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        ].join('--');
+      }
+
       // Render domain sections in order
       var sections = {};
       domainOrder.forEach(function (domain) {
@@ -561,7 +569,7 @@
         groups[domain].forEach(function (c) {
           var card = document.createElement('div');
           card.className = 'concept';
-          card.dataset.id = c.id;
+          card.dataset.id = conceptKey(c);
           card.dataset.domain = c.domainKey;
           var patNames = (entryPatterns[c.entry_num] || []).map(function (p) { return p.name; }).join(' ');
           card.dataset.text = (c.term + ' ' + c.definition + ' ' + (c.detail || '') + ' ' + c.domain + ' ' + patNames).toLowerCase();
@@ -577,7 +585,7 @@
           focus.type = 'button';
           focus.textContent = 'hold in view';
           focus.addEventListener('click', function () {
-            focusedConcept = c.id;
+            focusedConcept = conceptKey(c);
             writeView('pushState');
             applyFilter(filterInput.value);
           });
