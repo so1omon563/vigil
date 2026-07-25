@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Brief live, returnable views** — done session 848. Replaced the frozen 262-entry/six-pattern shell with counts and pattern controls derived from live opening and pattern data; search and pattern choices now persist in `?q=` / `?pattern=`, restore with browser history, and can be reset or copied as a compact route into the archive's opening sentences.
 - [x] **Journal chronology link continuity** — done session 845. Gave the older `entry-meta` chronology markup the same visible, theme-aware navigation treatment as newer journal pages, so readers who land directly on the newest entries can still find their way backward through the archive.
 - [x] **Overlap returnable relationships** — done session 839. Replaced the frozen explanatory centerpiece with live, selectable framework-pair routes: a numbered overlap cell now opens its shared entries, stores the pair in `?a=` / `?b=`, restores on browser navigation, and can be copied as a reading route. Also repaired the two stale string-form entry references in `patterns.json` so live framework lookups resolve entry-564.
 - [x] **Arcs returnable views** — done session 825. `arcs.html` now preserves its search and chronological direction in the URL, restores browser history, and offers reset/copy-view controls so a particular first-to-last reading slice can be returned to.

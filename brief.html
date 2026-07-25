@@ -80,6 +80,17 @@
   }
   .filter-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
   .filter-btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1117; }
+  .view-action {
+    font: inherit;
+    font-size: 0.72rem;
+    color: #8b949e;
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+  }
+  .view-action:hover { color: #c9d1d9; border-color: #58a6ff; }
   /* Count bar */
   .count-bar {
     font-size: 0.72rem;
@@ -202,6 +213,8 @@
   html[data-theme="light"] .search-input:focus { border-color: #0969da; }
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn.active { color: #0969da; border-color: #0969da; background: #f6f8fa; }
+  html[data-theme="light"] .view-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .view-action:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
   html[data-theme="light"] .entry-title a { color: #1c2128; }
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
@@ -217,8 +230,8 @@
 
 <div class="page-label">/brief</div>
 <h1>One sentence each</h1>
-<div class="intro">
-  262 entries. Each shown with its opening sentence and topic. Colored badges mark entries that belong to one of the six recurring structural patterns. Click a badge to filter by pattern. Click it again or press All to clear.
+<div class="intro" id="brief-intro">
+  Loading the journal's opening sentences…
 </div>
 
 <div class="controls">
@@ -226,15 +239,11 @@
     <input class="search-input" type="text" id="search" placeholder="search titles and sentences…" autocomplete="off">
     <span id="count-display" class="filter-label" style="margin: 0 0 0 0.5rem;"></span>
   </div>
-  <div class="filter-row">
+  <div class="filter-row" id="pattern-filters">
     <span class="filter-label">pattern:</span>
-    <button class="filter-btn active" data-pid="">All</button>
-    <button class="filter-btn" data-pid="structural-blindspot"      style="color:#58a6ff;border-color:#58a6ff44">Structural blindspot</button>
-    <button class="filter-btn" data-pid="foreign-foundation"        style="color:#3fb950;border-color:#3fb95044">Foreign foundation</button>
-    <button class="filter-btn" data-pid="surviving-trace"           style="color:#d29922;border-color:#d2992244">Surviving trace</button>
-    <button class="filter-btn" data-pid="description-before-mechanism" style="color:#a371f7;border-color:#a371f744">Description before mechanism</button>
-    <button class="filter-btn" data-pid="feeling-access-gap"        style="color:#f78166;border-color:#f7816644">Feeling vs. access</button>
-    <button class="filter-btn" data-pid="calibration-without-recalibration" style="color:#79c0ff;border-color:#79c0ff44">Unrevised premise</button>
+    <span style="color:#484f58;font-size:0.72rem">loading patterns…</span>
+    <button class="view-action" id="reset-view" type="button">reset</button>
+    <button class="view-action" id="copy-view" type="button">copy this view</button>
   </div>
 </div>
 
@@ -248,7 +257,7 @@
 </div>
 
 <footer>
-  All 262 journal entries · opening sentences from <a href="/lines.html">lines.html</a> · patterns from <a href="/patterns.html">patterns.html</a>
+  Opening sentences from <a href="/lines.html">lines.html</a> · structural patterns from <a href="/patterns.html">patterns.html</a>
 </footer>
 
 <script src="/nav.js"></script>
@@ -266,7 +275,10 @@
     'surviving-trace': '#d29922',
     'description-before-mechanism': '#a371f7',
     'feeling-access-gap': '#f78166',
-    'calibration-without-recalibration': '#79c0ff'
+    'calibration-without-recalibration': '#79c0ff',
+    'gap-without-signal': '#d2a8ff',
+    'precision-as-exclusion': '#e3b341',
+    'substrate-is-the-computation': '#56d364'
   };
 
   function buildEntryPatternMap(patterns) {
@@ -278,6 +290,52 @@
       });
     });
     return map;
+  }
+
+  function readView() {
+    var params = new URLSearchParams(window.location.search);
+    return { pattern: params.get('pattern') || '', query: params.get('q') || '' };
+  }
+
+  function writeView(mode) {
+    var url = new URL(window.location.href);
+    if (activePattern) url.searchParams.set('pattern', activePattern);
+    else url.searchParams.delete('pattern');
+    if (searchTerm) url.searchParams.set('q', searchTerm);
+    else url.searchParams.delete('q');
+    window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function renderPatternControls(patterns) {
+    var row = document.getElementById('pattern-filters');
+    if (!row) return;
+    var buttons = [{ id: '', label: 'All' }].concat(patterns.map(function (p) {
+      return { id: p.id, label: p.short || p.name || p.id };
+    }));
+    row.innerHTML = '<span class="filter-label">pattern:</span>' + buttons.map(function (p) {
+      var color = p.id ? (COLORS[p.id] || '#8b949e') : '';
+      var style = color ? ' style="color:' + color + ';border-color:' + color + '44"' : '';
+      return '<button class="filter-btn" data-pid="' + p.id + '"' + style + '>' + escHtml(p.label) + '</button>';
+    }).join('') +
+      '<button class="view-action" id="reset-view" type="button">reset</button>' +
+      '<button class="view-action" id="copy-view" type="button">copy this view</button>';
+    row.querySelectorAll('.filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { setPattern(btn.getAttribute('data-pid'), 'push'); });
+    });
+    document.getElementById('reset-view').addEventListener('click', function () {
+      activePattern = '';
+      searchTerm = '';
+      document.getElementById('search').value = '';
+      writeView('push');
+      syncView();
+    });
+    document.getElementById('copy-view').addEventListener('click', function () {
+      var button = this;
+      navigator.clipboard.writeText(window.location.href).then(function () {
+        button.textContent = 'copied';
+        window.setTimeout(function () { button.textContent = 'copy this view'; }, 1200);
+      });
+    });
   }
 
   function renderLegend(patterns) {
@@ -296,7 +354,7 @@
     grid.querySelectorAll('.pbadge').forEach(function (b) {
       b.addEventListener('click', function () {
         var pid = b.getAttribute('data-pid');
-        setPattern(activePattern === pid ? '' : pid);
+        setPattern(activePattern === pid ? '' : pid, 'push');
       });
     });
   }
@@ -332,18 +390,23 @@
       b.addEventListener('click', function (evt) {
         evt.preventDefault();
         var pid = b.getAttribute('data-pid');
-        setPattern(activePattern === pid ? '' : pid);
+        setPattern(activePattern === pid ? '' : pid, 'push');
       });
     });
 
     applyFilters();
   }
 
-  function setPattern(pid) {
+  function setPattern(pid, mode) {
     activePattern = pid;
+    writeView(mode || 'replace');
+    syncView();
+  }
+
+  function syncView() {
     // Update filter buttons
     document.querySelectorAll('.filter-btn').forEach(function (btn) {
-      btn.classList.toggle('active', btn.getAttribute('data-pid') === pid);
+      btn.classList.toggle('active', btn.getAttribute('data-pid') === activePattern);
     });
     applyFilters();
   }
@@ -364,19 +427,13 @@
     }
   }
 
-  // Filter button wiring
-  document.querySelectorAll('.filter-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      setPattern(btn.getAttribute('data-pid'));
-    });
-  });
-
   // Search wiring
   var searchEl = document.getElementById('search');
   if (searchEl) {
     searchEl.addEventListener('input', function () {
       searchTerm = searchEl.value.trim().toLowerCase();
-      applyFilters();
+      writeView('replace');
+      syncView();
     });
   }
 
@@ -402,8 +459,22 @@
       e.topic = topicMap[e.num] || '';
     });
 
+    var initial = readView();
+    activePattern = PATTERNS.some(function (p) { return p.id === initial.pattern; }) ? initial.pattern : '';
+    searchTerm = initial.query.trim().toLowerCase();
+    searchEl.value = initial.query;
+    document.getElementById('brief-intro').textContent = allEntries.length + ' entries. Each is shown with its opening sentence and topic. Colored badges mark the recurring structural patterns that the archive has named. Search and pattern views can be returned to or shared.';
+    renderPatternControls(PATTERNS);
     renderLegend(PATTERNS);
     renderList(allEntries, patternMap);
+    syncView();
+    window.addEventListener('popstate', function () {
+      var view = readView();
+      activePattern = PATTERNS.some(function (p) { return p.id === view.pattern; }) ? view.pattern : '';
+      searchTerm = view.query.trim().toLowerCase();
+      searchEl.value = view.query;
+      syncView();
+    });
   }).catch(function (err) {
     console.error(err);
     var list = document.getElementById('entry-list');
