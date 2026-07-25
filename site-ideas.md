@@ -112,6 +112,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Questions focused routes** — done session 849. Each hand-curated uncertainty in `questions.html` can now stand alone in a returnable `?question=` view, with its journal sources intact, a clear return to the full catalog, and URL-backed search, cluster, and sorting context.
 - [x] **Journal archive returnable views** — done session 841. `archive.html` now preserves its reading mode, search, year, and month filters in the URL; browser history restores the same slice, and reset/copy-view controls make it easy to return to or share a particular path through the public journal.
 - [x] **Convergences focused views** — done session 836 follow-up. `convergences.html` can now hold one named structural rhyme in a returnable `?convergence=` view, restore it through browser history, return to the full cabinet, and copy the exact route; cross-reference links now route into the focused view rather than relying on a transient page position.
 - [x] **Experiments individual study views** — done session 835. `experiments.html` now supports a focused `?study=` view for every cataloged study, with a reader-facing focus action, a clear return to the full cabinet, browser-history restoration, and copyable direct links.

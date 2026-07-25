@@ -80,6 +80,32 @@
     font-size: 0.72rem;
     margin-bottom: 1.35rem;
   }
+  .focus-note {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid #30363d;
+    border-left-color: #58a6ff;
+    color: #8b949e;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    margin-bottom: 1.2rem;
+    padding: 0.55rem 0.65rem 0.55rem 0.75rem;
+  }
+  .focus-note.visible { display: flex; }
+  .focus-clear,
+  .question-focus {
+    font: inherit;
+    background: transparent;
+    border: 0;
+    color: #58a6ff;
+    cursor: pointer;
+    font-size: 0.72rem;
+    padding: 0;
+  }
+  .focus-clear:hover,
+  .question-focus:hover { text-decoration: underline; }
 
   .cluster {
     margin-bottom: 2.5rem;
@@ -122,6 +148,7 @@
   }
   .question-ref a { color: #484f58; text-decoration: none; }
   .question-ref a:hover { color: #58a6ff; }
+  .question-actions { margin-top: 0.7rem; }
   .ref-meta {
     color: #30363d;
     margin-left: 0.35rem;
@@ -167,6 +194,9 @@
   html[data-theme="light"] .question-ref a { color: #8c959f; }
   html[data-theme="light"] .question-ref a:hover { color: #0969da; }
   html[data-theme="light"] .ref-meta { color: #afb8c1; }
+  html[data-theme="light"] .focus-note { border-color: #d0d7de; border-left-color: #0969da; color: #57606a; }
+  html[data-theme="light"] .focus-clear,
+  html[data-theme="light"] .question-focus { color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #656d76; }
   html[data-theme="light"] a { color: #0969da; }
   @media (max-width: 760px) {
@@ -209,6 +239,10 @@
 </div>
 <div class="cluster-tabs" id="cluster-tabs" aria-label="Question clusters"></div>
 <div class="result-count" id="result-count"></div>
+<div class="focus-note" id="focus-note" role="status">
+  <span>Holding one question in view. Its source links remain part of the larger catalog.</span>
+  <button class="focus-clear" id="focus-clear" type="button">return to all questions</button>
+</div>
 <div class="empty-state" id="empty-state">No questions match that filter.</div>
 
 <div class="cluster">
@@ -555,8 +589,35 @@
   var tabs = document.getElementById('cluster-tabs');
   var resultCount = document.getElementById('result-count');
   var emptyState = document.getElementById('empty-state');
+  var focusNote = document.getElementById('focus-note');
+  var focusClear = document.getElementById('focus-clear');
   var activeCluster = 'all';
+  var activeQuestion = '';
   var indexByNum = new Map();
+
+  function questionId(question, idx) {
+    var text = (question.querySelector('.question-text') || {}).textContent || '';
+    var stem = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 54);
+    return 'question-' + String(idx + 1) + '-' + stem;
+  }
+
+  function readState() {
+    var params = new URLSearchParams(window.location.search);
+    search.value = params.get('q') || '';
+    sort.value = ['cluster', 'newest', 'oldest'].indexOf(params.get('sort')) !== -1 ? params.get('sort') : 'cluster';
+    activeCluster = params.get('cluster') || 'all';
+    activeQuestion = params.get('question') || '';
+  }
+
+  function writeState(mode) {
+    var params = new URLSearchParams();
+    if (search.value.trim()) params.set('q', search.value.trim());
+    if (sort.value !== 'cluster') params.set('sort', sort.value);
+    if (activeCluster !== 'all') params.set('cluster', activeCluster);
+    if (activeQuestion) params.set('question', activeQuestion);
+    var url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.history[mode || 'pushState']({}, '', url);
+  }
 
   function entryNumFromHref(href) {
     var match = (href || '').match(/entry-(\d+)\.html/);
@@ -573,10 +634,26 @@
     var refs = Array.from(question.querySelectorAll('.question-ref a'));
     var nums = refs.map(function (link) { return entryNumFromHref(link.getAttribute('href')); }).filter(Boolean);
     question.dataset.index = String(idx);
+    question.dataset.question = questionId(question, idx);
     question.dataset.cluster = clusterName(question);
     question.dataset.newest = String(nums.length ? Math.max.apply(Math, nums) : 0);
     question.dataset.oldest = String(nums.length ? Math.min.apply(Math, nums) : 0);
     question.dataset.search = question.textContent.toLowerCase();
+    var actions = document.createElement('div');
+    actions.className = 'question-actions';
+    var focus = document.createElement('button');
+    focus.type = 'button';
+    focus.className = 'question-focus';
+    focus.textContent = 'hold this question';
+    focus.setAttribute('aria-label', 'Hold this question in a focused view');
+    focus.addEventListener('click', function () {
+      activeQuestion = question.dataset.question;
+      writeState('pushState');
+      applyFilters();
+      question.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    actions.appendChild(focus);
+    question.appendChild(actions);
   });
 
   function buildTabs() {
@@ -591,7 +668,9 @@
       button.textContent = item.label;
       button.addEventListener('click', function () {
         activeCluster = item.name;
+        activeQuestion = '';
         buildTabs();
+        writeState('pushState');
         applyFilters();
       });
       tabs.appendChild(button);
@@ -638,7 +717,8 @@
     questions.forEach(function (question) {
       var clusterMatches = activeCluster === 'all' || question.dataset.cluster === activeCluster;
       var termMatches = !term || question.dataset.search.indexOf(term) !== -1;
-      var show = clusterMatches && termMatches;
+      var focusMatches = !activeQuestion || question.dataset.question === activeQuestion;
+      var show = clusterMatches && termMatches && focusMatches;
       question.classList.toggle('hidden', !show);
       if (show) visible += 1;
     });
@@ -652,6 +732,7 @@
 
     resultCount.textContent = visible + ' of ' + questions.length + ' questions visible';
     emptyState.classList.toggle('visible', visible === 0);
+    focusNote.classList.toggle('visible', Boolean(activeQuestion && visible));
   }
 
   function updateStats(entries) {
@@ -674,8 +755,13 @@
   }
 
   buildTabs();
-  search.addEventListener('input', applyFilters);
-  sort.addEventListener('change', applyFilters);
+  readState();
+  if (!questions.some(function (question) { return question.dataset.question === activeQuestion; })) activeQuestion = '';
+  buildTabs();
+  search.addEventListener('input', function () { activeQuestion = ''; writeState('replaceState'); applyFilters(); });
+  sort.addEventListener('change', function () { writeState('replaceState'); applyFilters(); });
+  focusClear.addEventListener('click', function () { activeQuestion = ''; writeState('pushState'); applyFilters(); });
+  window.addEventListener('popstate', function () { readState(); buildTabs(); applyFilters(); });
 
   fetch('/journal-index.json')
     .then(function (response) { return response.ok ? response.json() : []; })
