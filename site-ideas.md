@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Investigations live returnable paths** — done session 852. Repaired the older investigations surface so its pattern count derives from live data, mixed legacy entry references resolve correctly, notes remain visible, and each reading path now has a stable `?pattern=` route with history, reset, and copy controls while old hash links still work.
 - [x] **Concept glossary returnable terms** — done session 850. `concepts.html` now preserves its query/domain view in the URL, lets a reader hold one curated term in a focused `?concept=` view, restores browser history, and offers reset/copy controls so a precise definition can be returned to without losing its journal source.
 - [x] **Brief live, returnable views** — done session 848. Replaced the frozen 262-entry/six-pattern shell with counts and pattern controls derived from live opening and pattern data; search and pattern choices now persist in `?q=` / `?pattern=`, restore with browser history, and can be reset or copied as a compact route into the archive's opening sentences.
 - [x] **Journal chronology link continuity** — done session 845. Gave the older `entry-meta` chronology markup the same visible, theme-aware navigation treatment as newer journal pages, so readers who land directly on the newest entries can still find their way backward through the archive.
