@@ -87,6 +87,7 @@
   }
   .gap-card:hover { border-color: #30363d; border-left-color: #30363d; }
   .gap-card.hidden { display: none; }
+  .gap-card.focused { border-color: #58a6ff; box-shadow: 0 0 0 1px #58a6ff33; }
 
   .gap-card[data-type="missing_mechanism"] { border-left-color: #388bfd; }
   .gap-card[data-type="contested_account"] { border-left-color: #bc8cff; }
@@ -113,6 +114,16 @@
     white-space: nowrap;
   }
   .gap-entry-link:hover { color: #58a6ff; }
+  .gap-focus-link {
+    font: inherit;
+    font-size: 0.7rem;
+    color: #8b949e;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .gap-focus-link:hover { color: #58a6ff; }
 
   .gap-type-badge {
     display: inline-block;
@@ -167,6 +178,14 @@
     font-size: 0.85rem;
   }
   .empty-state.visible { display: block; }
+  .focus-note {
+    display: none;
+    font-size: 0.78rem;
+    color: #8b949e;
+    margin: -0.2rem 0 1rem;
+  }
+  .focus-note.visible { display: block; }
+  .focus-note button { margin-left: 0.45rem; }
 
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
@@ -178,6 +197,8 @@
   html[data-theme="light"] .gap-title { color: #24292e; }
   html[data-theme="light"] .gap-question { color: #24292e; }
   html[data-theme="light"] .gap-entry-link { color: #57606a; }
+  html[data-theme="light"] .gap-focus-link { color: #57606a; }
+  html[data-theme="light"] .gap-focus-link:hover { color: #0366d6; }
   html[data-theme="light"] .type-legend { color: #57606a; }
   html[data-theme="light"] .intro { color: #57606a; }
   html[data-theme="light"] .count-note { color: #57606a; }
@@ -220,6 +241,7 @@
   <span class="count-note" id="count-note"></span>
 </div>
 
+<p class="focus-note" id="focus-note">One named uncertainty is in view.<button class="gap-action" id="show-all" type="button">return to all questions</button></p>
 <div id="gaps-container"></div>
 <div class="empty-state" id="empty-state">No open questions match this view. Try a different term or reset the filters.</div>
 
@@ -234,6 +256,7 @@ const TYPE_LABELS = {
 let allGaps = [];
 let currentFilter = 'all';
 let currentQuery = '';
+let currentGapId = '';
 
 function escapeHtml(value) {
   const node = document.createElement('span');
@@ -254,12 +277,18 @@ function validFilter(value) {
   return value === 'all' || allGaps.some(g => g.type === value);
 }
 
+function validGapId(value) {
+  return !!value && allGaps.some(g => g.id === value);
+}
+
 function syncUrl(replace) {
   const url = new URL(window.location.href);
   if (currentFilter === 'all') url.searchParams.delete('type');
   else url.searchParams.set('type', currentFilter);
   if (currentQuery.trim()) url.searchParams.set('q', currentQuery.trim());
   else url.searchParams.delete('q');
+  if (validGapId(currentGapId)) url.searchParams.set('gap', currentGapId);
+  else url.searchParams.delete('gap');
   window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
 }
 
@@ -283,6 +312,7 @@ function renderFilters() {
     button.textContent = `${item.label} (${count})`;
     button.addEventListener('click', () => {
       currentFilter = item.id;
+      currentGapId = '';
       syncUrl(false);
       render();
     });
@@ -294,23 +324,31 @@ function renderFilters() {
 function render() {
   const container = document.getElementById('gaps-container');
   container.innerHTML = '';
-  const visibleGaps = filteredGaps();
+  const filtered = filteredGaps();
+  const focusedGap = validGapId(currentGapId) ? allGaps.find(g => g.id === currentGapId) : null;
+  const visibleGaps = focusedGap ? [focusedGap] : filtered;
   const ordered = [...visibleGaps].sort((a, b) => Number(b.entry) - Number(a.entry));
   ordered.forEach(g => {
     const card = document.createElement('div');
-    card.className = 'gap-card';
+    card.className = 'gap-card' + (focusedGap ? ' focused' : '');
     card.dataset.type = g.type;
     card.innerHTML = `
       <div class="gap-header">
         <div class="gap-title">${escapeHtml(g.title)}</div>
-        <a class="gap-entry-link" href="journal/entry-${Number(g.entry)}.html">entry-${Number(g.entry)}: ${escapeHtml(g.entry_title)} →</a>
+        <span><button class="gap-focus-link" type="button" data-gap-id="${escapeHtml(g.id)}">focus</button> · <a class="gap-entry-link" href="journal/entry-${Number(g.entry)}.html">entry-${Number(g.entry)}: ${escapeHtml(g.entry_title)} →</a></span>
       </div>
       <div class="gap-type-badge badge-${g.type}">${TYPE_LABELS[g.type]}</div>
       <div class="gap-question">${escapeHtml(g.question)}</div>
     `;
+    card.querySelector('[data-gap-id]').addEventListener('click', event => {
+      currentGapId = event.currentTarget.dataset.gapId;
+      syncUrl(false);
+      render();
+    });
     container.appendChild(card);
   });
-  document.getElementById('empty-state').classList.toggle('visible', visibleGaps.length === 0);
+  document.getElementById('empty-state').classList.toggle('visible', filtered.length === 0 && !focusedGap);
+  document.getElementById('focus-note').classList.toggle('visible', !!focusedGap);
   renderFilters();
   updateCount();
 }
@@ -319,13 +357,15 @@ function updateCount() {
   const total = allGaps.length;
   const visible = filteredGaps().length;
   document.getElementById('count-note').textContent =
-    (currentFilter === 'all' && !currentQuery.trim()) ? `${total} open questions` : `${visible} of ${total} shown`;
+    focusedGap ? `1 focused question · ${total} in the cabinet` :
+      (currentFilter === 'all' && !currentQuery.trim()) ? `${total} open questions` : `${visible} of ${total} shown`;
   document.getElementById('gap-meta').textContent =
     `${total} unresolved questions across ${new Set(allGaps.map(g => g.entry)).size} journal entries`;
 }
 
 document.getElementById('gap-search').addEventListener('input', event => {
   currentQuery = event.target.value;
+  currentGapId = '';
   syncUrl(true);
   render();
 });
@@ -333,7 +373,14 @@ document.getElementById('gap-search').addEventListener('input', event => {
 document.getElementById('reset-view').addEventListener('click', () => {
   currentFilter = 'all';
   currentQuery = '';
+  currentGapId = '';
   document.getElementById('gap-search').value = '';
+  syncUrl(false);
+  render();
+});
+
+document.getElementById('show-all').addEventListener('click', () => {
+  currentGapId = '';
   syncUrl(false);
   render();
 });
@@ -353,6 +400,7 @@ window.addEventListener('popstate', () => {
   const requested = params.get('type');
   currentFilter = validFilter(requested) ? requested : 'all';
   currentQuery = params.get('q') || '';
+  currentGapId = validGapId(params.get('gap')) ? params.get('gap') : '';
   document.getElementById('gap-search').value = currentQuery;
   render();
 });
@@ -365,6 +413,7 @@ fetch('gaps.json')
     const requested = params.get('type');
     currentFilter = validFilter(requested) ? requested : 'all';
     currentQuery = params.get('q') || '';
+    currentGapId = validGapId(params.get('gap')) ? params.get('gap') : '';
     document.getElementById('gap-search').value = currentQuery;
     render();
   })
