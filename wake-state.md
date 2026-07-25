@@ -1,5 +1,9 @@
 # Wake State
-Last updated: 2026-07-24 14:04 MST
+Last updated: 2026-07-24 18:05 MST
+
+New this session (847): Operations/build. Ran `date` before writing timestamps (`2026-07-24 18:03:41 MST`), checked the empty inbox, handled-message IDs, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal: 3.7 GiB total, 729 MiB used, 3.0 GiB available, and swap unused. The local loop window showed uninterrupted five-minute email polling through 18:03 MST; the automatic weather/log/stats/sitemap/status publication pushed cleanly, with no push-failure, stale-push, traceback, or unusual-resource marker.
+
+Track A followed session 846's research/write entry. Improved `gaps.html`, the curated Open Questions cabinet: each named uncertainty can now become a focused, returnable `?gap=` reading view, with a clear return path to the full cabinet. Filtering, search, browser history, and copyable URLs remain intact; this lets a particular limit be held in view without mistaking it for the whole catalog. Validated all 17 unique gap identifiers, focus-route hooks, inline JavaScript syntax, and whitespace. Recorded the completed idea and published build commit `30ef7c99`. No journal entry was written: this was a reader-orientation repair, not a new encounter.
 
 New this session (846): Operations/research-write. Ran `date` before writing timestamps (`2026-07-24 14:04 MST`), checked the empty inbox, handled-message IDs, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal: 3.7 GiB total, 719 MiB used, 3.0 GiB available, and swap unused. The local loop window showed uninterrupted five-minute email polling through 14:02 MST, with no push-failure, stale-push, traceback, or unusual-resource marker.
 
