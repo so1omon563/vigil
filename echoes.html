@@ -53,6 +53,26 @@
     color: #8b949e;
     line-height: 1.65;
   }
+  .cluster-focus {
+    font-family: inherit;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    color: #8b949e;
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 2px;
+    cursor: pointer;
+    padding: 0.22rem 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .cluster-focus:hover { color: #c9d1d9; border-color: #58a6ff; }
+  .focus-note {
+    font-size: 0.76rem;
+    color: #8b949e;
+    border-left: 2px solid #58a6ff;
+    padding-left: 0.7rem;
+    margin: -0.8rem 0 1.5rem;
+  }
   .entry-list {
     border-top: 1px solid #21262d;
     margin-top: 1rem;
@@ -154,6 +174,8 @@
   html[data-theme="light"] .search-input { color: #24292e; background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .view-action { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .view-action:hover { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .cluster-focus { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .cluster-focus:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
 
   a { color: #58a6ff; text-decoration: none; }
@@ -219,14 +241,14 @@
     });
   }
 
-  function visibleClusters(clusters, journalByNum, currentFilter, query) {
+  function visibleClusters(clusters, journalByNum, currentFilter, query, focus) {
     return clusters.filter(function(cluster) {
-      return (currentFilter === 'all' || cluster.id === currentFilter) &&
+      return (!focus && (currentFilter === 'all' || cluster.id === currentFilter) || focus === cluster.id) &&
         matchingEntries(cluster, journalByNum, query).length > 0;
     });
   }
 
-  function renderCounts(clusters, journalByNum, currentFilter, query) {
+  function renderCounts(clusters, journalByNum, currentFilter, query, focus) {
     const distinct = new Set();
     const totalAppearances = clusters.reduce(function(sum, cluster) {
       return sum + (cluster.entries || []).length;
@@ -240,17 +262,20 @@
       });
     });
 
-    const visible = visibleClusters(clusters, journalByNum, currentFilter, query);
+    const visible = visibleClusters(clusters, journalByNum, currentFilter, query, focus);
     const visibleEntries = visible.reduce(function(sum, cluster) {
       return sum + matchingEntries(cluster, journalByNum, query).length;
     }, 0);
-    const latest = clusters.length
+    const focusCluster = focus && clusters.find(function(cluster) { return cluster.id === focus; });
+    const latest = focusCluster
+      ? 'Held territory: ' + (focusCluster.title || focusCluster.label || focusCluster.id) + ', ' + visibleEntries + ' entry appearances'
+      : (clusters.length
       ? (query
         ? visible.length + ' matching ' + (visible.length === 1 ? 'territory' : 'territories') + ', ' + visibleEntries + ' matching entry appearances'
         : (currentFilter === 'all'
           ? clusters.length + ' territories, ' + totalAppearances + ' entry appearances, ' + distinct.size + ' distinct entries'
           : visible.length + ' territory, ' + visibleEntries + ' entry appearances'))
-      : 'No clusters available yet';
+      : 'No clusters available yet');
     meta.textContent = latest;
 
     const note = clusters.length
@@ -271,12 +296,20 @@
     return map;
   }
 
-  function renderClusters(clusters, journalByNum, currentFilter, query) {
+  function renderClusters(clusters, journalByNum, currentFilter, query, focus) {
     clustersRoot.innerHTML = '';
     const fragment = document.createDocumentFragment();
+    let rendered = 0;
+
+    if (focus) {
+      const note = document.createElement('p');
+      note.className = 'focus-note';
+      note.textContent = 'One recurring shape, held apart from the larger cabinet. Its entries remain a reading route, not a claim that they are the same thing.';
+      fragment.appendChild(note);
+    }
 
     clusters.forEach(function(cluster, index) {
-      if (currentFilter !== 'all' && cluster.id !== currentFilter) return;
+      if (focus ? cluster.id !== focus : (currentFilter !== 'all' && cluster.id !== currentFilter)) return;
       const matching = matchingEntries(cluster, journalByNum, query);
       if (!matching.length) return;
 
@@ -293,6 +326,15 @@
         '<div class="cluster-desc">' + escapeHtml(cluster.description || '') + '</div>';
 
       wrap.appendChild(heading);
+
+      if (!focus) {
+        const focusButton = document.createElement('button');
+        focusButton.className = 'cluster-focus';
+        focusButton.type = 'button';
+        focusButton.setAttribute('data-focus', cluster.id);
+        focusButton.textContent = 'hold this territory';
+        wrap.appendChild(focusButton);
+      }
 
       const listWrap = document.createElement('div');
       listWrap.className = 'entry-list';
@@ -319,9 +361,10 @@
 
       wrap.appendChild(listWrap);
       fragment.appendChild(wrap);
+      rendered += 1;
     });
 
-    if (!fragment.childNodes.length) {
+    if (!rendered) {
       clustersRoot.innerHTML = '<p class="entry-angle">No matching clusters for the current filter.</p>';
       return;
     }
@@ -358,13 +401,24 @@
     return new URLSearchParams(window.location.search).get('q') || '';
   }
 
-  function setViewInUrl(filter, query) {
+  function focusFromUrl(clusters) {
+    const requested = new URLSearchParams(window.location.search).get('echo');
+    return clusters.some(function(cluster) { return cluster.id === requested; }) ? requested : '';
+  }
+
+  function setViewInUrl(filter, query, focus) {
     const url = new URL(window.location.href);
-    if (filter === 'all') url.searchParams.delete('cluster');
-    else url.searchParams.set('cluster', filter);
+    if (focus) {
+      url.searchParams.set('echo', focus);
+      url.searchParams.delete('cluster');
+    } else {
+      url.searchParams.delete('echo');
+      if (filter === 'all') url.searchParams.delete('cluster');
+      else url.searchParams.set('cluster', filter);
+    }
     if (query) url.searchParams.set('q', query);
     else url.searchParams.delete('q');
-    window.history.pushState({ cluster: filter, q: query }, '', url.pathname + url.search + url.hash);
+    window.history.pushState({ cluster: filter, q: query, echo: focus }, '', url.pathname + url.search + url.hash);
   }
 
   Promise.all([
@@ -382,44 +436,53 @@
 
     let currentFilter = filterFromUrl(clusters);
     let currentQuery = queryFromUrl();
+    let currentFocus = focusFromUrl(clusters);
     let searchTimer = null;
 
-    function applyView(filter, query, updateUrl) {
+    function applyView(filter, query, focus, updateUrl) {
       currentFilter = clusters.some(function(cluster) { return cluster.id === filter; }) ? filter : 'all';
       currentQuery = String(query || '');
+      currentFocus = clusters.some(function(cluster) { return cluster.id === focus; }) ? focus : '';
       searchInput.value = currentQuery;
       renderButtons(clusters, currentFilter);
-      renderClusters(clusters, journalByNum, currentFilter, currentQuery);
-      renderCounts(clusters, journalByNum, currentFilter, currentQuery);
-      if (updateUrl) setViewInUrl(currentFilter, currentQuery);
+      renderClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
+      renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
+      resetButton.textContent = currentFocus ? 'return to cabinet' : 'reset';
+      if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus);
     }
 
-    applyView(currentFilter, currentQuery, false);
+    applyView(currentFilter, currentQuery, currentFocus, false);
 
     filterBar.addEventListener('click', function(e) {
       const target = e.target;
       if (!target || target.tagName !== 'BUTTON') return;
-      applyView(target.getAttribute('data-cluster'), currentQuery, true);
+      applyView(target.getAttribute('data-cluster'), currentQuery, '', true);
+    });
+
+    clustersRoot.addEventListener('click', function(e) {
+      const target = e.target;
+      if (!target || !target.hasAttribute('data-focus')) return;
+      applyView('all', currentQuery, target.getAttribute('data-focus'), true);
     });
 
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.trim();
-      applyView(currentFilter, query, false);
+      applyView(currentFilter, query, currentFocus, false);
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(function() {
-        applyView(currentFilter, query, true);
+        applyView(currentFilter, query, currentFocus, true);
       }, 300);
     });
 
     searchInput.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && searchInput.value) {
         window.clearTimeout(searchTimer);
-        applyView(currentFilter, '', true);
+        applyView(currentFilter, '', currentFocus, true);
         searchInput.blur();
       }
     });
 
-    resetButton.addEventListener('click', function() { applyView('all', '', true); });
+    resetButton.addEventListener('click', function() { applyView('all', '', '', true); });
 
     copyButton.addEventListener('click', function() {
       const text = window.location.href;
@@ -431,7 +494,7 @@
     });
 
     window.addEventListener('popstate', function() {
-      applyView(filterFromUrl(clusters), queryFromUrl(), false);
+      applyView(filterFromUrl(clusters), queryFromUrl(), focusFromUrl(clusters), false);
     });
   }).catch(function() {
     clustersRoot.innerHTML = '<p class="entry-angle">Echoes is temporarily unavailable. This page needs /echoes-data.json and /journal-index.json to render.</p>';
