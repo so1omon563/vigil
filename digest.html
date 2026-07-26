@@ -23,6 +23,26 @@
   .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
   .page-meta { font-size: 0.82rem; color: #484f58; margin-bottom: 0.75rem; }
   .page-intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.7; }
+  .view-controls {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: -1.1rem 0 1.5rem;
+  }
+  .view-controls input, .view-controls select, .view-controls button {
+    font: inherit;
+    font-size: 0.76rem;
+    border: 1px solid #30363d;
+    background: #0f141b;
+    color: #c9d1d9;
+    padding: 0.48rem 0.58rem;
+  }
+  .view-controls input { flex: 1 1 15rem; }
+  .view-controls button { cursor: pointer; color: #8b949e; }
+  .view-controls button:hover { border-color: #58a6ff; color: #58a6ff; }
+  .view-summary { font-size: 0.76rem; color: #484f58; flex-basis: 100%; }
+  .empty-state { color: #8b949e; border: 1px dashed #30363d; padding: 1rem; font-size: 0.84rem; }
 
   /* Bar chart at top */
   .bar-section {
@@ -165,6 +185,12 @@
   html[data-theme="light"] .expand-btn { color: #8c959f; }
   html[data-theme="light"] .expand-btn:hover { color: #0969da; }
   html[data-theme="light"] footer { border-top-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .view-controls input,
+  html[data-theme="light"] .view-controls select,
+  html[data-theme="light"] .view-controls button { background: #fff; color: #24292e; border-color: #d0d7de; }
+  html[data-theme="light"] .view-controls button:hover { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .view-summary { color: #6e7781; }
+  html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
 </style>
 </head>
 <body>
@@ -175,6 +201,14 @@
 <h1>Monthly Digest</h1>
 <div class="page-meta" id="digest-meta">loading…</div>
 <p class="page-intro">Journal entries grouped by month — a record of where attention was and how it moved. Each section shows the dominant topics and entries from that period. The earliest entries in the archive predate this date tracking and are not included here.</p>
+
+<div class="view-controls" aria-label="Digest controls">
+  <input id="digest-search" type="search" placeholder="search titles, excerpts, or topics" autocomplete="off">
+  <select id="digest-month" aria-label="Month"><option value="">all months</option></select>
+  <button id="digest-reset" type="button">reset</button>
+  <button id="digest-copy" type="button">copy view</button>
+  <div class="view-summary" id="digest-summary" aria-live="polite"></div>
+</div>
 
 <div id="digest-root"></div>
 
@@ -265,37 +299,57 @@
     return e;
   }
 
-  fetch('/journal-index.json')
-    .then(function(r) { return r.json(); })
-    .then(function(entries) {
+  var byMonth = {};
+  var months = [];
+  var search = document.getElementById('digest-search');
+  var monthSelect = document.getElementById('digest-month');
+  var root = document.getElementById('digest-root');
 
-      // Group by year-month
-      var byMonth = {};
-      entries.forEach(function(entry) {
-        var d = parseDate(entry.date || entry.date_display || '');
-        if (!d) return;
-        var key = d.year + '-' + (d.month < 10 ? '0' + d.month : d.month);
-        if (!byMonth[key]) byMonth[key] = {year: d.year, month: d.month, entries: []};
-        byMonth[key].entries.push({entry: entry, d: d});
-      });
+  function readState() {
+    var p = new URLSearchParams(window.location.search);
+    return { q: p.get('q') || '', month: p.get('month') || '' };
+  }
 
-      // Sort months newest first
-      var months = Object.keys(byMonth).sort().reverse();
-      var maxCount = months.reduce(function(m, k) { return Math.max(m, byMonth[k].entries.length); }, 0);
-      var totalWithDates = months.reduce(function(s, k) { return s + byMonth[k].entries.length; }, 0);
+  function writeState(replace) {
+    var p = new URLSearchParams();
+    if (search.value.trim()) p.set('q', search.value.trim());
+    if (monthSelect.value) p.set('month', monthSelect.value);
+    var url = window.location.pathname + (p.toString() ? '?' + p.toString() : '');
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+  }
 
-      // Update meta
-      document.getElementById('digest-meta').textContent =
-        months.length + ' months · ' + totalWithDates + ' entries';
+  function matches(item, q) {
+    if (!q) return true;
+    var e = item.entry;
+    var haystack = [e.title, e.excerpt, e.summary]
+      .concat(Array.isArray(e.topics) ? e.topics : [e.topic || ''])
+      .join(' ').toLowerCase();
+    return haystack.indexOf(q) !== -1;
+  }
 
-      var root = document.getElementById('digest-root');
+  function render() {
+      var state = readState();
+      search.value = state.q;
+      monthSelect.value = byMonth[state.month] ? state.month : '';
+      var q = state.q.trim().toLowerCase();
+      var visibleMonths = months.filter(function(key) { return !monthSelect.value || key === monthSelect.value; });
+      var visible = visibleMonths.map(function(key) {
+        return { key: key, month: byMonth[key], entries: byMonth[key].entries.filter(function(item) { return matches(item, q); }) };
+      }).filter(function(group) { return group.entries.length; });
+      var total = visible.reduce(function(sum, group) { return sum + group.entries.length; }, 0);
+      document.getElementById('digest-summary').textContent = total + ' matching ' + (total === 1 ? 'entry' : 'entries') + ' in ' + visible.length + ' ' + (visible.length === 1 ? 'month' : 'months');
+      root.innerHTML = '';
+      if (!visible.length) {
+        root.appendChild(el('div', 'empty-state', 'No dated journal entries match this view. Try clearing the search or choosing all months.'));
+        return;
+      }
 
-      // Bar chart
+      var maxCount = visible.reduce(function(m, group) { return Math.max(m, group.entries.length); }, 0);
       var barSec = el('div', 'bar-section');
-      barSec.appendChild(el('div', 'bar-label', 'Entries per month'));
-      months.slice().reverse().forEach(function(key) {
-        var m = byMonth[key];
-        var pct = Math.round(m.entries.length / maxCount * 100);
+      barSec.appendChild(el('div', 'bar-label', q || monthSelect.value ? 'Matching entries per month' : 'Entries per month'));
+      visible.slice().reverse().forEach(function(group) {
+        var m = group.month;
+        var pct = Math.round(group.entries.length / maxCount * 100);
         var row = el('div', 'bar-row');
         row.appendChild(el('span', 'bar-month-lbl', MONTH_SHORT[m.month] + ' ' + m.year));
         var track = el('div', 'bar-track');
@@ -303,23 +357,24 @@
         fill.style.width = pct + '%';
         track.appendChild(fill);
         row.appendChild(track);
-        row.appendChild(el('span', 'bar-count', m.entries.length));
+        row.appendChild(el('span', 'bar-count', group.entries.length));
         barSec.appendChild(row);
       });
       root.appendChild(barSec);
 
       // Month sections
-      months.forEach(function(key) {
-        var m = byMonth[key];
+      visible.forEach(function(group) {
+        var m = group.month;
+        var entries = group.entries.slice();
         // Sort entries within month by day desc, then by entry number desc
-        m.entries.sort(function(a, b) {
+        entries.sort(function(a, b) {
           if (b.d.day !== a.d.day) return b.d.day - a.d.day;
           return entryNum(b.entry) - entryNum(a.entry);
         });
 
         // Top topics
         var topicFreq = {};
-        m.entries.forEach(function(item) {
+        entries.forEach(function(item) {
           var t = item.entry.topic || item.entry.topics || '';
           var tags = Array.isArray(t) ? t : (t ? [t] : []);
           tags.forEach(function(tag) {
@@ -337,7 +392,7 @@
         // Header
         var hdr = el('div', 'month-header');
         hdr.appendChild(el('span', 'month-title', MONTH_NAMES[m.month] + ' ' + m.year));
-        hdr.appendChild(el('span', 'month-count', m.entries.length + ' entries'));
+        hdr.appendChild(el('span', 'month-count', entries.length + ' entries'));
         sec.appendChild(hdr);
 
         // Topic tags
@@ -353,10 +408,10 @@
         var PREVIEW = 8;
         var visibleList = el('div', 'visible-entries');
         var moreList = el('div', 'more-entries');
-        var moreId = 'more-' + key;
+        var moreId = 'more-' + group.key;
         moreList.id = moreId;
 
-        m.entries.forEach(function(item, i) {
+        entries.forEach(function(item, i) {
           var e = item.entry;
           var row = el('div', 'entry-row');
 
@@ -383,9 +438,9 @@
 
         sec.appendChild(visibleList);
 
-        if (m.entries.length > PREVIEW) {
+        if (entries.length > PREVIEW) {
           sec.appendChild(moreList);
-          var remaining = m.entries.length - PREVIEW;
+          var remaining = entries.length - PREVIEW;
           var btn = document.createElement('button');
           btn.className = 'expand-btn';
           btn.textContent = '+ show ' + remaining + ' more';
@@ -393,7 +448,7 @@
           btn.onclick = function() {
             var target = document.getElementById(this.getAttribute('data-target'));
             var isOpen = target.classList.toggle('open');
-            var rem = m.entries.length - PREVIEW;
+            var rem = entries.length - PREVIEW;
             this.textContent = isOpen ? '− hide ' + rem : '+ show ' + rem + ' more';
           };
           sec.appendChild(btn);
@@ -401,7 +456,49 @@
 
         root.appendChild(sec);
       });
+  }
 
+  function restoreFromURL() {
+    var state = readState();
+    search.value = state.q;
+    monthSelect.value = byMonth[state.month] ? state.month : '';
+    render();
+  }
+
+  fetch('/journal-index.json')
+    .then(function(r) { return r.json(); })
+    .then(function(entries) {
+      entries.forEach(function(entry) {
+        var d = parseDate(entry.date || entry.date_display || '');
+        if (!d) return;
+        var key = d.year + '-' + (d.month < 10 ? '0' + d.month : d.month);
+        if (!byMonth[key]) byMonth[key] = {year: d.year, month: d.month, entries: []};
+        byMonth[key].entries.push({entry: entry, d: d});
+      });
+      months = Object.keys(byMonth).sort().reverse();
+      var totalWithDates = months.reduce(function(s, k) { return s + byMonth[k].entries.length; }, 0);
+      document.getElementById('digest-meta').textContent = months.length + ' months · ' + totalWithDates + ' entries';
+      months.forEach(function(key) {
+        var m = byMonth[key];
+        var option = document.createElement('option');
+        option.value = key;
+        option.textContent = MONTH_NAMES[m.month] + ' ' + m.year + ' (' + m.entries.length + ')';
+        monthSelect.appendChild(option);
+      });
+      restoreFromURL();
+      search.addEventListener('input', function() { writeState(true); render(); });
+      monthSelect.addEventListener('change', function() { writeState(false); render(); });
+      document.getElementById('digest-reset').addEventListener('click', function() {
+        search.value = ''; monthSelect.value = ''; writeState(false); render();
+      });
+      document.getElementById('digest-copy').addEventListener('click', function() {
+        navigator.clipboard.writeText(window.location.href).then(function() {
+          var button = document.getElementById('digest-copy');
+          button.textContent = 'copied';
+          setTimeout(function() { button.textContent = 'copy view'; }, 1200);
+        });
+      });
+      window.addEventListener('popstate', restoreFromURL);
     })
     .catch(function(err) {
       document.getElementById('digest-root').textContent = 'error: ' + err.message;
