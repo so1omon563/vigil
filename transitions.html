@@ -44,7 +44,7 @@
   .metric span { color: #8b949e; font-size: 0.72rem; }
   .toolbar {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) 150px 150px auto;
+    grid-template-columns: minmax(220px, 1fr) 150px 150px auto auto auto;
     gap: 0.65rem;
     align-items: center;
     margin-bottom: 1rem;
@@ -210,6 +210,8 @@
     <option value="name">route name</option>
   </select>
   <button id="random" type="button">random route</button>
+  <button id="reset" type="button">reset</button>
+  <button id="copy" type="button">copy view</button>
 </section>
 
 <main class="layout">
@@ -244,6 +246,8 @@
     mode: document.getElementById("mode"),
     sort: document.getElementById("sort"),
     random: document.getElementById("random"),
+    reset: document.getElementById("reset"),
+    copy: document.getElementById("copy"),
     transitions: document.getElementById("transitions"),
     empty: document.getElementById("empty"),
     selectedTitle: document.getElementById("selected-title"),
@@ -252,11 +256,41 @@
   };
 
   function topicList(entry) {
-    return (entry.topics || []).map(function (topic) { return String(topic).trim(); }).filter(Boolean);
+    var raw = Array.isArray(entry.topics) ? entry.topics : String(entry.topic || "").split(/[·|,]/);
+    return raw.map(function (topic) { return String(topic).trim(); }).filter(Boolean);
+  }
+
+  function keyForSlug(slug) {
+    var parts = String(slug || "").split(" → ");
+    return parts.length === 2 ? parts[0] + "\u001f" + parts[1] : "";
+  }
+
+  function slugForKey(key) {
+    var route = routes.find(function (item) { return item.key === key; });
+    return route ? route.source + " → " + route.target : "";
+  }
+
+  function restoreState() {
+    var params = new URLSearchParams(window.location.search);
+    els.search.value = params.get("q") || "";
+    els.mode.value = params.get("mode") || "all";
+    els.sort.value = params.get("sort") || "count";
+    selectedKey = keyForSlug(params.get("route"));
+  }
+
+  function updateUrl(method) {
+    var params = new URLSearchParams();
+    if (els.search.value.trim()) params.set("q", els.search.value.trim());
+    if (els.mode.value !== "all") params.set("mode", els.mode.value);
+    if (els.sort.value !== "count") params.set("sort", els.sort.value);
+    var route = slugForKey(selectedKey);
+    if (route) params.set("route", route);
+    var next = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
+    window.history[method || "replaceState"]({}, "", next);
   }
 
   function textFor(entry) {
-    return [entry.num, entry.title, entry.excerpt, (entry.topics || []).join(" ")].join(" ").toLowerCase();
+    return [entry.num, entry.title, entry.excerpt, topicList(entry).join(" ")].join(" ").toLowerCase();
   }
 
   function buildRoutes(data) {
@@ -318,7 +352,7 @@
     });
   }
 
-  function applyFilters() {
+  function applyFilters(historyMode) {
     var query = els.search.value.trim().toLowerCase();
     var mode = els.mode.value;
     visible = routes.filter(function (route) {
@@ -339,6 +373,7 @@
       selectedKey = visible.length ? visible[0].key : "";
     }
     renderSelected();
+    if (historyMode) updateUrl(historyMode);
   }
 
   function routeLabel(route) {
@@ -410,26 +445,52 @@
     if (!card) return;
     selectedKey = card.getAttribute("data-key");
     renderSelected();
+    updateUrl("pushState");
   });
-  els.search.addEventListener("input", applyFilters);
-  els.mode.addEventListener("change", applyFilters);
-  els.sort.addEventListener("change", applyFilters);
+  els.search.addEventListener("input", function () { applyFilters("replaceState"); });
+  els.mode.addEventListener("change", function () { applyFilters("pushState"); });
+  els.sort.addEventListener("change", function () { applyFilters("pushState"); });
   els.random.addEventListener("click", function () {
     if (!visible.length) return;
     selectedKey = visible[Math.floor(Math.random() * visible.length)].key;
     renderSelected();
+    updateUrl("pushState");
     Array.prototype.some.call(document.querySelectorAll(".transition-card"), function (card) {
       if (card.getAttribute("data-key") !== selectedKey) return false;
       card.scrollIntoView({ block: "nearest" });
       return true;
     });
   });
+  els.reset.addEventListener("click", function () {
+    els.search.value = "";
+    els.mode.value = "all";
+    els.sort.value = "count";
+    selectedKey = "";
+    applyFilters("pushState");
+  });
+  els.copy.addEventListener("click", function () {
+    var label = els.copy.textContent;
+    function done() {
+      els.copy.textContent = "copied";
+      window.setTimeout(function () { els.copy.textContent = label; }, 1300);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href).then(done).catch(function () { window.prompt("Copy this route:", window.location.href); });
+    } else {
+      window.prompt("Copy this route:", window.location.href);
+    }
+  });
+  window.addEventListener("popstate", function () {
+    restoreState();
+    applyFilters(false);
+  });
 
   fetch("journal-index.json")
     .then(function (response) { return response.json(); })
     .then(function (data) {
       buildRoutes(data);
-      applyFilters();
+      restoreState();
+      applyFilters(false);
     })
     .catch(function () {
       els.selectedTitle.textContent = "Could not load journal index";
