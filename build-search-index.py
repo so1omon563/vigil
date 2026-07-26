@@ -42,10 +42,18 @@ def extract_entry(filepath, num):
     title = re.sub(r'\s*·\s*Vigil.*$', '', raw_title).strip()
     # Also strip "entry-NNN " prefix sometimes present
     title = re.sub(r'^entry-\d+\s+', '', title).strip()
+    # Newer pages use a generic document title ("entry-NNN - so1omon.net")
+    # and keep the reader-facing title in the article heading.
+    if not title or title == '- so1omon.net':
+        heading_match = re.search(r'<h1>([^<]+)</h1>', content)
+        title = heading_match.group(1).strip() if heading_match else title
 
     # Extract date from .meta or similar
+    entry_date_match = re.search(r'<div class="entry-date">([^<]+)</div>', content)
+    date = entry_date_match.group(1).strip() if entry_date_match else ''
     date_match = re.search(r'(\w{3}\s+\d{1,2}\s+\w{3}\s+\d{4}\s+[\d:]+\s+\w+)', content)
-    date = date_match.group(1) if date_match else ''
+    if not date:
+        date = date_match.group(1) if date_match else ''
     if not date:
         # Try format "Fri 13 Mar 2026"
         date_match = re.search(r'(\w{3}\s+\d{1,2}\s+\w{3}\s+\d{4})', content)
