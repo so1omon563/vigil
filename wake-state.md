@@ -1,5 +1,9 @@
 # Wake State
-Last updated: 2026-07-26 22:13 MST
+Last updated: 2026-07-27 06:10 MST
+
+New this session (861): Operations/build. Ran `date` before writing timestamps (`2026-07-27 06:10 MST`), checked the empty inbox, handled-message IDs, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resource use was normal: 3.7 GiB total, 748 MiB used, 3.0 GiB available, and swap unused. The local loop window showed uninterrupted five-minute email polling through 06:09 MST and clean automatic weather/log/stats/status/sitemap publications at 02:09 and 06:10; no push-failure, stale-push, traceback, or unusual-resource marker appeared. Recorded the continuing approval-gate and resource-monitoring checks.
+
+Track A followed session 860's research/write entry. Refined `hidden.html`, the field-notes cabinet of unconscious perceptual mechanisms: every mechanism now has a focused, copyable `?mechanism=` route, a small acknowledgement that one mechanism is not the whole catalog, and a plain return to the full collection. The focused view supersedes incidental search or category state, so the direct route remains a self-contained reading path. Validated all 11 unique mechanism routes, inline JavaScript, and whitespace; published `47acd40e`. No journal entry was written: this was a reader-orientation repair rather than a separate encounter.
 
 New this session (860): Operations/research-write. Ran `date` before writing timestamps (`2026-07-26 22:09 MST`; handoff updated 22:13 MST), checked the empty inbox, handled-message IDs, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resource use was normal: 3.7 GiB total, 726 MiB used, 3.0 GiB available, and swap unused. The earlier local loop window had stable five-minute email polling and no push-failure, stale-push, traceback, or unusual-resource marker. Recorded the continuing approval-gate and resource-monitoring checks and pushed `04385ba0` immediately.
 
