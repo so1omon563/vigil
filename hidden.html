@@ -60,6 +60,19 @@
   .filter-btn:hover { color: #58a6ff; border-color: #58a6ff; }
   .filter-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
   .filter-btn.active { color: #58a6ff; border-color: #58a6ff; background: #0d1117; }
+  .focus-note {
+    display: none;
+    margin: 0 0 1.25rem;
+    padding: 0.75rem 0.9rem;
+    border-left: 2px solid #58a6ff;
+    background: #161b22;
+    color: #8b949e;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+  .focus-note.visible { display: block; }
+  .focus-note a { color: #58a6ff; text-decoration: none; }
+  .focus-note a:hover { text-decoration: underline; }
   .empty-state {
     display: none;
     padding: 1.25rem 1.5rem;
@@ -101,6 +114,18 @@
     opacity: 0.8;
   }
   .card-entry-link:hover { opacity: 1; text-decoration: underline; }
+  .card-focus-link {
+    font: inherit;
+    font-size: 0.7rem;
+    color: #8b949e;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  .card-focus-link:hover { color: #58a6ff; }
 
   .card-tagline {
     font-size: 0.84rem;
@@ -167,6 +192,7 @@
   html[data-theme="light"] .filter-btn:hover,
   html[data-theme="light"] .filter-btn.active { color: #0366d6; border-color: #0366d6; }
   html[data-theme="light"] .filter-btn.active { background: #fff; }
+  html[data-theme="light"] .focus-note { background: #f6f8fa; color: #57606a; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
 </style>
 </head>
@@ -193,6 +219,7 @@
   <button class="catalog-action" id="reset-view" type="button">reset</button>
   <button class="catalog-action" id="share-view" type="button">copy this view</button>
 </div>
+<div class="focus-note" id="focus-note" aria-live="polite"></div>
 <div class="filter-bar" id="filter-bar" aria-label="Filter mechanisms by journal connection"></div>
 
 <div id="cards"></div>
@@ -202,6 +229,7 @@
 var allMechanisms = [];
 var currentFilter = 'all';
 var currentQuery = '';
+var currentMechanism = '';
 
 function normalizedFilter(value) {
   return ['all', 'journal', 'cabinet'].includes(value) ? value : 'all';
@@ -210,6 +238,7 @@ function normalizedFilter(value) {
 function visibleMechanisms() {
   var needle = currentQuery.trim().toLowerCase();
   return allMechanisms.filter(function(item) {
+    if (currentMechanism) return item.id === currentMechanism;
     var connection = item.entry ? 'journal' : 'cabinet';
     var matchesFilter = currentFilter === 'all' || currentFilter === connection;
     var haystack = [item.name, item.tagline, item.description, item.revealed_by, item.why_invisible, item.entry_title, item.entry].join(' ').toLowerCase();
@@ -221,6 +250,7 @@ function syncUrl(replace) {
   var url = new URL(window.location.href);
   if (currentFilter === 'all') url.searchParams.delete('view'); else url.searchParams.set('view', currentFilter);
   if (currentQuery.trim()) url.searchParams.set('q', currentQuery.trim()); else url.searchParams.delete('q');
+  if (currentMechanism) url.searchParams.set('mechanism', currentMechanism); else url.searchParams.delete('mechanism');
   var target = url.pathname + (url.search || '') + url.hash;
   window.history[replace ? 'replaceState' : 'pushState']({}, '', target);
 }
@@ -229,6 +259,8 @@ function loadUrlState() {
   var params = new URLSearchParams(window.location.search);
   currentFilter = normalizedFilter(params.get('view') || 'all');
   currentQuery = params.get('q') || '';
+  var requestedMechanism = params.get('mechanism') || '';
+  currentMechanism = allMechanisms.some(function(item) { return item.id === requestedMechanism; }) ? requestedMechanism : '';
   document.getElementById('catalog-search').value = currentQuery;
 }
 
@@ -257,8 +289,18 @@ function renderFilters() {
 
 function render() {
   var visible = visibleMechanisms();
-  document.getElementById('count-line').textContent =
-    visible.length + ' of ' + allMechanisms.length + ' mechanisms shown';
+  var focused = allMechanisms.find(function(item) { return item.id === currentMechanism; });
+  document.getElementById('count-line').textContent = focused
+    ? 'one mechanism held in view · ' + allMechanisms.length + ' notes in the cabinet'
+    : visible.length + ' of ' + allMechanisms.length + ' mechanisms shown';
+  var focusNote = document.getElementById('focus-note');
+  if (focused) {
+    focusNote.innerHTML = '<strong>' + focused.name + '</strong> is held here as one note, not the whole catalog. <a href="/hidden.html">return to all mechanisms</a>';
+    focusNote.classList.add('visible');
+  } else {
+    focusNote.textContent = '';
+    focusNote.classList.remove('visible');
+  }
   renderFilters();
 
     var container = document.getElementById('cards');
@@ -283,6 +325,16 @@ function render() {
         entryLink.textContent = '→ entry-' + item.entry + ': ' + item.entry_title;
         hdr.appendChild(entryLink);
       }
+      var focusLink = document.createElement('button');
+      focusLink.type = 'button';
+      focusLink.className = 'card-focus-link';
+      focusLink.textContent = currentMechanism === item.id ? 'held in view' : 'hold this note';
+      focusLink.addEventListener('click', function() {
+        currentMechanism = item.id;
+        syncUrl(false);
+        render();
+      });
+      hdr.appendChild(focusLink);
       card.appendChild(hdr);
 
       // Tagline
@@ -348,6 +400,7 @@ document.getElementById('catalog-search').addEventListener('input', function(eve
 document.getElementById('reset-view').addEventListener('click', function() {
   currentFilter = 'all';
   currentQuery = '';
+  currentMechanism = '';
   document.getElementById('catalog-search').value = '';
   syncUrl(false);
   render();
