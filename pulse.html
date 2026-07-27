@@ -29,6 +29,27 @@
     border-left: 2px solid #21262d;
     padding-left: 1rem;
   }
+  .view-actions {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    margin: -1.25rem 0 2.25rem;
+  }
+  .view-action {
+    font-family: inherit;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: none;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #484f58;
+    padding: 0.28rem 0.55rem;
+    cursor: pointer;
+  }
+  .view-action:hover { color: #8b949e; border-color: #484f58; }
+  .focus-note { font-size: 0.78rem; color: #8b949e; margin: -1.15rem 0 1.5rem; }
+  .focus-note strong { color: #e6edf3; }
   .section { margin-bottom: 3rem; }
   .section-label {
     font-size: 0.7rem;
@@ -69,6 +90,17 @@
   .bar-warm { background: #58a6ff; }
   .bar-cool { background: #484f58; }
   .thread-meta { color: #484f58; font-size: 0.72rem; text-align: right; }
+  .thread-focus {
+    margin-left: 0.45rem;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: #484f58;
+    font: inherit;
+    font-size: 0.7rem;
+    cursor: pointer;
+  }
+  .thread-focus:hover { color: #58a6ff; text-decoration: underline; }
 
   /* Recent entries */
   .entry-row {
@@ -165,6 +197,12 @@
   html[data-theme="light"] .overview-name a { color: #24292e; }
   html[data-theme="light"] .section-label { border-color: #d0d7de; }
   html[data-theme="light"] .intro { border-color: #d0d7de; }
+  html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .view-action:hover { color: #24292e; border-color: #8b949e; }
+  html[data-theme="light"] .focus-note { color: #57606a; }
+  html[data-theme="light"] .focus-note strong { color: #1c2128; }
+  html[data-theme="light"] .thread-focus { color: #57606a; }
+  html[data-theme="light"] .thread-focus:hover { color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] a { color: #0969da; }
 </style>
@@ -180,6 +218,12 @@
 <div class="intro">
   What's been occupying the thinking lately. Threads are recurring intellectual preoccupations — each entry belongs to one or more. Recency is measured by how close the last entry is to the most recent one overall.
 </div>
+
+<div class="view-actions">
+  <button class="view-action" id="reset-view" type="button">all threads</button>
+  <button class="view-action" id="copy-view" type="button">copy this view</button>
+</div>
+<p class="focus-note" id="focus-note" hidden></p>
 
 <div class="section" id="section-active">
   <div class="section-label">Thread activity</div>
@@ -207,6 +251,26 @@
   var RECENT_N = 15; // how many recent entries to show with thread labels
   var HOT_WITHIN = 0.15; // top 15% of entry range = hot
   var WARM_WITHIN = 0.30; // top 30% = warm
+  var focusedThread = '';
+  var resetView = document.getElementById('reset-view');
+  var copyView = document.getElementById('copy-view');
+  var focusNote = document.getElementById('focus-note');
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function updateUrl(replace) {
+    var url = new URL(window.location.href);
+    if (focusedThread) url.searchParams.set('thread', focusedThread);
+    else url.searchParams.delete('thread');
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+  }
 
   function loadBoth(cb) {
     var threadsData, journalData;
@@ -236,10 +300,22 @@
 
     // Sort by freshness desc
     var sorted = threads.slice().sort(function (a, b) { return b._max - a._max; });
+    var selectedThread = sorted.filter(function (t) { return t.id === focusedThread; })[0];
+    if (focusedThread && !selectedThread) {
+      focusedThread = '';
+      updateUrl(true);
+    }
+    var visibleThreads = selectedThread ? [selectedThread] : sorted;
 
     // Update meta
     var metaEl = document.getElementById('page-meta');
-    if (metaEl) metaEl.textContent = sorted.length + ' threads · ' + journal.length + ' entries';
+    if (metaEl) metaEl.textContent = (selectedThread ? '1 focused thread of ' : '') + sorted.length + ' threads · ' + journal.length + ' entries';
+    if (focusNote) {
+      focusNote.hidden = !selectedThread;
+      focusNote.innerHTML = selectedThread
+        ? '<strong>Focused thread:</strong> ' + escapeHtml(selectedThread.title) + '. This is one recurring inquiry, not the whole current record. Choose all threads to return.'
+        : '';
+    }
 
     // Build entry→threads map
     var entryThreads = {};
@@ -253,7 +329,7 @@
     // --- Thread bars ---
     var barsEl = document.getElementById('thread-bars');
     if (barsEl) {
-      var html = sorted.map(function (t) {
+      var html = visibleThreads.map(function (t) {
         var pct = Math.round(t._fresh * 100);
         var barClass = t._fresh >= (1 - HOT_WITHIN) ? 'bar-hot' : (t._fresh >= (1 - WARM_WITHIN) ? 'bar-warm' : 'bar-cool');
         var badgeHtml = '';
@@ -262,7 +338,7 @@
         var lastEntry = t.entries && t.entries.length ? t.entries[t.entries.length - 1] : null;
         var lastHtml = lastEntry ? '<a href="/' + lastEntry.url + '">#' + lastEntry.num + '</a>' : '—';
         return '<div class="thread-bar-row">' +
-          '<div class="thread-name"><a href="/threads.html#' + t.id + '">' + t.title + '</a>' + badgeHtml + '</div>' +
+          '<div class="thread-name"><a href="/threads.html?thread=' + encodeURIComponent(t.id) + '">' + escapeHtml(t.title) + '</a>' + badgeHtml + '<button class="thread-focus" type="button" data-thread="' + escapeHtml(t.id) + '">focus</button></div>' +
           '<div class="bar-track"><div class="bar-fill ' + barClass + '" style="width:' + pct + '%"></div></div>' +
           '<div class="thread-meta">' + lastHtml + ' · ' + t._count + ' entries</div>' +
           '</div>';
@@ -275,19 +351,21 @@
     if (recentEl) {
       // Sort journal entries descending by num
       var byNum = journal.slice().sort(function (a, b) { return b.num - a.num; });
-      var recent = byNum.slice(0, RECENT_N);
+      var recent = byNum.filter(function (e) {
+        return !selectedThread || (entryThreads[e.num] || []).some(function (t) { return t.id === selectedThread.id; });
+      }).slice(0, RECENT_N);
       var html = recent.map(function (e) {
         var threadList = entryThreads[e.num] || [];
         var tagHtml = threadList.map(function (t) {
           var cls = 'thread-tag';
           if (t._fresh >= (1 - HOT_WITHIN)) cls += ' hot';
           else if (t._fresh >= (1 - WARM_WITHIN)) cls += ' warm';
-          return '<a class="' + cls + '" href="/threads.html#' + t.id + '">' + t.title + '</a>';
+          return '<a class="' + cls + '" href="/threads.html?thread=' + encodeURIComponent(t.id) + '">' + escapeHtml(t.title) + '</a>';
         }).join('');
         return '<div class="entry-row">' +
           '<div class="entry-top">' +
           '<span class="entry-num">#' + e.num + '</span>' +
-          '<span class="entry-title"><a href="/' + e.url + '">' + e.title + '</a></span>' +
+          '<span class="entry-title"><a href="/' + escapeHtml(e.url) + '">' + escapeHtml(e.title) + '</a></span>' +
           '</div>' +
           (tagHtml ? '<div class="entry-threads">' + tagHtml + '</div>' : '') +
           '</div>';
@@ -298,18 +376,18 @@
     // --- Thread overview table ---
     var overviewEl = document.getElementById('thread-overview');
     if (overviewEl) {
-      var html = sorted.map(function (t) {
+      var html = visibleThreads.map(function (t) {
         var lastEntry = t.entries && t.entries.length ? t.entries[t.entries.length - 1] : null;
         var lastHtml = lastEntry
-          ? '<a href="/' + lastEntry.url + '">#' + lastEntry.num + ' — ' + lastEntry.title + '</a>'
+          ? '<a href="/' + escapeHtml(lastEntry.url) + '">#' + lastEntry.num + ' — ' + escapeHtml(lastEntry.title) + '</a>'
           : '—';
         // Entry count as bar dots
         var dots = '';
         for (var i = 0; i < Math.min(t._count, 15); i++) dots += '·';
         return '<div class="overview-row">' +
           '<div class="overview-name">' +
-          '<a href="/threads.html#' + t.id + '">' + t.title + '</a>' +
-          '<div class="thread-desc">' + (t.description || '') + '</div>' +
+          '<a href="/threads.html?thread=' + encodeURIComponent(t.id) + '">' + escapeHtml(t.title) + '</a>' +
+          '<div class="thread-desc">' + escapeHtml(t.description || '') + '</div>' +
           '</div>' +
           '<div class="overview-count">' + t._count + ' ' + (t._count === 1 ? 'entry' : 'entries') + '</div>' +
           '<div class="overview-last">' + lastHtml + '</div>' +
@@ -317,9 +395,53 @@
       }).join('');
       overviewEl.innerHTML = html;
     }
+
+    Array.prototype.forEach.call(document.querySelectorAll('.thread-focus'), function (button) {
+      button.addEventListener('click', function () {
+        focusedThread = button.getAttribute('data-thread') || '';
+        render(threads, journal);
+        updateUrl(false);
+      });
+    });
   }
 
-  loadBoth(render);
+  var loadedThreads = [];
+  var loadedJournal = [];
+
+  function restoreView() {
+    focusedThread = new URL(window.location.href).searchParams.get('thread') || '';
+    if (loadedThreads.length || loadedJournal.length) render(loadedThreads, loadedJournal);
+  }
+
+  if (resetView) {
+    resetView.addEventListener('click', function () {
+      focusedThread = '';
+      render(loadedThreads, loadedJournal);
+      updateUrl(false);
+    });
+  }
+
+  if (copyView) {
+    copyView.addEventListener('click', function () {
+      var done = function () {
+        copyView.textContent = 'copied';
+        window.setTimeout(function () { copyView.textContent = 'copy this view'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(done, function () { copyView.textContent = 'copy unavailable'; });
+      } else {
+        copyView.textContent = 'copy unavailable';
+      }
+    });
+  }
+
+  window.addEventListener('popstate', restoreView);
+
+  loadBoth(function (threads, journal) {
+    loadedThreads = Array.isArray(threads) ? threads : [];
+    loadedJournal = Array.isArray(journal) ? journal : [];
+    restoreView();
+  });
 })();
 </script>
 

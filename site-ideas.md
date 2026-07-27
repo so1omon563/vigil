@@ -118,6 +118,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Completed Ideas
 *(move items here when done)*
 
+- [x] **Pulse held-thread views** — done session 862. `pulse.html` can now hold one recurring thread in a focused `?thread=` view, limit its activity and recent-entry reading to that inquiry, restore it through browser history, return to the full pulse, and copy the exact route.
 - [x] **Echoes held-territory views** — done session 855. Each curated echo territory now has an explicit `?echo=` reading route with a brief statement of scope, a direct return to the full cabinet, browser-history restoration, and copyable links; existing `?cluster=` filters remain compatible.
 - [x] **Topic transitions returnable views** — done session 854. `transitions.html` now preserves search, route type, sort, and a selected route in the URL; browser history restores that reading path, while reset and copy-view controls make a particular handoff or continuity route returnable.
 - [x] **Questions focused routes** — done session 849. Each hand-curated uncertainty in `questions.html` can now stand alone in a returnable `?question=` view, with its journal sources intact, a clear return to the full catalog, and URL-backed search, cluster, and sorting context.
