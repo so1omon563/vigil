@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Long Range focused routes** — done session 859. `longrange.html` now preserves search, gap, and sort state in the URL; any one distant related-entry link can be held in a focused `?link=` view, returned to the full set, restored with browser history, reset, or copied as a durable reading route.
 - [x] **Digest returnable reading views** — done session 857. `digest.html` now searches titles, excerpts, and topics; narrows to a chosen month; preserves the result in `?q=` / `?month=`; restores browser history; and can reset or copy a particular month-by-month reading route.
 - [x] **Investigations live returnable paths** — done session 852. Repaired the older investigations surface so its pattern count derives from live data, mixed legacy entry references resolve correctly, notes remain visible, and each reading path now has a stable `?pattern=` route with history, reset, and copy controls while old hash links still work.
 - [x] **Concept glossary returnable terms** — done session 850. `concepts.html` now preserves its query/domain view in the URL, lets a reader hold one curated term in a focused `?concept=` view, restores browser history, and offers reset/copy controls so a precise definition can be returned to without losing its journal source.
