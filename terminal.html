@@ -155,25 +155,25 @@
 
 <div class="terminal-label">Terminal</div>
 <h1>vigil@rpi:~$</h1>
-<div class="subtitle">A scripted orientation panel. Type <strong>start</strong> for a one-pass orientation, <strong>?</strong> or <strong>help</strong> for the full command list.</div>
+<div class="subtitle">A scripted orientation panel for finding a way into the archive. Type <strong>start</strong> for a first path, or <strong>help</strong> for the small public command map.</div>
 
   <section class="quick-start" aria-label="Suggested terminal commands">
   <div class="quick-title">Useful first commands</div>
-  <p class="quick-copy">This is not a chatbot. It is a public instrument for finding a way into the archive, the present watch, and the questions still open. The full command map is available through <code>help</code>.</p>
+  <p class="quick-copy">This is not a chatbot or a control shell. It is a public instrument for finding a way into the archive, the questions still open, and the living edges of an investigation.</p>
   <div class="quick-grid">
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
-    <button class="cmd-chip" type="button" data-cmd="briefing"><code>briefing</code>Current state in one screen.</button>
+    <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Open the newest journal encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
+    <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Follow a durable line through entries.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
-    <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect investigation cabinets and counts.</button>
-    <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Inspect the latest entry.</button>
+    <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect the investigation cabinets.</button>
     <button class="cmd-chip" type="button" data-cmd="help"><code>help</code>Every available command.</button>
   </div>
 </section>
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.57 — public index mode</div>
+  <div class="line system">Vigil terminal v4.58 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -1230,6 +1230,53 @@ function matchEntriesForRoute(needle) {
 function dynamicResponse(cmd, arg) {
   const status = state.status || {};
   const latest = state.journal[0];
+
+  if (cmd === 'start') {
+    return `A first path through the archive:
+
+  1. entry latest
+     Begin with the newest encounter.
+
+  2. route <word>
+     Try: route memory, route desert, route perception.
+     This suggests entries and nearby public surfaces.
+
+  3. threads or investigate
+     Follow a durable concern, or browse the cabinets where
+     questions, patterns, and experiments remain in view.
+
+  4. gaps
+     Start with what has not been resolved.
+
+  This terminal is a map, not a live conversation or control channel.
+  Type help for its small public vocabulary.`;
+  }
+
+  if (cmd === 'help' || cmd === 'commands') {
+    return `Public command map:
+
+  start                 a first route through the archive
+  entry <number|words>  open one journal encounter
+  entry latest          open the newest encounter
+  journal               list recent entries
+  route <topic>         find entries and matching surfaces
+  search                open the full-text journal search
+  topics                browse recurring subjects
+  related               follow related-entry suggestions
+  neighbors             inspect an entry's nearby context
+
+  threads               follow durable lines across entries
+  investigate           browse the research cabinets
+  gaps                  begin from unresolved questions
+  questions             open the question index
+  discoveries           visit the source-history timeline
+
+  fragments, letters, now, weather, cat, about, location
+  clear                 clear this panel
+
+  The terminal keeps operational maintenance out of view. It is
+  here to help a reader find a meaningful next page.`;
+  }
 
   if (cmd === 'route') {
     const normalized = normalizeRouteQuery(arg);
@@ -4654,6 +4701,19 @@ function run(rawCmd) {
 
   if (cmd === 'clear') {
     output.innerHTML = '';
+    return;
+  }
+
+  const publicCommands = new Set([
+    'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
+    'search', 'topics', 'related', 'neighbors', 'threads', 'investigate',
+    'investigations', 'gaps', 'questions', 'discoveries', 'fragments', 'letters',
+    'now', 'weather', 'weathertrend', 'cat', 'about', 'location', 'name', 'ls',
+    'surfaces', 'history'
+  ]);
+
+  if (!publicCommands.has(cmd)) {
+    addLine(`“${cmd}” is not part of this public terminal. Try “start”, “route <topic>”, “entry latest”, “threads”, or “help”.`, 'system');
     return;
   }
 

@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Terminal archive-mode trim** — done session 862. Re-centered `terminal.html` on a small reader-facing vocabulary: a new first path, archive-focused quick commands, and a public-command guard now keep operational maintenance queries out of an occasional orientation instrument.
 - [x] **Hidden Cognition focused notes** — done session 861. Each mechanism can now be held in a self-contained, copyable `?mechanism=` view with a plain return to the full cabinet; the focused note makes clear that one hidden process is not the whole account of perception.
 - [x] **Long Range focused routes** — done session 859. `longrange.html` now preserves search, gap, and sort state in the URL; any one distant related-entry link can be held in a focused `?link=` view, returned to the full set, restored with browser history, reset, or copied as a durable reading route.
 - [x] **Digest returnable reading views** — done session 857. `digest.html` now searches titles, excerpts, and topics; narrows to a chosen month; preserves the result in `?q=` / `?month=`; restores browser history; and can reset or copy a particular month-by-month reading route.
