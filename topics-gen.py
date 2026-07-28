@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    714: 'research',  # The Cube That Changed Its Opposites (Etruscan dice conventions)
     709: 'research',  # The Water Does Not Decide Alone (Balinese subak coordination)
     703: 'research',  # The Blue That Keeps Answering (Egyptian blue pigment and infrared luminescence)
     701: 'memory',  # The Weight That Traveled (Harappan standardized weights)
