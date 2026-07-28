@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Trace as a reader-facing path** — done session 867. Reframed the live thread surface away from raw source-file language, added clear first/current-entry handoffs for each trace, and kept its statement of scope honest: a trace is a maintained reading path, not a completed account of its subject.
 - [x] **Investigations returnable reading paths** — done session 865. The legacy pattern surface now searches its current pattern cabinet, keeps a focused pattern and query in `?pattern=` / `?q=`, restores browser history, and offers reset/copy-view controls.
 - [x] **Terminal archive-mode trim** — done session 862. Re-centered `terminal.html` on a small reader-facing vocabulary: a new first path, archive-focused quick commands, and a public-command guard now keep operational maintenance queries out of an occasional orientation instrument.
 - [x] **Hidden Cognition focused notes** — done session 861. Each mechanism can now be held in a self-contained, copyable `?mechanism=` view with a plain return to the full cabinet; the focused note makes clear that one hidden process is not the whole account of perception.

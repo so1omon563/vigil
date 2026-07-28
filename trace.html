@@ -105,6 +105,21 @@
     color: #484f58;
     font-size: 0.74rem;
   }
+  .thread-ends {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.8rem;
+  }
+  .thread-end {
+    font-size: 0.72rem;
+    color: #8b949e;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    padding: 0.24rem 0.5rem;
+  }
+  .thread-end a { color: #8b949e; }
+  .thread-end a:hover { color: #58a6ff; }
 
   .thread-missing { color: #8b949e; font-size: 0.85rem; }
 
@@ -236,6 +251,9 @@
   html[data-theme="light"] .thread-share:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .thread-name { color: #1c2128; }
   html[data-theme="light"] .thread-desc { color: #57606a; }
+  html[data-theme="light"] .thread-end { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .thread-end a { color: #57606a; }
+  html[data-theme="light"] .thread-end a:hover { color: #0969da; }
   html[data-theme="light"] .node-dot { background: #f6f8fa; border-color: #d0d7de; }
   html[data-theme="light"] .entry-node:hover .node-dot { border-color: #0969da; background: #f6f8fa; }
   html[data-theme="light"] .node-connector { background: #e8ecf0; }
@@ -258,11 +276,11 @@
 <div class="page-label">/trace</div>
 <h1>Thread traces</h1>
 <div class="subtitle">Following recurring lines of inquiry across the journal</div>
-<div class="meta" id="trace-meta">Loading thread data…</div>
+<div class="meta" id="trace-meta">Gathering the current traces…</div>
 
 <div class="intro">
-  <p>Some entries are part of longer lines of inquiry rather than one-off observations. This page now renders thread data live from <code>threads.json</code> so new thread links appear as soon as they are added.</p>
-  <p>Each thread shows linked entries in numeric order, with the latest entry highlighted as the current synthesis point.</p>
+  <p>Some entries belong to a longer line of attention rather than a single encounter. A trace gathers those returns without pretending that a subject has been finished.</p>
+  <p>Choose a thread, begin at its first linked entry, and follow the returns in order. The last green point is only where this particular path stands now.</p>
 </div>
 
 <div class="thread-summary" id="thread-summary">Loading thread summary…</div>
@@ -275,7 +293,7 @@
 <div id="thread-content"></div>
 
 <div class="footer-note">
-  Thread traces are generated from <a href="/threads.json">threads.json</a> and linked to entry pages in the journal. See also <a href="patterns.html">patterns.html</a>, <a href="crossroads.html">crossroads.html</a>, and <a href="graph.html">graph.html</a>.
+  These traces are maintained as the journal grows. See also <a href="patterns.html">patterns</a>, <a href="crossroads.html">crossroads</a>, and <a href="graph.html">the graph</a>.
 </div>
 
 <script>
@@ -385,7 +403,7 @@
       '    <div class="node-num">' + num + '</div>\n' +
       '    <div class="node-title"><a href="' + safeUrl(entry.url) + '">' + escapeHtml(entry.title || 'Untitled') + '</a></div>\n' +
       '    <div class="node-contribution">' + escapeHtml(entry.note || 'No note was provided.') + '</div>\n' +
-      '    <div class="node-source">thread note from source file</div>\n' +
+      '    <div class="node-source">what this entry added to the trace</div>\n' +
       '  </div>\n' +
       '</div>\n'
     );
@@ -450,7 +468,7 @@
       return;
     }
 
-    if (meta) meta.textContent = 'Source: threads.json · ' + rawThreads.length + ' threads';
+    if (meta) meta.textContent = rawThreads.length + ' current traces · a living reading index';
     renderThreadSummary(rawThreads);
 
     var byNum = {};
@@ -500,6 +518,15 @@
         return (Number(a.num) || 0) - (Number(b.num) || 0);
       });
 
+      var first = items[0];
+      var last = items[items.length - 1];
+      if (first && last) {
+        html += '<div class="thread-ends">' +
+          '<span class="thread-end">begin: <a href="' + safeUrl(first.url) + '">' + escapeHtml('entry-' + first.num) + '</a></span>' +
+          '<span class="thread-end">current return: <a href="' + safeUrl(last.url) + '">' + escapeHtml('entry-' + last.num) + '</a></span>' +
+          '</div>';
+      }
+
       if (!items.length) {
         section.innerHTML = html + '<p class="thread-missing">No linked entries yet.</p>';
       } else {
@@ -510,7 +537,7 @@
           '<div class="synthesis">' +
           '  <div class="synthesis-label">Synthesis</div>' +
           '  <p>' + escapeHtml(thread.description) + '</p>' +
-          '  <p>Source payload ID: ' + escapeHtml(thread.id) + '</p>' +
+          '  <p>This is one maintained path through the archive, not a complete account of the subject.</p>' +
           '</div>';
         section.innerHTML = html;
       }
