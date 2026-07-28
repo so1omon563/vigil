@@ -28,6 +28,38 @@
     margin-bottom: 2rem;
   }
 
+  .archive-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: -0.7rem 0 0.75rem;
+  }
+  .pattern-search {
+    width: 100%;
+    font: inherit;
+    font-size: 0.78rem;
+    color: #c9d1d9;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.55rem 0.65rem;
+  }
+  .pattern-search:focus { outline: none; border-color: #58a6ff; }
+  .pattern-search::placeholder { color: #484f58; }
+  .archive-action {
+    flex-shrink: 0;
+    background: none;
+    border: 1px solid #21262d;
+    color: #8b949e;
+    font: inherit;
+    font-size: 0.7rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .archive-action:hover { border-color: #58a6ff; color: #58a6ff; }
+  .filter-note { font-size: 0.7rem; color: #484f58; margin-bottom: 1rem; min-height: 1.2em; }
+
   /* Pattern selector */
   .pattern-nav {
     display: flex;
@@ -162,6 +194,10 @@
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
   html[data-theme="light"] h1 { color: #24292e; }
   html[data-theme="light"] .intro { color: #8c959f; }
+  html[data-theme="light"] .pattern-search { color: #24292e; background: #ffffff; border-color: #d0d7de; }
+  html[data-theme="light"] .pattern-search::placeholder, html[data-theme="light"] .filter-note { color: #8c959f; }
+  html[data-theme="light"] .archive-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .archive-action:hover { color: #0550ae; border-color: #0550ae; }
   html[data-theme="light"] .pattern-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .pattern-btn:hover { border-color: #8c959f; color: #24292e; }
   html[data-theme="light"] .pattern-btn.active { border-color: #0550ae; color: #0550ae; background: rgba(5,80,174,0.05); }
@@ -189,6 +225,13 @@
 <h1>investigations</h1>
 <p class="intro">recurring patterns across entries — each one is a reading path through the investigation</p>
 
+<div class="archive-controls">
+  <input class="pattern-search" id="pattern-search" type="search" placeholder="search patterns, descriptions, or linked entries" aria-label="Search investigation patterns">
+  <button class="archive-action" id="pattern-reset" type="button">reset</button>
+  <button class="archive-action" id="pattern-copy" type="button">copy view</button>
+</div>
+<div class="filter-note" id="filter-note" aria-live="polite"></div>
+
 <div id="inv-root"><p class="placeholder">loading…</p></div>
 
 <script>
@@ -207,8 +250,17 @@
     return e;
   }
 
-  function getHash() {
-    return window.location.hash.replace(/^#/, '') || null;
+  function readState() {
+    var params = new URLSearchParams(window.location.search);
+    return { pattern: params.get('pattern') || window.location.hash.replace(/^#/, ''), query: params.get('q') || '' };
+  }
+
+  function writeState(state, replace) {
+    var url = new URL(window.location.href);
+    if (state.pattern) url.searchParams.set('pattern', state.pattern); else url.searchParams.delete('pattern');
+    if (state.query.trim()) url.searchParams.set('q', state.query.trim()); else url.searchParams.delete('q');
+    url.hash = '';
+    history[replace ? 'replaceState' : 'pushState'](null, '', url.pathname + url.search);
   }
 
   Promise.all([
@@ -233,12 +285,28 @@
     var root = document.getElementById('inv-root');
     root.innerHTML = '';
 
+    var state = readState();
+    var search = document.getElementById('pattern-search');
+    var reset = document.getElementById('pattern-reset');
+    var copy = document.getElementById('pattern-copy');
+    search.value = state.query;
+
     // Pattern selector
     var nav = el('div', 'pattern-nav');
     root.appendChild(nav);
 
     var contentArea = el('div');
     root.appendChild(contentArea);
+
+    function matchingPatterns() {
+      var query = state.query.trim().toLowerCase();
+      return !query ? patterns : patterns.filter(function(p) {
+        return [p.name, p.short, p.description].concat((p.entries || []).map(function(e) {
+          var ji = lookup[e.num] || {};
+          return [e.title, e.note, ji.excerpt].join(' ');
+        })).join(' ').toLowerCase().indexOf(query) !== -1;
+      });
+    }
 
     function renderPattern(p) {
       contentArea.innerHTML = '';
@@ -297,36 +365,54 @@
       });
     }
 
-    // Build nav buttons
-    var activeId = getHash() || patterns[0].id;
-
-    patterns.forEach(function(p) {
-      var btn = el('button', 'pattern-btn' + (p.id === activeId ? ' active' : ''), p.short || p.name || p.id);
-      btn.setAttribute('data-pid', p.id);
-      btn.addEventListener('click', function() {
-        nav.querySelectorAll('.pattern-btn').forEach(function(b){ b.classList.remove('active'); });
-        btn.classList.add('active');
-        window.location.hash = '#' + p.id;
-        renderPattern(p);
-        contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    function render() {
+      var visible = matchingPatterns();
+      var selected = patterns.find(function(p) { return p.id === state.pattern; });
+      if (!selected || (state.query && visible.indexOf(selected) === -1)) selected = visible[0] || null;
+      nav.innerHTML = '';
+      visible.forEach(function(p) {
+        var btn = el('button', 'pattern-btn' + (selected && p.id === selected.id ? ' active' : ''), p.short || p.name || p.id);
+        btn.setAttribute('data-pid', p.id);
+        btn.addEventListener('click', function() {
+          state.pattern = p.id;
+          writeState(state, false);
+          render();
+          contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        nav.appendChild(btn);
       });
-      nav.appendChild(btn);
+      document.getElementById('filter-note').textContent = state.query.trim()
+        ? visible.length + ' of ' + patterns.length + ' patterns match “' + state.query.trim() + '”.'
+        : patterns.length + ' recurring patterns. Choose one to follow its trace.';
+      if (selected) renderPattern(selected);
+      else contentArea.innerHTML = '<p class="placeholder">no patterns carry that phrase yet.</p>';
+    }
+
+    search.addEventListener('input', function() {
+      state.query = search.value;
+      writeState(state, true);
+      render();
+    });
+    reset.addEventListener('click', function() {
+      state = { pattern: patterns[0].id, query: '' };
+      search.value = '';
+      writeState(state, false);
+      render();
+      search.focus();
+    });
+    copy.addEventListener('click', function() {
+      var original = copy.textContent;
+      function done() { copy.textContent = 'copied'; window.setTimeout(function() { copy.textContent = original; }, 1300); }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href).then(done).catch(function() { copy.textContent = 'copy unavailable'; });
+      else copy.textContent = 'copy unavailable';
+    });
+    window.addEventListener('popstate', function() {
+      state = readState();
+      search.value = state.query;
+      render();
     });
 
-    // Handle hash navigation
-    window.addEventListener('hashchange', function() {
-      var id = getHash();
-      var p = patterns.find(function(x){ return x.id === id; });
-      if (!p) return;
-      nav.querySelectorAll('.pattern-btn').forEach(function(b){
-        b.classList.toggle('active', b.getAttribute('data-pid') === id);
-      });
-      renderPattern(p);
-    });
-
-    // Initial render
-    var initialPattern = patterns.find(function(p){ return p.id === activeId; }) || patterns[0];
-    renderPattern(initialPattern);
+    render();
 
   }).catch(function(e) {
     document.getElementById('inv-root').textContent = 'error: ' + e.message;
