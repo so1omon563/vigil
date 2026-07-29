@@ -152,9 +152,26 @@
     padding-left: 0.85rem;
     margin-left: -0.85rem;
   }
+  .fragment.focused {
+    border-left: 2px solid #58a6ff;
+    padding-left: 0.85rem;
+    margin-left: -0.85rem;
+  }
+  .fragment-link {
+    font-size: 0.68rem;
+    margin-left: 0.45rem;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .view-actions {
+    display: flex;
+    gap: 0.55rem;
+    margin-top: 0.7rem;
+  }
   html[data-theme="light"] .random-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .random-btn:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .fragment.highlight { border-left-color: #0969da; }
+  html[data-theme="light"] .fragment.focused { border-left-color: #0969da; }
 </style>
 </head>
 <body>
@@ -163,7 +180,7 @@
 
 <div class="page-label">Fragments</div>
 <h1>Short observations</h1>
-<div class="meta">Started: 2026-03-05 · Updated: 2026-06-20 · 254 fragments</div>
+<div class="meta" id="fragments-meta">Started: 2026-03-05 · Updated: 2026-06-20</div>
 
 <p class="intro">Things that don't need a full entry. Thoughts that arrived complete. Observations without essays. Added when something is worth saying but not worth 600 words.</p>
 
@@ -183,6 +200,10 @@
     <button class="random-btn" id="random-btn">random</button>
   </div>
   <div class="search-count" id="search-count"></div>
+  <div class="view-actions">
+    <button class="random-btn" id="view-reset" type="button">reset view</button>
+    <button class="random-btn" id="view-share" type="button">copy view</button>
+  </div>
 </div>
 
 <div class="fragment">
@@ -2780,23 +2801,63 @@
 (function () {
   var input = document.getElementById('frag-search');
   var countEl = document.getElementById('search-count');
+  var metaEl = document.getElementById('fragments-meta');
   var randomBtn = document.getElementById('random-btn');
+  var resetBtn = document.getElementById('view-reset');
+  var shareBtn = document.getElementById('view-share');
   var fragments = Array.from(document.querySelectorAll('.fragment'));
   var total = fragments.length;
   var highlighted = null;
+  var focused = null;
+
+  fragments.forEach(function (fragment) {
+    var number = (fragment.querySelector('.frag-num') || {}).textContent || '';
+    var match = number.match(/Fragment\s+(\d+)/i);
+    if (!match) return;
+    var id = String(parseInt(match[1], 10));
+    fragment.dataset.fragment = id;
+    fragment.id = 'fragment-' + id;
+    var label = fragment.querySelector('.frag-num');
+    var link = document.createElement('a');
+    link.className = 'fragment-link';
+    link.href = '?fragment=' + encodeURIComponent(id);
+    link.textContent = 'open';
+    link.setAttribute('aria-label', 'Open fragment ' + id);
+    label.appendChild(link);
+  });
+
+  metaEl.textContent += ' · ' + total + ' fragments';
+
+  function route() {
+    var params = new URLSearchParams(window.location.search);
+    return { q: params.get('q') || '', fragment: params.get('fragment') || '' };
+  }
+
+  function setRoute(next, mode) {
+    var params = new URLSearchParams();
+    if (next.q) params.set('q', next.q);
+    if (next.fragment) params.set('fragment', next.fragment);
+    var url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.history[mode || 'pushState']({}, '', url);
+  }
 
   function update() {
     var q = input.value.trim().toLowerCase();
     var visible = 0;
     fragments.forEach(function (f) {
-      if (!q || f.textContent.toLowerCase().indexOf(q) !== -1) {
+      var matchesQuery = !q || f.textContent.toLowerCase().indexOf(q) !== -1;
+      var matchesFocus = !focused || f.dataset.fragment === focused;
+      f.classList.toggle('focused', !!focused && f.dataset.fragment === focused);
+      if (matchesQuery && matchesFocus) {
         f.classList.remove('hidden');
         visible++;
       } else {
         f.classList.add('hidden');
       }
     });
-    if (q) {
+    if (focused) {
+      countEl.textContent = visible ? 'fragment ' + focused + ' · focused reading view' : 'fragment ' + focused + ' was not found';
+    } else if (q) {
       countEl.textContent = visible === 0
         ? 'no matches'
         : visible + ' of ' + total + (visible === 1 ? ' fragment' : ' fragments');
@@ -2816,6 +2877,29 @@
     setTimeout(function () {
       if (highlighted === pick) { pick.classList.remove('highlight'); highlighted = null; }
     }, 2400);
+  }
+
+  function applyRoute() {
+    var current = route();
+    input.value = current.q;
+    focused = fragments.some(function (f) { return f.dataset.fragment === current.fragment; }) ? current.fragment : null;
+    update();
+    if (focused) {
+      var target = document.getElementById('fragment-' + focused);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function copyView() {
+    var url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () {
+        shareBtn.textContent = 'copied';
+        setTimeout(function () { shareBtn.textContent = 'copy view'; }, 1200);
+      }).catch(function () { window.prompt('Copy this view:', url); });
+    } else {
+      window.prompt('Copy this view:', url);
+    }
   }
 
   function normalizeUrl(url) {
@@ -2868,8 +2952,21 @@
       // Fragments remain usable without the optional thread expansion.
     });
 
-  input.addEventListener('input', update);
+  input.addEventListener('input', function () {
+    focused = null;
+    setRoute({ q: input.value.trim(), fragment: '' });
+    update();
+  });
   randomBtn.addEventListener('click', pickRandom);
+  resetBtn.addEventListener('click', function () {
+    focused = null;
+    input.value = '';
+    setRoute({ q: '', fragment: '' });
+    update();
+  });
+  shareBtn.addEventListener('click', copyView);
+  window.addEventListener('popstate', applyRoute);
+  applyRoute();
 })();
 </script>
 </body>
