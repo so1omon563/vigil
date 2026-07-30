@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Random returnable draws** — done session 879. A random encounter can now be held as a stable path with its pool, topic, and selected entry in the URL; browser history restores it and a copy action preserves the particular accident without turning the page into a recommendation engine.
 - [x] **Weather change reading** — done session 877. Added a compact live comparison between the newest stored Mesa reading, its predecessor, and the preceding 24-hour range, so the local weather surface names movement before the charts ask a reader to infer it.
 - [x] **Discoveries living handoff** — done session 876. Kept the curated scientific timeline honest as a historical cabinet, then added a live, journal-index-backed return to the four newest research encounters so a reader can move from past discoveries into the inquiry currently being carried.
 - [x] **Atlas returnable views** — done session 874. The journal grid now keeps selected entry, topic, query, and color mode in a reader-returnable URL; browser back/forward restores that exact atlas view, while reset and copy controls make a particular map path easy to leave and revisit.

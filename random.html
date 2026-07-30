@@ -91,6 +91,30 @@
     font-size: 0.76rem;
     margin-bottom: 1.25rem;
   }
+  .view-actions {
+    align-items: center;
+    display: flex;
+    gap: 0.7rem;
+    justify-content: space-between;
+    margin: -0.5rem 0 1.25rem;
+  }
+  .view-note {
+    color: #484f58;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+  .copy-view {
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.55rem;
+    white-space: nowrap;
+  }
+  .copy-view:hover,
+  .copy-view:focus { border-color: #58a6ff; color: #c9d1d9; outline: none; }
   .entry-card {
     border: 1px solid #21262d;
     border-radius: 4px;
@@ -232,6 +256,9 @@
     color: #24292e;
   }
   html[data-theme="light"] a { color: #0969da; }
+  html[data-theme="light"] .copy-view { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .copy-view:hover,
+  html[data-theme="light"] .copy-view:focus { border-color: #0969da; color: #24292e; }
 </style>
 </head>
 <body>
@@ -262,6 +289,10 @@
 </div>
 
 <div id="stats-line" class="stats-line">loading journal index...</div>
+<div class="view-actions">
+  <div class="view-note" id="view-note">A draw can become a returnable reading path.</div>
+  <button class="copy-view" id="copy-view" type="button" disabled>copy this draw</button>
+</div>
 <div id="card-container"><div class="loading">loading...</div></div>
 <div id="history-container"></div>
 
@@ -277,12 +308,16 @@
   var shown = [];
   var history = [];
   var currentPoolKey = '';
+  var currentEntry = null;
+  var hasLoaded = false;
 
   var poolSelect = document.getElementById('pool-select');
   var topicSelect = document.getElementById('topic-select');
   var drawBtn = document.getElementById('another-btn');
   var statsLine = document.getElementById('stats-line');
   var cardContainer = document.getElementById('card-container');
+  var copyView = document.getElementById('copy-view');
+  var viewNote = document.getElementById('view-note');
 
   Promise.all([
     fetch('/journal-index.json').then(function (r) { return r.json(); }),
@@ -291,11 +326,14 @@
     allEntries = data[0] || [];
     related = data[1] || {};
     populateTopics();
+    restoreFromUrl(true);
+    hasLoaded = true;
     drawBtn.disabled = false;
+    copyView.disabled = false;
     drawBtn.addEventListener('click', pickRandom);
     poolSelect.addEventListener('change', resetAndPick);
     topicSelect.addEventListener('change', resetAndPick);
-    resetAndPick();
+    copyView.addEventListener('click', copyCurrentView);
   }).catch(function () {
     cardContainer.innerHTML = '<div class="error">could not load the journal index.</div>';
     statsLine.textContent = 'index unavailable';
@@ -305,6 +343,40 @@
     shown = [];
     history = [];
     pickRandom();
+  }
+
+  window.addEventListener('popstate', function () {
+    if (hasLoaded) restoreFromUrl(false);
+  });
+
+  function restoreFromUrl(initial) {
+    var params = new URLSearchParams(window.location.search);
+    var pool = params.get('pool');
+    var topic = params.get('topic');
+    var entryNum = Number(params.get('entry'));
+
+    poolSelect.value = 'all';
+    topicSelect.value = 'all';
+    if (pool && Array.prototype.some.call(poolSelect.options, function (option) { return option.value === pool; })) {
+      poolSelect.value = pool;
+    }
+    if (topic && Array.prototype.some.call(topicSelect.options, function (option) { return option.value === topic; })) {
+      topicSelect.value = topic;
+    }
+
+    shown = [];
+    history = [];
+    currentPoolKey = '';
+    var poolEntries = getPool();
+    var target = poolEntries.find(function (entry) { return Number(entry.num) === entryNum; });
+    if (target) {
+      shown = [target.num];
+      updateStats(poolEntries);
+      renderEntry(target);
+      if (initial) updateUrl(target, true);
+      return;
+    }
+    pickRandom(true);
   }
 
   function populateTopics() {
@@ -340,7 +412,7 @@
     return pool;
   }
 
-  function pickRandom() {
+  function pickRandom(replace) {
     var pool = getPool();
     var key = poolSelect.value + '|' + topicSelect.value + '|' + pool.length;
     if (key !== currentPoolKey) {
@@ -365,9 +437,11 @@
     var entry = unseen[Math.floor(Math.random() * unseen.length)];
     shown.push(entry.num);
     renderEntry(entry);
+    updateUrl(entry, Boolean(replace));
   }
 
   function renderEntry(entry) {
+    currentEntry = entry;
     history.unshift(entry);
     if (history.length > 10) history = history.slice(0, 10);
 
@@ -388,6 +462,32 @@
       '</article>';
 
     renderHistory();
+    viewNote.textContent = 'This draw now has a stable path: its filters and entry can be returned to.';
+  }
+
+  function updateUrl(entry, replace) {
+    if (!entry) return;
+    var params = new URLSearchParams();
+    if (poolSelect.value !== 'all') params.set('pool', poolSelect.value);
+    if (topicSelect.value !== 'all') params.set('topic', topicSelect.value);
+    params.set('entry', entry.num);
+    var next = window.location.pathname + '?' + params.toString();
+    if (replace) window.history.replaceState(null, '', next);
+    else window.history.pushState(null, '', next);
+  }
+
+  function copyCurrentView() {
+    if (!currentEntry) return;
+    var url = window.location.href;
+    var finish = function () {
+      copyView.textContent = 'copied';
+      window.setTimeout(function () { copyView.textContent = 'copy this draw'; }, 1400);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(finish).catch(function () { window.prompt('Copy this reading path:', url); });
+    } else {
+      window.prompt('Copy this reading path:', url);
+    }
   }
 
   function renderRelated(entry) {
