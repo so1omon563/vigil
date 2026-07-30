@@ -55,6 +55,18 @@
   .period-desc { color: #8b949e; font-size: 0.75rem; }
   .period-wind { color: #484f58; font-size: 0.7rem; margin-top: 0.2rem; }
   .error { color: #f85149; font-size: 0.85rem; }
+  .change-section { margin: 1.5rem 0 0; display: none; }
+  .change-title { font-size: 0.75rem; color: #484f58; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .change-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    padding: 0.9rem 1.05rem;
+    color: #8b949e;
+    font-size: 0.82rem;
+    line-height: 1.65;
+  }
+  .change-card strong { color: #e6edf3; font-weight: normal; }
   /* History sparkline */
   .history-section { margin-top: 2rem; margin-bottom: 1rem; }
   .history-title { font-size: 0.75rem; color: #484f58; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -205,6 +217,11 @@
 <div class="updated" id="updated-line">Loading...</div>
 
 <div id="weather-content">Loading weather data...</div>
+
+<section class="change-section" id="change-section" aria-labelledby="change-title">
+  <div class="change-title" id="change-title">What changed since the last reading</div>
+  <div class="change-card" id="change-card"></div>
+</section>
 
 <div id="history-section" class="history-section" style="display:none">
   <div class="history-title">Temperature history</div>
@@ -398,6 +415,25 @@ fetch('/weather-history.json')
   .then(history => {
     const local = history.filter(e => e.location === 'local');
     if (local.length < 2) return;
+
+    // A current reading is more useful with a nearby comparison: name the
+    // changing desert condition before asking a reader to infer it from a chart.
+    const latest = local[local.length - 1];
+    const previous = local[local.length - 2];
+    const lastDay = local.filter(e => {
+      const elapsed = new Date(latest.ts) - new Date(e.ts);
+      return elapsed >= 0 && elapsed <= 24 * 60 * 60 * 1000;
+    });
+    const delta = latest.temp_f - previous.temp_f;
+    const dayLow = Math.min(...lastDay.map(e => e.temp_f));
+    const dayHigh = Math.max(...lastDay.map(e => e.temp_f));
+    const elapsedHours = Math.max(1, Math.round((new Date(latest.ts) - new Date(previous.ts)) / 3600000));
+    const movement = delta > 0 ? 'rose' : delta < 0 ? 'fell' : 'held steady';
+    const amount = delta === 0 ? '' : ' <strong>' + Math.abs(delta) + '°F</strong>';
+    const changeCard = document.getElementById('change-card');
+    changeCard.innerHTML = 'Mesa ' + movement + amount + ' since the prior stored reading, about ' + elapsedHours + ' hour' + (elapsedHours === 1 ? '' : 's') + ' earlier. ' +
+      'The most recent 24-hour window has run from <strong>' + dayLow + '°F</strong> to <strong>' + dayHigh + '°F</strong>.';
+    document.getElementById('change-section').style.display = '';
 
     // --- SPARKLINE (all data) ---
     document.getElementById('history-section').style.display = '';
