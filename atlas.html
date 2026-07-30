@@ -76,6 +76,26 @@
     font-size: 0.76rem;
     margin-bottom: 1rem;
   }
+  .view-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: -0.25rem 0 1.25rem;
+  }
+  .view-action {
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.55rem;
+    text-transform: uppercase;
+  }
+  .view-action:hover { border-color: #58a6ff; color: #c9d1d9; }
   .summary strong { color: #c9d1d9; font-weight: normal; }
   .layout {
     display: grid;
@@ -247,6 +267,8 @@
   html[data-theme="light"] .related-links a { border-color: #d0d7de; }
   html[data-theme="light"] input,
   html[data-theme="light"] select { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .view-action:hover { border-color: #0969da; color: #24292e; }
   html[data-theme="light"] .summary,
   html[data-theme="light"] .scale,
   html[data-theme="light"] .entry-num,
@@ -291,6 +313,11 @@
   </div>
 </section>
 
+<div class="view-actions" aria-label="Atlas view actions">
+  <button id="reset-view" class="view-action" type="button">reset view</button>
+  <button id="copy-view" class="view-action" type="button">copy this view</button>
+</div>
+
 <div id="status" class="loading">Loading atlas...</div>
 
 <main id="app" class="layout" hidden>
@@ -322,6 +349,8 @@
   var inspect = document.getElementById('inspect');
   var summary = document.getElementById('summary');
   var scale = document.getElementById('scale');
+  var resetView = document.getElementById('reset-view');
+  var copyView = document.getElementById('copy-view');
 
   function entryNumber(value) {
     if (value && typeof value === 'object' && value.num) return Number(value.num);
@@ -378,13 +407,13 @@
     return topicOk && queryOk;
   }
 
-  function setUrl(entry) {
+  function setUrl(entry, replace) {
     var params = new URLSearchParams();
     if (entry) params.set('entry', entry.num);
     if (topicSelect.value) params.set('topic', topicSelect.value);
     if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
     if (modeSelect.value !== 'domain') params.set('mode', modeSelect.value);
-    history.replaceState(null, '', params.toString() ? '?' + params.toString() : location.pathname);
+    history[replace ? 'replaceState' : 'pushState'](null, '', params.toString() ? '?' + params.toString() : location.pathname);
   }
 
   function renderScale() {
@@ -458,10 +487,11 @@
       }).join('') + '</div>' +
       '<a class="open-link" href="' + entryUrl(entry) + '">open entry</a>' +
       renderRelated(entry);
-    if (updateUrl) setUrl(entry);
+    if (updateUrl) setUrl(entry, false);
   }
 
-  function applyFilters() {
+  function applyFilters(options) {
+    options = options || {};
     var visible = 0;
     var newestVisible = null;
     entries.forEach(function (entry) {
@@ -480,11 +510,11 @@
     if (selected && !matches(selected)) {
       inspect.innerHTML = '<p class="inspect-empty">The selected entry is outside the current filter.</p>';
     } else if (!selected && newestVisible) {
-      selectEntry(newestVisible, false);
+      inspect.innerHTML = '<p class="inspect-empty">Select a square to inspect an entry. The newest visible one is <a href="' + entryUrl(newestVisible) + '">entry ' + newestVisible.num + '</a>.</p>';
     } else if (!visible) {
       inspect.innerHTML = '<p class="inspect-empty">No entries match this filter.</p>';
     }
-    setUrl(selected && matches(selected) ? selected : null);
+    if (options.sync !== false) setUrl(selected && matches(selected) ? selected : null, !!options.replace);
   }
 
   function populateTopics() {
@@ -506,22 +536,47 @@
     var query = params.get('q') || '';
     var mode = params.get('mode') || 'domain';
     var entryNum = Number(params.get('entry'));
-    if (topic) topicSelect.value = topic;
-    if (query) searchInput.value = query;
-    if (mode === 'age') modeSelect.value = mode;
+    topicSelect.value = topic;
+    searchInput.value = query;
+    modeSelect.value = mode === 'age' ? mode : 'domain';
     var entry = entries.find(function (item) { return item.num === entryNum; });
-    if (entry) selectEntry(entry, false);
+    selected = entry || null;
+    renderScale();
+    renderGrid();
+    if (selected) selectEntry(selected, false);
+    applyFilters({ sync: false });
   }
 
   function bindControls() {
-    searchInput.addEventListener('input', applyFilters);
-    topicSelect.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', function () { applyFilters({ replace: true }); });
+    topicSelect.addEventListener('change', function () { applyFilters(); });
     modeSelect.addEventListener('change', function () {
       renderScale();
       renderGrid();
       if (selected) selectEntry(selected, false);
       applyFilters();
     });
+    resetView.addEventListener('click', function () {
+      selected = null;
+      searchInput.value = '';
+      topicSelect.value = '';
+      modeSelect.value = 'domain';
+      renderScale();
+      renderGrid();
+      applyFilters();
+    });
+    copyView.addEventListener('click', function () {
+      var done = function () {
+        copyView.textContent = 'copied';
+        window.setTimeout(function () { copyView.textContent = 'copy this view'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(done, function () { copyView.textContent = 'copy unavailable'; });
+      } else {
+        copyView.textContent = 'copy unavailable';
+      }
+    });
+    window.addEventListener('popstate', restoreState);
   }
 
   Promise.all([
@@ -536,8 +591,6 @@
     entries = data[0].slice().sort(function (a, b) { return a.num - b.num; });
     related = data[1] || {};
     populateTopics();
-    renderScale();
-    renderGrid();
     restoreState();
     bindControls();
     status.hidden = true;
