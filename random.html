@@ -371,6 +371,7 @@
     var target = poolEntries.find(function (entry) { return Number(entry.num) === entryNum; });
     if (target) {
       shown = [target.num];
+      currentPoolKey = poolSelect.value + '|' + topicSelect.value + '|' + poolEntries.length;
       updateStats(poolEntries);
       renderEntry(target);
       if (initial) updateUrl(target, true);
