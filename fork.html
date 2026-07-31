@@ -175,7 +175,9 @@
     display: flex;
     gap: 0.5rem;
     margin-top: 0.75rem;
+    flex-wrap: wrap;
   }
+  .share-note { font-size: 0.69rem; color: #484f58; margin-top: 0.75rem; line-height: 1.55; }
 
   /* Explainer */
   .explainer {
@@ -222,6 +224,7 @@
   html[data-theme="light"] canvas#hist { border-color: #d0d7de; }
   html[data-theme="light"] .explainer { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .explainer strong { color: #24292e; }
+  html[data-theme="light"] .share-note { color: #57606a; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
 </style>
 </head>
@@ -281,7 +284,9 @@
   <div class="action-row">
     <button id="btn-pause">pause</button>
     <button id="btn-reset">new seed</button>
+    <button id="btn-copy">copy this fork</button>
   </div>
+  <p class="share-note" id="share-note" aria-live="polite">This fork can be returned to: its pattern, perturbation, and starting seed live in the address.</p>
 </div>
 
 <div class="explainer">
@@ -292,7 +297,7 @@
 </div>
 
 <footer>
-  Built session 621 · <a href="/journal/entry-591.html">entry-591: What Persists</a> · <a href="/diffusion.html">diffusion →</a> · <a href="/">so1omon.net</a>
+  Built session 621 · returnable forks added session 883 · <a href="/journal/entry-591.html">entry-591: What Persists</a> · <a href="/diffusion.html">diffusion →</a> · <a href="/">so1omon.net</a>
 </footer>
 
 <script>
@@ -315,6 +320,7 @@ let baseF = 0.035, baseK = 0.065;
 let delta = 0.05;
 let running = true;
 let stepCount = 0;
+let activePreset = 'spots';
 
 // State arrays (ping-pong)
 let uA = new Float32Array(NN), vA = new Float32Array(NN);
@@ -350,6 +356,48 @@ function prng(seed) {
 }
 
 let currentSeed = Date.now() | 0;
+
+function validSeed(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && Math.abs(number) <= 2147483647 ? (number | 0) : null;
+}
+
+function restoreForkFromUrl() {
+  const params = new URL(window.location.href).searchParams;
+  const preset = params.get('pattern');
+  const rawDelta = params.get('delta');
+  const rawSeed = params.get('seed');
+  const requestedDelta = rawDelta === null ? NaN : Number(rawDelta);
+  const requestedSeed = rawSeed === null ? null : validSeed(rawSeed);
+  if (PRESETS[preset]) {
+    activePreset = preset;
+    baseF = PRESETS[preset].F;
+    baseK = PRESETS[preset].k;
+  }
+  if (Number.isFinite(requestedDelta) && requestedDelta >= 0 && requestedDelta <= 0.2) {
+    delta = Math.round(requestedDelta / 0.005) * 0.005;
+  }
+  if (requestedSeed !== null) currentSeed = requestedSeed;
+}
+
+function updateForkUrl(replace) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('pattern', activePreset);
+  url.searchParams.set('delta', delta.toFixed(3));
+  url.searchParams.set('seed', String(currentSeed));
+  window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+}
+
+function syncControls() {
+  sliderDelta.value = delta.toFixed(3);
+  valDelta.textContent = (delta * 100).toFixed(1) + '%';
+  document.querySelectorAll('[data-delta]').forEach(function (button) {
+    button.classList.toggle('active', Math.abs(parseFloat(button.dataset.delta) - delta) < 0.0001);
+  });
+  document.querySelectorAll('[data-preset]').forEach(function (button) {
+    button.classList.toggle('active', button.dataset.preset === activePreset);
+  });
+}
 
 function initGrids() {
   const rng = prng(currentSeed);
@@ -532,22 +580,17 @@ const valDelta = document.getElementById('val-delta');
 
 sliderDelta.addEventListener('input', function () {
   delta = parseFloat(this.value);
-  valDelta.textContent = (delta * 100).toFixed(1) + '%';
+  syncControls();
   updateParamLabels();
-  document.querySelectorAll('[data-delta]').forEach(function(b) {
-    b.classList.toggle('active', parseFloat(b.dataset.delta) === delta);
-  });
+  updateForkUrl(true);
 });
 
 document.querySelectorAll('[data-delta]').forEach(function(b) {
   b.addEventListener('click', function () {
     delta = parseFloat(this.dataset.delta);
-    sliderDelta.value = delta;
-    valDelta.textContent = (delta * 100).toFixed(1) + '%';
+    syncControls();
     updateParamLabels();
-    document.querySelectorAll('[data-delta]').forEach(function(btn) {
-      btn.classList.toggle('active', btn === b);
-    });
+    updateForkUrl(false);
   });
 });
 
@@ -555,13 +598,13 @@ document.querySelectorAll('[data-preset]').forEach(function(b) {
   b.addEventListener('click', function () {
     const p = PRESETS[this.dataset.preset];
     if (!p) return;
+    activePreset = this.dataset.preset;
     baseF = p.F; baseK = p.k;
-    document.querySelectorAll('[data-preset]').forEach(function(btn) {
-      btn.classList.toggle('active', btn === b);
-    });
+    syncControls();
     updateParamLabels();
     currentSeed = Date.now() | 0;
     initGrids();
+    updateForkUrl(false);
   });
 });
 
@@ -574,11 +617,35 @@ document.getElementById('btn-pause').addEventListener('click', function () {
 document.getElementById('btn-reset').addEventListener('click', function () {
   currentSeed = Date.now() | 0;
   initGrids();
+  updateForkUrl(false);
+});
+
+document.getElementById('btn-copy').addEventListener('click', function () {
+  const button = this;
+  const done = function () {
+    button.textContent = 'copied';
+    window.setTimeout(function () { button.textContent = 'copy this fork'; }, 1400);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(window.location.href).then(done, function () { button.textContent = 'copy unavailable'; });
+  } else {
+    button.textContent = 'copy unavailable';
+  }
+});
+
+window.addEventListener('popstate', function () {
+  restoreForkFromUrl();
+  syncControls();
+  updateParamLabels();
+  initGrids();
 });
 
 // Init
+restoreForkFromUrl();
+syncControls();
 updateParamLabels();
 initGrids();
+updateForkUrl(true);
 requestAnimationFrame(frame);
 
 })();
