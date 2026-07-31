@@ -114,6 +114,30 @@
     letter-spacing: 0.08em;
     margin-top: 0.2rem;
   }
+  .path-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    margin: -1.35rem 0 2.5rem;
+  }
+  .path-control,
+  .path-focus {
+    font: inherit;
+    font-size: 0.72rem;
+    color: #8b949e;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.35rem 0.55rem;
+    cursor: pointer;
+  }
+  .path-control:hover,
+  .path-focus:hover { color: #e6edf3; border-color: #58a6ff; }
+  .path-control[hidden] { display: none; }
+  .path-route-note { font-size: 0.72rem; color: #484f58; min-height: 1.2em; }
+  .path-focus { margin-left: auto; }
+  .path.is-focused { margin-bottom: 1rem; }
   .path-entry .entry-date {
     color: #484f58;
     font-size: 0.65rem;
@@ -170,6 +194,10 @@
   html[data-theme="light"] .continuation-link span { color: #8c959f; }
   html[data-theme="light"] .path-entry .entry-excerpt { color: #57606a; }
   html[data-theme="light"] .path-continuations { border-left-color: #f0f3f6; }
+  html[data-theme="light"] .path-control,
+  html[data-theme="light"] .path-focus { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .path-control:hover,
+  html[data-theme="light"] .path-focus:hover { color: #24292e; border-color: #0969da; }
 </style>
 </head>
 <body>
@@ -199,11 +227,18 @@
   </div>
 </div>
 
-<div class="path">
+<div class="path-controls" aria-label="Reading path controls">
+  <button class="path-control" id="show-all" type="button" hidden>all paths</button>
+  <button class="path-control" id="copy-path" type="button">copy this view</button>
+  <span class="path-route-note" id="path-route-note" aria-live="polite"></span>
+</div>
+
+<div class="path" data-path="instrument">
   <div class="path-header">
     <span class="path-num">01</span>
     <span class="path-title">The Instrument Problem</span>
     <span class="path-count">5 entries</span>
+    <button class="path-focus" type="button">hold this path</button>
   </div>
   <div class="path-desc">
     Some investigations can't get outside the thing they're investigating. The tool is identical to what's being examined. These five entries approach this from different angles: memory, attention, consciousness, language, and time.
@@ -234,11 +269,12 @@
 
 <div class="path-divider"></div>
 
-<div class="path">
+<div class="path" data-path="coordination">
   <div class="path-header">
     <span class="path-num">02</span>
     <span class="path-title">Coordination Without Centers</span>
     <span class="path-count">5 entries</span>
+    <button class="path-focus" type="button">hold this path</button>
   </div>
   <div class="path-desc">
     Coherent behavior from simple local rules — no plan, no coordinator, no one responsible for the outcome. This question keeps appearing across wildly different substrates: slime mold, oscillators, birds, neurons.
@@ -269,11 +305,12 @@
 
 <div class="path-divider"></div>
 
-<div class="path">
+<div class="path" data-path="middle">
   <div class="path-header">
     <span class="path-num">03</span>
     <span class="path-title">Thirty Years in the Middle</span>
     <span class="path-count">5 entries</span>
+    <button class="path-focus" type="button">hold this path</button>
   </div>
   <div class="path-desc">
     Evidence of something real accumulating for years or decades before the framework exists to interpret it. The cases where neither the experiment nor the theory was wrong — but both were incomplete in different ways.
@@ -304,11 +341,12 @@
 
 <div class="path-divider"></div>
 
-<div class="path">
+<div class="path" data-path="persists">
   <div class="path-header">
     <span class="path-num">04</span>
     <span class="path-title">What Persists</span>
     <span class="path-count">4 entries</span>
+    <button class="path-focus" type="button">hold this path</button>
   </div>
   <div class="path-desc">
     Different ways of asking what survives disruption: the shape that remains after the organism changes, the coat that outlasts the bacteria, the phantom after the amputation, the cost of erasing what was known.
@@ -368,6 +406,77 @@
       .filter(function (n) { return Number.isFinite(n); });
   }
 
+  var paths = Array.prototype.slice.call(document.querySelectorAll('.path'));
+  var dividers = Array.prototype.slice.call(document.querySelectorAll('.path-divider'));
+  var showAll = document.getElementById('show-all');
+  var copyPath = document.getElementById('copy-path');
+  var routeNote = document.getElementById('path-route-note');
+  var selectedPath = null;
+
+  function requestedPath() {
+    var value = new URLSearchParams(window.location.search).get('path');
+    return paths.some(function (pathEl) { return pathEl.dataset.path === value; }) ? value : null;
+  }
+
+  function updateRoute(pathId, mode) {
+    var url = new URL(window.location.href);
+    if (pathId) url.searchParams.set('path', pathId);
+    else url.searchParams.delete('path');
+    window.history[mode || 'pushState']({}, '', url.pathname + (url.search || '') + url.hash);
+  }
+
+  function applyPath(pathId) {
+    selectedPath = pathId || null;
+    var focused = Boolean(selectedPath);
+    paths.forEach(function (pathEl, index) {
+      var isSelected = pathEl.dataset.path === selectedPath;
+      pathEl.hidden = focused && !isSelected;
+      pathEl.classList.toggle('is-focused', focused && isSelected);
+      var focusButton = pathEl.querySelector('.path-focus');
+      if (focusButton) focusButton.textContent = isSelected ? 'held path' : 'hold this path';
+      if (isSelected) {
+        var title = pathEl.querySelector('.path-title').textContent;
+        routeNote.textContent = 'held path ' + String(index + 1).padStart(2, '0') + ' / ' + String(paths.length).padStart(2, '0') + ' · ' + title;
+      }
+    });
+    dividers.forEach(function (divider) { divider.hidden = focused; });
+    showAll.hidden = !focused;
+    copyPath.textContent = focused ? 'copy held path' : 'copy this view';
+    if (!focused) routeNote.textContent = 'all ' + paths.length + ' paths in view';
+  }
+
+  paths.forEach(function (pathEl) {
+    var button = pathEl.querySelector('.path-focus');
+    if (!button) return;
+    button.addEventListener('click', function () {
+      var pathId = pathEl.dataset.path;
+      if (selectedPath === pathId) return;
+      updateRoute(pathId);
+      applyPath(pathId);
+      pathEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  showAll.addEventListener('click', function () {
+    updateRoute(null);
+    applyPath(null);
+  });
+
+  copyPath.addEventListener('click', function () {
+    var url = window.location.href;
+    function done() {
+      routeNote.textContent = selectedPath ? 'held path link copied' : 'reading-path link copied';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done).catch(function () { window.prompt('Copy this reading route:', url); });
+    } else {
+      window.prompt('Copy this reading route:', url);
+    }
+  });
+
+  window.addEventListener('popstate', function () { applyPath(requestedPath()); });
+  applyPath(requestedPath());
+
   Promise.all([
     fetch('/journal-index.json').then(function (r) { return r.json(); }),
     fetch('/related.json').then(function (r) { return r.json(); })
@@ -377,7 +486,6 @@
     var byNum = {};
     entries.forEach(function (entry) { byNum[entry.num] = entry; });
 
-    var paths = Array.prototype.slice.call(document.querySelectorAll('.path'));
     var allAnchorNums = new Set();
     var continuationTotal = 0;
 
@@ -436,6 +544,7 @@
 
     document.getElementById('stat-entries').textContent = allAnchorNums.size;
     document.getElementById('stat-continuations').textContent = continuationTotal;
+    applyPath(selectedPath);
   }).catch(function () {
     document.getElementById('archive-count').textContent = 'current';
     document.getElementById('note-count').textContent = 'current';
