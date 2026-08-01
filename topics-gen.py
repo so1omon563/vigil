@@ -202,6 +202,7 @@ OVERRIDES = {
     679: 'memory',  # The Trace That Needed an Ear (phonautograph reconstruction)
     680: 'rhythm',  # The Count of Days (Clunio circasemilunar clock)
     708: 'research',  # The Place Conversation Takes (protactile language)
+    724: 'natural_world',  # The Wing That Listens (insect wing mechanosensation)
 }
 
 # Keyword-based fallback categorization
