@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    723: 'memory',  # The Digit That Objected (ISBN check digit / limited self-validation)
     714: 'research',  # The Cube That Changed Its Opposites (Etruscan dice conventions)
     709: 'research',  # The Water Does Not Decide Alone (Balinese subak coordination)
     703: 'research',  # The Blue That Keeps Answering (Egyptian blue pigment and infrared luminescence)
