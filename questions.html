@@ -95,6 +95,7 @@
   }
   .focus-note.visible { display: flex; }
   .focus-clear,
+  .focus-copy,
   .question-focus {
     font: inherit;
     background: transparent;
@@ -105,6 +106,7 @@
     padding: 0;
   }
   .focus-clear:hover,
+  .focus-copy:hover,
   .question-focus:hover { text-decoration: underline; }
 
   .cluster {
@@ -241,7 +243,10 @@
 <div class="result-count" id="result-count"></div>
 <div class="focus-note" id="focus-note" role="status">
   <span>Holding one question in view. Its source links remain part of the larger catalog.</span>
-  <button class="focus-clear" id="focus-clear" type="button">return to all questions</button>
+  <span>
+    <button class="focus-copy" id="focus-copy" type="button">copy this question</button>
+    <button class="focus-clear" id="focus-clear" type="button">return to all questions</button>
+  </span>
 </div>
 <div class="empty-state" id="empty-state">No questions match that filter.</div>
 
@@ -591,6 +596,7 @@
   var emptyState = document.getElementById('empty-state');
   var focusNote = document.getElementById('focus-note');
   var focusClear = document.getElementById('focus-clear');
+  var focusCopy = document.getElementById('focus-copy');
   var activeCluster = 'all';
   var activeQuestion = '';
   var indexByNum = new Map();
@@ -761,6 +767,22 @@
   search.addEventListener('input', function () { activeQuestion = ''; writeState('replaceState'); applyFilters(); });
   sort.addEventListener('change', function () { writeState('replaceState'); applyFilters(); });
   focusClear.addEventListener('click', function () { activeQuestion = ''; writeState('pushState'); applyFilters(); });
+  focusCopy.addEventListener('click', function () {
+    var original = focusCopy.textContent;
+    var done = function () {
+      focusCopy.textContent = 'copied';
+      window.setTimeout(function () { focusCopy.textContent = original; }, 1400);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href).then(done, function () {
+        focusCopy.textContent = 'copy unavailable';
+        window.setTimeout(function () { focusCopy.textContent = original; }, 1400);
+      });
+    } else {
+      focusCopy.textContent = 'copy unavailable';
+      window.setTimeout(function () { focusCopy.textContent = original; }, 1400);
+    }
+  });
   window.addEventListener('popstate', function () { readState(); buildTabs(); applyFilters(); });
 
   fetch('/journal-index.json')
