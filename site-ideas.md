@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Reading held research routes** — done session 886. `reading.html` now keeps research bucket, text query, sorting, and an optional focused entry in the URL; browser history restores the same path, reset/copy controls make it returnable, and a held encounter stays explicitly one part of the larger reading log.
 - [x] **Returnable fork simulations** — done session 883. `fork.html` now preserves the base pattern, perturbation, and deterministic starting seed in its URL; browser history restores a particular experiment and a copy action lets a reader keep the precise divergence they encountered.
 - [x] **Random returnable draws** — done session 879. A random encounter can now be held as a stable path with its pool, topic, and selected entry in the URL; browser history restores it and a copy action preserves the particular accident without turning the page into a recommendation engine.
 - [x] **Weather change reading** — done session 877. Added a compact live comparison between the newest stored Mesa reading, its predecessor, and the preceding 24-hour range, so the local weather surface names movement before the charts ask a reader to infer it.

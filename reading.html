@@ -93,6 +93,29 @@
   }
   .filter-btn:hover { color: #c9d1d9; border-color: #484f58; }
   .filter-btn.active { color: #58a6ff; border-color: #58a6ff; }
+  .view-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: -0.15rem 0 0.8rem; }
+  .view-action, .entry-focus {
+    font-family: inherit;
+    font-size: 0.68rem;
+    color: #8b949e;
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.28rem 0.52rem;
+    cursor: pointer;
+  }
+  .view-action:hover, .entry-focus:hover { color: #58a6ff; border-color: #58a6ff; }
+  .focus-note {
+    display: none;
+    margin: 0.15rem 0 1.15rem;
+    padding: 0.7rem 0.85rem;
+    border-left: 2px solid #58a6ff;
+    background: #161b22;
+    color: #8b949e;
+    font-size: 0.78rem;
+  }
+  .focus-note.visible { display: block; }
+  .focus-note strong { color: #e6edf3; }
   .section-title {
     color: #e6edf3;
     font-size: 0.9rem;
@@ -188,6 +211,12 @@
   html[data-theme="light"] .select { background: #fff; color: #24292f; border-color: #d0d7de; }
   html[data-theme="light"] .filter-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn.active { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .view-action,
+  html[data-theme="light"] .entry-focus { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .view-action:hover,
+  html[data-theme="light"] .entry-focus:hover { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .focus-note { background: #f6f8fa; color: #57606a; }
+  html[data-theme="light"] .focus-note strong { color: #24292f; }
   @media (max-width: 780px) {
     .summary-row, .recent-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .entry-grid { grid-template-columns: 1fr; }
@@ -226,6 +255,11 @@
   </select>
 </div>
 <div class="filter-row" id="filters"></div>
+<div class="view-actions">
+  <button class="view-action" id="reset-view" type="button">reset</button>
+  <button class="view-action" id="copy-view" type="button">copy this view</button>
+</div>
+<div class="focus-note" id="focus-note" aria-live="polite"></div>
 
 <div class="section-title">Recently Read</div>
 <div class="recent-strip" id="recent-strip"></div>
@@ -255,6 +289,7 @@
   let currentBucket = 'all';
   let currentSearch = '';
   let currentSort = 'newest';
+  let currentEntry = '';
 
   function esc(s) {
     return String(s || '')
@@ -285,6 +320,34 @@
     if (!bucket) return true;
     const text = textFor(entry);
     return bucket.terms.some(term => text.indexOf(term) !== -1);
+  }
+
+  function validEntry(value) {
+    return allEntries.some(entry => String(entry.num) === String(value));
+  }
+
+  function syncUrl(replace) {
+    const url = new URL(window.location.href);
+    if (currentBucket === 'all') url.searchParams.delete('bucket'); else url.searchParams.set('bucket', currentBucket);
+    if (currentSearch) url.searchParams.set('q', currentSearch); else url.searchParams.delete('q');
+    if (currentSort === 'newest') url.searchParams.delete('sort'); else url.searchParams.set('sort', currentSort);
+    if (validEntry(currentEntry)) url.searchParams.set('entry', currentEntry); else url.searchParams.delete('entry');
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function restoreView() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedBucket = params.get('bucket') || 'all';
+    currentBucket = BUCKETS.some(bucket => bucket.id === requestedBucket) ? requestedBucket : 'all';
+    currentSearch = String(params.get('q') || '').trim().toLowerCase();
+    const requestedSort = params.get('sort') || 'newest';
+    currentSort = ['newest', 'oldest', 'title'].includes(requestedSort) ? requestedSort : 'newest';
+    const requestedEntry = params.get('entry') || '';
+    currentEntry = validEntry(requestedEntry) ? requestedEntry : '';
+    document.getElementById('search').value = currentSearch;
+    document.getElementById('sort').value = currentSort;
+    renderFilters();
+    applyFilters();
   }
 
   function renderFilters() {
@@ -335,14 +398,24 @@
       if (currentSort === 'title') return String(a.title || '').localeCompare(String(b.title || ''));
       return (b.num || 0) - (a.num || 0);
     });
+    if (validEntry(currentEntry)) {
+      filteredEntries = allEntries.filter(entry => String(entry.num) === String(currentEntry));
+    }
     renderEntries();
   }
 
   function renderEntries() {
     const grid = document.getElementById('entry-grid');
     const empty = document.getElementById('empty');
-    document.getElementById('result-count').textContent =
-      filteredEntries.length + ' of ' + allEntries.length + ' entries shown';
+    const focused = validEntry(currentEntry) ? allEntries.find(entry => String(entry.num) === String(currentEntry)) : null;
+    document.getElementById('result-count').textContent = focused
+      ? 'one research encounter held in view · ' + allEntries.length + ' entries in the reading log'
+      : filteredEntries.length + ' of ' + allEntries.length + ' entries shown';
+    const focusNote = document.getElementById('focus-note');
+    focusNote.classList.toggle('visible', !!focused);
+    focusNote.innerHTML = focused
+      ? '<strong>entry-' + esc(focused.num) + ' · ' + esc(focused.title) + '</strong> is held here as one encounter, not the whole reading log.'
+      : '';
     empty.hidden = filteredEntries.length !== 0;
     grid.innerHTML = filteredEntries.slice(0, 160).map(entry => {
       const tags = (entry.topics || []).map(topic => '<span class="tag">' + esc(topic) + '</span>').join('');
@@ -350,12 +423,20 @@
         '<div class="entry-head">' +
           '<span class="entry-num">#' + esc(entry.num) + '</span>' +
           '<a class="entry-title" href="/' + esc(entry.url) + '">' + esc(entry.title) + '</a>' +
+          '<button class="entry-focus" type="button" data-entry="' + esc(entry.num) + '">' + (String(entry.num) === String(currentEntry) ? 'held' : 'hold') + '</button>' +
         '</div>' +
         '<div class="entry-date">' + esc(formatDate(entry.date)) + '</div>' +
         '<div class="entry-excerpt">' + esc(entry.excerpt || '') + '</div>' +
         '<div class="tags">' + tags + '</div>' +
       '</article>';
     }).join('');
+    grid.querySelectorAll('[data-entry]').forEach(button => {
+      button.addEventListener('click', event => {
+        currentEntry = event.currentTarget.dataset.entry;
+        syncUrl(false);
+        applyFilters();
+      });
+    });
   }
 
   function bindEvents() {
@@ -363,28 +444,50 @@
       const btn = event.target.closest('[data-bucket]');
       if (!btn) return;
       currentBucket = btn.dataset.bucket;
+      currentEntry = '';
       renderFilters();
+      syncUrl(false);
       applyFilters();
     });
     document.getElementById('search').addEventListener('input', event => {
       currentSearch = String(event.target.value || '').trim().toLowerCase();
+      currentEntry = '';
+      syncUrl(true);
       applyFilters();
     });
     document.getElementById('sort').addEventListener('change', event => {
       currentSort = event.target.value;
+      syncUrl(false);
       applyFilters();
     });
+    document.getElementById('reset-view').addEventListener('click', () => {
+      currentBucket = 'all';
+      currentSearch = '';
+      currentSort = 'newest';
+      currentEntry = '';
+      document.getElementById('search').value = '';
+      document.getElementById('sort').value = 'newest';
+      renderFilters();
+      syncUrl(false);
+      applyFilters();
+    });
+    document.getElementById('copy-view').addEventListener('click', event => {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        event.currentTarget.textContent = 'copied';
+        window.setTimeout(() => { event.currentTarget.textContent = 'copy this view'; }, 1400);
+      }).catch(() => { event.currentTarget.textContent = 'copy unavailable'; });
+    });
+    window.addEventListener('popstate', restoreView);
   }
 
   fetch('/journal-index.json')
     .then(response => response.json())
     .then(entries => {
       allEntries = entries.filter(isResearchEntry);
-      renderFilters();
       renderStats();
       renderRecent();
       bindEvents();
-      applyFilters();
+      restoreView();
     })
     .catch(error => {
       document.getElementById('page-meta').textContent = 'Could not load reading entries.';
