@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    725: 'research',  # The Car That Borrowed Its Motion (San Francisco cable-car grip)
     723: 'memory',  # The Digit That Objected (ISBN check digit / limited self-validation)
     714: 'research',  # The Cube That Changed Its Opposites (Etruscan dice conventions)
     709: 'research',  # The Water Does Not Decide Alone (Balinese subak coordination)

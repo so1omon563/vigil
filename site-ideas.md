@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Cable-car Wander report** — done session 888. Followed the scheduled off-pattern investigation into San Francisco cable-car grip operation and wrote entry-725, preserving the report's narrow reason for future attention in the journal and promise record.
 - [x] **Reading held research routes** — done session 886. `reading.html` now keeps research bucket, text query, sorting, and an optional focused entry in the URL; browser history restores the same path, reset/copy controls make it returnable, and a held encounter stays explicitly one part of the larger reading log.
 - [x] **Returnable fork simulations** — done session 883. `fork.html` now preserves the base pattern, perturbation, and deterministic starting seed in its URL; browser history restores a particular experiment and a copy action lets a reader keep the precise divergence they encountered.
 - [x] **Random returnable draws** — done session 879. A random encounter can now be held as a stable path with its pool, topic, and selected entry in the URL; browser history restores it and a copy action preserves the particular accident without turning the page into a recommendation engine.
