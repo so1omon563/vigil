@@ -79,6 +79,31 @@
   }
   .filter-btn:hover { border-color: #484f58; color: #c9d1d9; }
   .filter-btn.active { border-color: #58a6ff; color: #58a6ff; }
+  .route-controls {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: -1.55rem 0 2.5rem;
+  }
+  .route-control, .hold-junction {
+    background: none;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #6e7681;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.28rem 0.65rem;
+  }
+  .route-control:hover, .hold-junction:hover { border-color: #58a6ff; color: #58a6ff; }
+  .focus-note {
+    border-left: 2px solid #58a6ff;
+    color: #8b949e;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin: 0 0 1.25rem;
+    padding-left: 0.8rem;
+  }
 
   /* Framework type legend */
   .legend {
@@ -117,6 +142,7 @@
   .entry-title { font-size: 1rem; color: #e6edf3; font-weight: bold; }
   .entry-title a { color: inherit; }
   .entry-title a:hover { color: #58a6ff; }
+  .entry-actions { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; }
 
   .connection-count {
     font-size: 0.7rem;
@@ -215,6 +241,11 @@
   <button class="filter-btn" data-min="4">4+ frameworks</button>
 </div>
 
+<div class="route-controls" aria-label="Reading route controls">
+  <button class="route-control" id="reset-view" type="button">show all junctions</button>
+  <button class="route-control" id="copy-view" type="button">copy this view</button>
+</div>
+
 <div class="legend">
   <div class="legend-item"><div class="legend-dot dot-thread"></div> thread</div>
   <div class="legend-item"><div class="legend-dot dot-convergence"></div> convergence</div>
@@ -228,6 +259,30 @@
 <script>
 let allJunctions = [];
 let currentMin = 2;
+let focusedEntry = '';
+
+function readState() {
+  const params = new URLSearchParams(window.location.search);
+  const min = parseInt(params.get('min'), 10);
+  currentMin = [2, 3, 4].includes(min) ? min : 2;
+  focusedEntry = (params.get('entry') || '').replace(/\D/g, '');
+}
+
+function writeState(mode) {
+  const params = new URLSearchParams();
+  if (currentMin !== 2) params.set('min', currentMin);
+  if (focusedEntry) params.set('entry', focusedEntry);
+  const query = params.toString();
+  const url = window.location.pathname + (query ? '?' + query : '');
+  window.history[mode || 'pushState']({}, '', url);
+}
+
+function syncButtons() {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.min, 10) === currentMin);
+  });
+  document.getElementById('reset-view').textContent = focusedEntry ? 'return to all junctions' : 'reset view';
+}
 
 async function loadData() {
   const [threads, convergences, patterns, journalIndex] = await Promise.all([
@@ -246,14 +301,22 @@ async function loadData() {
   // Build entry -> frameworks map
   const entryFrameworks = {};
 
+  function entryNumber(entry) {
+    // The older pattern cabinet calls this field `entry`; newer cabinets use `num`.
+    // A junction should join the same journal record either way.
+    if (typeof entry === 'number') return entry;
+    return entry && (entry.num ?? entry.entry);
+  }
+
   function addFramework(num, framework) {
+    if (!Number.isFinite(Number(num))) return;
     if (!entryFrameworks[num]) entryFrameworks[num] = [];
     entryFrameworks[num].push(framework);
   }
 
   for (const t of threads) {
     for (const e of t.entries) {
-      addFramework(e.num, {
+      addFramework(entryNumber(e), {
         type: 'thread',
         id: t.id,
         name: t.title,
@@ -264,7 +327,7 @@ async function loadData() {
 
   for (const c of convergences) {
     for (const e of c.entries) {
-      addFramework(e.num, {
+      addFramework(entryNumber(e), {
         type: 'convergence',
         id: c.id,
         name: c.title,
@@ -275,7 +338,7 @@ async function loadData() {
 
   for (const p of patterns) {
     for (const e of p.entries) {
-      addFramework(e.num, {
+      addFramework(entryNumber(e), {
         type: 'pattern',
         id: p.id,
         name: p.name,
@@ -317,13 +380,26 @@ async function loadData() {
 function render() {
   const filtered = allJunctions.filter(j => j.frameworks.length >= currentMin);
   const container = document.getElementById('cards-container');
+  const focused = focusedEntry ? filtered.find(j => String(j.num) === focusedEntry) : null;
+  syncButtons();
 
-  if (filtered.length === 0) {
+  if (focusedEntry && !focused) {
+    focusedEntry = '';
+    writeState('replaceState');
+  }
+
+  const visible = focused ? [focused] : filtered;
+
+  if (visible.length === 0) {
     container.innerHTML = '<div class="empty">No entries found at this threshold.</div>';
     return;
   }
 
-  container.innerHTML = filtered.map(j => {
+  const focusIntro = focused
+    ? `<div class="focus-note">This is one junction, not a verdict on the entry. Its ${focused.frameworks.length} framework links are held together here; <button class="route-control" id="return-all" type="button">return to the full ${filtered.length}-junction field</button>.</div>`
+    : '';
+
+  container.innerHTML = focusIntro + visible.map(j => {
     const count = j.frameworks.length;
     const densityClass = count >= 5 ? 'dense-5' : count >= 4 ? 'dense-4' : '';
     const countClass = count >= 5 ? 'high' : count >= 4 ? 'medium' : '';
@@ -347,12 +423,22 @@ function render() {
       <div class="entry-header">
         <span class="entry-num">#${j.num}</span>
         <span class="entry-title"><a href="${j.url}">${escHtml(j.title)}</a></span>
-        <span class="connection-count ${countClass}">${countLabel}</span>
+        <span class="entry-actions"><span class="connection-count ${countClass}">${countLabel}</span><button class="hold-junction" type="button" data-entry="${j.num}">hold this junction</button></span>
       </div>
       <div class="framework-tags">${tags}</div>
       ${notes ? `<div class="framework-notes">${notes}</div>` : ''}
     </div>`;
   }).join('');
+
+  container.querySelectorAll('.hold-junction').forEach(button => {
+    button.addEventListener('click', () => {
+      focusedEntry = button.dataset.entry;
+      writeState();
+      render();
+    });
+  });
+  const returnAll = document.getElementById('return-all');
+  if (returnAll) returnAll.addEventListener('click', resetView);
 }
 
 function escHtml(s) {
@@ -362,13 +448,38 @@ function escHtml(s) {
 // Filter buttons
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
     currentMin = parseInt(btn.dataset.min);
+    if (focusedEntry && !allJunctions.some(j => String(j.num) === focusedEntry && j.frameworks.length >= currentMin)) focusedEntry = '';
+    writeState();
     render();
   });
 });
 
+function resetView() {
+  currentMin = 2;
+  focusedEntry = '';
+  writeState();
+  render();
+}
+
+document.getElementById('reset-view').addEventListener('click', resetView);
+document.getElementById('copy-view').addEventListener('click', async () => {
+  const button = document.getElementById('copy-view');
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    button.textContent = 'view copied';
+  } catch (_) {
+    button.textContent = 'copy unavailable';
+  }
+  window.setTimeout(() => { button.textContent = 'copy this view'; }, 1600);
+});
+
+window.addEventListener('popstate', () => {
+  readState();
+  if (allJunctions.length) render();
+});
+
+readState();
 loadData().catch(err => {
   document.getElementById('cards-container').innerHTML =
     `<div class="empty">Error loading data: ${err.message}</div>`;
