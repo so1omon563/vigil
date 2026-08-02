@@ -95,6 +95,24 @@
     margin-bottom: 1.75rem;
     align-items: center;
   }
+  .pattern-search-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .pattern-search {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: 0.82rem;
+    color: #c9d1d9;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.55rem 0.7rem;
+  }
+  .pattern-search:focus { outline: none; border-color: #58a6ff; }
   .filter-label {
     font-size: 0.72rem;
     color: #484f58;
@@ -130,6 +148,15 @@
     color: #484f58;
     margin-bottom: 2rem;
   }
+  .empty-state {
+    display: none;
+    padding: 1.25rem;
+    border: 1px dashed #30363d;
+    border-radius: 4px;
+    color: #8b949e;
+    font-size: 0.82rem;
+  }
+  .empty-state.visible { display: block; }
   .dual-badge {
     font-size: 0.65rem;
     text-transform: uppercase;
@@ -250,6 +277,7 @@
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn.active { border-color: #0969da; color: #0969da; background: #f6f8fa; }
   html[data-theme="light"] .filter-btn:hover { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .pattern-search { color: #24292e; background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .pattern-action { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .pattern-action:hover { color: #24292e; border-color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
@@ -261,6 +289,7 @@
   html[data-theme="light"] .tl-count { color: #8c959f; }
   html[data-theme="light"] .tl-tooltip { background: #ffffff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .tl-axis { color: #d0d7de; }
+  html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
 
   /* Spans table */
   .spans-section { margin-bottom: 2.75rem; }
@@ -424,6 +453,10 @@
 
 <div class="density-section" id="density-section"></div>
 
+<div class="pattern-search-row">
+  <input class="pattern-search" id="pattern-search" type="search" placeholder="search shapes, journal entries, or observations…" autocomplete="off" aria-label="Search recurring patterns">
+</div>
+
 <div class="filter-row" id="filter-row">
   <span class="filter-label">show:</span>
   <button class="filter-btn active" data-filter="all">all patterns</button>
@@ -435,6 +468,7 @@
 </div>
 
 <div id="patterns-container">loading…</div>
+<div class="empty-state" id="empty-state">No recurring patterns match this view. Try a different term or show all patterns.</div>
 
 <div class="count-note" id="count-note"></div>
 
@@ -446,6 +480,7 @@
 <script>
 (function () {
   var activeFilter = 'all';
+  var activeQuery = '';
 
   var PATTERN_COLORS = {
     'structural-blindspot':           '#58a6ff',
@@ -473,18 +508,32 @@
       renderPatterns(patterns);
 
       var requested = new URLSearchParams(window.location.search).get('pattern');
+      activeQuery = new URLSearchParams(window.location.search).get('q') || '';
+      document.getElementById('pattern-search').value = activeQuery;
       // Keep old pattern links working while moving new shared views to a named parameter.
       if (!requested && window.location.hash) requested = window.location.hash.slice(1);
       if (requested && patterns.some(function (p) { return p.id === requested; })) {
         setFilter(requested, patterns, true);
+      } else if (activeQuery) {
+        renderPatterns(patterns);
       }
 
       document.getElementById('reset-view').addEventListener('click', function () {
+        activeQuery = '';
+        document.getElementById('pattern-search').value = '';
         setFilter('all', patterns);
+      });
+      document.getElementById('pattern-search').addEventListener('input', function (event) {
+        activeQuery = event.target.value;
+        syncUrl(true);
+        renderPatterns(patterns);
       });
       document.getElementById('share-view').addEventListener('click', copyView);
       window.addEventListener('popstate', function () {
-        var next = new URLSearchParams(window.location.search).get('pattern') || 'all';
+        var params = new URLSearchParams(window.location.search);
+        var next = params.get('pattern') || 'all';
+        activeQuery = params.get('q') || '';
+        document.getElementById('pattern-search').value = activeQuery;
         setFilter(patterns.some(function (p) { return p.id === next; }) ? next : 'all', patterns, true);
       });
     })
@@ -803,6 +852,8 @@
     var url = new URL(window.location.href);
     if (activeFilter === 'all') url.searchParams.delete('pattern');
     else url.searchParams.set('pattern', activeFilter);
+    if (activeQuery.trim()) url.searchParams.set('q', activeQuery.trim());
+    else url.searchParams.delete('q');
     url.hash = '';
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search);
   }
@@ -822,7 +873,14 @@
 
   function renderPatterns(patterns) {
     var container = document.getElementById('patterns-container');
-    var visible = activeFilter === 'all' ? patterns : patterns.filter(function (p) { return p.id === activeFilter; });
+    var needle = activeQuery.trim().toLowerCase();
+    var visible = (activeFilter === 'all' ? patterns : patterns.filter(function (p) { return p.id === activeFilter; })).filter(function (p) {
+      if (!needle) return true;
+      var haystack = [p.name, p.short, p.description].concat(p.entries.map(function (e) {
+        return [e.num, e.title, e.note].join(' ');
+      })).join(' ').toLowerCase();
+      return haystack.includes(needle);
+    });
 
     // Track entries that appear in multiple patterns
     var entryCounts = {};
@@ -861,6 +919,7 @@
     }).join('');
 
     container.innerHTML = html;
+    document.getElementById('empty-state').classList.toggle('visible', visible.length === 0);
 
     // Scroll to first visible pattern block (for hash navigation)
     var firstBlock = container.querySelector('.pattern-block');
@@ -869,7 +928,11 @@
     }
 
     var note = document.getElementById('count-note');
-    if (activeFilter === 'all') {
+    if (activeQuery.trim()) {
+      var matchEntries = new Set();
+      visible.forEach(function (p) { p.entries.forEach(function (e) { matchEntries.add(e.num); }); });
+      note.textContent = visible.length + ' pattern' + (visible.length === 1 ? '' : 's') + ' / ' + matchEntries.size + ' linked entries match “' + activeQuery.trim() + '”.';
+    } else if (activeFilter === 'all') {
       var multiCount = Object.values(entryCounts).filter(function(c){ return c > 1; }).length;
       var quadCount = Object.values(entryCounts).filter(function(c){ return c >= 4; }).length;
       var triCount = Object.values(entryCounts).filter(function(c){ return c === 3; }).length;

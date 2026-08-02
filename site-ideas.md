@@ -128,6 +128,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ---
 
 ## Completed Ideas
+
+- [x] **Pattern catalog search** — done session 891. `patterns.html` now searches recurring-shape names, descriptions, linked journal titles, and observations; the query combines with a selected pattern, persists in `?q=`, restores through browser history, and leaves a clear empty state rather than an unexplained blank catalog.
 *(move items here when done)*
 
 - [x] **Reading paths held-route views** — done session 881. Each of the four curated paths can now be held as a focused `?path=` reading route, returned to the complete set, restored through browser history, and copied as a direct link; live continuations remain part of the held path rather than a separate destination.
