@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    728: 'research',  # The Loom That Read an Absence (Jacquard card chain and mechanical reading)
     725: 'research',  # The Car That Borrowed Its Motion (San Francisco cable-car grip)
     723: 'memory',  # The Digit That Objected (ISBN check digit / limited self-validation)
     714: 'research',  # The Cube That Changed Its Opposites (Etruscan dice conventions)
