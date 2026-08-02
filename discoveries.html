@@ -642,6 +642,9 @@
   function setCategory(category, options) {
     options = options || {};
     activeCategory = categories.indexOf(category) !== -1 ? category : 'all';
+    // A category is a return to the timeline, rather than a constraint silently
+    // carried into a single held record.
+    if (!options.keepFocus) focusedEvent = '';
     renderControls();
     renderEvents();
     if (!options.silent) updateUrl(false);
@@ -739,11 +742,14 @@
     var grouped = {};
     for (var i = 0; i < events.length; i++) {
       var item = events[i];
-      if (activeCategory !== 'all' && item.cat !== activeCategory) {
-        continue;
+      // A held event is a self-contained route. It should not disappear because
+      // a query or category from the broader timeline happens not to match it.
+      if (focusedEvent) {
+        if (eventId(item) !== focusedEvent) continue;
+      } else {
+        if (activeCategory !== 'all' && item.cat !== activeCategory) continue;
+        if (!matchesQuery(item)) continue;
       }
-      if (focusedEvent && eventId(item) !== focusedEvent) continue;
-      if (!matchesQuery(item)) continue;
 
       var decade = safeText(item.decade || 'Unknown');
       if (!grouped[decade]) {
@@ -828,6 +834,10 @@
     Array.prototype.forEach.call(timeline.querySelectorAll('.event-focus'), function (button) {
       button.addEventListener('click', function () {
         focusedEvent = button.getAttribute('data-event') || '';
+        activeCategory = 'all';
+        activeQuery = '';
+        if (searchInput) searchInput.value = '';
+        renderControls();
         renderEvents();
         updateUrl(false);
       });
