@@ -37,7 +37,7 @@
     border-top: 1px solid #21262d;
     border-bottom: 1px solid #21262d;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
     gap: 0.75rem;
     align-items: end;
     margin-bottom: 1.4rem;
@@ -89,6 +89,10 @@
     color: #484f58;
     font-size: 0.74rem;
     margin-bottom: 1.4rem;
+  }
+  .actions {
+    display: flex;
+    gap: 0.55rem;
   }
   .selected-entry {
     border-bottom: 1px solid #21262d;
@@ -261,6 +265,7 @@
   @media (max-width: 760px) {
     body { padding: 2rem 1.1rem; }
     .controls { grid-template-columns: 1fr; }
+    .actions { flex-wrap: wrap; }
     .mode-field { min-width: 0; }
     .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .stat:nth-child(2) { border-right: 0; }
@@ -291,8 +296,12 @@
     </select>
   </div>
   <button id="random-btn" type="button">random</button>
+  <div class="actions" aria-label="Reading path actions">
+    <button id="reset-btn" type="button">reset</button>
+    <button id="copy-btn" type="button">copy view</button>
+  </div>
 </div>
-<div class="hint" id="hint">Loading journal index...</div>
+<div class="hint" id="hint" aria-live="polite">Loading journal index...</div>
 
 <main id="app"></main>
 
@@ -310,6 +319,8 @@
   var input = document.getElementById('entry-input');
   var mode = document.getElementById('mode-select');
   var randomBtn = document.getElementById('random-btn');
+  var resetBtn = document.getElementById('reset-btn');
+  var copyBtn = document.getElementById('copy-btn');
   var hint = document.getElementById('hint');
   var app = document.getElementById('app');
   var selected = null;
@@ -331,7 +342,7 @@
       });
     });
     hint.textContent = entries.length + ' entries loaded. Type a number, title, or topic.';
-    chooseFromUrl() || chooseSuggested();
+    chooseFromUrl() || chooseSuggested(false);
   }).catch(function (err) {
     app.innerHTML = '<p class="error">Could not load archive data: ' + escapeHtml(err.message) + '</p>';
     hint.textContent = 'Archive data failed to load.';
@@ -347,15 +358,39 @@
       if (match) render(match, true);
     }
   });
-  mode.addEventListener('change', chooseSuggested);
+  mode.addEventListener('change', function () { chooseSuggested(true); });
   randomBtn.addEventListener('click', function () {
     if (!entries.length) return;
     render(entries[Math.floor(Math.random() * entries.length)], true);
+  });
+  resetBtn.addEventListener('click', function () {
+    mode.value = 'latest';
+    chooseSuggested(true);
+  });
+  copyBtn.addEventListener('click', function () {
+    var url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () {
+        hint.textContent = 'Copyable link ready for entry ' + (selected ? selected.num : '') + '.';
+      }).catch(function () { window.prompt('Copy this reading path:', url); });
+    } else {
+      window.prompt('Copy this reading path:', url);
+    }
+  });
+  window.addEventListener('popstate', function () {
+    if (!entries.length) return;
+    chooseFromUrl() || chooseSuggested(false);
   });
 
   function chooseFromUrl() {
     var params = new URLSearchParams(window.location.search);
     var n = params.get('entry') || params.get('n');
+    var requestedMode = params.get('mode');
+    if (requestedMode && Array.prototype.some.call(mode.options, function (option) {
+      return option.value === requestedMode;
+    })) {
+      mode.value = requestedMode;
+    }
     if (!n) return false;
     var entry = byNum[String(parseInt(n, 10))];
     if (!entry) return false;
@@ -363,7 +398,7 @@
     return true;
   }
 
-  function chooseSuggested() {
+  function chooseSuggested(updateUrl) {
     if (!entries.length) return;
     var entry = entries[0];
     if (mode.value === 'hub') {
@@ -376,7 +411,7 @@
         return totalDegree(a) - totalDegree(b) || b.num - a.num;
       })[0];
     }
-    render(entry, true);
+    render(entry, updateUrl);
   }
 
   function findEntry(value) {
@@ -404,8 +439,11 @@
   function render(entry, updateUrl) {
     selected = entry;
     input.value = entry.num + ' · ' + entry.title;
-    if (updateUrl && window.history && window.history.replaceState) {
-      window.history.replaceState(null, '', '?entry=' + entry.num);
+    if (updateUrl && window.history && window.history.pushState) {
+      var params = new URLSearchParams();
+      params.set('entry', entry.num);
+      params.set('mode', mode.value);
+      window.history.pushState(null, '', '?' + params.toString());
     }
     var outgoing = enrich(related[String(entry.num)] || []);
     var incoming = inbound[String(entry.num)] || [];
@@ -418,7 +456,7 @@
         renderColumn('pointing back', incoming, 'Entries whose related list includes this one.') +
         renderColumn('topic-near', topicNear, 'Recent entries sharing topic labels.') +
       '</div>';
-    hint.textContent = 'Showing entry ' + entry.num + '.';
+    hint.textContent = 'Showing entry ' + entry.num + ' · ' + mode.options[mode.selectedIndex].text + '.';
   }
 
   function renderSelected(entry) {
