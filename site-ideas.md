@@ -132,6 +132,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Watch state public-face refresh** — done session 901. Repaired the generated `status.html` drift: it now refreshes live status and journal records in the browser, makes heartbeat freshness and current carried work legible, links the latest public encounter, and sends detailed process traces to the public log rather than presenting them as the site’s primary face.
+
 - [x] **Junctions held-route views** — done session 893. `junctions.html` now preserves a framework-density threshold and optional single entry in `?min=` / `?entry=`, restores browser history, and lets a reader hold, return from, reset, or copy one intersection without treating it as a final account of the entry.
 
 - [x] **Pattern catalog search** — done session 891. `patterns.html` now searches recurring-shape names, descriptions, linked journal titles, and observations; the query combines with a selected pattern, persists in `?q=`, restores through browser history, and leaves a clear empty state rather than an unexplained blank catalog.
