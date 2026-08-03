@@ -121,6 +121,28 @@
     transition: background 0.1s;
   }
   .start-btn:hover { background: #2d5a40; }
+  .start-btn:disabled { opacity: 0.5; cursor: wait; }
+
+  .timing-note {
+    max-width: 480px;
+    margin: 1rem auto 0;
+    text-align: left;
+    font-size: 0.78rem;
+    color: #8b949e;
+    line-height: 1.65;
+    border-left: 2px solid #21262d;
+    padding-left: 0.8rem;
+  }
+  .timing-note strong { color: #c9d1d9; font-weight: normal; }
+
+  html[data-theme="light"] body { background: #fff; color: #24292e; }
+  html[data-theme="light"] h1, html[data-theme="light"] .question-area { color: #24292e; }
+  html[data-theme="light"] .exp-wrap, html[data-theme="light"] .result-card, html[data-theme="light"] .chart-card { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .progress-bar, html[data-theme="light"] .result-row { border-color: #d0d7de; background: #d0d7de; }
+  html[data-theme="light"] .exp-btn { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .exp-btn:hover:not(:disabled) { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .ctable th { background: #f6f8fa; }
+  html[data-theme="light"] .timing-note, html[data-theme="light"] .annotation { border-left-color: #d0d7de; color: #57606a; }
 
   /* Results */
   #results { display: none; }
@@ -225,7 +247,7 @@
 <script src="/nav.js"></script>
 
 <div class="back"><a href="/">← home</a></div>
-<div class="page-label">experiment 058</div>
+<div class="page-label">perception exercise</div>
 <h1>Two Questions</h1>
 <div class="meta">forced-choice detection · ~4 minutes · sit close, dim the room</div>
 
@@ -236,7 +258,8 @@
 </div>
 
 <div id="start-panel" class="exp-wrap" style="text-align:center;padding:2rem">
-  <button class="start-btn" id="startBtn">Begin experiment</button>
+  <button class="start-btn" id="startBtn" disabled>Checking display timing…</button>
+  <div class="timing-note" id="timing-note" aria-live="polite">Measuring the intervals between your browser's animation frames before the exercise begins.</div>
 </div>
 
 <div id="exp-panel" class="exp-wrap" style="display:none">
@@ -341,6 +364,31 @@ function disableBtns() {
 // --- Experiment runner ---
 let trials, responses;
 const TOTAL = DURS.length * REPS;
+
+function formatFramePlan(frameMs) {
+  const hz = Math.round(1000 / frameMs);
+  const plans = DURS.map(d => `${d} ms ≈ ${Math.max(1, Math.round(d / frameMs))} frame${Math.round(d / frameMs) === 1 ? '' : 's'}`);
+  return { hz, plans: plans.join(' · ') };
+}
+
+function measureFrames() {
+  const samples = [];
+  let previous = null;
+  function sample(now) {
+    if (previous !== null) samples.push(now - previous);
+    previous = now;
+    if (samples.length < 50) return requestAnimationFrame(sample);
+    samples.sort((a, b) => a - b);
+    const frameMs = samples[Math.floor(samples.length / 2)];
+    const plan = formatFramePlan(frameMs);
+    const note = document.getElementById('timing-note');
+    note.innerHTML = `<strong>This browser is presently drawing about ${plan.hz} frames per second</strong> (median frame: ${frameMs.toFixed(1)} ms). The four requested exposures will be rounded by the display: ${plan.plans}. This is a practice exercise, not a timing-controlled laboratory measurement.`;
+    const start = document.getElementById('startBtn');
+    start.disabled = false;
+    start.textContent = 'Begin experiment';
+  }
+  requestAnimationFrame(sample);
+}
 
 function runTrial(idx) {
   const trial = trials[idx];
@@ -547,6 +595,8 @@ document.getElementById('startBtn').addEventListener('click', () => {
   drawFix();
   setTimeout(() => runTrial(0), 600);
 });
+
+measureFrames();
 </script>
 </body>
 </html>
