@@ -183,6 +183,7 @@
     padding: 0;
   }
   .nav-row button:hover { color: #58a6ff; }
+  .nav-row .copy-note { color: #58a6ff; }
 
   /* Entry ref */
   .entry-ref {
@@ -220,6 +221,7 @@
   html[data-theme="light"] .next-question { color: #57606a; }
   html[data-theme="light"] .nav-row button { color: #8c959f; }
   html[data-theme="light"] .nav-row button:hover { color: #0969da; }
+  html[data-theme="light"] .nav-row .copy-note { color: #0969da; }
   html[data-theme="light"] .entry-ref { color: #8c959f; border-top-color: #d0d7de; }
   html[data-theme="light"] .entry-ref a { color: #8c959f; }
   html[data-theme="light"] .entry-ref a:hover { color: #0969da; }
@@ -259,6 +261,8 @@
   </div>
   <div class="nav-row" id="nav-row">
     <button id="reset-btn">↑ back to surface</button>
+    <button id="copy-btn">copy this depth</button>
+    <span class="copy-note" id="copy-note" aria-live="polite"></span>
   </div>
   <div class="entry-ref">
     → connected to <a href="/journal/entry-582.html">entry-582: The Wavelength</a> · <a href="/journal/entry-583.html">entry-583: The First Layer</a>
@@ -338,6 +342,42 @@
   var currentStep = 0;
   var answerRevealed = false;
 
+  function chainIndex(id) {
+    return CHAINS.findIndex(function (chain) { return chain.id === id; });
+  }
+
+  function readView() {
+    var params = new URLSearchParams(window.location.search);
+    var index = chainIndex(params.get('chain'));
+    var step = parseInt(params.get('step'), 10);
+    if (index < 0) index = 0;
+    if (!Number.isFinite(step) || step < 1 || step > CHAINS[index].steps.length) step = 1;
+    return {
+      chain: index,
+      step: step - 1,
+      answer: params.get('answer') === '1'
+    };
+  }
+
+  function writeView(mode) {
+    var url = new URL(window.location.href);
+    if (currentChain) url.searchParams.set('chain', CHAINS[currentChain].id);
+    else url.searchParams.delete('chain');
+    if (currentStep) url.searchParams.set('step', String(currentStep + 1));
+    else url.searchParams.delete('step');
+    if (answerRevealed) url.searchParams.set('answer', '1');
+    else url.searchParams.delete('answer');
+    window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function setView(chain, step, answer, mode) {
+    currentChain = chain;
+    currentStep = step;
+    answerRevealed = answer;
+    writeView(mode || 'replace');
+    render();
+  }
+
   function renderChainSelector() {
     var sel = document.getElementById('chain-selector');
     sel.innerHTML = '';
@@ -346,10 +386,7 @@
       btn.className = 'chain-btn' + (i === currentChain ? ' active' : '');
       btn.textContent = ch.label;
       btn.addEventListener('click', function () {
-        currentChain = i;
-        currentStep = 0;
-        answerRevealed = false;
-        render();
+        setView(i, 0, false, 'push');
       });
       sel.appendChild(btn);
     });
@@ -438,8 +475,7 @@
       whyBtn.className = 'why-btn primary';
       whyBtn.textContent = '→ why?';
       whyBtn.addEventListener('click', function () {
-        answerRevealed = true;
-        render();
+        setView(currentChain, currentStep, true, 'push');
       });
       btnRow.appendChild(whyBtn);
     } else if (!isLast) {
@@ -447,9 +483,7 @@
       nextBtn.className = 'why-btn primary';
       nextBtn.textContent = '→ go deeper';
       nextBtn.addEventListener('click', function () {
-        currentStep++;
-        answerRevealed = false;
-        render();
+        setView(currentChain, currentStep + 1, false, 'push');
       });
       btnRow.appendChild(nextBtn);
 
@@ -471,10 +505,7 @@
       nextChainBtn.className = 'why-btn';
       nextChainBtn.textContent = 'try "' + CHAINS[nextChainIdx].label + '" →';
       nextChainBtn.addEventListener('click', function () {
-        currentChain = nextChainIdx;
-        currentStep = 0;
-        answerRevealed = false;
-        render();
+        setView(nextChainIdx, 0, false, 'push');
       });
       btnRow.appendChild(nextChainBtn);
     }
@@ -485,18 +516,40 @@
   }
 
   function resetChain() {
-    currentStep = 0;
-    answerRevealed = false;
-    render();
+    setView(currentChain, 0, false, 'push');
   }
 
   document.getElementById('reset-btn').addEventListener('click', resetChain);
+  document.getElementById('copy-btn').addEventListener('click', function () {
+    var note = document.getElementById('copy-note');
+    if (!navigator.clipboard) {
+      note.textContent = 'copy the address bar to keep this depth';
+      return;
+    }
+    navigator.clipboard.writeText(window.location.href).then(function () {
+      note.textContent = 'link copied';
+      window.setTimeout(function () { note.textContent = ''; }, 1400);
+    }, function () {
+      note.textContent = 'copy the address bar to keep this depth';
+    });
+  });
 
   function escapeHtml(s) {
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  var initial = readView();
+  currentChain = initial.chain;
+  currentStep = initial.step;
+  answerRevealed = initial.answer;
   render();
+  window.addEventListener('popstate', function () {
+    var view = readView();
+    currentChain = view.chain;
+    currentStep = view.step;
+    answerRevealed = view.answer;
+    render();
+  });
 })();
 </script>
 </body>
