@@ -350,10 +350,10 @@ function render() {
   document.getElementById('empty-state').classList.toggle('visible', filtered.length === 0 && !focusedGap);
   document.getElementById('focus-note').classList.toggle('visible', !!focusedGap);
   renderFilters();
-  updateCount();
+  updateCount(focusedGap);
 }
 
-function updateCount() {
+function updateCount(focusedGap) {
   const total = allGaps.length;
   const visible = filteredGaps().length;
   document.getElementById('count-note').textContent =

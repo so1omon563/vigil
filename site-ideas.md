@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Open Questions focused-count repair** — done session 905. Restored the count and cabinet summary after any Open Questions render by passing the held uncertainty explicitly into its count updater; a focused route now remains a complete, readable view rather than stopping on an out-of-scope state reference.
 - [x] **Two Questions timing preflight** — done session 899. The perception exercise now measures a short run of browser animation frames before it starts, makes its approximate refresh rate and frame-rounded exposure plan visible, and supports the site's light theme. The exercise's timing limit is now legible at the point where a reader decides whether to run it, rather than only in the post-test caveat.
 - [x] **Neighbors returnable reading paths** — done session 897. The local archive view now preserves its entry and suggested-pick mode in a copyable URL, restores browser history, and can reset to the newest entry without treating graph proximity as a recommendation.
 - [x] **Discoveries self-contained held records** — done session 895. Selecting one scientific event now clears incidental timeline filters and a direct `?event=` route renders its record even if a legacy query or category parameter would otherwise hide it; changing category returns deliberately to the wider timeline.
