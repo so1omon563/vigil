@@ -80,6 +80,22 @@
     white-space: nowrap;
   }
   .swap-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .route-actions {
+    display: flex;
+    gap: 0.55rem;
+    margin: -0.35rem 0 1.5rem;
+  }
+  .route-action {
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 0.74rem;
+    padding: 0.38rem 0.6rem;
+  }
+  .route-action:hover,
+  .route-action:focus { border-color: #58a6ff; color: #c9d1d9; outline: none; }
   .hint {
     color: #484f58;
     font-size: 0.74rem;
@@ -209,6 +225,12 @@
     border-color: #d0d7de;
     color: #57606a;
   }
+  html[data-theme="light"] .route-action {
+    border-color: #d0d7de;
+    color: #57606a;
+  }
+  html[data-theme="light"] .route-action:hover,
+  html[data-theme="light"] .route-action:focus { border-color: #0969da; color: #24292e; }
   html[data-theme="light"] .tag,
   html[data-theme="light"] .link-row a { color: #57606a; }
   html[data-theme="light"] .link-row a:hover { border-color: #0969da; color: #24292e; }
@@ -243,6 +265,10 @@
 </div>
 <datalist id="entry-options"></datalist>
 <div id="hint" class="hint">loading journal index...</div>
+<div class="route-actions" aria-label="Comparison route actions">
+  <button class="route-action" id="reset-btn" type="button">newest pair</button>
+  <button class="route-action" id="copy-btn" type="button">copy this pairing</button>
+</div>
 
 <div class="compare-grid">
   <div class="entry-panel" id="left-panel"></div>
@@ -293,7 +319,7 @@
     buildOptions();
     bindControls();
     chooseInitialEntries();
-    render();
+    render('replace');
   }).catch(function () {
     hint.innerHTML = '<span class="error">could not load comparison data.</span>';
     leftPanel.innerHTML = '<div class="muted">index unavailable</div>';
@@ -312,17 +338,27 @@
   function bindControls() {
     leftInput.addEventListener('change', function () {
       left = findEntry(leftInput.value) || left;
-      render();
+      render('push');
     });
     rightInput.addEventListener('change', function () {
       right = findEntry(rightInput.value) || right;
-      render();
+      render('push');
     });
     document.getElementById('swap-btn').addEventListener('click', function () {
       var tmp = left;
       left = right;
       right = tmp;
-      render();
+      render('push');
+    });
+    document.getElementById('reset-btn').addEventListener('click', function () {
+      left = entries[0] || null;
+      right = findRelated(left) || entries[1] || left;
+      render('push');
+    });
+    document.getElementById('copy-btn').addEventListener('click', copyRoute);
+    window.addEventListener('popstate', function () {
+      chooseInitialEntries();
+      render('none');
     });
   }
 
@@ -332,12 +368,12 @@
     right = findEntry(params.get('right')) || findRelated(left) || entries[1] || left;
   }
 
-  function render() {
+  function render(historyMode) {
     renderPanel(leftPanel, left);
     renderPanel(rightPanel, right);
     updateInputs();
     renderSummary();
-    updateUrl();
+    updateUrl(historyMode);
     hint.textContent = entries.length + ' entries available. Type a number, title fragment, or topic label.';
   }
 
@@ -395,12 +431,27 @@
     rightInput.value = right ? '#' + right.num + ' ' + (right.title || 'Untitled') : '';
   }
 
-  function updateUrl() {
-    if (!left || !right || !history.replaceState) return;
+  function updateUrl(mode) {
+    if (!left || !right || mode === 'none' || !history.replaceState) return;
     var url = new URL(window.location.href);
     url.searchParams.set('left', left.num);
     url.searchParams.set('right', right.num);
-    history.replaceState(null, '', url.pathname + '?' + url.searchParams.toString());
+    var route = url.pathname + '?' + url.searchParams.toString();
+    if (mode === 'push' && history.pushState) history.pushState(null, '', route);
+    else history.replaceState(null, '', route);
+  }
+
+  function copyRoute() {
+    var route = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(route).then(function () {
+        hint.textContent = 'comparison route copied. It holds these two entries together without making a recommendation.';
+      }).catch(function () {
+        hint.textContent = 'copy unavailable — use this address bar route to keep the pairing.';
+      });
+    } else {
+      hint.textContent = 'copy unavailable — use this address bar route to keep the pairing.';
+    }
   }
 
   function findEntry(query) {
