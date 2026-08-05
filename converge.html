@@ -95,6 +95,25 @@
   button:hover { border-color: #58a6ff; color: #58a6ff; }
   button.active { border-color: #3fb950; color: #3fb950; }
   .step-info { font-size: 0.78rem; color: #484f58; }
+  .seed-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #6e7681;
+    font-size: 0.78rem;
+  }
+  .seed-control input {
+    width: 5.5rem;
+    font: inherit;
+    color: #c9d1d9;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.3rem 0.45rem;
+  }
+  .seed-control input:focus { outline: none; border-color: #58a6ff; }
+  html[data-theme="light"] .seed-control { color: #57606a; }
+  html[data-theme="light"] .seed-control input { color: #24292e; background: #fff; border-color: #d0d7de; }
 
   /* Explanation */
   .explanation {
@@ -157,6 +176,9 @@
 <div class="controls">
   <button id="btnRun">Run</button>
   <button id="btnReset">Reset</button>
+  <label class="seed-control">starting arrangement <input id="seedInput" type="number" min="0" max="4294967295" step="1" inputmode="numeric" aria-label="Starting arrangement seed"></label>
+  <button id="btnNewStarts" type="button">new starts</button>
+  <button id="btnCopy" type="button">copy this arrangement</button>
   <span class="step-info" id="stepInfo">step 0</span>
 </div>
 
@@ -357,6 +379,9 @@
   const stepInfo = document.getElementById('stepInfo');
   const btnRun = document.getElementById('btnRun');
   const btnReset = document.getElementById('btnReset');
+  const seedInput = document.getElementById('seedInput');
+  const btnNewStarts = document.getElementById('btnNewStarts');
+  const btnCopy = document.getElementById('btnCopy');
 
   let landA, landB, walkersA, walkersB;
   let step = 0;
@@ -365,11 +390,36 @@
 
   // Generate fixed random starting positions (same for both landscapes)
   let startPositions = [];
+  let arrangementSeed = 479;
 
-  function seededPositions(n) {
-    // Simple deterministic-ish spread
+  function normalizedSeed(value) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed >>> 0 : 479;
+  }
+
+  function syncSeed(replace) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('seed', String(arrangementSeed));
+    const target = url.pathname + url.search + url.hash;
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', target);
+  }
+
+  function seededRandom(seed) {
+    let state = seed >>> 0;
+    return function() {
+      state += 0x6D2B79F5;
+      let value = state;
+      value = Math.imul(value ^ value >>> 15, value | 1);
+      value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+      return ((value ^ value >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function seededPositions(n, seed) {
+    // A repeatable arrangement: same seed, same starts in both panels and after reload.
+    const random = seededRandom(seed);
     const pos = [];
-    // Use fixed seed pattern: grid subdivisions with small offsets
+    // Grid subdivisions keep each trial broadly distributed; the seed varies their local offsets.
     const cols = Math.ceil(Math.sqrt(n));
     const rows = Math.ceil(n / cols);
     for (let i=0; i<n; i++) {
@@ -377,9 +427,8 @@
       const row = Math.floor(i / cols);
       const cx = (col + 0.5) / cols;
       const cy = (row + 0.5) / rows;
-      // Add deterministic offset based on index
-      const ox = (((i*7+3)%17)/17 - 0.5) * 0.12;
-      const oy = (((i*11+5)%13)/13 - 0.5) * 0.12;
+      const ox = (random() - 0.5) * 0.18;
+      const oy = (random() - 0.5) * 0.18;
       const x = Math.max(3, Math.min(G-4, Math.floor((cx+ox)*G)));
       const y = Math.max(3, Math.min(G-4, Math.floor((cy+oy)*G)));
       pos.push({x, y});
@@ -396,7 +445,8 @@
     }));
   }
 
-  function reset() {
+  function reset(options) {
+    options = options || {};
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     running = false;
     btnRun.textContent = 'Run';
@@ -404,7 +454,7 @@
 
     landA = makeSelectionLandscape();
     landB = makeConstraintLandscape();
-    startPositions = seededPositions(N_WALKERS);
+    startPositions = seededPositions(N_WALKERS, arrangementSeed);
     walkersA = initFromPositions(landA.fitness, startPositions);
     walkersB = initFromPositions(landB.fitness, startPositions);
     step = 0;
@@ -413,9 +463,11 @@
     renderLandscape(canvasB, landB.fitness);
     drawWalkers(canvasA, walkersA, false, false);
     drawWalkers(canvasB, walkersB, false, false);
+    seedInput.value = String(arrangementSeed);
     stepInfo.textContent = 'step 0 — press Run';
     statA.textContent = '—';
     statB.textContent = '—';
+    if (options.sync) syncSeed(!!options.replace);
   }
 
   function updateStats(walkers, peakCount, stat) {
@@ -502,9 +554,31 @@
     }
   });
 
-  btnReset.addEventListener('click', reset);
+  btnReset.addEventListener('click', function() { reset(); });
+  seedInput.addEventListener('change', function() {
+    arrangementSeed = normalizedSeed(seedInput.value);
+    reset({sync: true, replace: false});
+  });
+  btnNewStarts.addEventListener('click', function() {
+    arrangementSeed = (arrangementSeed + 1) >>> 0;
+    reset({sync: true, replace: false});
+  });
+  btnCopy.addEventListener('click', function(event) {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+      event.currentTarget.textContent = 'copied';
+      window.setTimeout(function() { event.currentTarget.textContent = 'copy this arrangement'; }, 1400);
+    }).catch(function() {
+      event.currentTarget.textContent = 'copy unavailable';
+    });
+  });
+  window.addEventListener('popstate', function() {
+    arrangementSeed = normalizedSeed(new URLSearchParams(window.location.search).get('seed'));
+    reset();
+  });
 
+  arrangementSeed = normalizedSeed(new URLSearchParams(window.location.search).get('seed'));
   reset();
+  syncSeed(true);
 })();
 </script>
 </body>

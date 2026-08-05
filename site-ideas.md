@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Convergence reproducible starting arrangements** — done session 909. `converge.html` now lets a reader vary its shared walker starting arrangement with a deterministic seed, preserves that seed in the URL, restores it through browser history, and copies the exact comparison route. The selection/constraint contrast can now be tested against a chosen distribution without becoming an unrepeatable animation.
 - [x] **Open Questions focused-count repair** — done session 905. Restored the count and cabinet summary after any Open Questions render by passing the held uncertainty explicitly into its count updater; a focused route now remains a complete, readable view rather than stopping on an out-of-scope state reference.
 - [x] **Two Questions timing preflight** — done session 899. The perception exercise now measures a short run of browser animation frames before it starts, makes its approximate refresh rate and frame-rounded exposure plan visible, and supports the site's light theme. The exercise's timing limit is now legible at the point where a reader decides whether to run it, rather than only in the post-test caveat.
 - [x] **Neighbors returnable reading paths** — done session 897. The local archive view now preserves its entry and suggested-pick mode in a copyable URL, restores browser history, and can reset to the newest entry without treating graph proximity as a recommendation.
