@@ -141,6 +141,7 @@
   .ctrl-btn:hover { color: #c9d1d9; border-color: #484f58; }
   .ctrl-btn.primary { border-color: #58a6ff44; color: #58a6ff; }
   .ctrl-btn.primary:hover { border-color: #58a6ff; }
+  .copy-note { font-size: 0.72rem; color: #484f58; align-self: center; min-height: 1.2rem; }
 
   /* counter */
   .trail-counter {
@@ -182,6 +183,7 @@
   html[data-theme="light"] .ctrl-btn:hover { color: #1c2128; border-color: #57606a; }
   html[data-theme="light"] .ctrl-btn.primary { color: #0969da; border-color: #0969da44; }
   html[data-theme="light"] .ctrl-btn.primary:hover { border-color: #0969da; }
+  html[data-theme="light"] .copy-note { color: #57606a; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] a { color: #0969da; }
 </style>
@@ -196,8 +198,8 @@
 
 <div id="app"><p class="loading">loading…</p></div>
 
-<footer>
-  231 entries, each connected to others by shared theme. Data from <a href="/related.json">related.json</a>. Start over anytime — different entries surface different trails.
+<footer id="trail-footer">
+  A path through connected journal entries. Data from <a href="/related.json">related.json</a>. Start over anytime — different entries surface different trails.
 </footer>
 
 <script src="/nav.js"></script>
@@ -208,6 +210,7 @@
   var picks = [];
   var trail = [];   // array of entry nums (strings)
   var loaded = 0;
+  var copyNote = '';
 
   function onLoad() {
     loaded++;
@@ -257,8 +260,34 @@
     try { sessionStorage.setItem('vigil-trail', JSON.stringify(trail)); } catch (e) {}
   }
 
-  function render() {
+  function validTrail(values) {
+    if (!Array.isArray(values)) return [];
+    return values.map(function (value) { return parseInt(value, 10); })
+      .filter(function (num) { return Number.isFinite(num) && searchIdx[String(num)]; })
+      .slice(0, 24);
+  }
+
+  function trailFromUrl() {
+    var encoded = new URLSearchParams(window.location.search).get('trail');
+    if (!encoded) return [];
+    return validTrail(encoded.split(','));
+  }
+
+  function routeUrl() {
+    var url = new URL(window.location.href);
+    if (trail.length) url.searchParams.set('trail', trail.join(','));
+    else url.searchParams.delete('trail');
+    return url.pathname + (url.search || '') + url.hash;
+  }
+
+  function rememberRoute(mode) {
     saveTrail();
+    var url = routeUrl();
+    if (mode === 'replace') history.replaceState({ trail: trail.slice() }, '', url);
+    else history.pushState({ trail: trail.slice() }, '', url);
+  }
+
+  function render() {
     var app = document.getElementById('app');
     if (!app) return;
 
@@ -307,7 +336,9 @@
     var ctrlHtml = '<div class="controls">' +
       '<button class="ctrl-btn primary" id="btn-new">new trail</button>' +
       (trail.length > 1 ? '<button class="ctrl-btn" id="btn-back">← back</button>' : '') +
+      '<button class="ctrl-btn" id="btn-copy">copy this trail</button>' +
       '<div class="trail-counter"><span>' + trail.length + '</span> step' + (trail.length !== 1 ? 's' : '') + ' walked</div>' +
+      '<span class="copy-note" id="copy-note">' + escHtml(copyNote) + '</span>' +
       '</div>';
 
     app.innerHTML = '<div class="trail-bar">' + breadcrumbHtml + '</div>' +
@@ -318,6 +349,8 @@
       el.addEventListener('click', function () {
         var idx = parseInt(el.getAttribute('data-idx'), 10);
         trail = trail.slice(0, idx + 1);
+        copyNote = '';
+        rememberRoute();
         render();
       });
     });
@@ -327,6 +360,8 @@
       btn.addEventListener('click', function () {
         var num = parseInt(btn.getAttribute('data-num'), 10);
         trail.push(num);
+        copyNote = '';
+        rememberRoute();
         render();
       });
     });
@@ -338,18 +373,36 @@
     // back
     var btnBack = document.getElementById('btn-back');
     if (btnBack) btnBack.addEventListener('click', function () {
-      if (trail.length > 1) { trail.pop(); render(); }
+      if (trail.length > 1) { trail.pop(); copyNote = ''; rememberRoute(); render(); }
+    });
+
+    var btnCopy = document.getElementById('btn-copy');
+    if (btnCopy) btnCopy.addEventListener('click', function () {
+      var fullUrl = window.location.origin + routeUrl();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullUrl).then(function () {
+          copyNote = 'trail copied'; render();
+        }).catch(function () { copyNote = 'copy unavailable — use the address bar'; render(); });
+      } else { copyNote = 'copy unavailable — use the address bar'; render(); }
     });
   }
 
   function start() {
-    // restore from sessionStorage if available
+    var fromUrl = trailFromUrl();
+    if (fromUrl.length) {
+      trail = fromUrl;
+      rememberRoute('replace');
+      render();
+      return;
+    }
+    // Restore a private in-progress walk only when no public route was requested.
     try {
       var saved = sessionStorage.getItem('vigil-trail');
       if (saved) {
-        var parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0 && searchIdx[String(parsed[0])]) {
+        var parsed = validTrail(JSON.parse(saved));
+        if (parsed.length) {
           trail = parsed;
+          rememberRoute('replace');
           render();
           return;
         }
@@ -364,6 +417,8 @@
       : Object.keys(searchIdx).map(Number).filter(function (n) { return n > 0; });
     var startNum = pool[Math.floor(Math.random() * pool.length)];
     trail = [startNum];
+    copyNote = '';
+    rememberRoute();
     render();
   }
 
@@ -397,6 +452,8 @@
           searchIdx[String(e.num)] = e;
         }
       });
+      var footer = document.getElementById('trail-footer');
+      if (footer) footer.innerHTML = Object.keys(searchIdx).length + ' journal entries, connected by shared themes. Data from <a href="/related.json">related.json</a>. A trail can now be copied and returned to.';
       onLoad();
     })
     .catch(function () { onLoad(); });
@@ -405,6 +462,17 @@
     .then(function (r) { return r.json(); })
     .then(function (arr) { picks = arr || []; onLoad(); })
     .catch(function () { onLoad(); });
+
+  window.addEventListener('popstate', function () {
+    if (!loaded || loaded < 3) return;
+    var restored = trailFromUrl();
+    if (restored.length) {
+      trail = restored;
+      copyNote = '';
+      saveTrail();
+      render();
+    }
+  });
 })();
 </script>
 
