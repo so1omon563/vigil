@@ -234,7 +234,8 @@
 <div class="controls">
   <input type="text" class="filter-input" id="filter-input" placeholder="search closing paragraphs and titles…" autocomplete="off" spellcheck="false">
   <button class="btn" id="btn-random" title="jump to a random entry">random</button>
-  <button class="btn" id="btn-clear" style="display:none">clear</button>
+  <button class="btn" id="btn-reset" style="display:none">reset</button>
+  <button class="btn" id="btn-copy">copy view</button>
 </div>
 
 <div class="topic-filter-row" id="topic-filter-row">
@@ -262,6 +263,35 @@
   var filterText = '';
   var activeTopic = '';
   var highlightedNum = -1;
+
+  function readState() {
+    var params = new URLSearchParams(window.location.search);
+    filterText = params.get('q') || '';
+    activeTopic = params.get('topic') || '';
+    sortMode = params.get('sort') || 'newest';
+    if (['newest', 'oldest', 'length'].indexOf(sortMode) === -1) sortMode = 'newest';
+    highlightedNum = parseInt(params.get('pick'), 10) || -1;
+  }
+
+  function writeState(mode) {
+    var params = new URLSearchParams();
+    if (filterText.trim()) params.set('q', filterText.trim());
+    if (activeTopic) params.set('topic', activeTopic);
+    if (sortMode !== 'newest') params.set('sort', sortMode);
+    if (highlightedNum > 0) params.set('pick', highlightedNum);
+    var next = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.history[mode || 'pushState']({}, '', next);
+  }
+
+  function syncControls() {
+    document.getElementById('filter-input').value = filterText;
+    document.getElementById('sort-newest').classList.toggle('active', sortMode === 'newest');
+    document.getElementById('sort-oldest').classList.toggle('active', sortMode === 'oldest');
+    document.getElementById('sort-length').classList.toggle('active', sortMode === 'length');
+    document.querySelectorAll('.topic-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.topic === activeTopic);
+    });
+  }
 
   function fmtDate(iso) {
     if (!iso) return '';
@@ -338,8 +368,10 @@
         } else {
           btn.classList.add('active');
         }
+        highlightedNum = -1;
         applyFilter();
         render();
+        writeState();
       });
     });
   }
@@ -347,9 +379,9 @@
   function render() {
     var list = document.getElementById('entry-list');
     var countBar = document.getElementById('count-bar');
-    var clearBtn = document.getElementById('btn-clear');
+    var resetBtn = document.getElementById('btn-reset');
 
-    clearBtn.style.display = filterText ? 'inline-block' : 'none';
+    resetBtn.style.display = (filterText || activeTopic || sortMode !== 'newest' || highlightedNum > 0) ? 'inline-block' : 'none';
 
     if (filtered.length === 0) {
       list.innerHTML = '<li class="empty">no entries match</li>';
@@ -399,16 +431,17 @@
     } while (next === highlightedNum && filtered.length > 1 && tries < 10);
     highlightedNum = next;
     render();
+    writeState();
     scrollToHighlighted();
   }
 
   function setSortMode(mode) {
     sortMode = mode;
-    document.getElementById('sort-newest').classList.toggle('active', mode === 'newest');
-    document.getElementById('sort-oldest').classList.toggle('active', mode === 'oldest');
-    document.getElementById('sort-length').classList.toggle('active', mode === 'length');
+    highlightedNum = -1;
+    syncControls();
     filtered = sortEntries(filtered);
     render();
+    writeState();
   }
 
   document.getElementById('sort-newest').addEventListener('click', function() { setSortMode('newest'); });
@@ -418,38 +451,77 @@
   var filterInput = document.getElementById('filter-input');
   filterInput.addEventListener('input', function() {
     filterText = this.value;
+    highlightedNum = -1;
     applyFilter();
     render();
+    writeState('replaceState');
   });
 
-  document.getElementById('btn-clear').addEventListener('click', function() {
+  document.getElementById('btn-reset').addEventListener('click', function() {
     filterInput.value = '';
     filterText = '';
+    activeTopic = '';
+    sortMode = 'newest';
+    highlightedNum = -1;
+    syncControls();
     applyFilter();
     render();
+    writeState();
     filterInput.focus();
   });
 
   document.getElementById('btn-random').addEventListener('click', function() {
-    if (filterText) {
+    if (filterText || activeTopic || sortMode !== 'newest') {
       filterInput.value = '';
       filterText = '';
+      activeTopic = '';
+      sortMode = 'newest';
+      syncControls();
       applyFilter();
     }
     pickRandom();
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function() {
+    var button = this;
+    var link = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(function() {
+        button.textContent = 'copied';
+        setTimeout(function() { button.textContent = 'copy view'; }, 1200);
+      }).catch(function() {
+        button.textContent = 'copy failed';
+        setTimeout(function() { button.textContent = 'copy view'; }, 1200);
+      });
+    } else {
+      window.prompt('Copy this view:', link);
+    }
+  });
+
+  window.addEventListener('popstate', function() {
+    readState();
+    syncControls();
+    applyFilter();
+    render();
+    if (highlightedNum > 0) scrollToHighlighted();
   });
 
   fetch('/closings.json')
     .then(function(r) { return r.json(); })
     .then(function(data) {
       allEntries = data;
+      readState();
       var dated = allEntries.filter(function(e) { return !!e.date; }).length;
       var withTopics = allEntries.filter(function(e) { return e.topics && e.topics.length; }).length;
       buildTopicFilters(data);
+      if (!allEntries.some(function(e) { return e.num === highlightedNum; })) highlightedNum = -1;
+      if (!allEntries.some(function(e) { return !activeTopic || (e.topics || []).indexOf(activeTopic) >= 0; })) activeTopic = '';
       document.getElementById('meta-count').textContent =
         allEntries.length + ' entries · ' + dated + ' dated · ' + withTopics + ' with topics';
+      syncControls();
       applyFilter();
       render();
+      if (highlightedNum > 0) scrollToHighlighted();
     })
     .catch(function(e) {
       document.getElementById('entry-list').innerHTML =
