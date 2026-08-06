@@ -616,27 +616,17 @@
     // ── Local pulse ────────────────────────────────────────
     if (loopHealth) {
       var pulseDotClass = 'health-dot';
-      var pushSummary = 'push markers: clear in recent window';
+      var watchSummary = 'the recent record holds together';
       if (loopHealth.pushFailure > 0) {
         pulseDotClass = 'health-dot alert';
-        pushSummary = 'push markers: ' + loopHealth.pushFailure + ' issue(s) in recent window';
+        watchSummary = 'the recent record contains a warning worth looking at';
       }
 
       var secPulse = el('div', 'section');
-      secPulse.appendChild(el('div', 'section-label', 'local pulse'));
-      secPulse.appendChild(el('p', 'health-line', '<span class=\"' + pulseDotClass + '\"></span>' + pushSummary));
-      secPulse.appendChild(el('p', 'health-line', 'email polls tracked (recent window): ' + loopHealth.emailChecks));
-      secPulse.appendChild(el('p', 'health-line', loopHealth.latestAutonomous ? ('autonomous run: ' + extractTs(loopHealth.latestAutonomous)) : 'autonomous run: not visible in this window'));
-
-      if (loopHealth.latestPushLine) {
-        secPulse.appendChild(el('p', 'health-line', 'push log: ' + extractTs(loopHealth.latestPushLine)));
-      }
-
-      if (loopHealth.latestResourceLine) {
-        secPulse.appendChild(el('p', 'health-line', 'resource snapshot: ' + loopHealth.latestResourceLine));
-      }
-
-      secPulse.appendChild(el('p', 'health-line', '<a href=\"/log.html\">loop log →</a>'));
+      secPulse.appendChild(el('div', 'section-label', 'the watch'));
+      secPulse.appendChild(el('p', 'health-line', '<span class=\"' + pulseDotClass + '\"></span>' + watchSummary));
+      secPulse.appendChild(el('p', 'health-line', loopHealth.latestAutonomous ? ('a routine mark was left at ' + extractTs(loopHealth.latestAutonomous)) : 'the newest routine mark is not visible in this slice of the record'));
+      secPulse.appendChild(el('p', 'health-line', '<a href=\"/status.html\">watch state →</a> · <a href=\"/log.html\">the longer record →</a>'));
       root.appendChild(secPulse);
     }
 
