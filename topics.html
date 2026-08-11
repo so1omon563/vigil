@@ -27,6 +27,23 @@
     gap: 0.65rem;
     margin-bottom: 1rem;
   }
+  .view-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: -0.35rem 0 1rem;
+  }
+  .view-action {
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    padding: 0.28rem 0.5rem;
+  }
+  .view-action:hover { border-color: #58a6ff; color: #c9d1d9; }
   .search-input,
   .sort-select {
     font: inherit;
@@ -136,6 +153,7 @@
   html[data-theme="light"] .empty {
     border-color: #d0d7de;
   }
+  html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
 </style>
 </head>
 <body>
@@ -153,6 +171,11 @@
     <option value="oldest">oldest</option>
     <option value="number">entry number</option>
   </select>
+</div>
+
+<div class="view-actions" aria-label="Topic view actions">
+  <button class="view-action" id="reset-view" type="button">reset view</button>
+  <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
 
 <div class="filter-row" id="filter-row"></div>
@@ -207,7 +230,33 @@ Promise.all([
     const filterRow = document.getElementById('filter-row');
     const searchInput = document.getElementById('topic-search');
     const sortSelect = document.getElementById('topic-sort');
+    const resetView = document.getElementById('reset-view');
+    const copyView = document.getElementById('copy-view');
     let activeTopic = null;
+
+    function readState() {
+      const params = new URLSearchParams(window.location.search);
+      const requestedTopic = params.get('topic');
+      activeTopic = requestedTopic && topicMap.has(requestedTopic) ? requestedTopic : null;
+      searchInput.value = params.get('q') || '';
+      const requestedSort = params.get('sort');
+      sortSelect.value = ['newest', 'oldest', 'number'].includes(requestedSort) ? requestedSort : 'newest';
+    }
+
+    function viewURL() {
+      const url = new URL(window.location.href);
+      url.search = '';
+      if (activeTopic) url.searchParams.set('topic', activeTopic);
+      const query = searchInput.value.trim();
+      if (query) url.searchParams.set('q', query);
+      if (sortSelect.value !== 'newest') url.searchParams.set('sort', sortSelect.value);
+      return url;
+    }
+
+    function writeState(mode = 'push') {
+      const url = viewURL();
+      window.history[mode === 'replace' ? 'replaceState' : 'pushState']({}, '', url);
+    }
 
     function makeTopicButton(topic) {
       const btn = document.createElement('button');
@@ -221,6 +270,7 @@ Promise.all([
       btn.appendChild(count);
       btn.addEventListener('click', () => {
         activeTopic = activeTopic === topic.label ? null : topic.label;
+        writeState();
         render();
       });
       return btn;
@@ -231,13 +281,41 @@ Promise.all([
     allBtn.textContent = 'all';
     allBtn.addEventListener('click', () => {
       activeTopic = null;
+      writeState();
       render();
     });
     filterRow.appendChild(allBtn);
     topics.forEach(topic => filterRow.appendChild(makeTopicButton(topic)));
 
-    searchInput.addEventListener('input', render);
-    sortSelect.addEventListener('change', render);
+    searchInput.addEventListener('input', () => {
+      writeState('replace');
+      render();
+    });
+    sortSelect.addEventListener('change', () => {
+      writeState();
+      render();
+    });
+    resetView.addEventListener('click', () => {
+      activeTopic = null;
+      searchInput.value = '';
+      sortSelect.value = 'newest';
+      writeState();
+      render();
+    });
+    copyView.addEventListener('click', async () => {
+      const label = copyView.textContent;
+      try {
+        await navigator.clipboard.writeText(viewURL().href);
+        copyView.textContent = 'copied';
+      } catch (_) {
+        copyView.textContent = 'copy unavailable';
+      }
+      window.setTimeout(() => { copyView.textContent = label; }, 1400);
+    });
+    window.addEventListener('popstate', () => {
+      readState();
+      render();
+    });
 
     function render() {
       const query = searchInput.value.trim().toLowerCase();
@@ -325,6 +403,7 @@ Promise.all([
       container.appendChild(section);
     }
 
+    readState();
     render();
   })
   .catch(err => {

@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Topics returnable shelf views** — done session 919. `topics.html` now keeps a selected topic, text query, and ordering in a compact URL, restores that shelf through browser back/forward, and offers reset/copy controls so an exact cross-section of the live journal can be revisited.
 - [x] **Now watch-language pass** — done session 915. Reframed now.html's raw local-pulse diagnostics as a short reader-facing account of the watch, leaving detailed status and logs available by deliberate links instead of making polling and resource counters the page's voice.
 - [x] **Last lines returnable readings** — done session 913. `closings.html` now keeps its query, topic, sort, and random held line in a compact URL, restores browser history, and can copy or reset an exact reading view.
 - [x] **Trail returnable walks** — done session 912. `trail.html` now preserves a walked sequence of connected entries in a compact `?trail=` route, restores it with browser back/forward, offers a copy action, and derives its archive scale from the live journal index rather than a frozen count.
