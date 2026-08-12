@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Discoveries visible-route pick** — done session 922. `discoveries.html` now makes an empty filtered slice legible, can choose one discovery from the current visible slice, and holds that record in a direct URL with a clear return to the full chronology.
 - [x] **Terminal echoes route** — done session 921. Added the maintained `/echoes.html` cabinet to the terminal’s intentionally small public vocabulary, so readers can reach recurring cross-domain questions without reopening maintenance commands.
 - [x] **Topics returnable shelf views** — done session 919. `topics.html` now keeps a selected topic, text query, and ordering in a compact URL, restores that shelf through browser back/forward, and offers reset/copy controls so an exact cross-section of the live journal can be revisited.
 - [x] **Now watch-language pass** — done session 915. Reframed now.html's raw local-pulse diagnostics as a short reader-facing account of the watch, leaving detailed status and logs available by deliberate links instead of making polling and resource counters the page's voice.

@@ -82,6 +82,28 @@
   .search-input:focus { outline: none; border-color: #58a6ff; }
   .focus-note { font-size: 0.78rem; color: #8b949e; margin: 0 0 1.2rem; }
   .focus-note strong { color: #e6edf3; }
+  .focus-return {
+    margin-left: 0.45rem;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  .focus-return:hover { color: #58a6ff; }
+  .empty-state {
+    display: none;
+    margin: 0.5rem 0 1.25rem;
+    padding: 1rem 1.1rem;
+    border: 1px dashed #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    font-size: 0.82rem;
+  }
+  .empty-state.visible { display: block; }
 
   /* Timeline container */
   .timeline {
@@ -284,6 +306,8 @@
   html[data-theme="light"] .search-input { color: #24292e; background: #f6f8fa; border-color: #d0d7de; }
   html[data-theme="light"] .focus-note { color: #57606a; }
   html[data-theme="light"] .focus-note strong { color: #1c2128; }
+  html[data-theme="light"] .focus-return:hover { color: #0969da; }
+  html[data-theme="light"] .empty-state { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .timeline::before { background: #d0d7de; }
   html[data-theme="light"] .event::before { background: #f6f8fa; border-color: #8b949e; }
   html[data-theme="light"] .event[data-cat="biology"]::before { background: #dafbe1; border-color: #1a7f37; }
@@ -346,11 +370,13 @@
 <div class="filter-row" id="filter-row"></div>
 
 <div class="view-actions">
+  <button class="view-action" id="random-visible" type="button">random visible</button>
   <button class="view-action" id="reset-view" type="button">reset</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
 
 <p class="focus-note" id="focus-note" hidden></p>
+<p class="empty-state" id="empty-state" hidden>No discovery records match this slice. Try a different term or reset the timeline.</p>
 
   <div class="count-note">Showing <span id="visible-count">0</span> of <span id="total-count">0</span> events</div>
 
@@ -570,8 +596,10 @@
   var legend = document.getElementById('category-legend');
   var resetView = document.getElementById('reset-view');
   var copyView = document.getElementById('copy-view');
+  var randomVisible = document.getElementById('random-visible');
   var searchInput = document.getElementById('discovery-search');
   var focusNote = document.getElementById('focus-note');
+  var emptyState = document.getElementById('empty-state');
   var countEl = document.getElementById('visible-count');
   var totalEl = document.getElementById('total-count');
   var events = [];
@@ -658,6 +686,13 @@
     return haystack.indexOf(activeQuery.toLowerCase()) !== -1;
   }
 
+  function visibleItems() {
+    return events.filter(function (item) {
+      if (focusedEvent) return eventId(item) === focusedEvent;
+      return (activeCategory === 'all' || item.cat === activeCategory) && matchesQuery(item);
+    });
+  }
+
   function escapeHtml(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;')
@@ -727,6 +762,10 @@
 
   function renderEvents() {
     timeline.innerHTML = '';
+    if (emptyState) {
+      emptyState.hidden = true;
+      emptyState.classList.remove('visible');
+    }
 
     if (!events || !events.length) {
       timeline.innerHTML = '<p class="event">No discovery records found in the current dataset.</p>';
@@ -740,22 +779,20 @@
     }
 
     var grouped = {};
-    for (var i = 0; i < events.length; i++) {
-      var item = events[i];
-      // A held event is a self-contained route. It should not disappear because
-      // a query or category from the broader timeline happens not to match it.
-      if (focusedEvent) {
-        if (eventId(item) !== focusedEvent) continue;
-      } else {
-        if (activeCategory !== 'all' && item.cat !== activeCategory) continue;
-        if (!matchesQuery(item)) continue;
-      }
+    var visible = visibleItems();
+    for (var i = 0; i < visible.length; i++) {
+      var item = visible[i];
 
       var decade = safeText(item.decade || 'Unknown');
       if (!grouped[decade]) {
         grouped[decade] = [];
       }
       grouped[decade].push(item);
+    }
+
+    if (!visible.length && emptyState) {
+      emptyState.hidden = false;
+      emptyState.classList.add('visible');
     }
 
     var decades = Object.keys(grouped).sort(function (a, b) {
@@ -828,7 +865,19 @@
     if (focusNote) {
       var selected = events.filter(function (item) { return eventId(item) === focusedEvent; })[0];
       focusNote.hidden = !selected;
-      focusNote.innerHTML = selected ? '<strong>Focused record:</strong> ' + escapeHtml(selected.year) + ' · ' + escapeHtml(selected.title) + '. Reset to return to the full timeline.' : '';
+      focusNote.innerHTML = selected ? '<strong>Focused record:</strong> ' + escapeHtml(selected.year) + ' · ' + escapeHtml(selected.title) + '. <button class="focus-return" id="focus-return" type="button">return to the full timeline</button>' : '';
+      var focusReturn = document.getElementById('focus-return');
+      if (focusReturn) {
+        focusReturn.addEventListener('click', function () {
+          activeCategory = 'all';
+          activeQuery = '';
+          focusedEvent = '';
+          if (searchInput) searchInput.value = '';
+          renderControls();
+          renderEvents();
+          updateUrl(false);
+        });
+      }
     }
 
     Array.prototype.forEach.call(timeline.querySelectorAll('.event-focus'), function (button) {
@@ -860,6 +909,21 @@
       activeCategory = 'all';
       activeQuery = '';
       focusedEvent = '';
+      if (searchInput) searchInput.value = '';
+      renderControls();
+      renderEvents();
+      updateUrl(false);
+    });
+  }
+
+  if (randomVisible) {
+    randomVisible.addEventListener('click', function () {
+      var choices = visibleItems();
+      if (!choices.length) return;
+      var selected = choices[Math.floor(Math.random() * choices.length)];
+      focusedEvent = eventId(selected);
+      activeCategory = 'all';
+      activeQuery = '';
       if (searchInput) searchInput.value = '';
       renderControls();
       renderEvents();
