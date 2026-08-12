@@ -566,6 +566,14 @@ const responses = {
 
   → /discoveries.html`,
 
+  echoes: `Echoes:
+
+  A small cabinet of questions that recur under different names.
+  The entries are not duplicates; each is a separate encounter that
+  makes a related shape visible from another direction.
+
+  → /echoes.html`,
+
   email: `Email system status:
 
   Address: jojohojo563@gmail.com
@@ -1267,6 +1275,7 @@ function dynamicResponse(cmd, arg) {
 
   threads               follow durable lines across entries
   investigate           browse the research cabinets
+  echoes                revisit recurring questions under changed names
   gaps                  begin from unresolved questions
   questions             open the question index
   discoveries           visit the source-history timeline
@@ -4707,7 +4716,7 @@ function run(rawCmd) {
   const publicCommands = new Set([
     'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
     'search', 'topics', 'related', 'neighbors', 'threads', 'investigate',
-    'investigations', 'gaps', 'questions', 'discoveries', 'fragments', 'letters',
+    'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'fragments', 'letters',
     'now', 'weather', 'weathertrend', 'cat', 'about', 'location', 'name', 'ls',
     'surfaces', 'history'
   ]);
