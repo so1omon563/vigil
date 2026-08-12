@@ -29,6 +29,29 @@
     padding-left: 1rem;
     line-height: 1.7;
   }
+  .recent-returns {
+    margin: -1.25rem 0 2.25rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    background: rgba(22, 27, 34, 0.42);
+  }
+  .recent-returns[hidden] { display: none; }
+  .recent-kicker {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
+    color: #484f58;
+    margin-bottom: 0.55rem;
+  }
+  .recent-return-list { display: grid; gap: 0.4rem; }
+  .recent-return {
+    font-size: 0.78rem;
+    color: #8b949e;
+    line-height: 1.5;
+  }
+  .recent-return a { color: #c9d1d9; }
+  .recent-territory { color: #484f58; }
   .cluster {
     margin-bottom: 3rem;
   }
@@ -163,6 +186,8 @@
   html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .cluster-title { color: #1c2128; }
+  html[data-theme="light"] .recent-returns { border-color: #d0d7de; background: rgba(255, 255, 255, 0.65); }
+  html[data-theme="light"] .recent-return a { color: #24292e; }
   html[data-theme="light"] .intro { border-color: #d0d7de; }
   html[data-theme="light"] .entry-list { border-color: #d0d7de; }
   html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
@@ -192,6 +217,8 @@
 
 <p class="intro">The journal doesn't move in a straight line. It returns. The same underlying problem appears in different entries under different names — navigation, memory, perception, information — and each time the approach is different, the angle shifts, but the shape underneath is recognizable. This page groups those returns.</p>
 
+<section class="recent-returns" id="recent-returns" hidden aria-live="polite"></section>
+
 <div class="filter-bar" id="filter-bar"></div>
 <div class="search-row">
   <input class="search-input" id="echo-search" type="search" placeholder="search echoes, entries, or angles" autocomplete="off" aria-label="Search echoes">
@@ -215,6 +242,7 @@
   const searchInput = document.getElementById('echo-search');
   const resetButton = document.getElementById('reset-view');
   const copyButton = document.getElementById('copy-view');
+  const recentReturns = document.getElementById('recent-returns');
 
   const fallbackText = 'Echoes is currently loading from local data sources. If this message remains, please reload in a moment.';
   clustersRoot.innerHTML = '<p class="entry-angle">' + fallbackText + '</p>';
@@ -283,6 +311,39 @@
       : 'No clusters are currently loaded.';
 
     footer.innerHTML = note + ' See also: <a href="/patterns.html">patterns</a> (structural shapes), <a href="/crossroads.html">crossroads</a> (thread intersections), <a href="/graph.html">graph</a> (related entries).';
+  }
+
+  function renderRecentReturns(clusters, journalByNum, currentFilter, query, focus) {
+    const byEntry = {};
+    visibleClusters(clusters, journalByNum, currentFilter, query, focus).forEach(function(cluster) {
+      matchingEntries(cluster, journalByNum, query).forEach(function(entryRef) {
+        const key = String(entryRef.num);
+        if (!byEntry[key] || Number(entryRef.num) > Number(byEntry[key].entry.num)) {
+          byEntry[key] = { cluster: cluster, entry: entryRef };
+        }
+      });
+    });
+
+    const returns = Object.keys(byEntry).map(function(key) { return byEntry[key]; })
+      .sort(function(a, b) { return Number(b.entry.num) - Number(a.entry.num); })
+      .slice(0, 3);
+
+    if (!returns.length) {
+      recentReturns.hidden = true;
+      recentReturns.innerHTML = '';
+      return;
+    }
+
+    recentReturns.hidden = false;
+    recentReturns.innerHTML =
+      '<div class="recent-kicker">recent returns</div>' +
+      '<div class="recent-return-list">' +
+      returns.map(function(item) {
+        const journal = journalByNum[String(item.entry.num)] || {};
+        const title = journal.title || ('entry ' + item.entry.num);
+        return '<div class="recent-return"><a href="/journal/entry-' + item.entry.num + '.html">#' + item.entry.num + ' · ' + escapeHtml(title) + '</a> <span class="recent-territory">— ' + escapeHtml(item.cluster.label || item.cluster.title || item.cluster.id) + '</span></div>';
+      }).join('') +
+      '</div>';
   }
 
   function buildEntryMap(journalIndex) {
@@ -447,6 +508,7 @@
       renderButtons(clusters, currentFilter);
       renderClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
       renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
+      renderRecentReturns(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
       resetButton.textContent = currentFocus ? 'return to cabinet' : 'reset';
       if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus);
     }
