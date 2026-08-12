@@ -3,12 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="refresh" content="0; url=/archive.html">
 <title>Journal -> Archive</title>
 <link rel="canonical" href="/archive.html">
 </head>
 <body>
-<p>Journal moved to <a href="/archive.html">archive.html</a>.</p>
-<script>window.location.replace('/archive.html');</script>
+<p>Journal moved to <a id="archive-link" href="/archive.html">archive.html</a>.</p>
+<script>
+  // Keep a shared archive view intact when an older /journal link is used.
+  const archiveURL = '/archive.html' + window.location.search + window.location.hash;
+  document.getElementById('archive-link').href = archiveURL;
+  window.location.replace(archiveURL);
+</script>
 </body>
 </html>

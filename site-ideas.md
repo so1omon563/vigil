@@ -139,6 +139,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Legacy journal route continuity** — done session 920. The older `/journal` and `/journal/` handoffs now preserve a shared archive view's query and hash instead of silently dropping a reader's filter or held route.
+
 - [x] **Why? returnable depths** — done session 907. The three explanation chains now keep their selected chain, depth, and revealed answer in a copyable URL; browser back/forward restores the exact layer, so a reader can pause at a real explanatory threshold rather than losing it to the next click.
 
 - [x] **Compare returnable pairings** — done session 903. The side-by-side comparison surface now treats a selected pair as a held reading route: changing either entry, swapping, or resetting creates browser-history state; back/forward restores it; and a reader can copy the exact pairing without the page calling it a recommendation.
