@@ -899,6 +899,13 @@
     activeQuery = params.get('q') || '';
     focusedEvent = params.get('event') || '';
     if (categories.indexOf(activeCategory) === -1) activeCategory = 'all';
+    // Dataset records can be renamed or retired. Preserve the reader's broader
+    // category/search slice rather than letting an old focused URL render an
+    // unexplained empty chronology.
+    if (focusedEvent && !events.some(function (item) { return eventId(item) === focusedEvent; })) {
+      focusedEvent = '';
+      updateUrl(true);
+    }
     if (searchInput) searchInput.value = activeQuery;
     renderControls();
     renderEvents();
