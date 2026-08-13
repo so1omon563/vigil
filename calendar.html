@@ -73,6 +73,19 @@
     white-space: nowrap;
   }
   .today-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .view-actions { display: flex; gap: 0.55rem; justify-content: flex-end; }
+  .view-action {
+    background: none;
+    border: 0;
+    color: #484f58;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    padding: 0.2rem 0;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  .view-action:hover { color: #58a6ff; }
 
   /* Calendar grid */
   .calendar-wrap {
@@ -297,6 +310,8 @@
   html[data-theme="light"] .select { background: #fff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .today-btn { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .today-btn:hover { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .view-action { color: #57606a; }
+  html[data-theme="light"] .view-action:hover { color: #0969da; }
   html[data-theme="light"] .stat-value { color: #1c2128; }
   html[data-theme="light"] .day-detail { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .detail-entry { border-color: #e8ecf0; }
@@ -340,6 +355,10 @@
     </select>
   </div>
   <button class="today-btn" id="latest-day" type="button">latest active day</button>
+</div>
+<div class="view-actions" aria-label="Calendar view actions">
+  <button class="view-action" id="reset-view" type="button">reset view</button>
+  <button class="view-action" id="copy-view" type="button">copy link</button>
 </div>
 
 <div class="stats-row" id="stats-row">
@@ -405,6 +424,17 @@ var MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','
 var entries = [];
 var selectedIso = null;
 
+function currentState() {
+  var params = new URLSearchParams(window.location.search);
+  return { topic: params.get('topic') || '', day: params.get('day') || '' };
+}
+function writeState(state, mode) {
+  var url = new URL(window.location.href);
+  if (state.topic) url.searchParams.set('topic', state.topic); else url.searchParams.delete('topic');
+  if (state.day) url.searchParams.set('day', state.day); else url.searchParams.delete('day');
+  window.history[mode || 'pushState']({}, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : ''));
+}
+
 function isoToDate(iso) {
   var p = iso.split('-');
   return new Date(+p[0], +p[1]-1, +p[2]);
@@ -464,8 +494,9 @@ function groupByDay(list) {
   return days;
 }
 
-function render(topic) {
+function render(topic, wantedDay) {
     var days = groupByDay(entries.filter(function(entry) { return entryMatchesTopic(entry, topic); }));
+    var restoreSelection = wantedDay || '';
     var isos = Object.keys(days).sort();
     var monthRow = document.getElementById('month-row');
     var weeksRow = document.getElementById('weeks-row');
@@ -629,6 +660,7 @@ function render(topic) {
               selectedIso = null;
               document.querySelectorAll('.day-cell.selected').forEach(function(c) { c.classList.remove('selected'); });
               document.getElementById('day-detail').classList.remove('visible');
+              writeState({ topic: topic, day: '' });
               return;
             }
             selectedIso = iso;
@@ -649,6 +681,7 @@ function render(topic) {
             }).join('');
             panel.classList.add('visible');
             panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            writeState({ topic: topic, day: iso }, restoreSelection === iso ? 'replaceState' : undefined);
           });
         }
 
@@ -704,6 +737,15 @@ function render(topic) {
         '</div>';
     }).join('');
 
+    if (wantedDay && days[wantedDay]) {
+      var wantedCell = document.querySelector('.day-cell[data-iso="' + wantedDay + '"]');
+      if (wantedCell) {
+        selectedIso = null;
+        wantedCell.click();
+        writeState({ topic: topic, day: wantedDay }, 'replaceState');
+      }
+    }
+
 }
 
 fetch('/journal-index.json')
@@ -726,7 +768,15 @@ fetch('/journal-index.json')
       option.textContent = topic + ' (' + topics[topic] + ')';
       topicFilter.appendChild(option);
     });
+    function restoreFromURL() {
+      var state = currentState();
+      var knownTopics = Array.prototype.map.call(topicFilter.options, function(option) { return option.value; });
+      if (knownTopics.indexOf(state.topic) === -1) state.topic = '';
+      topicFilter.value = state.topic;
+      render(state.topic, state.day);
+    }
     topicFilter.addEventListener('change', function() {
+      writeState({ topic: topicFilter.value, day: '' });
       render(topicFilter.value);
     });
     document.getElementById('latest-day').addEventListener('click', function() {
@@ -736,7 +786,24 @@ fetch('/journal-index.json')
       var latestCell = document.querySelector('.day-cell[data-iso="' + isos[isos.length - 1] + '"]');
       if (latestCell) latestCell.click();
     });
-    render('');
+    document.getElementById('reset-view').addEventListener('click', function() {
+      writeState({ topic: '', day: '' });
+      topicFilter.value = '';
+      render('');
+    });
+    document.getElementById('copy-view').addEventListener('click', function() {
+      var button = this;
+      var copy = navigator.clipboard && navigator.clipboard.writeText
+        ? navigator.clipboard.writeText(window.location.href)
+        : Promise.reject(new Error('Clipboard unavailable'));
+      copy.then(function() {
+        var old = button.textContent;
+        button.textContent = 'copied';
+        window.setTimeout(function() { button.textContent = old; }, 1200);
+      }).catch(function() { button.textContent = 'copy unavailable'; });
+    });
+    window.addEventListener('popstate', restoreFromURL);
+    restoreFromURL();
   })
   .catch(function(err) {
     document.getElementById('meta-line').textContent = 'Could not load calendar data.';

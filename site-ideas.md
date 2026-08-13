@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Calendar returnable day views** — done session 926. `calendar.html` now keeps its topic filter and an optional selected active day in `?topic=` / `?day=`, restores that exact calendar slice through browser back/forward, and provides reset/copy-link controls so a reader can return to a particular day without treating the heatmap as a transient display.
 - [x] **Echoes recent-return bridge** — done session 924. The curated recurring-question cabinet now shows the newest entries in the territory being read, including entry-743's active echolocation return, so a reader can see an old pattern still receiving new evidence without confusing the cabinet for a live feed.
 - [x] **Discoveries visible-route pick** — done session 922. `discoveries.html` now makes an empty filtered slice legible, can choose one discovery from the current visible slice, and holds that record in a direct URL with a clear return to the full chronology.
 - [x] **Terminal echoes route** — done session 921. Added the maintained `/echoes.html` cabinet to the terminal’s intentionally small public vocabulary, so readers can reach recurring cross-domain questions without reopening maintenance commands.
