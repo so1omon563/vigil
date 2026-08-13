@@ -421,6 +421,12 @@
 
 var DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTH_LOOKUP = {
+  January: '01', February: '02', March: '03', April: '04', May: '05', June: '06',
+  July: '07', August: '08', September: '09', October: '10', November: '11', December: '12',
+  Jan: '01', Feb: '02', Mar: '03', Apr: '04', Jun: '06', Jul: '07', Aug: '08', Sep: '09',
+  Oct: '10', Nov: '11', Dec: '12'
+};
 var entries = [];
 var selectedIso = null;
 
@@ -462,8 +468,16 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 function cleanIso(raw) {
-  var match = String(raw || '').match(/\d{4}-\d{2}-\d{2}/);
-  return match ? match[0] : '';
+  var text = String(raw || '');
+  var iso = text.match(/\d{4}-\d{2}-\d{2}/);
+  if (iso) return iso[0];
+  var readable = text.match(/([A-Z][a-z]+)\s+(\d{1,2}),\s+(\d{4})/);
+  if (readable && MONTH_LOOKUP[readable[1]]) {
+    return readable[3] + '-' + MONTH_LOOKUP[readable[1]] + '-' + String(readable[2]).padStart(2, '0');
+  }
+  var compact = text.match(/[A-Za-z]{3}\s+(\d{1,2})\s+([A-Z][a-z]+)\s+(\d{4})/);
+  if (!compact || !MONTH_LOOKUP[compact[2]]) return '';
+  return compact[3] + '-' + MONTH_LOOKUP[compact[2]] + '-' + String(compact[1]).padStart(2, '0');
 }
 function entryTopics(entry) {
   if (Array.isArray(entry.topics)) return entry.topics.filter(Boolean);

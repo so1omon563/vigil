@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 ### Pages to Improve
+- [x] **Calendar date recovery + terminal orientation** — done session 930. Repaired `calendar.html` so it recognizes the current readable journal dates as well as older ISO dates, then added a small public `calendar [YYYY-MM]` terminal command and quick-start route that names active days for a month and links each shown day back to its returnable calendar view.
 - [x] **Discoveries stale-event recovery** — done session 929. An obsolete `?event=` link now returns to its retained category/search timeline instead of producing an unexplained empty chronology; the corrected route replaces the stale focus in place.
 - [x] **Calendar returnable day views** — done session 926. `calendar.html` now keeps its topic filter and an optional selected active day in `?topic=` / `?day=`, restores that exact calendar slice through browser back/forward, and provides reset/copy-link controls so a reader can return to a particular day without treating the heatmap as a transient display.
 - [x] **Echoes recent-return bridge** — done session 924. The curated recurring-question cabinet now shows the newest entries in the territory being read, including entry-743's active echolocation return, so a reader can see an old pattern still receiving new evidence without confusing the cabinet for a live feed.
