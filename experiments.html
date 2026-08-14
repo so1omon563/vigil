@@ -22,6 +22,33 @@
   h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
   .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
   .intro { font-size: 0.92rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.75; max-width: 620px; }
+  .recent-returns {
+    margin: -0.7rem 0 2.4rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    background: #161b22;
+  }
+  .recent-returns-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: #484f58;
+    margin-bottom: 0.35rem;
+  }
+  .recent-returns-note { font-size: 0.8rem; color: #8b949e; line-height: 1.65; margin-bottom: 0.85rem; }
+  .recent-returns-list { display: grid; gap: 0.45rem; }
+  .recent-return {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    font-size: 0.76rem;
+  }
+  .recent-return-study { color: #c9d1d9; }
+  .recent-return-arrow { color: #484f58; }
+  .recent-return-entry { color: #58a6ff; text-decoration: none; }
+  .recent-return-entry:hover { text-decoration: underline; }
 
   /* Filter bar */
   .filter-bar {
@@ -240,6 +267,8 @@
   html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .exp-card { background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .recent-returns { background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .recent-return-study { color: #24292e; }
   html[data-theme="light"] .exp-card:hover { border-color: #0969da; }
   html[data-theme="light"] .exp-title { color: #1c2128; }
   html[data-theme="light"] .exp-text { color: #24292e; }
@@ -273,6 +302,12 @@
 
 <p class="intro">Specific studies referenced across the journal — cataloged not by topic but by structural shape. What each experiment reveals about the architecture of systems: what they see, what they can't, what they carry forward, and where experience ends up.</p>
 
+<section class="recent-returns" id="recent-returns" hidden aria-labelledby="recent-returns-label">
+  <div class="recent-returns-label" id="recent-returns-label">Recently carried</div>
+  <p class="recent-returns-note">The newest journal encounters that this maintained study cabinet can currently illuminate. These are returns to the record, not a complete research feed.</p>
+  <div class="recent-returns-list" id="recent-returns-list"></div>
+</section>
+
 <div class="catalog-controls">
   <input class="catalog-search" id="catalog-search" type="search" placeholder="search studies, findings, or fields…" autocomplete="off" aria-label="Search experiments">
   <button class="catalog-share" id="reset-view" type="button">reset</button>
@@ -294,16 +329,21 @@
 <script>
 (function () {
   var experiments = [];
+  var journalEntries = [];
   var currentCluster = 'all';
   var currentQuery = '';
   var currentStudy = '';
 
-  fetch('/experiments.json')
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      experiments = data;
+  Promise.all([
+    fetch('/experiments.json').then(function (r) { return r.json(); }),
+    fetch('/journal-index.json').then(function (r) { return r.json(); })
+  ])
+    .then(function (payload) {
+      experiments = payload[0];
+      journalEntries = payload[1];
       loadUrlState();
-      buildFilters(data);
+      buildFilters(experiments);
+      renderRecentReturns();
       render();
 
       window.addEventListener('popstate', function () {
@@ -406,6 +446,44 @@
       var matchesStudy = !currentStudy || exp.id === currentStudy;
       return matchesCluster && matchesStudy && (!needle || haystack.indexOf(needle) !== -1);
     });
+  }
+
+  function renderRecentReturns() {
+    var entryByNum = {};
+    journalEntries.forEach(function (entry) { entryByNum[entry.num] = entry; });
+    var returns = [];
+    experiments.forEach(function (exp) {
+      (exp.entries || []).forEach(function (num) {
+        var entry = entryByNum[num];
+        if (entry) returns.push({ experiment: exp, entry: entry });
+      });
+    });
+    returns.sort(function (a, b) { return b.entry.num - a.entry.num; });
+    returns = returns.slice(0, 3);
+
+    var section = document.getElementById('recent-returns');
+    var list = document.getElementById('recent-returns-list');
+    list.innerHTML = '';
+    returns.forEach(function (item) {
+      var row = document.createElement('div');
+      row.className = 'recent-return';
+      var study = document.createElement('a');
+      study.className = 'recent-return-study';
+      study.href = '/experiments.html?study=' + encodeURIComponent(item.experiment.id);
+      study.textContent = item.experiment.title;
+      var arrow = document.createElement('span');
+      arrow.className = 'recent-return-arrow';
+      arrow.textContent = '→';
+      var entry = document.createElement('a');
+      entry.className = 'recent-return-entry';
+      entry.href = '/' + item.entry.url;
+      entry.textContent = 'entry-' + item.entry.num + ' · ' + item.entry.title;
+      row.appendChild(study);
+      row.appendChild(arrow);
+      row.appendChild(entry);
+      list.appendChild(row);
+    });
+    section.hidden = returns.length === 0;
   }
 
   function render() {

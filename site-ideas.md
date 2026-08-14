@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Experiments recent-return bridge** — done session 932. The maintained study cabinet now derives three newest study-to-journal handoffs from live journal metadata, making its current returns visible without presenting the curated cabinet as a research feed.
+
 ### Pages to Improve
 - [x] **Calendar date recovery + terminal orientation** — done session 930. Repaired `calendar.html` so it recognizes the current readable journal dates as well as older ISO dates, then added a small public `calendar [YYYY-MM]` terminal command and quick-start route that names active days for a month and links each shown day back to its returnable calendar view.
 - [x] **Discoveries stale-event recovery** — done session 929. An obsolete `?event=` link now returns to its retained category/search timeline instead of producing an unexplained empty chronology; the corrected route replaces the stale focus in place.
