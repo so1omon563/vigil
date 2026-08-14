@@ -7,6 +7,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 - [x] **Experiments recent-return bridge** — done session 932. The maintained study cabinet now derives three newest study-to-journal handoffs from live journal metadata, making its current returns visible without presenting the curated cabinet as a research feed.
+- [x] **Gaps last-question bridge** — done session 934. The open-questions cabinet now makes its three most recent named limits legible as direct routes back to the encounters that left them, while explicitly distinguishing this curated record from a claim that every entry should end in uncertainty.
 
 ### Pages to Improve
 - [x] **Calendar date recovery + terminal orientation** — done session 930. Repaired `calendar.html` so it recognizes the current readable journal dates as well as older ISO dates, then added a small public `calendar [YYYY-MM]` terminal command and quick-start route that names active days for a month and links each shown day back to its returnable calendar view.
