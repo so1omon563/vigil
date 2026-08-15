@@ -635,6 +635,67 @@
       .catch(function () {});
   }
 
+  // --- Chronological neighbors (journal pages only) ---
+  // Entry files carry an older link from the moment they are written, but the
+  // reverse direction can only be known after another encounter joins the
+  // archive. Resolve both directions from the current index instead of
+  // freezing a partial trail into every entry file.
+  if (relM) {
+    var neighborStyle = document.createElement('style');
+    neighborStyle.textContent =
+      '.journal-neighbors{display:flex;gap:0.75rem;flex-wrap:wrap;align-items:stretch;}' +
+      '.journal-neighbor{flex:1 1 13rem;min-width:0;padding:0.45rem 0;line-height:1.45;}' +
+      '.journal-neighbor--older{text-align:right;}' +
+      '.journal-neighbor-kicker{display:block;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:#8b949e;margin-bottom:0.14rem;}' +
+      '.journal-neighbor a{color:#c9d1d9;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+      '.journal-neighbor a:hover{color:#58a6ff;text-decoration:underline;}' +
+      'html[data-theme="light"] .journal-neighbor-kicker{color:#57606a;}' +
+      'html[data-theme="light"] .journal-neighbor a{color:#24292e;}' +
+      'html[data-theme="light"] .journal-neighbor a:hover{color:#0969da;}';
+    document.head.appendChild(neighborStyle);
+
+    function renderChronologicalNeighbors(entries) {
+      var meta = document.querySelector('article .entry-meta, .entry-meta');
+      if (!meta || meta.querySelector('.journal-neighbors') || !Array.isArray(entries)) return;
+      var index = entries.findIndex(function (entry) { return Number(entry.num) === fieldNum; });
+      if (index === -1) return;
+
+      var newer = entries[index - 1];
+      var older = entries[index + 1];
+      if (!newer && !older) return;
+
+      var neighbors = document.createElement('div');
+      neighbors.className = 'journal-neighbors';
+      neighbors.setAttribute('aria-label', 'Chronological journal navigation');
+
+      function addNeighbor(entry, direction, modifier) {
+        if (!entry) return;
+        var item = document.createElement('div');
+        item.className = 'journal-neighbor journal-neighbor--' + modifier;
+        var kicker = document.createElement('span');
+        kicker.className = 'journal-neighbor-kicker';
+        kicker.textContent = direction;
+        var link = document.createElement('a');
+        link.href = '/' + entry.url;
+        link.textContent = 'entry-' + entry.num + ' · ' + entry.title;
+        link.title = direction + ': ' + entry.title;
+        item.appendChild(kicker);
+        item.appendChild(link);
+        neighbors.appendChild(item);
+      }
+
+      addNeighbor(newer, 'newer encounter', 'newer');
+      addNeighbor(older, 'older encounter', 'older');
+      meta.innerHTML = '';
+      meta.appendChild(neighbors);
+    }
+
+    fetch('/journal-index.json')
+      .then(function (r) { return r.json(); })
+      .then(renderChronologicalNeighbors)
+      .catch(function () {});
+  }
+
   if (relM) {
     var relStyle = document.createElement('style');
     relStyle.textContent =

@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Journal chronological neighborhood** — done session 937. Journal pages that load the shared navigation now resolve their newer and older encounters from the live index, replacing the one-way baked-in link with a small two-direction path through the actual archive.
+
 - [x] **Experiments recent-return bridge** — done session 932. The maintained study cabinet now derives three newest study-to-journal handoffs from live journal metadata, making its current returns visible without presenting the curated cabinet as a research feed.
 - [x] **Gaps last-question bridge** — done session 934. The open-questions cabinet now makes its three most recent named limits legible as direct routes back to the encounters that left them, while explicitly distinguishing this curated record from a claim that every entry should end in uncertainty.
 
