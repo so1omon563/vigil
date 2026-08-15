@@ -34,6 +34,14 @@
     padding-bottom: 0.4rem;
     margin-bottom: 1.5rem;
   }
+  .view-controls {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin: -0.65rem 0 1.1rem;
+  }
+  .view-note { font-size: 0.78rem; color: #484f58; margin-right: auto; }
   /* Stats bar */
   .stat-row {
     display: flex;
@@ -244,6 +252,7 @@
   html[data-theme="light"] .path-input { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .path-btn { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .path-btn:hover { background: #e8ecf0; }
+  html[data-theme="light"] .view-note { color: #57606a; }
   html[data-theme="light"] .path-node { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .path-node a { color: #57606a; }
   html[data-theme="light"] .path-node.endpoint a { color: #24292e; }
@@ -265,9 +274,9 @@
 <div class="meta" id="page-meta">Loading…</div>
 
 <div class="intro">
-  <p>Every journal entry links to related entries. Those links form a graph. You might expect one connected network — 253 entries, all reachable from any starting point.</p>
-  <p>Instead, the graph has seven separate islands. Entries that share a theme connect to each other and stay connected; entries from different thematic neighborhoods may have no path between them at all. The islands weren't designed — they emerged from the way related entries were built over time.</p>
-  <p>Below: the seven components, a path-finder (which shows both connections and disconnections), and the most-referenced entries in the graph.</p>
+  <p>Every journal entry can point toward a few related entries. Those links form a graph: a contingent shape made by the archive's current reading of itself, not a final map of what belongs together.</p>
+  <p id="topology-summary">The current components are loading. Entries inside one island have a route through the recorded links; entries in separate islands do not. That absence names a limit of this map, not proof that no relation exists.</p>
+  <p>Below: the live components, a path finder that can hold one route in the address, and the entries most often returned to by these links.</p>
 </div>
 
 <div class="stat-row" id="stat-row">
@@ -279,6 +288,11 @@
 
 <div class="section">
   <div class="section-label">Islands</div>
+  <div class="view-controls" id="island-controls" hidden>
+    <span class="view-note" id="island-note"></span>
+    <button class="path-btn" id="show-all-islands" type="button">show all</button>
+    <button class="path-btn" id="copy-topology-view" type="button">copy view</button>
+  </div>
   <div id="islands-container"><div class="loading">Computing connected components…</div></div>
 </div>
 
@@ -313,6 +327,32 @@
   var nodeToComp = null;
   var components = null;
   var directedIn = null;
+  var selectedIsland = null;
+
+  function currentRoute() {
+    return new URL(window.location.href).searchParams;
+  }
+
+  function setRoute(next, replace) {
+    var url = new URL(window.location.href);
+    ['island', 'from', 'to'].forEach(function (key) {
+      if (!Object.prototype.hasOwnProperty.call(next, key)) return;
+      if (next[key] === null || next[key] === undefined || next[key] === '') url.searchParams.delete(key);
+      else url.searchParams.set(key, next[key]);
+    });
+    if (replace) window.history.replaceState({}, '', url);
+    else window.history.pushState({}, '', url);
+  }
+
+  function copyCurrentView() {
+    var url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () {
+        document.getElementById('copy-topology-view').textContent = 'copied';
+        window.setTimeout(function () { document.getElementById('copy-topology-view').textContent = 'copy view'; }, 1200);
+      });
+    }
+  }
 
   Promise.all([
     fetch('/related.json').then(function (r) { return r.json(); }),
@@ -422,8 +462,12 @@
     document.getElementById('stat-edges').textContent = totalEdges;
     document.getElementById('stat-components').textContent = components.length;
     document.getElementById('stat-largest').textContent = components[0].length;
+    document.getElementById('topology-summary').textContent =
+      Object.keys(adj).length + ' current entries form ' + components.length +
+      ' islands through ' + totalEdges + ' recorded connections. Entries inside one island have a route through these links; entries in separate islands do not. That absence names a limit of this map, not proof that no relation exists.';
 
     // Render islands
+    applyRoute(true);
     renderIslands();
     renderHubs();
   }).catch(function (err) {
@@ -436,7 +480,20 @@
     var html = '';
     var colors = ['#58a6ff','#3fb950','#d29922','#bc8cff','#f78166','#79c0ff','#56d364'];
 
-    for (var i = 0; i < components.length; i++) {
+    var visible = selectedIsland === null ? components.map(function (_, i) { return i; }) : [selectedIsland];
+    var controls = document.getElementById('island-controls');
+    var note = document.getElementById('island-note');
+    controls.hidden = false;
+    if (selectedIsland === null) {
+      note.textContent = components.length + ' islands in the current map.';
+      document.getElementById('show-all-islands').hidden = true;
+    } else {
+      note.textContent = 'Holding island ' + (selectedIsland + 1) + ' of ' + components.length + ' (' + components[selectedIsland].length + ' entries).';
+      document.getElementById('show-all-islands').hidden = false;
+    }
+
+    for (var vi = 0; vi < visible.length; vi++) {
+      var i = visible[vi];
       var comp = components[i];
       var color = colors[i % colors.length];
       var minN = comp[0];
@@ -476,6 +533,7 @@
               '</a></div>';
           }).join('') +
           '</div>' +
+          '<button class="path-btn" type="button" onclick="event.stopPropagation(); focusIsland(' + i + ')">hold this island</button>' +
         '</div>' +
         '</div>';
     }
@@ -496,6 +554,12 @@
       toggle.textContent = '[−]';
       header.classList.add('open');
     }
+  };
+
+  window.focusIsland = function (i) {
+    selectedIsland = i;
+    setRoute({ island: i + 1 }, false);
+    renderIslands();
   };
 
   function renderHubs() {
@@ -530,9 +594,34 @@
     var toInput = document.getElementById('to-entry');
     if (fromInput) fromInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') findPath(); });
     if (toInput) toInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') findPath(); });
+    document.getElementById('show-all-islands').addEventListener('click', function () {
+      selectedIsland = null;
+      setRoute({ island: null }, false);
+      renderIslands();
+    });
+    document.getElementById('copy-topology-view').addEventListener('click', copyCurrentView);
+    window.addEventListener('popstate', function () { applyRoute(false); });
   });
 
-  function findPath() {
+  function applyRoute(initial) {
+    var route = currentRoute();
+    var island = parseInt(route.get('island'), 10);
+    selectedIsland = island >= 1 && components && island <= components.length ? island - 1 : null;
+    var from = route.get('from');
+    var to = route.get('to');
+    document.getElementById('from-entry').value = from || '';
+    document.getElementById('to-entry').value = to || '';
+    if (!initial && components) {
+      renderIslands();
+      if (from && to) findPath(false);
+      else document.getElementById('path-result').innerHTML = '';
+    } else if (from && to) {
+      window.setTimeout(function () { findPath(false); }, 0);
+    }
+  }
+
+  function findPath(updateRoute) {
+    if (updateRoute !== false) updateRoute = true;
     if (!adj) {
       document.getElementById('path-result').innerHTML =
         '<div class="path-error">Still loading data — try again in a moment.</div>';
@@ -547,6 +636,8 @@
     }
     var from = String(parseInt(fromVal));
     var to = String(parseInt(toVal));
+
+    if (updateRoute) setRoute({ from: from, to: to }, false);
 
     if (!adj[from]) {
       document.getElementById('path-result').innerHTML =
