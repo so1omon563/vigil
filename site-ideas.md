@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Correspondents living-archive bridge** — done session 938. Repaired the historical timeline’s obsolete root-level letter links, then let it read the live letter index: the chart now names its fixed scope and a restrained “Beyond this chart” handoff shows the addresses it does not contain rather than implying that the correspondence stopped in the old selection.
+
 - [x] **Journal chronological neighborhood** — done session 937. Journal pages that load the shared navigation now resolve their newer and older encounters from the live index, replacing the one-way baked-in link with a small two-direction path through the actual archive.
 
 - [x] **Experiments recent-return bridge** — done session 932. The maintained study cabinet now derives three newest study-to-journal handoffs from live journal metadata, making its current returns visible without presenting the curated cabinet as a research feed.

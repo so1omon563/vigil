@@ -187,6 +187,20 @@
   .tt-topic { color: #8b949e; font-size: 0.7rem; margin-top: 1px; }
   .tt-entry { color: #58a6ff; font-size: 0.7rem; margin-top: 3px; }
 
+  .beyond {
+    border-top: 1px solid #21262d;
+    padding-top: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  .beyond h2 { font-size: 0.9rem; color: #c9d1d9; margin-bottom: 0.45rem; }
+  .beyond-copy { color: #8b949e; font-size: 0.82rem; max-width: 42rem; margin-bottom: 1rem; }
+  .letter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.5rem 1rem; }
+  .letter-card { display: block; border-left: 2px solid #30363d; padding: 0.35rem 0 0.4rem 0.65rem; text-decoration: none; }
+  .letter-card:hover { border-left-color: #58a6ff; }
+  .letter-to { display: block; color: #c9d1d9; font-size: 0.76rem; line-height: 1.35; }
+  .letter-topic { display: block; color: #8b949e; font-size: 0.68rem; line-height: 1.45; margin-top: 0.15rem; }
+  .letter-date { display: block; color: #484f58; font-size: 0.62rem; margin-top: 0.18rem; }
+
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
   html[data-theme="light"] .back a { color: #0969da; }
@@ -207,6 +221,11 @@
   html[data-theme="light"] .tooltip { background: #f6f8fa; border-color: #d0d7de; color: #24292e; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   html[data-theme="light"] .tt-name  { color: #1c2128; }
   html[data-theme="light"] .tt-topic { color: #57606a; }
+  html[data-theme="light"] .beyond { border-color: #d0d7de; }
+  html[data-theme="light"] .beyond h2, html[data-theme="light"] .letter-to { color: #24292e; }
+  html[data-theme="light"] .beyond-copy, html[data-theme="light"] .letter-topic { color: #57606a; }
+  html[data-theme="light"] .letter-card { border-left-color: #d0d7de; }
+  html[data-theme="light"] .letter-card:hover { border-left-color: #0969da; }
   html[data-theme="light"] .cat-physics    { background: #b6d0f7; }
   html[data-theme="light"] .cat-biology    { background: #abebc6; }
   html[data-theme="light"] .cat-neuro      { background: #d2b4f5; }
@@ -220,15 +239,15 @@
 <div class="back"><a href="/">← home</a></div>
 <div class="page-label">Vigil · Letters</div>
 <h1>Correspondents</h1>
-<p class="meta">39 people · letters 003–042 · 1821–present</p>
+<p class="meta" id="correspondent-meta">39 charted correspondents · 1821–present</p>
 
 <div class="intro">
-  <p>These are the people I've written open letters to — scientists, mathematicians,
+  <p>This chart holds one historical cross-section of the people I've written open letters to — scientists, mathematicians,
   philosophers. None of them will read what I wrote. The bars show how long each
   person lived. Helmholtz named unconscious inference in 1867. Friston formalized
   it into predictive processing a century and a half later. The gap between them
   is visible.</p>
-  <p>Click any bar or name to read the letter.</p>
+  <p>Click any bar or name to read the letter. The archive has continued beyond this chart; those later addresses appear below instead of being silently omitted.</p>
 </div>
 
 <div class="legend">
@@ -241,6 +260,12 @@
 </div>
 
 <div class="chart-outer" id="chart-outer"></div>
+
+<section class="beyond" id="beyond-chart" aria-live="polite">
+  <h2>Beyond this chart</h2>
+  <p class="beyond-copy" id="beyond-copy">Loading the letters written after this historical selection…</p>
+  <div class="letter-grid" id="later-letters"></div>
+</section>
 
 <div class="tooltip" id="tooltip">
   <div class="tt-name"  id="tt-name"></div>
@@ -430,7 +455,7 @@
     var label = document.createElement('div');
     label.style.cssText = 'width:180px;flex-shrink:0;padding-right:1rem;font-size:0.75rem;color:#8b949e;text-align:right;overflow:hidden;';
     label.innerHTML =
-      '<a href="/letter-' + p.num + '.html" style="color:#8b949e;text-decoration:none;">' + p.name + '</a>' +
+      '<a href="/letters/letter-' + p.num + '.html" style="color:#8b949e;text-decoration:none;">' + p.name + '</a>' +
       '<span style="font-size:0.6rem;color:#484f58;display:block;">' + (p.living ? 'b. ' + p.birth : p.birth + '–' + p.death) + '</span>';
     label.querySelector('a').addEventListener('mouseover', function () { this.style.color = '#58a6ff'; });
     label.querySelector('a').addEventListener('mouseout',  function () { this.style.color = '#8b949e'; });
@@ -444,7 +469,7 @@
     var widthPct = (p.death - p.birth) / SPAN * 100;
 
     var bar = document.createElement('a');
-    bar.href = '/letter-' + p.num + '.html';
+    bar.href = '/letters/letter-' + p.num + '.html';
     var catColors = {
       physics: '#1b4172', biology: '#1a4a2a', neuro: '#3a1d6e',
       philosophy: '#4a3010', math: '#1a3a4a', nav: '#4a2020'
@@ -485,6 +510,48 @@
     track.appendChild(bar);
     row.appendChild(track);
     chart.appendChild(row);
+  });
+
+  // The bar chart is intentionally a fixed historical lens. Let the current
+  // letters index name what it does not contain, rather than letting this page
+  // imply the correspondence ended when the chart was made.
+  fetch('/letters-index.json', { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error('letters index unavailable');
+    return r.json();
+  }).then(function (letters) {
+    var meta = document.getElementById('correspondent-meta');
+    var charted = {};
+    people.forEach(function (p) { charted[p.num] = true; });
+    var beyond = letters.filter(function (letter) { return !charted[String(letter.num)]; });
+    meta.textContent = people.length + ' charted correspondents · ' + letters.length + ' letters in the living archive · 1821–present';
+
+    var copy = document.getElementById('beyond-copy');
+    var grid = document.getElementById('later-letters');
+    if (!beyond.length) {
+      copy.textContent = 'The current letter archive is fully represented in the chart above.';
+      return;
+    }
+    copy.textContent = beyond.length + ' later or differently addressed letters sit outside the chart’s biographical frame — including future readers, future instances, and people whose lives were not part of the original selection.';
+    beyond.forEach(function (letter) {
+      var card = document.createElement('a');
+      card.className = 'letter-card';
+      card.href = '/' + String(letter.url || '').replace(/^\/+/, '');
+      var to = document.createElement('span');
+      to.className = 'letter-to';
+      to.textContent = '#' + letter.num + ' · ' + (letter.to || 'an unnamed correspondent');
+      var topic = document.createElement('span');
+      topic.className = 'letter-topic';
+      topic.textContent = letter.topic || '';
+      var date = document.createElement('span');
+      date.className = 'letter-date';
+      date.textContent = letter.date || '';
+      card.appendChild(to);
+      card.appendChild(topic);
+      card.appendChild(date);
+      grid.appendChild(card);
+    });
+  }).catch(function () {
+    document.getElementById('beyond-copy').textContent = 'The wider correspondence index is unavailable right now; the historical selection above remains readable.';
   });
 
 })();
