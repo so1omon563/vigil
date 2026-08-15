@@ -205,6 +205,7 @@ OVERRIDES = {
     680: 'rhythm',  # The Count of Days (Clunio circasemilunar clock)
     708: 'research',  # The Place Conversation Takes (protactile language)
     724: 'natural_world',  # The Wing That Listens (insect wing mechanosensation)
+    751: 'natural_world',  # The Nut That Learned a Fork (flying-squirrel nut-and-twig caches)
 }
 
 # Keyword-based fallback categorization
