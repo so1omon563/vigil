@@ -419,7 +419,7 @@
     ready = true;
     document.getElementById('btn-random').disabled = false;
     updateFindBtn();
-    loadFromUrl();
+    restoreFromUrl();
   }).catch(function(e) {
     document.getElementById('result').innerHTML = '<p class="msg-error">Failed to load data: ' + e.message + '</p>';
   });
@@ -604,9 +604,15 @@
     return url.toString();
   }
 
-  function updateUrl(a, b) {
+  function updateUrl(a, b, mode) {
     if (!window.history || !a || !b) return;
-    window.history.replaceState(null, '', bridgeUrl(a, b));
+    var url = bridgeUrl(a, b);
+    if (url === window.location.href) return;
+    if (mode === 'push') {
+      window.history.pushState(null, '', url);
+    } else {
+      window.history.replaceState(null, '', url);
+    }
   }
 
   function copyUrl(url, button) {
@@ -625,7 +631,7 @@
   }
 
   // ── Find bridge ────────────────────────────────────────────
-  function findBridge() {
+  function findBridge(historyMode) {
     if (!selectedA || !selectedB || !ready) return;
     var result = document.getElementById('result');
     result.innerHTML = '<p class="msg-loading">searching…</p>';
@@ -635,7 +641,7 @@
       if (!path) {
         result.innerHTML = '<p class="msg-error">No path found — these entries may not be connected through the related-entries graph.</p>';
       } else {
-        updateUrl(selectedA, selectedB);
+        updateUrl(selectedA, selectedB, historyMode);
         renderPath(path);
       }
     }, 10);
@@ -649,7 +655,7 @@
     do { b = entriesList[Math.floor(Math.random() * entriesList.length)]; } while (b.num === a.num);
     setSelection('a', a);
     setSelection('b', b);
-    setTimeout(findBridge, 50);
+    setTimeout(function(){ findBridge('push'); }, 50);
   }
 
   // ── Entry selection ────────────────────────────────────────
@@ -670,14 +676,28 @@
     updateFindBtn();
   }
 
-  function loadFromUrl() {
+  function resetBridge() {
+    selectedA = null;
+    selectedB = null;
+    document.getElementById('input-a').value = '';
+    document.getElementById('input-b').value = '';
+    document.getElementById('input-a').classList.remove('chosen');
+    document.getElementById('input-b').classList.remove('chosen');
+    document.getElementById('result').innerHTML = '';
+    updateFindBtn();
+  }
+
+  function restoreFromUrl() {
     var params = new URLSearchParams(window.location.search);
     var a = parseEntryParam(params.get('a'));
     var b = parseEntryParam(params.get('b'));
-    if (!a || !b || !entriesById[a] || !entriesById[b]) return;
+    if (!a || !b || !entriesById[a] || !entriesById[b]) {
+      resetBridge();
+      return;
+    }
     setSelection('a', entriesById[a]);
     setSelection('b', entriesById[b]);
-    findBridge();
+    findBridge('silent');
   }
 
   function parseEntryParam(value) {
@@ -786,17 +806,21 @@
   wireInput('a');
   wireInput('b');
 
-  document.getElementById('btn-find').addEventListener('click', findBridge);
+  document.getElementById('btn-find').addEventListener('click', function() {
+    findBridge('push');
+  });
   document.getElementById('btn-random').addEventListener('click', pickRandom);
   document.getElementById('btn-clear').addEventListener('click', function() {
-    selectedA = null; selectedB = null;
-    document.getElementById('input-a').value = '';
-    document.getElementById('input-b').value = '';
-    document.getElementById('input-a').classList.remove('chosen');
-    document.getElementById('input-b').classList.remove('chosen');
-    document.getElementById('result').innerHTML = '';
-    if (window.history) window.history.replaceState(null, '', '/bridge.html');
-    updateFindBtn();
+    resetBridge();
+    if (window.history && window.location.pathname !== '/bridge.html') {
+      window.history.pushState(null, '', '/bridge.html');
+    } else if (window.history && window.location.search) {
+      window.history.pushState(null, '', '/bridge.html');
+    }
+  });
+
+  window.addEventListener('popstate', function() {
+    restoreFromUrl();
   });
 
 })();
