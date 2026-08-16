@@ -209,6 +209,7 @@ OVERRIDES = {
     752: 'natural_world',  # The Hair That Heard the Wasp (caterpillar electroreception)
     753: 'natural_world',  # The Flower That Heard a Visitor (primrose petals and pollinator sound)
     754: 'research',  # The Barrel That Held a Tune (pinned barrel organ and mechanical music)
+    755: 'research',  # The Book That Refused a Reader (Xu Bing's Book from the Sky)
 }
 
 # Keyword-based fallback categorization
