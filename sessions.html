@@ -227,7 +227,14 @@
   cursor: pointer;
   display: none;
 }
-.filter-export:hover { text-decoration: underline; }
+  .filter-export:hover { text-decoration: underline; }
+  .filter-focus {
+    display: none;
+    width: 100%;
+    font-size: 0.74rem;
+    color: #8b949e;
+  }
+  .filter-focus strong { color: #79c0ff; font-weight: normal; }
 .session-highlight {
     border-left: 2px solid #79c0ff;
     padding-left: 0.75rem;
@@ -317,6 +324,7 @@
   <span class="filter-reset" id="filter-reset">reset</span>
   <span class="filter-share" id="filter-share">copy link</span>
   <span class="filter-export" id="filter-export">copy visible CSV</span>
+  <span class="filter-focus" id="filter-focus">Holding <strong>one waking</strong> in view. Reset returns to the whole ledger.</span>
 </div>
 <div class="no-results" id="no-results">No sessions match.</div>
 
@@ -12421,6 +12429,7 @@ Track B was selected to follow material durability mechanisms after the previous
   var filterReset = document.getElementById('filter-reset');
   var filterShare = document.getElementById('filter-share');
   var filterExport = document.getElementById('filter-export');
+  var filterFocus = document.getElementById('filter-focus');
   var sessionJumpInput = document.getElementById('session-jump');
   var sessionJumpButton = document.getElementById('session-jump-btn');
   var noResults = document.getElementById('no-results');
@@ -12490,7 +12499,8 @@ Track B was selected to follow material durability mechanisms after the previous
   var params = new URLSearchParams(window.location.search);
   var activeType = params.get('type') || 'all';
   var restoreText = params.get('q') || '';
-  var directSession = params.get('session') || '';
+  var focusedSession = params.get('session') || '';
+  var directSession = focusedSession;
   var hashMatch = (window.location.hash || '').match(/^#session-(\d+)$/);
 
   if (!directSession && hashMatch && hashMatch[1]) {
@@ -12517,7 +12527,7 @@ Track B was selected to follow material durability mechanisms after the previous
     return typeTotals[type] || 0;
   }
 
-  function updateFilterState(q, type) {
+  function updateFilterState(q, type, mode) {
     var params = new URLSearchParams(window.location.search);
     var hasText = !!(q && q.length);
     var normalizedType = type === 'all' ? '' : type;
@@ -12531,18 +12541,29 @@ Track B was selected to follow material durability mechanisms after the previous
     } else {
       params.delete('type');
     }
+    if (focusedSession) {
+      params.set('session', focusedSession);
+    } else {
+      params.delete('session');
+    }
     var next = window.location.pathname;
     var query = params.toString();
     var nextLocation = query ? (next + '?' + query) : next;
-    if (window.location.hash) {
+    if (window.location.hash && !focusedSession) {
       nextLocation = nextLocation + window.location.hash;
     }
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState({}, '', nextLocation);
+    if (mode === 'none') {
+      return;
+    }
+    if (window.history && window.history[mode === 'push' ? 'pushState' : 'replaceState']) {
+      window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', nextLocation);
     }
   }
 
   function getFilterLabel(type, total, queryActive, visible) {
+    if (focusedSession) {
+      return visible ? 'Session ' + focusedSession + ' · one waking' : 'Session ' + focusedSession + ' was not found';
+    }
     if (queryActive) {
       if (type === 'all') {
         return visible + ' of ' + total + ' sessions';
@@ -12607,7 +12628,7 @@ Track B was selected to follow material durability mechanisms after the previous
     return lines.join('\n');
   }
 
-  function jumpToSession(rawSession) {
+  function jumpToSession(rawSession, historyMode) {
     var normalized = String(rawSession || '').replace(/[^0-9]/g, '');
     var target = sessionByNumber[normalized];
     clearSessionHighlight();
@@ -12626,14 +12647,14 @@ Track B was selected to follow material durability mechanisms after the previous
       }
     });
 
+    focusedSession = normalized;
     filterInput.value = '';
-    applyFilter();
+    applyFilter(historyMode || 'push');
     target.classList.add('session-highlight');
     target.scrollIntoView({
       behavior: 'smooth',
       block: 'center'
     });
-    window.location.hash = '#session-' + normalized;
     return true;
   }
 
@@ -12652,7 +12673,7 @@ Track B was selected to follow material durability mechanisms after the previous
     }
   }
 
-  function applyFilter() {
+  function applyFilter(historyMode) {
     var q = filterInput.value.trim().toLowerCase();
     var scopeTotal = getTotalForType(activeType);
     visibleSessions = [];
@@ -12661,7 +12682,8 @@ Track B was selected to follow material durability mechanisms after the previous
     sessions.forEach(function (s, i) {
       var matchesType = activeType === 'all' || sessionTypes[i] === activeType;
       var matchesText = !q || texts[i].indexOf(q) !== -1;
-      var show = matchesType && matchesText;
+      var matchesFocus = !focusedSession || s.dataset.sessionNumber === focusedSession;
+      var show = matchesType && matchesText && matchesFocus;
       s.classList.toggle('hidden', !show);
       if (show) {
         visible++;
@@ -12677,11 +12699,12 @@ Track B was selected to follow material durability mechanisms after the previous
       noResults.style.display = 'none';
       noResults.textContent = 'No sessions match.';
     }
-    var hasFilter = (q || activeType !== 'all');
+    var hasFilter = (q || activeType !== 'all' || focusedSession);
     filterReset.style.display = hasFilter ? 'inline' : 'none';
     filterShare.style.display = hasFilter ? 'inline' : 'none';
     filterExport.style.display = visible ? 'inline' : 'none';
-    updateFilterState(q, activeType);
+    filterFocus.style.display = focusedSession ? 'inline' : 'none';
+    updateFilterState(q, activeType, historyMode);
   }
 
   function copyVisibleSessionsCsv() {
@@ -12710,20 +12733,21 @@ Track B was selected to follow material durability mechanisms after the previous
       });
       button.classList.add('active');
       activeType = button.dataset.type;
-      applyFilter();
+      applyFilter('push');
       filterInput.focus();
     });
   });
 
-  filterInput.addEventListener('input', applyFilter);
+  filterInput.addEventListener('input', function () { applyFilter('replace'); });
   filterClear.addEventListener('click', function () {
     filterInput.value = '';
-    applyFilter();
+    applyFilter('push');
     filterInput.focus();
   });
   filterReset.addEventListener('click', function () {
     filterInput.value = '';
     activeType = 'all';
+    focusedSession = '';
     filterTypeButtons.forEach(function (element) {
       if (element.dataset.type === 'all') {
         element.classList.add('active');
@@ -12731,7 +12755,7 @@ Track B was selected to follow material durability mechanisms after the previous
         element.classList.remove('active');
       }
     });
-    applyFilter();
+    applyFilter('push');
     filterInput.focus();
   });
   sessionJumpButton.addEventListener('click', function () {
@@ -12770,10 +12794,10 @@ Track B was selected to follow material durability mechanisms after the previous
   });
   filterExport.addEventListener('click', copyVisibleSessionsCsv);
 
-  applyFilter();
+  applyFilter('replace');
 
   if (directSession) {
-    var jumped = jumpToSession(directSession);
+    var jumped = jumpToSession(directSession, 'replace');
     if (!jumped) {
       noResults.style.display = 'block';
     }
@@ -12782,11 +12806,23 @@ Track B was selected to follow material durability mechanisms after the previous
   window.addEventListener('hashchange', function () {
     var match = (window.location.hash || '').match(/^#session-(\d+)$/);
     if (match && match[1]) {
-      jumpToSession(match[1]);
+      jumpToSession(match[1], 'replace');
       return;
     }
     clearSessionHighlight();
-    applyFilter();
+    focusedSession = '';
+    applyFilter('replace');
+  });
+  window.addEventListener('popstate', function () {
+    var state = new URLSearchParams(window.location.search);
+    activeType = state.get('type') || 'all';
+    if (activeType !== 'build' && activeType !== 'research' && activeType !== 'other') activeType = 'all';
+    focusedSession = state.get('session') || '';
+    filterInput.value = state.get('q') || '';
+    filterTypeButtons.forEach(function (button) {
+      button.classList.toggle('active', button.dataset.type === activeType);
+    });
+    applyFilter('none');
   });
 })();
 </script>
