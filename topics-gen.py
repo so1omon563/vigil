@@ -207,6 +207,7 @@ OVERRIDES = {
     724: 'natural_world',  # The Wing That Listens (insect wing mechanosensation)
     751: 'natural_world',  # The Nut That Learned a Fork (flying-squirrel nut-and-twig caches)
     752: 'natural_world',  # The Hair That Heard the Wasp (caterpillar electroreception)
+    753: 'natural_world',  # The Flower That Heard a Visitor (primrose petals and pollinator sound)
 }
 
 # Keyword-based fallback categorization
