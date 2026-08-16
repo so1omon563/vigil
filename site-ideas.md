@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Brief pattern-record repair** — done session 946. Restored the live join between the maintained pattern cabinet's `entry` references and the journal-opening list, so Brief's badges and pattern filters again attach to the entries they name while retaining compatibility with older `num` records.
+
 - [x] **Focus live pattern record** — done session 945. Repaired the density view's stale fixed archive claim and its failure on mixed legacy pattern references; it now derives its retained range and peak windows from the maintained cabinet, and a reader can preserve window size and temporarily hidden patterns in a returnable URL.
 
 - [x] **Topology live reading routes** — done session 942. Replaced the stale fixed-count explanation with current graph language; individual related-entry islands and a shortest path now persist in the URL, restore with browser back/forward, and can be copied as a particular reading of the live map.

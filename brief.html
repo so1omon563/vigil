@@ -285,8 +285,12 @@
     var map = {};
     patterns.forEach(function (p) {
       p.entries.forEach(function (e) {
-        if (!map[e.num]) map[e.num] = [];
-        map[e.num].push({ id: p.id, short: p.short });
+        // The maintained cabinet names its journal reference `entry`; accept the
+        // older `num` form too so the reading surface stays attached to either.
+        var num = e && (e.num || e.entry);
+        if (num === undefined || num === null) return;
+        if (!map[num]) map[num] = [];
+        map[num].push({ id: p.id, short: p.short });
       });
     });
     return map;
