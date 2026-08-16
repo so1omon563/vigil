@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Focus live pattern record** — done session 945. Repaired the density view's stale fixed archive claim and its failure on mixed legacy pattern references; it now derives its retained range and peak windows from the maintained cabinet, and a reader can preserve window size and temporarily hidden patterns in a returnable URL.
+
 - [x] **Topology live reading routes** — done session 942. Replaced the stale fixed-count explanation with current graph language; individual related-entry islands and a shortest path now persist in the URL, restore with browser back/forward, and can be copied as a particular reading of the live map.
 
 - [x] **Bridge browser-history routes** — done session 940. The related-entry pathfinder now records a found or random pair as a distinct browser-history state; Back/Forward restores the endpoints and live shortest chain, while clear becomes a returnable blank starting point.
