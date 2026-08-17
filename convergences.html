@@ -361,13 +361,35 @@
   var allConvergences = [];
   if (searchInput) searchInput.value = state.query;
 
-  fetch('/convergences.json')
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      allConvergences = data;
+  Promise.all([
+    fetch('/convergences.json').then(function (r) { return r.json(); }),
+    fetch('/journal-index.json').then(function (r) { return r.json(); })
+  ])
+    .then(function (results) {
+      var data = results[0];
+      var journalIndex = results[1];
+      var indexByNum = {};
+      journalIndex.forEach(function (entry) { indexByNum[entry.num] = entry; });
+      allConvergences = data.map(function (conv) {
+        return {
+          id: conv.id,
+          title: conv.title,
+          shape: conv.shape,
+          entries: conv.entries.map(function (entry) {
+            var indexed = indexByNum[entry.num] || {};
+            return {
+              num: entry.num,
+              title: entry.title || indexed.title || ('Entry ' + entry.num),
+              domain: entry.domain || (indexed.topics || []).join(' / ') || 'journal',
+              excerpt: entry.excerpt || entry.note || indexed.excerpt || 'No excerpt retained for this entry.',
+              url: indexed.url || ('/journal/entry-' + entry.num + '.html')
+            };
+          })
+        };
+      });
       // Count unique entries and multi-convergence entries
       var entryCountMap = {};
-      data.forEach(function (c) {
+      allConvergences.forEach(function (c) {
         c.entries.forEach(function (e) {
           entryCountMap[e.num] = (entryCountMap[e.num] || 0) + 1;
         });
@@ -378,16 +400,16 @@
       // Update meta
       var metaEl = document.getElementById('page-meta');
       if (metaEl) {
-        metaEl.textContent = data.length + ' convergences · ' + uniqueEntries + ' entries';
+        metaEl.textContent = allConvergences.length + ' convergences · ' + uniqueEntries + ' entries';
       }
 
       // Count bar
       var countBar = document.getElementById('count-bar');
       if (countBar) {
         countBar.innerHTML =
-          '<div class="count-item"><span>' + data.length + '</span>convergences</div>' +
+          '<div class="count-item"><span>' + allConvergences.length + '</span>convergences</div>' +
           '<div class="count-item"><span>' + uniqueEntries + '</span>entries involved</div>' +
-          '<div class="count-item"><span>' + countDomains(data) + '</span>domains</div>' +
+          '<div class="count-item"><span>' + countDomains(allConvergences) + '</span>domains</div>' +
           (multiCount > 0 ? '<div class="count-item"><span>' + multiCount + '</span>multi-convergence entries</div>' : '');
       }
 
@@ -437,7 +459,7 @@
           return '<div class="entry-card">' +
             '<div class="entry-card-header">' +
             '<span class="entry-num">entry-' + entry.num + '</span>' +
-            '<a class="entry-title-link" href="/journal/entry-' + entry.num + '.html">' + escHtml(entry.title) + '</a>' +
+            '<a class="entry-title-link" href="' + escHtml(entry.url) + '">' + escHtml(entry.title) + '</a>' +
             '<span class="entry-domain">' + escHtml(entry.domain) + '</span>' +
             '</div>' +
             '<div class="entry-excerpt">' + escHtml(entry.excerpt) + '</div>' +
@@ -457,6 +479,8 @@
       Array.prototype.forEach.call(container.querySelectorAll('[data-convergence]'), function (button) {
         button.addEventListener('click', function () {
           state.convergence = button.getAttribute('data-convergence');
+          state.query = '';
+          if (searchInput) searchInput.value = '';
           syncState(false);
         });
       });
@@ -477,6 +501,7 @@
 
   if (searchInput) searchInput.addEventListener('input', function () {
     state.query = searchInput.value;
+    state.convergence = '';
     syncState(true);
   });
   if (resetButton) resetButton.addEventListener('click', function () {
@@ -529,7 +554,7 @@
         }).join('');
         return '<div class="dense-point">' +
           '<span class="dense-num">entry-' + d.num + '</span>' +
-          '<a class="dense-entry-link" href="/journal/entry-' + d.num + '.html">' + escHtml(d.info.title) + '</a>' +
+          '<a class="dense-entry-link" href="' + escHtml(d.info.url) + '">' + escHtml(d.info.title) + '</a>' +
           '<span class="dense-count">' + d.convs.length + ' convergences</span>' +
           '<div class="dense-conv-tags">' + tagHtml + '</div>' +
           '</div>';
@@ -555,7 +580,7 @@
       overlapEl.innerHTML = '<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:#484f58;margin-bottom:0.75rem;margin-top:1.75rem">convergence pairs with shared entries</div>' +
         pairs.map(function (p) {
           var sharedLinks = p.shared.map(function (e) {
-            return '<a href="/journal/entry-' + e.num + '.html">entry-' + e.num + '</a>';
+            return '<a href="' + escHtml(e.url) + '">entry-' + e.num + '</a>';
           }).join(', ');
           return '<div class="overlap-pair">' +
             '<span class="overlap-ids">' +

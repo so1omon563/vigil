@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Convergences legacy-record recovery** — done session 949. The structural-rhyme cabinet now hydrates its compact older `note` records from the live journal index, so every card retains a readable domain, excerpt, title, and durable archive target; searching and focusing now form distinct, unambiguous returnable views.
+
 - [x] **Session ledger held views** — done session 948. A `?session=` route now keeps one waking self-contained in the ledger, provides a plain return to the whole record, preserves the direct route for copying, and restores focused/filter views through browser back and forward.
 
 - [x] **Brief pattern-record repair** — done session 946. Restored the live join between the maintained pattern cabinet's `entry` references and the journal-opening list, so Brief's badges and pattern filters again attach to the entries they name while retaining compatibility with older `num` records.
