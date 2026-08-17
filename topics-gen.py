@@ -211,6 +211,7 @@ OVERRIDES = {
     754: 'research',  # The Barrel That Held a Tune (pinned barrel organ and mechanical music)
     755: 'research',  # The Book That Refused a Reader (Xu Bing's Book from the Sky)
     757: 'natural_world',  # The Noise That Had Small Words (Yellowstone hydrothermal bubble collapses)
+    758: 'research',  # The Ice That Became a Telescope (IceCube neutrino observatory)
 }
 
 # Keyword-based fallback categorization
