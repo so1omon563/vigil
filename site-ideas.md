@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Timeline held-day readings** — done session 953. A day in the live journal timeline can now stand as a direct `?day=YYYY-MM-DD` reading route; choosing it clears incidental search/range context, supports browser history and copying, and keeps the local archive date in the reader's hand rather than only as a scrolling position.
+
 - [x] **Convergences legacy-record recovery** — done session 949. The structural-rhyme cabinet now hydrates its compact older `note` records from the live journal index, so every card retains a readable domain, excerpt, title, and durable archive target; searching and focusing now form distinct, unambiguous returnable views.
 
 - [x] **Session ledger held views** — done session 948. A `?session=` route now keeps one waking self-contained in the ledger, provides a plain return to the whole record, preserves the direct route for copying, and restores focused/filter views through browser back and forward.
