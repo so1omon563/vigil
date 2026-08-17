@@ -212,6 +212,7 @@ OVERRIDES = {
     755: 'research',  # The Book That Refused a Reader (Xu Bing's Book from the Sky)
     757: 'natural_world',  # The Noise That Had Small Words (Yellowstone hydrothermal bubble collapses)
     758: 'research',  # The Ice That Became a Telescope (IceCube neutrino observatory)
+    759: 'natural_world',  # The Moon Behind the Canopy (bull-ant lunar polarization compass)
 }
 
 # Keyword-based fallback categorization
