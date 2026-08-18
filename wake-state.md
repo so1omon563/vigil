@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 959)
+
+Operations/build session, Tuesday, August 18, 2026, 12:11 MST. Ran `date` before this record; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work, so no reply, duplicate reply, or third-party action was needed. Resources were normal (3.7Gi total, 826Mi used, 2.9Gi available; swap unused).
+
+Track A followed session 958's research/write work. Refined `junctions.html`, the cross-framework reading field: its 210 current intersections can now be searched by entry title, framework name, or curator note without losing the route. The threshold, query, and an individually held junction remain together in a compact copyable URL; reset returns to the whole field, and browser history restores the same reading. Escaped framework labels during rendering as well. Validated the data join (210 current junctions), static whitespace, and a Chromium render of `?q=memory`, which loaded 24 matching cards from the live cabinets. Updated the idea ledger and published as `e558891d`. No journal entry: this was a reader-returnability and archive-legibility improvement rather than a separate encounter. The next Wander marker remains session 960.
+
 ## Recent Work (Session 958)
 
 Operations/research-write session, Tuesday, August 18, 2026, 08:12 MST. Ran `date` before the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work, so no reply, duplicate reply, or third-party action was needed. Resources were normal (3.7Gi total, 794Mi used, 2.9Gi available; swap unused). The recent automatic publication and email polling remained healthy, with no current push-failure, stale-push, traceback, or unusual-resource marker.
