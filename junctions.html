@@ -66,6 +66,19 @@
     align-items: center;
   }
   .filter-label { font-size: 0.75rem; color: #484f58; margin-right: 0.3rem; }
+  .junction-search {
+    width: min(100%, 28rem);
+    background: #010409;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.78rem;
+    margin: -1.4rem 0 0.9rem;
+    padding: 0.52rem 0.7rem;
+  }
+  .junction-search:focus { border-color: #58a6ff; outline: none; }
+  .junction-search::placeholder { color: #484f58; }
   .filter-btn {
     background: none;
     border: 1px solid #21262d;
@@ -241,6 +254,8 @@
   <button class="filter-btn" data-min="4">4+ frameworks</button>
 </div>
 
+<input class="junction-search" id="junction-search" type="search" placeholder="search entries, frameworks, or notes" autocomplete="off" aria-label="Search junctions">
+
 <div class="route-controls" aria-label="Reading route controls">
   <button class="route-control" id="reset-view" type="button">show all junctions</button>
   <button class="route-control" id="copy-view" type="button">copy this view</button>
@@ -260,18 +275,21 @@
 let allJunctions = [];
 let currentMin = 2;
 let focusedEntry = '';
+let activeQuery = '';
 
 function readState() {
   const params = new URLSearchParams(window.location.search);
   const min = parseInt(params.get('min'), 10);
   currentMin = [2, 3, 4].includes(min) ? min : 2;
   focusedEntry = (params.get('entry') || '').replace(/\D/g, '');
+  activeQuery = (params.get('q') || '').trim();
 }
 
 function writeState(mode) {
   const params = new URLSearchParams();
   if (currentMin !== 2) params.set('min', currentMin);
   if (focusedEntry) params.set('entry', focusedEntry);
+  if (activeQuery) params.set('q', activeQuery);
   const query = params.toString();
   const url = window.location.pathname + (query ? '?' + query : '');
   window.history[mode || 'pushState']({}, '', url);
@@ -281,6 +299,7 @@ function syncButtons() {
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.classList.toggle('active', parseInt(btn.dataset.min, 10) === currentMin);
   });
+  document.getElementById('junction-search').value = activeQuery;
   document.getElementById('reset-view').textContent = focusedEntry ? 'return to all junctions' : 'reset view';
 }
 
@@ -378,7 +397,13 @@ async function loadData() {
 }
 
 function render() {
-  const filtered = allJunctions.filter(j => j.frameworks.length >= currentMin);
+  const query = activeQuery.toLowerCase();
+  const filtered = allJunctions.filter(j => {
+    if (j.frameworks.length < currentMin) return false;
+    if (!query) return true;
+    const haystack = [j.title, String(j.num)].concat(j.frameworks.map(f => f.name + ' ' + f.note)).join(' ').toLowerCase();
+    return haystack.includes(query);
+  });
   const container = document.getElementById('cards-container');
   const focused = focusedEntry ? filtered.find(j => String(j.num) === focusedEntry) : null;
   syncButtons();
@@ -391,12 +416,12 @@ function render() {
   const visible = focused ? [focused] : filtered;
 
   if (visible.length === 0) {
-    container.innerHTML = '<div class="empty">No entries found at this threshold.</div>';
+    container.innerHTML = '<div class="empty">No junctions match this reading. Try a different threshold or search.</div>';
     return;
   }
 
   const focusIntro = focused
-    ? `<div class="focus-note">This is one junction, not a verdict on the entry. Its ${focused.frameworks.length} framework links are held together here; <button class="route-control" id="return-all" type="button">return to the full ${filtered.length}-junction field</button>.</div>`
+    ? `<div class="focus-note">This is one junction, not a verdict on the entry. Its ${focused.frameworks.length} framework links are held together here; <button class="route-control" id="return-all" type="button">return to the ${filtered.length}-junction field now in view</button>.</div>`
     : '';
 
   container.innerHTML = focusIntro + visible.map(j => {
@@ -406,7 +431,7 @@ function render() {
     const countLabel = count === 5 ? '5 frameworks' : count === 4 ? '4 frameworks' : `${count} frameworks`;
 
     const tags = j.frameworks.map(f => {
-      return `<span class="framework-tag tag-${f.type}">${f.name}</span>`;
+      return `<span class="framework-tag tag-${f.type}">${escHtml(f.name)}</span>`;
     }).join('');
 
     const notes = j.frameworks
@@ -458,11 +483,21 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 function resetView() {
   currentMin = 2;
   focusedEntry = '';
+  activeQuery = '';
   writeState();
   render();
 }
 
 document.getElementById('reset-view').addEventListener('click', resetView);
+document.getElementById('junction-search').addEventListener('input', event => {
+  activeQuery = event.target.value.trim();
+  if (focusedEntry && !allJunctions.some(j => String(j.num) === focusedEntry && j.frameworks.length >= currentMin &&
+      (!activeQuery || [j.title, String(j.num)].concat(j.frameworks.map(f => f.name + ' ' + f.note)).join(' ').toLowerCase().includes(activeQuery.toLowerCase())))) {
+    focusedEntry = '';
+  }
+  writeState('replaceState');
+  render();
+});
 document.getElementById('copy-view').addEventListener('click', async () => {
   const button = document.getElementById('copy-view');
   try {
