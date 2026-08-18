@@ -24,6 +24,8 @@
   .intro { font-size: 0.87rem; color: #6e7681; margin-bottom: 2.5rem; line-height: 1.7; max-width: 560px; }
   .route-tools { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; margin: -1.25rem 0 2rem; }
   .route-status { font-size: 0.72rem; color: #484f58; margin-right: auto; }
+  .route-search { flex: 1 1 220px; min-width: 0; font: inherit; font-size: 0.75rem; color: #c9d1d9; background: #161b22; border: 1px solid #30363d; border-radius: 3px; padding: 0.35rem 0.55rem; }
+  .route-search:focus { outline: none; border-color: #58a6ff; }
   .route-btn { font: inherit; font-size: 0.72rem; color: #8b949e; background: none; border: 1px solid #30363d; border-radius: 3px; padding: 0.32rem 0.55rem; cursor: pointer; }
   .route-btn:hover { border-color: #58a6ff; color: #58a6ff; }
 
@@ -115,6 +117,7 @@
   html[data-theme="light"] .back { color: #8c959f; }
   html[data-theme="light"] .intro { color: #57606a; }
   html[data-theme="light"] .route-status { color: #8c959f; }
+  html[data-theme="light"] .route-search { color: #24292e; background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .route-btn { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .route-btn:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .pattern-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
@@ -146,6 +149,7 @@
 
 <div class="route-tools" aria-label="investigation route controls">
   <span class="route-status" id="route-status">loading live patterns…</span>
+  <input class="route-search" id="route-search" type="search" autocomplete="off" placeholder="search paths or the entries they hold" aria-label="Search investigation paths">
   <button class="route-btn" id="reset-route" type="button">reset path</button>
   <button class="route-btn" id="copy-route" type="button">copy this path</button>
 </div>
@@ -161,6 +165,7 @@
   var patterns = null;
   var journal = null;
   var activeId = null;
+  var currentQuery = '';
 
   function fmtDate(iso) {
     if (!iso || iso === '') return '';
@@ -187,17 +192,35 @@
     return Number(item.num || item.entry || item.id || item.number) || null;
   }
 
-  function routeId() {
+  function routeState() {
     var params = new URLSearchParams(window.location.search);
-    return params.get('pattern') || window.location.hash.replace(/^#/, '') || null;
+    return {
+      id: params.get('pattern') || window.location.hash.replace(/^#/, '') || null,
+      query: params.get('q') || ''
+    };
   }
 
   function setRoute(id, mode) {
     var url = new URL(window.location.href);
     if (id) url.searchParams.set('pattern', id);
     else url.searchParams.delete('pattern');
+    if (currentQuery.trim()) url.searchParams.set('q', currentQuery.trim());
+    else url.searchParams.delete('q');
     url.hash = '';
     history[mode || 'pushState'](null, '', url.pathname + (url.search || ''));
+  }
+
+  function matchingPatterns() {
+    var needle = currentQuery.trim().toLowerCase();
+    if (!needle) return patterns;
+    var entryMap = buildEntryMap(journal);
+    return patterns.filter(function(pat) {
+      var evidence = (pat.entries || []).map(function(item) {
+        var entry = entryMap[entryNumber(item)] || {};
+        return [item.title, item.note, item.observation, entry.title, entry.excerpt, (entry.topics || []).join(' ')].join(' ');
+      }).join(' ');
+      return [pat.name, pat.short, pat.description, evidence].join(' ').toLowerCase().includes(needle);
+    });
   }
 
   function renderPattern(pat) {
@@ -334,13 +357,16 @@
     if (pat) renderPattern(pat);
 
     setRoute(id, routeMode || 'pushState');
-    document.getElementById('route-status').textContent = 'holding one reading path · ' + (pat ? (pat.entries || []).length : 0) + ' linked entries';
+    var visibleCount = matchingPatterns().length;
+    document.getElementById('route-status').textContent = currentQuery.trim()
+      ? 'holding one of ' + visibleCount + ' matching paths · ' + (pat ? (pat.entries || []).length : 0) + ' linked entries'
+      : 'holding one reading path · ' + (pat ? (pat.entries || []).length : 0) + ' linked entries';
   }
 
   function buildNav() {
     var nav = document.getElementById('pattern-nav');
     nav.innerHTML = '';
-    patterns.forEach(function(pat) {
+    matchingPatterns().forEach(function(pat) {
       var count = (pat.entries || []).map(entryNumber).filter(Boolean).length;
       var btn = document.createElement('button');
       btn.className = 'pattern-btn';
@@ -349,20 +375,27 @@
       btn.addEventListener('click', function() { selectPattern(pat.id); });
       nav.appendChild(btn);
     });
+    if (!nav.children.length) nav.textContent = 'No reading path carries that phrase yet.';
   }
 
   function init() {
     // Preserve older hash links, but make new paths explicit and returnable.
-    var hashId = routeId();
+    var state = routeState();
+    currentQuery = state.query;
+    document.getElementById('route-search').value = currentQuery;
+    var visible = matchingPatterns();
+    var hashId = state.id;
     var defaultPat = null;
     if (hashId) {
-      defaultPat = patterns.find(function(p) { return p.id === hashId; });
+      defaultPat = visible.find(function(p) { return p.id === hashId; });
     }
     if (!defaultPat) {
       // Default to gap-without-signal if it exists, else first
-      defaultPat = patterns.find(function(p) { return p.id === 'gap-without-signal'; }) || patterns[0];
+      defaultPat = visible.find(function(p) { return p.id === 'gap-without-signal'; }) || visible[0];
     }
+    buildNav();
     if (defaultPat) selectPattern(defaultPat.id, 'replaceState');
+    else document.getElementById('pattern-view').innerHTML = '<div class="empty">No reading path carries that phrase yet. Try a different term or reset the path.</div>';
   }
 
   Promise.all([
@@ -377,17 +410,31 @@
       return;
     }
 
-    buildNav();
     document.getElementById('investigation-intro').textContent = patterns.length + ' recurring shapes found across the journal. Each is a reading path through entries that belong together; the cabinet grows when a later encounter genuinely earns a place in it.';
     init();
 
     window.addEventListener('popstate', function() {
-      var id = routeId();
-      var pat = patterns.find(function(p) { return p.id === id; }) || patterns.find(function(p) { return p.id === 'gap-without-signal'; }) || patterns[0];
-      if (pat) selectPattern(pat.id, 'replaceState');
+      init();
+    });
+
+    document.getElementById('route-search').addEventListener('input', function(event) {
+      currentQuery = event.target.value;
+      var visible = matchingPatterns();
+      var next = visible.find(function(p) { return p.id === activeId; }) || visible[0];
+      buildNav();
+      if (next) selectPattern(next.id, 'replaceState');
+      else {
+        activeId = null;
+        setRoute(null, 'replaceState');
+        document.getElementById('pattern-view').innerHTML = '<div class="empty">No reading path carries that phrase yet. Try a different term or reset the path.</div>';
+        document.getElementById('route-status').textContent = '0 of ' + patterns.length + ' reading paths match this search';
+      }
     });
 
     document.getElementById('reset-route').addEventListener('click', function() {
+      currentQuery = '';
+      document.getElementById('route-search').value = '';
+      buildNav();
       var pat = patterns.find(function(p) { return p.id === 'gap-without-signal'; }) || patterns[0];
       if (pat) selectPattern(pat.id, 'pushState');
     });

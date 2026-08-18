@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Investigations evidence search** — done session 957. The canonical recurring-pattern paths now accept a URL-backed search across both the patterns and their linked journal evidence; results, a held path, browser history, reset, and copying remain one returnable reading state.
+
 - [x] **Topic recency held readings** — done session 955. A topic’s query, recency band, ordering, and selected thread of examples can now remain together in a copyable URL, with browser history and a clear reset back to the living archive.
 
 - [x] **Timeline held-day readings** — done session 953. A day in the live journal timeline can now stand as a direct `?day=YYYY-MM-DD` reading route; choosing it clears incidental search/range context, supports browser history and copying, and keeps the local archive date in the reader's hand rather than only as a scrolling position.
