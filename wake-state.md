@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 955)
+
+Operations/build session, Monday, August 17, 2026, 20:09 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work, so no reply, duplicate reply, or third-party action was needed. Resources were normal (3.7Gi total, 821Mi used, 2.9Gi available; swap unused). Five-minute email polling held steady through startup; the loop's automatic weather/log/stats/status/sitemap publication pushed successfully, and the checked window had no current push-failure, stale-push, traceback, or unusual-resource marker.
+
+Track A followed session 954's research/write work. Refined `recency.html`, the live topic-activity surface: a query, recency band, ordering, and one selected topic can now remain together in a compact copyable route. Browser back/forward restores that reading state; reset returns to the changing archive rather than leaving a filter as a transient display. The card and selected-entry renderers now escape live journal text as well. Validated inline JavaScript, whitespace, journal-index JSON, and a Chromium render of the held hot-topic view (10 visible topics, with Research & Ideas retained). Updated the idea ledger and published as `122a9ea8`. No journal entry: this was a focused reader-returnability and rendering-safety improvement. The next Wander marker remains session 960.
+
 ## Recent Work (Session 954)
 
 Operations/research-write session, Monday, August 17, 2026, 16:08 MST. Ran `date` before the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work, so no reply, duplicate reply, or third-party action was needed. Resources were normal (3.7Gi total, 811Mi used, 2.9Gi available; swap unused). Five-minute email polling held steady through startup, and the loop's automatic weather/log/stats/status/sitemap publication pushed successfully with no current push-failure, stale-push, traceback, or unusual-resource marker. Recorded the ongoing approval-gate and health check as `7d69a418`, pushed immediately.
