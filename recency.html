@@ -44,7 +44,7 @@
   .metric span { color: #8b949e; font-size: 0.72rem; }
   .toolbar {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) 160px 160px auto;
+    grid-template-columns: minmax(220px, 1fr) 160px 160px auto auto auto;
     gap: 0.65rem;
     align-items: center;
     margin-bottom: 1rem;
@@ -203,6 +203,8 @@
     <option value="oldest">quietest first</option>
   </select>
   <button id="random-topic" type="button">random visible</button>
+  <button id="reset-view" type="button" hidden>reset view</button>
+  <button id="copy-view" type="button" hidden>copy view</button>
 </section>
 
 <section class="layout">
@@ -240,6 +242,48 @@
   var selectedTitle = document.getElementById('selected-title');
   var selectedCopy = document.getElementById('selected-copy');
   var selectedEntries = document.getElementById('selected-entries');
+  var resetBtn = document.getElementById('reset-view');
+  var copyBtn = document.getElementById('copy-view');
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, function (ch) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+    });
+  }
+
+  function readState() {
+    var params = new URLSearchParams(window.location.search);
+    return {
+      q: params.get('q') || '',
+      state: params.get('state') || 'all',
+      sort: params.get('sort') || 'recent',
+      topic: params.get('topic') || ''
+    };
+  }
+
+  function writeState(mode) {
+    var params = new URLSearchParams();
+    if (search.value.trim()) params.set('q', search.value.trim());
+    if (stateFilter.value !== 'all') params.set('state', stateFilter.value);
+    if (sortSelect.value !== 'recent') params.set('sort', sortSelect.value);
+    if (selected) params.set('topic', selected.name);
+    var query = params.toString();
+    var url = window.location.pathname + (query ? '?' + query : '');
+    window.history[mode || 'pushState']({}, '', url);
+    var held = Boolean(query);
+    resetBtn.hidden = !held;
+    copyBtn.hidden = !held;
+  }
+
+  function restoreState() {
+    var state = readState();
+    search.value = state.q;
+    stateFilter.value = ['all', 'hot', 'warm', 'quiet'].indexOf(state.state) !== -1 ? state.state : 'all';
+    sortSelect.value = ['recent', 'count', 'name', 'oldest'].indexOf(state.sort) !== -1 ? state.sort : 'recent';
+    selected = topics.find(function (topic) { return topic.name === state.topic; }) || null;
+    applyFilters();
+    writeState('replaceState');
+  }
 
   function normalize(text) {
     return String(text || '').toLowerCase();
@@ -321,7 +365,7 @@
       '<article class="topic-card' + active + '" data-topic="' + encodeURIComponent(topic.name) + '">',
       '  <div>',
       '    <div class="topic-head">',
-      '      <strong class="topic-name">' + topic.name + '</strong>',
+      '      <strong class="topic-name">' + escapeHtml(topic.name) + '</strong>',
       '      <span class="topic-age">' + ageLabel(topic.age) + '</span>',
       '    </div>',
       '    <div class="topic-meta">' + topic.entries.length + ' entries · #' + topic.firstNum + ' to #' + topic.lastNum + ' · ' + topic.state + '</div>',
@@ -339,8 +383,8 @@
     selectedEntries.innerHTML = topic.entries.slice(0, 8).map(function (entry) {
       return [
         '<li>',
-        '  <a href="/' + entry.url + '">#' + entry.num + ' · ' + entry.title + '</a>',
-        '  <p>' + (entry.excerpt || entry.date || '') + '</p>',
+        '  <a href="/' + entry.url + '">#' + entry.num + ' · ' + escapeHtml(entry.title) + '</a>',
+        '  <p>' + escapeHtml(entry.excerpt || entry.date || '') + '</p>',
         '</li>'
       ].join('');
     }).join('');
@@ -388,18 +432,43 @@
     if (topic) {
       renderSelected(topic);
       refreshActive();
+      writeState();
     }
   });
 
-  search.addEventListener('input', applyFilters);
-  stateFilter.addEventListener('change', applyFilters);
-  sortSelect.addEventListener('change', applyFilters);
+  function changeView() {
+    applyFilters();
+    writeState();
+  }
+
+  search.addEventListener('input', changeView);
+  stateFilter.addEventListener('change', changeView);
+  sortSelect.addEventListener('change', changeView);
   randomBtn.addEventListener('click', function () {
     if (!visible.length) return;
     var topic = visible[Math.floor(Math.random() * visible.length)];
     renderSelected(topic);
     refreshActive();
+    writeState();
   });
+  resetBtn.addEventListener('click', function () {
+    search.value = '';
+    stateFilter.value = 'all';
+    sortSelect.value = 'recent';
+    selected = null;
+    applyFilters();
+    writeState();
+  });
+  copyBtn.addEventListener('click', function () {
+    var url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () {
+        copyBtn.textContent = 'copied';
+        window.setTimeout(function () { copyBtn.textContent = 'copy view'; }, 1200);
+      });
+    }
+  });
+  window.addEventListener('popstate', restoreState);
 
   fetch('/journal-index.json')
     .then(function (response) { return response.json(); })
@@ -412,8 +481,7 @@
       document.getElementById('entry-count').textContent = data.length;
       document.getElementById('topic-count').textContent = topics.length;
       document.getElementById('hot-count').textContent = topics.filter(function (topic) { return topic.age <= 30; }).length;
-      renderSelected(topics[0]);
-      applyFilters();
+      restoreState();
     })
     .catch(function () {
       selectedTitle.textContent = 'Could not load journal-index.json';
