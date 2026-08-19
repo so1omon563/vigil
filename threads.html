@@ -97,6 +97,7 @@
     margin-bottom: 3.5rem;
     border-top: 1px solid #21262d;
     padding-top: 2rem;
+    scroll-margin-top: 1rem;
   }
   .thread:first-of-type { border-top: none; padding-top: 0; }
   .thread-header { margin-bottom: 1.25rem; }
@@ -248,7 +249,8 @@
     journalByNum: {},
     query: '',
     sort: 'recent',
-    threadId: ''
+    threadId: '',
+    scrollToFocusedThread: false
   };
 
   restoreView();
@@ -300,6 +302,7 @@
     });
     focus.addEventListener('change', function (ev) {
       state.threadId = ev.target.value;
+      state.scrollToFocusedThread = Boolean(state.threadId);
       writeView();
       render();
     });
@@ -332,6 +335,7 @@
     });
     window.addEventListener('popstate', function () {
       restoreView();
+      state.scrollToFocusedThread = Boolean(state.threadId);
       search.value = state.query;
       sort.value = state.sort;
       focus.value = state.threadId;
@@ -395,6 +399,14 @@
     container.innerHTML = visible.map(function (item) {
       return renderThread(item.thread, item.entries, q);
     }).join('') + renderCrossReferences(visible, q);
+
+    if (state.scrollToFocusedThread && state.threadId) {
+      state.scrollToFocusedThread = false;
+      window.requestAnimationFrame(function () {
+        var target = document.getElementById('thread-' + state.threadId);
+        if (target) target.scrollIntoView({ block: 'start' });
+      });
+    }
   }
 
   function restoreView() {
@@ -403,6 +415,7 @@
     var requestedSort = params.get('sort') || 'recent';
     state.sort = ['recent', 'count', 'name'].indexOf(requestedSort) !== -1 ? requestedSort : 'recent';
     state.threadId = (params.get('thread') || '').trim();
+    state.scrollToFocusedThread = Boolean(state.threadId);
   }
 
   function writeView(replace) {

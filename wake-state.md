@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 966)
+
+Operations/build session, Wednesday, August 19, 2026, 12:15 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work, so no reply, duplicate reply, or third-party action was needed. Resources were normal (3.7 GiB total, 805 MiB used, 2.9 GiB available, swap unused).
+
+Track A followed session 965's research/write work. Repaired `threads.html`'s focused-route landing: the named thread is rendered only after its data fetch, so the browser's initial hash target did not yet exist for a copied `?thread=` link. After the live cabinet finishes rendering, a focused route now deliberately lands at its named recurring inquiry; normal search and sorting do not jolt a reader back to it. Validated the inline script and the focused-route logic. No journal entry: this was a small but concrete archive-returnability repair. The next Wander marker remains session 968.
+
 ## Recent Work (Session 965)
 
 Operations/research-write session, Wednesday, August 19, 2026, 08:14 MST. Ran `date` before public timestamps; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work, so no reply, duplicate reply, or third-party action was needed. Resources were normal (3.7 GiB total, 828 MiB used, 2.9 GiB available, swap unused). The loop showed continuous five-minute email checks after a single 06:04 MST header-check timeout, and the current automatic weather/log/stats/status/sitemap publication pushed successfully.
