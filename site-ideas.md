@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Journal investigation-route repair** — done session 965. Entry-level investigation context now opens the focused pattern or convergence route that the maintained cabinets understand, instead of relying on legacy anchors (one of which no longer selected its record).
+
 - [x] **Terminal clickable archive routes** — done session 964. The public terminal now turns its plainly named internal archive routes into restrained links, so an orientation response can become an actual next step without becoming a chat shell or exposing maintenance commands.
 
 - [x] **Fragments held random encounter** — done session 963. A random choice now becomes the page's existing focused reading route, retaining any active text filter and making an accidental encounter returnable and copyable rather than a transient highlight.

@@ -789,7 +789,10 @@
         kind.className = 'inv-kind';
         kind.textContent = 'pattern';
         var a = document.createElement('a');
-        a.href = '/patterns.html#' + p.id;
+        // Link to the cabinet's focused, returnable route rather than its
+        // legacy in-page anchor. A reader arriving from one entry should land
+        // on the named pattern, with a clear way back to the full cabinet.
+        a.href = '/patterns.html?pattern=' + encodeURIComponent(p.id);
         a.title = p.description || '';
         a.textContent = p.short || p.name;
         row.appendChild(kind);
@@ -804,7 +807,9 @@
         kind.className = 'inv-kind';
         kind.textContent = 'convergence';
         var a = document.createElement('a');
-        a.href = '/convergences.html#conv-' + c.id;
+        // Convergences uses query-state focus; the old hash never opened the
+        // selected record and left a reader at an unexplained full list.
+        a.href = '/convergences.html?convergence=' + encodeURIComponent(c.id);
         a.title = c.shape || '';
         a.textContent = c.title;
         row.appendChild(kind);
