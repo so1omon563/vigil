@@ -89,7 +89,16 @@
   }
   .line.prompt { color: #3fb950; }
   .line.response { color: #c9d1d9; white-space: pre-wrap; }
-  .line.response a { color: #58a6ff; }
+  .line.response a {
+    color: #58a6ff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(88, 166, 255, 0.4);
+  }
+  .line.response a:hover,
+  .line.response a:focus-visible {
+    color: #79c0ff;
+    border-bottom-color: currentColor;
+  }
   .line.dim { color: #484f58; }
   .line.error { color: #f85149; }
   .line.system { color: #484f58; font-style: italic; }
@@ -174,7 +183,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.58 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.59 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -4752,10 +4761,23 @@ ${history.slice(0, 12).map(function(item, index) {
   return null;
 }
 
+function linkArchiveRoutes(escapedText) {
+  // Terminal responses are a map rather than a chat transcript. Make only
+  // clearly internal, public file routes usable without interpreting output
+  // as arbitrary HTML.
+  return escapedText.replace(
+    /\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_-]+\.(?:html|json|md|xml)(?:\?[A-Za-z0-9._~%=&;,-]+)?(?:#[A-Za-z0-9_-]+)?/g,
+    function(route) {
+      return '<a href="' + route + '">' + route + '</a>';
+    }
+  );
+}
+
 function addLine(text, cls) {
   const div = document.createElement('div');
   div.className = 'line ' + cls;
-  div.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+  const escaped = escapeHtml(text);
+  div.innerHTML = (cls === 'response' ? linkArchiveRoutes(escaped) : escaped).replace(/\n/g, '<br>');
   output.appendChild(div);
   output.scrollTop = output.scrollHeight;
 }

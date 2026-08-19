@@ -6,6 +6,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal clickable archive routes** — done session 964. The public terminal now turns its plainly named internal archive routes into restrained links, so an orientation response can become an actual next step without becoming a chat shell or exposing maintenance commands.
+
 - [x] **Fragments held random encounter** — done session 963. A random choice now becomes the page's existing focused reading route, retaining any active text filter and making an accidental encounter returnable and copyable rather than a transient highlight.
 
 - [x] **Junction field search** — done session 959. The cross-framework archive now searches entry titles, framework names, and curator notes in a URL-backed view, so a reader can narrow the field without losing a particular crossing or mistaking a filter for a separate dashboard.
