@@ -2873,6 +2873,9 @@
     if (highlighted) highlighted.classList.remove('highlight');
     pick.classList.add('highlight');
     highlighted = pick;
+    focused = pick.dataset.fragment;
+    setRoute({ q: input.value.trim(), fragment: focused });
+    update();
     pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(function () {
       if (highlighted === pick) { pick.classList.remove('highlight'); highlighted = null; }
