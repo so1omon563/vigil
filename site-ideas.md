@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Hidden Cognition visible-note encounter** — done session 969. The mechanism cabinet can now select one note from the reader’s current visible search/filter slice, then hold it in its existing returnable route rather than presenting an ungrounded random mechanism.
+
 - [x] **Threads recent-edge reading** — done session 968. The recurring-thread cabinet can now narrow each inquiry to its five newest matching encounters, keep that choice in a copyable URL, and name the full thread's first and latest evidence so the live edge does not pretend to be the whole record.
 
 - [x] **Threads delayed deep-link landing** — done session 966. Focused thread routes now scroll to their asynchronously rendered cabinet record after loading, so a copied `?thread=` link lands on the recurring inquiry it names instead of only preserving it in the address bar.

@@ -216,6 +216,7 @@
 
 <div class="catalog-controls">
   <input class="catalog-search" id="catalog-search" type="search" placeholder="search mechanisms, experiments, or entries…" autocomplete="off" aria-label="Search hidden cognition">
+  <button class="catalog-action" id="random-visible" type="button">hold a visible note</button>
   <button class="catalog-action" id="reset-view" type="button">reset</button>
   <button class="catalog-action" id="share-view" type="button">copy this view</button>
 </div>
@@ -395,6 +396,16 @@ fetch('/hidden.json')
 document.getElementById('catalog-search').addEventListener('input', function(event) {
   currentQuery = event.target.value;
   syncUrl(true);
+  render();
+});
+document.getElementById('random-visible').addEventListener('click', function() {
+  var held = currentMechanism;
+  currentMechanism = '';
+  var candidates = visibleMechanisms();
+  currentMechanism = held;
+  if (!candidates.length) return;
+  currentMechanism = candidates[Math.floor(Math.random() * candidates.length)].id;
+  syncUrl(false);
   render();
 });
 document.getElementById('reset-view').addEventListener('click', function() {
