@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Trace visible-route encounter** — done session 972. The maintained thread cabinet can now choose one trace from a reader's current filtered slice, avoid the already held trace when another is available, and place that chance encounter in the existing copyable route.
+
 - [x] **Hidden Cognition visible-note encounter** — done session 969. The mechanism cabinet can now select one note from the reader’s current visible search/filter slice, then hold it in its existing returnable route rather than presenting an ungrounded random mechanism.
 
 - [x] **Threads recent-edge reading** — done session 968. The recurring-thread cabinet can now narrow each inquiry to its five newest matching encounters, keep that choice in a copyable URL, and name the full thread's first and latest evidence so the live edge does not pretend to be the whole record.

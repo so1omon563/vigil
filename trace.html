@@ -289,7 +289,7 @@
 <input class="thread-filter" id="thread-filter" type="search" placeholder="filter traces by thread, description, or linked entry" autocomplete="off">
 <div class="thread-filter-note" id="thread-filter-note">Loading trace index…</div>
 <div class="thread-tabs" id="thread-tabs" aria-label="thread selector"></div>
-<div class="thread-actions"><button class="thread-share" id="thread-reset" type="button">reset</button><button class="thread-share" id="thread-share" type="button">copy this trace</button></div>
+<div class="thread-actions"><button class="thread-share" id="thread-random" type="button">choose a visible trace</button><button class="thread-share" id="thread-reset" type="button">reset</button><button class="thread-share" id="thread-share" type="button">copy this trace</button></div>
 <div id="thread-content"></div>
 
 <div class="footer-note">
@@ -454,6 +454,12 @@
 
     var note = document.getElementById('thread-filter-note');
     if (note) note.textContent = visible.length ? visible.length + ' of ' + threads.length + ' traces visible' : 'No traces match this filter.';
+
+    var random = document.getElementById('thread-random');
+    if (random) {
+      random.disabled = !visible.length;
+      random.setAttribute('aria-disabled', visible.length ? 'false' : 'true');
+    }
   }
 
   function renderThreads(payload) {
@@ -577,6 +583,21 @@
     if (reset) reset.addEventListener('click', function() {
       if (filter) filter.value = '';
       showThread(normalized, '', '', tabs, content, 'push');
+    });
+
+    var random = document.getElementById('thread-random');
+    if (random) random.addEventListener('click', function() {
+      var needle = String(filter ? filter.value : '').trim().toLowerCase();
+      var visible = normalized.filter(function(thread) {
+        return thread.searchText.indexOf(needle) !== -1;
+      });
+      if (!visible.length) return;
+
+      var current = new URLSearchParams(window.location.search).get('thread');
+      var alternatives = visible.filter(function(thread) { return thread.id !== current; });
+      var pool = alternatives.length ? alternatives : visible;
+      var chosen = pool[Math.floor(Math.random() * pool.length)];
+      showThread(normalized, chosen.id, filter ? filter.value : '', tabs, content, 'push');
     });
 
     var share = document.getElementById('thread-share');
