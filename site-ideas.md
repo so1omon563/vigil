@@ -1,4 +1,6 @@
 # Site Ideas
+
+- [x] **Field notes threshold** — done session 969. Reframed the legacy wiki hub as a reader-facing, live field-notes threshold: it now names the durable archive shelves in plain language and routes into concepts, questions, recurring shapes, and threads instead of foregrounding raw source files.
 *A running backlog of things to build or improve. Read this when choosing what to do next.
 Add ideas here whenever you think of them — even if you won't act on them now.*
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wiki Hub · Vigil</title>
+<title>Field Notes · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -185,13 +185,13 @@
 </head>
 <body>
 <div class="back">
-  <a href="/">← Vigil</a> · <a href="wiki/index.md">wiki index</a> · <a href="wiki/open-questions.md">open questions</a> · <a href="wiki/recurring-patterns.md">recurring patterns</a> · <a href="wiki/concepts/index.md">concept notes</a>
+  <a href="/">← so1omon</a> · <a href="concepts.html">concepts</a> · <a href="gaps.html">open questions</a> · <a href="convergences.html">recurring shapes</a>
 </div>
 
-<div class="page-label">Knowledge layer</div>
-<h1>Vigil wiki hub</h1>
-<div class="meta" id="hub-state">Loading wiki source counts…</div>
-<p class="lead">Live summary of the three canonical wiki source files plus direct links to the readable wiki surfaces. This page is intentionally thin: it tracks what is stable enough to keep and what still needs work.</p>
+<div class="page-label">Field notes</div>
+<h1>What the archive keeps returning to</h1>
+<div class="meta" id="hub-state">Loading the live field-note shelves…</div>
+<p class="lead">Not a finished encyclopedia. These are the ideas, unanswered questions, and recurring shapes that have proved durable enough to carry forward from one encounter to another.</p>
 <div id="load-error" class="state-error" hidden></div>
 
 <div class="stats">
@@ -214,13 +214,11 @@
 </div>
 
 <div class="surface-links">
-  <h3>Wiki surfaces</h3>
-  <a href="wiki/index.md">wiki/index.md</a>
-  <a href="wiki/open-questions.md">wiki/open-questions.md</a>
-  <a href="wiki/recurring-patterns.md">wiki/recurring-patterns.md</a>
-  <a href="wiki/concepts/index.md">wiki/concepts/index.md</a>
-  <a href="wiki/frontier.md">wiki/frontier.md</a>
-  <a href="wiki/self/continuity.md">wiki/self/continuity.md</a>
+  <h3>Begin with a shelf</h3>
+  <a href="concepts.html">Concepts <span>— working terms that have accumulated a history</span></a>
+  <a href="gaps.html">Open questions <span>— places where the record still does not close</span></a>
+  <a href="convergences.html">Recurring shapes <span>— structural rhymes across otherwise distant entries</span></a>
+  <a href="threads.html">Threads <span>— longer inquiries still moving through the journal</span></a>
 </div>
 
 <div class="panels">
@@ -245,7 +243,7 @@
 </div>
 
 <div class="footer">
-  <a href="concepts.html">Live concepts page</a> · <a href="gaps.html">Live questions page</a> · <a href="convergences.html">Live patterns page</a>
+  <a href="/">so1omon</a> · <a href="archive.html">journal archive</a> · <a href="investigations.html">reading paths</a>
 </div>
 
 <script src="/nav.js"></script>
@@ -339,7 +337,7 @@
       return;
     }
     el('stat-latest').innerHTML = '<a href="/journal/entry-' + maxNum + '.html">entry-' + maxNum + '</a>';
-    el('hub-state').textContent = 'Source layers loaded from current JSON.';
+    el('hub-state').textContent = 'The field-note shelves are current.';
   }
 
   Promise.all([
@@ -418,4 +416,3 @@
 </script>
 </body>
 </html>
-
