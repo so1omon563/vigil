@@ -31,7 +31,7 @@
   }
   .controls {
     display: grid;
-    grid-template-columns: minmax(130px, 1fr) minmax(120px, auto) auto auto auto;
+    grid-template-columns: minmax(130px, 1fr) minmax(120px, auto) auto auto auto auto;
     gap: 0.6rem;
     margin-bottom: 1.25rem;
   }
@@ -112,6 +112,11 @@
     color: #8b949e;
     line-height: 1.6;
   }
+  .thread-range {
+    color: #484f58;
+    font-size: 0.72rem;
+    margin-top: 0.55rem;
+  }
   /* Entry list */
   .entry-list { display: flex; flex-direction: column; gap: 0; }
   .entry-item {
@@ -190,7 +195,8 @@
   }
   html[data-theme="light"] .entry-excerpt,
   html[data-theme="light"] .entry-date,
-  html[data-theme="light"] .filter-meta { color: #8c959f; }
+  html[data-theme="light"] .filter-meta,
+  html[data-theme="light"] .thread-range { color: #8c959f; }
   html[data-theme="light"] mark { background: rgba(130, 80, 223, 0.16); color: #1c2128; }
   html[data-theme="light"] .empty-state { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .thread-index a { color: #57606a; border-color: #d0d7de; }
@@ -226,6 +232,10 @@
     <option value="count">entry count</option>
     <option value="name">name</option>
   </select>
+  <select class="sort-select" id="thread-scope" aria-label="Amount of thread evidence to show">
+    <option value="all">full thread</option>
+    <option value="recent">recent edge</option>
+  </select>
   <button class="utility-button" id="copy-view" type="button">copy view</button>
   <button class="utility-button" id="reset-view" type="button">reset</button>
 </div>
@@ -249,6 +259,7 @@
     journalByNum: {},
     query: '',
     sort: 'recent',
+    scope: 'all',
     threadId: '',
     scrollToFocusedThread: false
   };
@@ -278,9 +289,11 @@
 
     var search = document.getElementById('thread-search');
     var sort = document.getElementById('thread-sort');
+    var scope = document.getElementById('thread-scope');
     var focus = document.getElementById('thread-focus');
     search.value = state.query;
     sort.value = state.sort;
+    scope.value = state.scope;
     state.threads.forEach(function (thread) {
       var option = document.createElement('option');
       option.value = thread.id;
@@ -300,6 +313,11 @@
       writeView();
       render();
     });
+    scope.addEventListener('change', function (ev) {
+      state.scope = ev.target.value;
+      writeView();
+      render();
+    });
     focus.addEventListener('change', function (ev) {
       state.threadId = ev.target.value;
       state.scrollToFocusedThread = Boolean(state.threadId);
@@ -309,9 +327,11 @@
     document.getElementById('reset-view').addEventListener('click', function () {
       state.query = '';
       state.sort = 'recent';
+      state.scope = 'all';
       state.threadId = '';
       search.value = '';
       sort.value = 'recent';
+      scope.value = 'all';
       focus.value = '';
       writeView();
       render();
@@ -338,6 +358,7 @@
       state.scrollToFocusedThread = Boolean(state.threadId);
       search.value = state.query;
       sort.value = state.sort;
+      scope.value = state.scope;
       focus.value = state.threadId;
       render();
     });
@@ -360,6 +381,8 @@
         return !q || searchable(thread, entry).indexOf(q) !== -1;
       });
       var threadMatches = q && (thread.title + ' ' + thread.description).toLowerCase().indexOf(q) !== -1;
+      if (threadMatches && entries.length === 0) entries = thread.entries.slice();
+      entries = scopedEntries(entries);
       return {
         thread: thread,
         entries: threadMatches && entries.length === 0 ? thread.entries : entries,
@@ -383,7 +406,7 @@
     visible.forEach(function (item) {
       item.entries.forEach(function (entry) { visibleEntryNums[entryNum(entry)] = true; });
     });
-    filterMeta.textContent = visible.length + (state.threadId ? ' focused thread' : ' threads') + ' · ' + Object.keys(visibleEntryNums).length + ' matching entries';
+    filterMeta.textContent = visible.length + (state.threadId ? ' focused thread' : ' threads') + ' · ' + Object.keys(visibleEntryNums).length + (state.scope === 'recent' ? ' recent-edge entries' : ' matching entries');
 
     indexEl.innerHTML = visible.map(function (item) {
       return '<a' + (item.thread.id === state.threadId ? ' class="active"' : '') + ' href="' + escAttr(threadHref(item.thread.id)) + '">' +
@@ -414,6 +437,7 @@
     state.query = (params.get('q') || '').trim().toLowerCase();
     var requestedSort = params.get('sort') || 'recent';
     state.sort = ['recent', 'count', 'name'].indexOf(requestedSort) !== -1 ? requestedSort : 'recent';
+    state.scope = params.get('scope') === 'recent' ? 'recent' : 'all';
     state.threadId = (params.get('thread') || '').trim();
     state.scrollToFocusedThread = Boolean(state.threadId);
   }
@@ -424,6 +448,8 @@
     else url.searchParams.delete('q');
     if (state.sort !== 'recent') url.searchParams.set('sort', state.sort);
     else url.searchParams.delete('sort');
+    if (state.scope === 'recent') url.searchParams.set('scope', 'recent');
+    else url.searchParams.delete('scope');
     if (state.threadId) url.searchParams.set('thread', state.threadId);
     else url.searchParams.delete('thread');
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + (url.search || '') + url.hash);
@@ -454,10 +480,12 @@
       '</div>';
     }).join('');
 
+    var range = threadRange(thread, entries);
     return '<div class="thread" id="thread-' + escAttr(thread.id) + '">' +
       '<div class="thread-header">' +
         '<div class="thread-title">' + highlight(thread.title, q) + '</div>' +
         '<div class="thread-desc">' + highlight(thread.description, q) + '</div>' +
+        '<div class="thread-range">' + range + '</div>' +
       '</div>' +
       '<div class="entry-list">' + entriesHtml + '</div>' +
     '</div>';
@@ -517,6 +545,22 @@
     return item.entries.reduce(function (max, entry) {
       return Math.max(max, entryNum(entry));
     }, 0);
+  }
+
+  function scopedEntries(entries) {
+    if (state.scope !== 'recent' || entries.length <= 5) return entries;
+    var newest = entries.slice().sort(function (a, b) { return entryNum(b) - entryNum(a); }).slice(0, 5);
+    return newest.sort(function (a, b) { return entryNum(a) - entryNum(b); });
+  }
+
+  function threadRange(thread, entries) {
+    var all = thread.entries.map(entryNum).filter(Boolean).sort(function (a, b) { return a - b; });
+    var first = state.journalByNum[all[0]] || {};
+    var latest = state.journalByNum[all[all.length - 1]] || {};
+    var label = 'first: #' + all[0] + (first.date ? ' · ' + escHtml(first.date) : '') +
+      ' &nbsp; / &nbsp; latest: #' + all[all.length - 1] + (latest.date ? ' · ' + escHtml(latest.date) : '');
+    if (state.scope === 'recent' && entries.length < all.length) label += ' &nbsp; · &nbsp; showing the newest ' + entries.length + ' of ' + all.length;
+    return label;
   }
 
   function entryNum(entry) {
