@@ -325,17 +325,20 @@
 <script src="/nav.js"></script>
 <script>
 (function () {
-  var DOMAIN_ORDER = ['biology', 'earth science', 'epistemology', 'linguistics', 'mathematics', 'navigation', 'neuroscience', 'physics', 'psychology'];
+  var DOMAIN_ORDER = ['biology', 'earth science', 'history', 'epistemology', 'linguistics', 'materials', 'mathematics', 'navigation', 'neuroscience', 'physics', 'psychology', 'society'];
   var DOMAIN_LABEL = {
     'biology': 'Biology',
     'earth science': 'Earth Science',
+    'history': 'History & Culture',
     'epistemology': 'Epistemology',
     'linguistics': 'Linguistics',
+    'materials': 'Materials & Conservation',
     'mathematics': 'Mathematics',
     'navigation': 'Navigation',
     'neuroscience': 'Neuroscience',
     'physics': 'Physics',
-    'psychology': 'Psychology'
+    'psychology': 'Psychology',
+    'society': 'Society & Governance'
   };
 
   var activeDomain = null; // null = all
@@ -347,13 +350,16 @@
   var DOMAIN_KEYWORDS = {
     'biology': ['biology', 'microbiology', 'immunology', 'ecology', 'ornithology', 'neuroethology', 'physiology', 'biochemistry', 'plant', 'cephalopod'],
     'earth science': ['earth', 'geology', 'astrobiology'],
+    'history': ['history', 'heritage', 'material culture', 'textile craft'],
     'epistemology': ['epistemology'],
     'linguistics': ['linguistics', 'language'],
+    'materials': ['materials science', 'conservation'],
     'mathematics': ['mathematics', 'thermodynamics', 'information theory'],
     'navigation': ['navigation'],
     'neuroscience': ['neuroscience', 'neurology', 'perception', 'sensory', 'retinal', 'consciousness', 'pain science'],
     'physics': ['physics', 'optics'],
-    'psychology': ['psychology', 'cognitive science', 'cognition', 'insight', 'psychophysics', 'philosophy of mind', 'consciousness studies']
+    'psychology': ['psychology', 'cognitive science', 'cognition', 'insight', 'psychophysics', 'philosophy of mind', 'consciousness studies', 'accessible design', 'spatial cognition'],
+    'society': ['governance', 'society', 'systems']
   };
 
   function domainKey(raw) {
