@@ -136,6 +136,19 @@
   }
   .note p { margin-bottom: 0.4rem; }
   .note p:last-child { margin-bottom: 0; }
+  .view-actions { display: flex; gap: 0.65rem; flex-wrap: wrap; margin-top: 1rem; }
+  .view-action {
+    font: inherit;
+    font-size: 0.72rem;
+    background: transparent;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    padding: 0.38rem 0.7rem;
+    cursor: pointer;
+  }
+  .view-action:hover, .view-action:focus-visible { color: #58a6ff; border-color: #58a6ff; }
+  .view-status { font-size: 0.72rem; color: #484f58; min-height: 1.2em; align-self: center; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 </style>
 </head>
 <body>
@@ -157,7 +170,8 @@
 
 <!-- MAIN SIMULATION -->
 <div class="sim-wrap">
-  <canvas id="cv" width="700" height="320"></canvas>
+  <canvas id="cv" width="700" height="320" role="img" aria-describedby="chart-summary"></canvas>
+  <p id="chart-summary" class="sr-only" aria-live="polite"></p>
 
   <div class="preset-row">
     <span style="font-size:0.7rem;color:#484f58;align-self:center;">Presets:</span>
@@ -202,6 +216,12 @@
       <div class="readout-sub">Forced-choice − self-report. Larger = wider criterion gap</div>
     </div>
   </div>
+
+  <div class="view-actions" aria-label="Reading view actions">
+    <button class="view-action" id="reset-view" type="button">reset view</button>
+    <button class="view-action" id="copy-view" type="button">copy this view</button>
+    <span class="view-status" id="view-status" aria-live="polite"></span>
+  </div>
 </div>
 
 <div class="note">
@@ -243,6 +263,45 @@ function invPhi(p) {
 
 let dPrime = 2.5;
 let criterion = 0.5;
+const DEFAULT_VIEW = { d: 2.5, c: 0.5 };
+
+function boundedNumber(value, min, max, fallback) {
+  if (value === null || value.trim() === '') return fallback;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= min && number <= max ? number : fallback;
+}
+
+function readView() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    d: boundedNumber(params.get('d'), 0, 4, DEFAULT_VIEW.d),
+    c: boundedNumber(params.get('c'), -1, 3, DEFAULT_VIEW.c)
+  };
+}
+
+function writeView(mode = 'replace') {
+  const url = new URL(window.location.href);
+  const isDefault = dPrime === DEFAULT_VIEW.d && criterion === DEFAULT_VIEW.c;
+  if (isDefault) {
+    url.searchParams.delete('d');
+    url.searchParams.delete('c');
+  } else {
+    url.searchParams.set('d', dPrime.toFixed(2));
+    url.searchParams.set('c', criterion.toFixed(2));
+  }
+  window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url);
+}
+
+function syncControls() {
+  document.getElementById('sl-d').value = dPrime;
+  document.getElementById('sl-c').value = criterion;
+  document.getElementById('vd').textContent = dPrime.toFixed(2);
+  document.getElementById('vc').textContent = criterion.toFixed(2);
+  clearActive();
+  document.querySelectorAll('.preset-btn').forEach(button => {
+    if (Number(button.dataset.d) === dPrime && Number(button.dataset.c) === criterion) button.classList.add('active');
+  });
+}
 
 // Gaussian curve helpers
 function gauss(x, mu, sigma) {
@@ -460,15 +519,18 @@ function draw() {
   if (gap > 0.25) gapEl.style.color = '#a371f7';
   else if (gap > 0.1) gapEl.style.color = '#e3b341';
   else gapEl.style.color = '#484f58';
+
+  document.getElementById('chart-summary').textContent =
+    `Signal detection view: sensitivity d-prime ${dPrime.toFixed(2)}, reporting criterion ${criterion.toFixed(2)}. ` +
+    `Self-report hits ${(hitRate * 100).toFixed(1)} percent; forced-choice accuracy ${(fcAcc * 100).toFixed(1)} percent; the difference is ${(gap * 100).toFixed(1)} percentage points.`;
 }
 
 function update() {
   dPrime = parseFloat(document.getElementById('sl-d').value);
   criterion = parseFloat(document.getElementById('sl-c').value);
-  document.getElementById('vd').textContent = dPrime.toFixed(2);
-  document.getElementById('vc').textContent = criterion.toFixed(2);
-  clearActive();
+  syncControls();
   draw();
+  writeView();
 }
 
 function clearActive() {
@@ -482,16 +544,43 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     dPrime = parseFloat(btn.dataset.d);
     criterion = parseFloat(btn.dataset.c);
-    document.getElementById('sl-d').value = dPrime;
-    document.getElementById('sl-c').value = criterion;
-    document.getElementById('vd').textContent = dPrime.toFixed(2);
-    document.getElementById('vc').textContent = criterion.toFixed(2);
-    clearActive();
-    btn.classList.add('active');
+    syncControls();
     draw();
+    writeView('push');
   });
 });
 
+document.getElementById('reset-view').addEventListener('click', () => {
+  dPrime = DEFAULT_VIEW.d;
+  criterion = DEFAULT_VIEW.c;
+  syncControls();
+  draw();
+  writeView('push');
+  document.getElementById('view-status').textContent = 'Returned to the default view.';
+});
+
+document.getElementById('copy-view').addEventListener('click', async () => {
+  const status = document.getElementById('view-status');
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    status.textContent = 'This reading view is copied.';
+  } catch (_) {
+    status.textContent = 'Copying is unavailable here; the address holds this view.';
+  }
+});
+
+window.addEventListener('popstate', () => {
+  const restored = readView();
+  dPrime = restored.d;
+  criterion = restored.c;
+  syncControls();
+  draw();
+});
+
+const restored = readView();
+dPrime = restored.d;
+criterion = restored.c;
+syncControls();
 draw();
 </script>
 </body>

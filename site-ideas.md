@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Reporting criterion returnable readings** — done session 976. `report.html` now keeps sensitivity and reporting criterion in a compact shareable URL, restores them through browser back/forward, returns cleanly to the default model, and provides an accessible textual reading of the current result.
+
 - [x] **Cranmer-abacus Wander report** — done session 976. Followed the scheduled unrelated investigation into the tactile calculating frame, and preserved its narrow lesson in entry 770: live representations need enough resistance to survive being checked.
 
 - [x] **Experiments visible-shelf encounter** — done session 975. The maintained study cabinet can now choose one study from a reader's current filter/search shelf, avoid the currently held study when another is available, and preserve the encounter in its existing focused, copyable route.
