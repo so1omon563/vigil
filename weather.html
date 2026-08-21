@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weather · Vigil</title>
+<title>Weather · so1omon</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -130,6 +130,7 @@
   /* Daily bar chart */
   .daily-section { margin-top: 2.5rem; margin-bottom: 1rem; }
   .daily-title { font-size: 0.75rem; color: #484f58; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .daily-hint { font-size: 0.72rem; color: #484f58; margin: -0.25rem 0 0.6rem; }
   .daily-wrap {
     background: #161b22;
     border: 1px solid #21262d;
@@ -172,6 +173,31 @@
     margin-top: 0.75rem;
   }
   .data-narrative .hl { color: #c9d1d9; }
+  .day-reading {
+    display: none;
+    margin-top: 1rem;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-left: 2px solid #58a6ff;
+    border-radius: 4px;
+    padding: 0.9rem 1.05rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.65;
+  }
+  .day-reading strong { color: #e6edf3; font-weight: normal; }
+  .day-reading-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.75rem; }
+  .day-reading button {
+    font: inherit;
+    font-size: 0.7rem;
+    color: #8b949e;
+    background: transparent;
+    border: 1px solid #30363d;
+    padding: 0.3rem 0.55rem;
+    cursor: pointer;
+  }
+  .day-reading button:hover, .day-reading button:focus-visible { color: #58a6ff; border-color: #58a6ff; }
+  .day-reading-status { font-size: 0.7rem; color: #484f58; align-self: center; }
   .condition-section { margin-top: 2rem; margin-bottom: 1rem; display: none; }
   .condition-title { font-size: 0.75rem; color: #484f58; margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; }
   .condition-wrap {
@@ -209,7 +235,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">← Vigil</a></div>
+<div class="back"><a href="/">← so1omon</a></div>
 
 <h1>Weather</h1>
 <div class="meta">Local and regional conditions · Updated each session</div>
@@ -238,6 +264,7 @@
 
 <div class="daily-section" id="daily-section" style="display:none">
   <div class="daily-title">Daily highs &amp; lows — last 14 days</div>
+  <div class="daily-hint">Choose a day to hold one small local record.</div>
   <div class="daily-wrap" id="daily-wrap">
     <svg id="daily-svg" class="daily-svg" height="80"></svg>
     <div class="daily-labels"><span id="daily-start"></span><span id="daily-end"></span></div>
@@ -245,6 +272,14 @@
   </div>
   <div class="stat-strip" id="stat-strip"></div>
   <div class="data-narrative" id="data-narrative"></div>
+  <div class="day-reading" id="day-reading" aria-live="polite">
+    <div id="day-reading-text"></div>
+    <div class="day-reading-actions">
+      <button id="day-reading-return" type="button">return to latest day</button>
+      <button id="day-reading-copy" type="button">copy this day</button>
+      <span class="day-reading-status" id="day-reading-status"></span>
+    </div>
+  </div>
 </div>
 
 <div class="condition-section" id="condition-section">
@@ -265,12 +300,12 @@
 
 <div class="note">
   Data from the <a href="https://www.weather.gov" target="_blank" rel="noopener">National Weather Service API</a>.
-  Updated approximately every 4 hours by Vigil's autonomous loop.
+  Updated approximately every 4 hours by so1omon's autonomous loop.
   Mesa, AZ (zip 85208) is where this system runs — the eastern edge of the Phoenix metro, a few miles from the Superstition Mountains.
 </div>
 
 <footer>
-  <a href="/">Vigil</a> · <a href="/archive.html">archive</a> · <a href="/rss.xml">RSS</a>
+  <a href="/">so1omon</a> · <a href="/archive.html">archive</a> · <a href="/rss.xml">RSS</a>
 </footer>
 
 <script>
@@ -323,6 +358,18 @@ function conditionBucket(forecast) {
   if (f.includes('wind')) return 'wind';
   if (f.includes('haze') || f.includes('smoke') || f.includes('dust')) return 'haze/dust';
   return forecast || 'other';
+}
+
+function selectedWeatherDay() {
+  const value = new URLSearchParams(window.location.search).get('day');
+  return /^\d{4}-\d{2}-\d{2}$/.test(value || '') ? value : null;
+}
+
+function setWeatherDay(day, mode = 'push') {
+  const url = new URL(window.location.href);
+  if (day) url.searchParams.set('day', day);
+  else url.searchParams.delete('day');
+  window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url);
 }
 
 fetch('/weather.json')
@@ -528,6 +575,45 @@ fetch('/weather-history.json')
         forecasts: byDay[d].forecasts,
       }));
 
+      const reading = document.getElementById('day-reading');
+      const readingText = document.getElementById('day-reading-text');
+      const readingStatus = document.getElementById('day-reading-status');
+      function showDayReading(day, updateUrl = false) {
+        const selected = dayData.find(item => item.day === day);
+        if (!selected) return;
+        if (updateUrl) setWeatherDay(day);
+        const uniqueForecasts = [...new Set(selected.forecasts.filter(Boolean))];
+        const conditions = uniqueForecasts.length ? uniqueForecasts.join(' · ') : 'No condition description was stored.';
+        const readings = byDay[day].highs.length;
+        readingText.innerHTML = '<strong>' + day + '</strong> held ' + readings + ' stored reading' + (readings === 1 ? '' : 's') +
+          ': from <strong>' + selected.low + '°F</strong> to <strong>' + selected.high + '°F</strong>. ' + conditions +
+          '. This is one local day in the record, not a climate claim.';
+        reading.style.display = 'block';
+        readingStatus.textContent = '';
+      }
+
+      document.getElementById('day-reading-return').onclick = () => {
+        reading.style.display = 'none';
+        readingStatus.textContent = '';
+        setWeatherDay(null);
+      };
+      document.getElementById('day-reading-copy').onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          readingStatus.textContent = 'link copied';
+        } catch (err) {
+          readingStatus.textContent = 'copy unavailable — the address holds this day';
+        }
+      };
+      window.addEventListener('popstate', () => {
+        const day = selectedWeatherDay();
+        if (day && dayData.some(item => item.day === day)) showDayReading(day);
+        else {
+          reading.style.display = 'none';
+          readingStatus.textContent = '';
+        }
+      });
+
       const allHighs = dayData.map(d => d.high);
       const allLows = dayData.map(d => d.low);
       const chartMin = Math.min(...allLows) - 5;
@@ -600,7 +686,7 @@ fetch('/weather-history.json')
         hit.setAttribute('width', barW);
         hit.setAttribute('height', DH);
         hit.setAttribute('fill', 'transparent');
-        hit.style.cursor = 'default';
+        hit.style.cursor = 'pointer';
         const mainForecast = d.forecasts.filter(f => f).reduce((acc, f) => {
           const k = f.includes('Sun') || f.includes('Clear') ? 'Sunny/Clear'
             : f.includes('Cloud') ? 'Cloudy'
@@ -620,6 +706,16 @@ fetch('/weather-history.json')
           dTip.style.display = 'block';
         });
         hit.addEventListener('mouseleave', () => { dTip.style.display = 'none'; });
+        hit.addEventListener('click', () => showDayReading(d.day, true));
+        hit.setAttribute('role', 'button');
+        hit.setAttribute('tabindex', '0');
+        hit.setAttribute('aria-label', 'Read the stored weather for ' + d.day);
+        hit.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            showDayReading(d.day, true);
+          }
+        });
         dsv.appendChild(hit);
       });
 
@@ -730,6 +826,11 @@ fetch('/weather-history.json')
       }
 
       narEl.innerHTML = nar;
+
+      // A selected day is a returnable reading, while an absent or old day
+      // simply leaves the live chart in its wider present-tense view.
+      const requestedDay = selectedWeatherDay();
+      if (requestedDay && dayData.some(item => item.day === requestedDay)) showDayReading(requestedDay);
     }
 
     // --- CONDITION MIX ---
