@@ -313,7 +313,7 @@
   <button class="catalog-share" id="reset-view" type="button">reset</button>
 </div>
 <div class="filter-bar" id="filter-bar"></div>
-<div class="catalog-actions"><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
+<div class="catalog-actions"><button class="catalog-share" id="choose-study" type="button">choose a study from this view</button><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
 <div class="focus-note" id="focus-note"><span>Focused study: <strong id="focus-title"></strong></span><button class="catalog-share" id="clear-focus" type="button">show all studies</button></div>
 
 <div class="showing-count" id="showing-count">loading studies…</div>
@@ -385,6 +385,19 @@
           window.prompt('Copy this link:', window.location.href);
         }
       });
+
+      document.getElementById('choose-study').addEventListener('click', function () {
+        var candidates = shelfExperiments();
+        if (!candidates.length) return;
+        if (candidates.length > 1 && currentStudy) {
+          var alternatives = candidates.filter(function (exp) { return exp.id !== currentStudy; });
+          if (alternatives.length) candidates = alternatives;
+        }
+        currentStudy = candidates[Math.floor(Math.random() * candidates.length)].id;
+        syncUrl(false);
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     })
     .catch(function () {
       document.getElementById('experiments-container').textContent = '(could not load experiments)';
@@ -439,12 +452,17 @@
   }
 
   function visibleExperiments() {
+    return shelfExperiments().filter(function (exp) {
+      return !currentStudy || exp.id === currentStudy;
+    });
+  }
+
+  function shelfExperiments() {
     var needle = currentQuery.trim().toLowerCase();
     return experiments.filter(function (exp) {
       var matchesCluster = currentCluster === 'all' || exp.cluster === currentCluster;
       var haystack = [exp.title, exp.researchers, exp.year, exp.field, exp.setup, exp.finding, exp.implication, exp.cluster_label, (exp.entry_titles || []).join(' ')].join(' ').toLowerCase();
-      var matchesStudy = !currentStudy || exp.id === currentStudy;
-      return matchesCluster && matchesStudy && (!needle || haystack.indexOf(needle) !== -1);
+      return matchesCluster && (!needle || haystack.indexOf(needle) !== -1);
     });
   }
 
@@ -492,12 +510,16 @@
     });
     var container = document.getElementById('experiments-container');
     var countEl = document.getElementById('showing-count');
+    var chooseButton = document.getElementById('choose-study');
     container.innerHTML = '';
     var filtered = visibleExperiments();
+    var shelf = shelfExperiments();
     var focused = experiments.find(function (exp) { return exp.id === currentStudy; });
     var focusNote = document.getElementById('focus-note');
     focusNote.classList.toggle('visible', !!focused);
     document.getElementById('focus-title').textContent = focused ? focused.title : '';
+    chooseButton.disabled = shelf.length === 0;
+    chooseButton.textContent = shelf.length === 1 ? 'hold the study in this view' : 'choose a study from this view';
 
     // Group by cluster
     var clusters = {};

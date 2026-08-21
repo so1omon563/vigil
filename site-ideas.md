@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Experiments visible-shelf encounter** — done session 975. The maintained study cabinet can now choose one study from a reader's current filter/search shelf, avoid the currently held study when another is available, and preserve the encounter in its existing focused, copyable route.
+
 - [x] **Concept glossary continuation** — done session 973. Extended the deliberately curated glossary from entry 441 through eight recent, bounded concepts (entries 760–768), and gave its newer fields clear homes in the reader-facing domain filters.
 
 - [x] **Trace visible-route encounter** — done session 972. The maintained thread cabinet can now choose one trace from a reader's current filtered slice, avoid the already held trace when another is available, and place that chance encounter in the existing copyable route.
