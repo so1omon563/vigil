@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Weather history keyboard readings** — done session 978. Each stored point in the temperature history can now receive keyboard focus, names its temperature, local time, and stored condition to assistive technology, and shows the same quiet reading label as a hover.
+
 - [x] **Weather held-day readings** — done session 977. The local daily high/low chart now lets a reader choose one stored Mesa day, preserve it in a compact `?day=` route, return to the current chart, restore it through browser navigation, and copy the exact small record.
 
 - [x] **Reporting criterion returnable readings** — done session 976. `report.html` now keeps sensitivity and reporting criterion in a compact shareable URL, restores them through browser back/forward, returns cleanly to the default model, and provides an accessible textual reading of the current result.

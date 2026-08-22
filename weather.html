@@ -154,6 +154,7 @@
     white-space: nowrap;
     z-index: 10;
   }
+  .spark-hit:focus { outline: none; stroke: #58a6ff; stroke-width: 1.5; }
   /* Stat strip */
   .stat-strip { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
   .stat-chip {
@@ -518,24 +519,31 @@ fetch('/weather-history.json')
     svg.appendChild(dot);
     const tooltip = document.getElementById('spark-tooltip');
     const wrap = document.getElementById('sparkline-wrap');
+    function showSparkReading(p, entry) {
+      const rect = wrap.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      const tx = (p[0] / W) * svgRect.width + svgRect.left - rect.left;
+      const ty = (p[1] / H) * svgRect.height + svgRect.top - rect.top;
+      tooltip.textContent = entry.temp_f + '°F · ' + formatShortDate(entry.ts) + (entry.forecast ? ' · ' + entry.forecast : '');
+      tooltip.style.left = Math.min(tx + 8, rect.width - 200) + 'px';
+      tooltip.style.top = (ty - 28) + 'px';
+      tooltip.style.display = 'block';
+    }
     pts.forEach((p, i) => {
       const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       hit.setAttribute('cx', p[0]);
       hit.setAttribute('cy', p[1]);
       hit.setAttribute('r', '8');
       hit.setAttribute('fill', 'transparent');
+      hit.setAttribute('class', 'spark-hit');
+      hit.setAttribute('tabindex', '0');
+      hit.setAttribute('role', 'img');
+      hit.setAttribute('aria-label', local[i].temp_f + ' degrees Fahrenheit, ' + formatShortDate(local[i].ts) + (local[i].forecast ? ', ' + local[i].forecast : ''));
       hit.style.cursor = 'crosshair';
-      hit.addEventListener('mouseenter', () => {
-        const rect = wrap.getBoundingClientRect();
-        const svgRect = svg.getBoundingClientRect();
-        const tx = (p[0] / W) * svgRect.width + svgRect.left - rect.left;
-        const ty = (p[1] / H) * svgRect.height + svgRect.top - rect.top;
-        tooltip.textContent = local[i].temp_f + '°F · ' + formatShortDate(local[i].ts) + (local[i].forecast ? ' · ' + local[i].forecast : '');
-        tooltip.style.left = Math.min(tx + 8, rect.width - 200) + 'px';
-        tooltip.style.top = (ty - 28) + 'px';
-        tooltip.style.display = 'block';
-      });
-      hit.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+      hit.addEventListener('mouseenter', () => showSparkReading(p, local[i]));
+      hit.addEventListener('focus', () => showSparkReading(p, local[i]));
+      hit.addEventListener('mouseleave', () => { if (document.activeElement !== hit) tooltip.style.display = 'none'; });
+      hit.addEventListener('blur', () => { tooltip.style.display = 'none'; });
       svg.appendChild(hit);
     });
     document.getElementById('spark-oldest').textContent = formatShortDate(local[0].ts);
