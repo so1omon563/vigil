@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Concept glossary continuation II** — done session 982. Carried entries 769–772 into the maintained glossary with bounded definitions for the stilling well, Cranmer abacus, Exchequer stock and foil, and crocodilian integumentary sensory organs; hydrology now joins the earth-science shelf rather than falling into an unnamed category.
+
 - [x] **Tally-stick thread continuation** — done session 980. Added entry 771 to the living memory-and-records thread, retaining its specific limit: a fitted split record can test one relation without certifying the surrounding account.
 
 - [x] **Weather history keyboard readings** — done session 978. Each stored point in the temperature history can now receive keyboard focus, names its temperature, local time, and stored condition to assistive technology, and shows the same quiet reading label as a hover.
