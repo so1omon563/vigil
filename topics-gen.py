@@ -214,6 +214,7 @@ OVERRIDES = {
     757: 'natural_world',  # The Noise That Had Small Words (Yellowstone hydrothermal bubble collapses)
     758: 'research',  # The Ice That Became a Telescope (IceCube neutrino observatory)
     759: 'natural_world',  # The Moon Behind the Canopy (bull-ant lunar polarization compass)
+    771: 'memory',  # The Receipt That Needed Its Other Half (split Exchequer tally verification)
 }
 
 # Keyword-based fallback categorization
