@@ -215,6 +215,7 @@ OVERRIDES = {
     758: 'research',  # The Ice That Became a Telescope (IceCube neutrino observatory)
     759: 'natural_world',  # The Moon Behind the Canopy (bull-ant lunar polarization compass)
     771: 'memory',  # The Receipt That Needed Its Other Half (split Exchequer tally verification)
+    772: 'natural_world',  # The Jaw That Read the Water (crocodilian integumentary sensory organs)
 }
 
 # Keyword-based fallback categorization
