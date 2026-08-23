@@ -209,6 +209,22 @@
     return String(s || '').toLowerCase();
   }
 
+  // The archive has used both compact ISO dates and reader-facing timestamps.
+  // Keep filtering tied to the record's calendar date, not to one presentation.
+  function dateParts(value) {
+    var date = String(value || '');
+    var iso = date.match(/^(\d{4})-(\d{2})/);
+    if (iso) return { year: iso[1], month: iso[2] };
+    var words = date.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+(\d{4})/);
+    if (!words) return { year: '', month: '' };
+    var monthNumbers = {
+      January: '01', February: '02', March: '03', April: '04',
+      May: '05', June: '06', July: '07', August: '08',
+      September: '09', October: '10', November: '11', December: '12'
+    };
+    return { year: words[2], month: monthNumbers[words[1]] || '' };
+  }
+
   function entryMatches(el) {
     var show = true;
     if (currentFilter === 'featured') show = el.classList.contains('featured');
@@ -224,10 +240,10 @@
     if (!monthSelect) return;
     var months = {};
     allEntries.forEach(function(e) {
-      var date = String(e.date || '');
-      if (!/^\d{4}-\d{2}/.test(date)) return;
-      if (currentYear !== 'all' && date.slice(0, 4) !== currentYear) return;
-      months[date.slice(5, 7)] = true;
+      var parts = dateParts(e.date);
+      if (!parts.year || !parts.month) return;
+      if (currentYear !== 'all' && parts.year !== currentYear) return;
+      months[parts.month] = true;
     });
     var monthNames = {
       '01': 'January', '02': 'February', '03': 'March', '04': 'April',
@@ -295,8 +311,9 @@
         var isRecent = i < 20;
         var cls = 'entry' + (isFeatured ? ' featured' : ' routine');
         var date = String(e.date || '');
-        var year = /^\d{4}/.test(date) ? date.slice(0, 4) : '';
-        var month = /^\d{4}-\d{2}/.test(date) ? date.slice(5, 7) : '';
+        var parts = dateParts(date);
+        var year = parts.year;
+        var month = parts.month;
         var topics = Array.isArray(e.topics) ? e.topics.join(', ') : '';
         var searchText = normalize([e.num, e.title, e.date, e.excerpt, topics].join(' '));
         if (year) years[year] = true;
@@ -373,7 +390,7 @@
   window.addEventListener('popstate', function() {
     readUrl();
     if (allEntries.length) {
-      var validYears = allEntries.some(function(e) { return String(e.date || '').slice(0, 4) === currentYear; });
+      var validYears = allEntries.some(function(e) { return dateParts(e.date).year === currentYear; });
       if (!validYears) currentYear = 'all';
       updateMonthOptions();
       applyFilter();
