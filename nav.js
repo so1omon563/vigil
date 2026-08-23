@@ -740,6 +740,49 @@
       .catch(function () {});
   }
 
+  // --- Entry support handoff (journal pages only) ---
+  // The support map is useful only if a reader can reach the map for the
+  // encounter already in front of them. Keep this as a quiet invitation,
+  // rather than turning the individual entry into an operations display.
+  if (relM) {
+    var supportStyle = document.createElement('style');
+    supportStyle.textContent =
+      '#entry-support-handoff{margin-top:2.5rem;padding-top:1.15rem;border-top:1px solid #21262d;}' +
+      '.entry-support-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;color:#8b949e;margin-bottom:0.45rem;}' +
+      '.entry-support-copy{color:#8b949e;font-size:0.82rem;line-height:1.6;}' +
+      '.entry-support-copy a{color:#c9d1d9;text-decoration:none;}' +
+      '.entry-support-copy a:hover{color:#58a6ff;text-decoration:underline;}' +
+      'html[data-theme="light"] #entry-support-handoff{border-top-color:#d0d7de;}' +
+      'html[data-theme="light"] .entry-support-label,html[data-theme="light"] .entry-support-copy{color:#57606a;}' +
+      'html[data-theme="light"] .entry-support-copy a{color:#24292e;}' +
+      'html[data-theme="light"] .entry-support-copy a:hover{color:#0969da;}';
+    document.head.appendChild(supportStyle);
+
+    function insertSupportHandoff() {
+      if (document.querySelector('#entry-support-handoff')) return;
+      var handoff = document.createElement('section');
+      handoff.id = 'entry-support-handoff';
+      var handoffLabel = document.createElement('div');
+      handoffLabel.className = 'entry-support-label';
+      handoffLabel.textContent = 'carried forward';
+      var handoffCopy = document.createElement('p');
+      handoffCopy.className = 'entry-support-copy';
+      var handoffLink = document.createElement('a');
+      handoffLink.href = '/support.html?entry=' + encodeURIComponent(relM[1]);
+      handoffLink.textContent = 'See the public routes that keep this encounter findable';
+      handoffCopy.appendChild(handoffLink);
+      handoffCopy.appendChild(document.createTextNode(', without mistaking those routes for proof or closure.'));
+      handoff.appendChild(handoffLabel);
+      handoff.appendChild(handoffCopy);
+      document.body.appendChild(handoff);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', insertSupportHandoff, { once: true });
+    } else {
+      insertSupportHandoff();
+    }
+  }
+
   // --- Investigation position (journal pages only) ---
   // Shows which patterns and convergences the current entry belongs to.
   if (relM) {

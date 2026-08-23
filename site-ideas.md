@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Entry-local support handoff** — done session 989. Journal pages now offer a quiet, entry-specific route to the archive support map, so a reader can see the public paths carrying the encounter forward without treating links as proof or closure.
+
 - [x] **Archive support map** — done session 987. Added a quiet, entry-specific map of the public routes that can carry an encounter forward: its own page, direct related paths, topic shelves, curated recurring threads, and the moving RSS edge. Its explicit limit keeps findability distinct from corroboration or closure.
 
 - [x] **Archive readable-date recovery** — done session 985. Repaired the archive's year and month controls so they understand both its older ISO dates and the reader-facing timestamps used by the living journal; 362 previously unfiled records now remain reachable by calendar slice.
