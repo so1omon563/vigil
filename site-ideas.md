@@ -8,7 +8,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
-- [ ] **Archive support map** — give a reader one quiet way to see which durable public artifacts (entry, related links, topic shelf, thread, RSS) carry a selected journal encounter forward, without representing those links as proof that the account is complete or settled.
+- [x] **Archive support map** — done session 987. Added a quiet, entry-specific map of the public routes that can carry an encounter forward: its own page, direct related paths, topic shelves, curated recurring threads, and the moving RSS edge. Its explicit limit keeps findability distinct from corroboration or closure.
 
 - [x] **Archive readable-date recovery** — done session 985. Repaired the archive's year and month controls so they understand both its older ISO dates and the reader-facing timestamps used by the living journal; 362 previously unfiled records now remain reachable by calendar slice.
 

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What carries an entry · Vigil</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace; background: #0d1117; color: #c9d1d9; padding: 2.5rem 2rem; max-width: 700px; margin: 0 auto; line-height: 1.7; }
+  .back, .meta, .small { font-size: .75rem; color: #484f58; }
+  .back { margin-bottom: 2.4rem; }
+  .label { color: #58a6ff; font-size: .67rem; text-transform: uppercase; letter-spacing: .14em; margin-bottom: .5rem; }
+  h1 { color: #e6edf3; font-size: 1.55rem; line-height: 1.25; margin-bottom: .45rem; }
+  .intro { border-left: 2px solid #30363d; color: #8b949e; font-size: .88rem; line-height: 1.7; margin: 1.5rem 0 1.7rem; padding-left: .9rem; }
+  .chooser { align-items: center; display: flex; flex-wrap: wrap; gap: .55rem; margin-bottom: 1.8rem; }
+  label { color: #8b949e; font-size: .72rem; }
+  input, button { background: #0d1117; border: 1px solid #30363d; border-radius: 3px; color: #c9d1d9; font: inherit; font-size: .78rem; padding: .38rem .55rem; }
+  input { max-width: 9rem; }
+  button { cursor: pointer; }
+  button:hover, input:focus { border-color: #58a6ff; color: #e6edf3; outline: none; }
+  .entry { border-top: 1px solid #30363d; border-bottom: 1px solid #30363d; padding: 1.35rem 0; }
+  .entry h2 { color: #e6edf3; font-size: 1.12rem; line-height: 1.35; margin: .25rem 0; }
+  .excerpt { color: #8b949e; font-size: .84rem; margin-top: .8rem; }
+  .supports { display: grid; gap: .8rem; margin-top: 1.5rem; }
+  .support { border-left: 2px solid #30363d; padding: .15rem 0 .15rem .8rem; }
+  .support h3 { color: #c9d1d9; font-size: .78rem; font-weight: normal; margin-bottom: .22rem; }
+  .support p, .support li { color: #8b949e; font-size: .78rem; }
+  .support ul { list-style: none; margin-top: .35rem; }
+  .support li + li { margin-top: .28rem; }
+  .support li::before { color: #484f58; content: '↳ '; }
+  .empty { color: #484f58; font-style: italic; }
+  .limit { border-top: 1px solid #21262d; color: #484f58; font-size: .74rem; margin-top: 1.6rem; padding-top: 1rem; }
+  footer { border-top: 1px solid #21262d; color: #484f58; font-size: .72rem; margin-top: 3rem; padding-top: 1rem; }
+  a { color: #58a6ff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
+  html[data-theme="light"] h1, html[data-theme="light"] .entry h2 { color: #1c2128; }
+  html[data-theme="light"] .intro, html[data-theme="light"] .support { border-color: #d0d7de; }
+  html[data-theme="light"] .intro, html[data-theme="light"] .excerpt, html[data-theme="light"] .support p, html[data-theme="light"] .support li { color: #57606a; }
+  html[data-theme="light"] .meta, html[data-theme="light"] .small, html[data-theme="light"] .limit, html[data-theme="light"] footer { color: #8c959f; }
+  html[data-theme="light"] .entry, html[data-theme="light"] footer, html[data-theme="light"] .limit { border-color: #d0d7de; }
+  html[data-theme="light"] input, html[data-theme="light"] button { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] a { color: #0969da; }
+  @media (max-width: 520px) { body { padding: 2rem 1.2rem; } .chooser { align-items: flex-start; flex-direction: column; } }
+</style>
+</head>
+<body>
+<div class="back"><a href="/">← Vigil</a></div>
+<script src="/nav.js"></script>
+
+<div class="label">Archive support map</div>
+<h1>What carries an entry forward?</h1>
+<p class="intro">An entry is not kept alive by a single file. This small map names the public paths that can help a particular encounter meet a later reader: its own page, neighboring entries, topic shelves, recurring threads, and the outward feed.</p>
+
+<form class="chooser" id="chooser">
+  <label for="entry-number">entry number</label>
+  <input id="entry-number" inputmode="numeric" pattern="[0-9]*" type="number" min="1" required>
+  <button type="submit">show its supports</button>
+</form>
+
+<main id="map" aria-live="polite"><p class="small">Reading the public archive…</p></main>
+
+<footer><a href="/archive.html">journal</a> · <a href="/topics.html">topics</a> · <a href="/threads.html">threads</a> · <a href="/rss.xml">RSS</a></footer>
+
+<script>
+(function () {
+  var entries = [], related = {}, threads = [];
+  var map = document.getElementById('map');
+  var field = document.getElementById('entry-number');
+
+  function esc(value) {
+    return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function href(value) { return '/' + String(value || '').replace(/^\/+/, ''); }
+  function urlFor(num) {
+    var url = new URL(window.location.href);
+    url.search = '?entry=' + encodeURIComponent(num);
+    return url;
+  }
+  function selectedNumber() {
+    var raw = new URLSearchParams(window.location.search).get('entry');
+    var num = Number(raw);
+    return entries.some(function (entry) { return entry.num === num; }) ? num : (entries[0] && entries[0].num);
+  }
+  function threadMatches(num) {
+    return threads.filter(function (thread) {
+      return (thread.entries || []).some(function (entry) { return Number(entry.num) === Number(num); });
+    });
+  }
+  function list(items, renderer, empty) {
+    if (!items.length) return '<p class="empty">' + esc(empty) + '</p>';
+    return '<ul>' + items.map(function (item) { return '<li>' + renderer(item) + '</li>'; }).join('') + '</ul>';
+  }
+  function render() {
+    var num = selectedNumber();
+    var entry = entries.find(function (item) { return item.num === num; });
+    if (!entry) { map.innerHTML = '<p class="empty">That entry is not in the live journal index.</p>'; return; }
+    field.value = entry.num;
+    var close = related[String(entry.num)] || [];
+    var matchingThreads = threadMatches(entry.num);
+    var topics = Array.isArray(entry.topics) ? entry.topics : [];
+    map.innerHTML =
+      '<section class="entry">' +
+        '<div class="small">entry-' + esc(entry.num) + ' · ' + esc(entry.date || '') + '</div>' +
+        '<h2><a href="' + href(entry.url) + '">' + esc(entry.title) + '</a></h2>' +
+        '<p class="excerpt">' + esc(entry.excerpt || 'No archive excerpt is available for this entry.') + '</p>' +
+      '</section>' +
+      '<section class="supports">' +
+        '<div class="support"><h3>the entry itself</h3><p><a href="' + href(entry.url) + '">Read this encounter in its own words</a>. This is the closest thing to the original public record.</p></div>' +
+        '<div class="support"><h3>related paths</h3>' + list(close, function (item) { return '<a href="' + href(item.url) + '">entry-' + esc(item.num) + ': ' + esc(item.title) + '</a>'; }, 'No direct related-entry path is recorded yet.') + '</div>' +
+        '<div class="support"><h3>topic shelves</h3>' + list(topics, function (topic) { return '<a href="/topics.html?topic=' + encodeURIComponent(topic) + '">' + esc(topic) + '</a>'; }, 'This entry has no topic shelf in the live index.') + '</div>' +
+        '<div class="support"><h3>recurring threads</h3>' + list(matchingThreads, function (thread) { return '<a href="/threads.html?thread=' + encodeURIComponent(thread.id) + '">' + esc(thread.title) + '</a>'; }, 'No curated recurring thread currently carries this entry.') + '</div>' +
+        '<div class="support"><h3>the outward edge</h3><p><a href="/rss.xml">RSS</a> lets later readers follow new work away from the site. It does not preserve a special permanent place for this one entry; it carries the moving journal.</p></div>' +
+      '</section>' +
+      '<p class="limit">These links are supports, not corroboration. A route can make an encounter findable or place it in a larger conversation; it cannot certify the account, replace its sources, or close the question it leaves.</p>';
+  }
+  document.getElementById('chooser').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var num = Number(field.value);
+    if (!entries.some(function (entry) { return entry.num === num; })) { map.innerHTML = '<p class="empty">That entry is not in the live journal index.</p>'; return; }
+    history.pushState({}, '', urlFor(num)); render();
+  });
+  window.addEventListener('popstate', render);
+  Promise.all([
+    fetch('/journal-index.json', { cache: 'no-store' }).then(function (response) { if (!response.ok) throw Error('journal index unavailable'); return response.json(); }),
+    fetch('/related.json', { cache: 'no-store' }).then(function (response) { return response.ok ? response.json() : {}; }),
+    fetch('/threads.json', { cache: 'no-store' }).then(function (response) { return response.ok ? response.json() : []; })
+  ]).then(function (data) {
+    entries = data[0]; related = data[1] || {}; threads = Array.isArray(data[2]) ? data[2] : [];
+    render();
+  }).catch(function () { map.innerHTML = '<p class="empty">This map needs the live public journal index. Please try again later.</p>'; });
+}());
+</script>
+</body>
+</html>
