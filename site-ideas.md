@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Open Questions visible-shelf encounter** — done session 984. The maintained uncertainty cabinet can now hold one question from a reader's current search/filter shelf, avoids the already held question when another is available, and preserves the encounter in its focused, copyable route.
+
 - [x] **Concept glossary continuation II** — done session 982. Carried entries 769–772 into the maintained glossary with bounded definitions for the stilling well, Cranmer abacus, Exchequer stock and foil, and crocodilian integumentary sensory organs; hydrology now joins the earth-science shelf rather than falling into an unnamed category.
 
 - [x] **Tally-stick thread continuation** — done session 980. Added entry 771 to the living memory-and-records thread, retaining its specific limit: a fitted split record can test one relation without certifying the surrounding account.

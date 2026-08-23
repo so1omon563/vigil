@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Open Questions · Vigil</title>
+<title>Open Questions · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -256,6 +256,7 @@
 
 <div class="search-row">
   <input class="gap-search" id="gap-search" type="search" placeholder="search questions, mechanisms, entries…" autocomplete="off" aria-label="Search open questions">
+  <button class="gap-action" id="hold-visible" type="button">hold a visible question</button>
   <button class="gap-action" id="reset-view" type="button">reset</button>
   <button class="gap-action" id="share-view" type="button">copy this view</button>
 </div>
@@ -421,6 +422,20 @@ document.getElementById('gap-search').addEventListener('input', event => {
   currentQuery = event.target.value;
   currentGapId = '';
   syncUrl(true);
+  render();
+});
+
+document.getElementById('hold-visible').addEventListener('click', event => {
+  const candidates = filteredGaps();
+  if (!candidates.length) {
+    event.currentTarget.textContent = 'no visible questions';
+    window.setTimeout(() => { event.currentTarget.textContent = 'hold a visible question'; }, 1400);
+    return;
+  }
+  const alternatives = candidates.filter(g => g.id !== currentGapId);
+  const pool = alternatives.length ? alternatives : candidates;
+  currentGapId = pool[Math.floor(Math.random() * pool.length)].id;
+  syncUrl(false);
   render();
 });
 
