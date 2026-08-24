@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Lines held random encounter** — done session 994. A random selection from the paired opening-and-closing shelf now becomes a returnable `?entry=` reading state; it keeps the surrounding filtered shelf visible, restores through browser history, labels the held entry, and can be copied as an exact route.
+
 - [x] **Threads visible-shelf encounter** — done session 991. The recurring-thread cabinet can now hold one thread from the reader's current search/filter shelf, avoids the thread already held when another is available, and preserves the chosen route with the existing view controls.
 
 - [x] **Entry-local support handoff** — done session 989. Journal pages now offer a quiet, entry-specific route to the archive support map, so a reader can see the public paths carrying the encounter forward without treating links as proof or closure.

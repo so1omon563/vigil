@@ -225,24 +225,25 @@
 
 <div class="controls">
   <input class="filter-input" id="filter-input" type="text" placeholder="search titles, first lines, last lines…" autocomplete="off" spellcheck="false">
-  <button class="btn" id="btn-random" title="jump to a random visible entry">random</button>
+  <button class="btn" id="btn-random" type="button" title="jump to a random visible entry">random</button>
+  <button class="btn" id="btn-copy" type="button">copy view</button>
 </div>
 
 <div class="button-row" id="mode-row">
-  <button class="btn active" data-mode="pair">paired</button>
-  <button class="btn" data-mode="first">first</button>
-  <button class="btn" data-mode="last">last</button>
-  <button class="btn" id="btn-clear" style="display:none">clear</button>
+  <button class="btn active" data-mode="pair" type="button">paired</button>
+  <button class="btn" data-mode="first" type="button">first</button>
+  <button class="btn" data-mode="last" type="button">last</button>
+  <button class="btn" id="btn-clear" type="button" style="display:none">clear</button>
 </div>
 
 <div class="topic-row" id="topic-row">
-  <button class="topic-btn active" data-topic="">all</button>
+  <button class="topic-btn active" data-topic="" type="button">all</button>
 </div>
 
 <div class="button-row" id="sort-row">
-  <button class="btn active" data-sort="newest">newest first</button>
-  <button class="btn" data-sort="oldest">oldest first</button>
-  <button class="btn" data-sort="line-length">longest visible line</button>
+  <button class="btn active" data-sort="newest" type="button">newest first</button>
+  <button class="btn" data-sort="oldest" type="button">oldest first</button>
+  <button class="btn" data-sort="line-length" type="button">longest visible line</button>
 </div>
 
 <div class="count-bar" id="count-bar">&nbsp;</div>
@@ -264,6 +265,9 @@
   var sortMode = 'newest';
   var filterText = '';
   var activeTopic = '';
+  // A chosen entry stays in the URL even though the surrounding shelf remains
+  // visible. A line is more useful when a reader can return to the encounter
+  // that brought them here, rather than only to a fresh random draw.
   var highlightedNum = -1;
 
   var listEl = document.getElementById('line-list');
@@ -309,14 +313,17 @@
     return safe;
   }
 
-  function updateUrl() {
+  function updateUrl(push) {
     var params = new URLSearchParams();
     if (mode !== 'pair') params.set('mode', mode);
     if (sortMode !== 'newest') params.set('sort', sortMode);
     if (activeTopic) params.set('topic', activeTopic);
     if (filterText.trim()) params.set('q', filterText.trim());
+    if (highlightedNum > 0) params.set('entry', highlightedNum);
     var query = params.toString();
-    history.replaceState(null, '', window.location.pathname + (query ? '?' + query : ''));
+    var url = window.location.pathname + (query ? '?' + query : '');
+    if (push) history.pushState(null, '', url);
+    else history.replaceState(null, '', url);
   }
 
   function applyFilters() {
@@ -351,6 +358,7 @@
     var row = document.getElementById('topic-row');
     Object.keys(counts).sort(function(a,b) { return counts[b] - counts[a] || a.localeCompare(b); }).forEach(function(t) {
       var btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'topic-btn';
       btn.dataset.topic = t;
       btn.title = counts[t] + ' entries';
@@ -381,9 +389,13 @@
   function render() {
     syncButtons();
     var q = filterText.toLowerCase().trim();
-    countEl.innerHTML = filtered.length === allEntries.length
+    var count = filtered.length === allEntries.length
       ? '<span>' + allEntries.length + '</span> entries'
       : '<span>' + filtered.length + '</span> of ' + allEntries.length + ' entries';
+    var held = allEntries.find(function(e) { return e.num === highlightedNum; });
+    countEl.innerHTML = held
+      ? count + ' <span class="line-label">· holding entry-' + String(held.num).padStart(3, '0') + '</span>'
+      : count;
 
     if (!filtered.length) {
       listEl.innerHTML = '<li class="empty">no entries match</li>';
@@ -408,10 +420,11 @@
     }).join('');
   }
 
-  function refresh() {
+  function refresh(push) {
     applyFilters();
+    if (highlightedNum > 0 && !allEntries.some(function(e) { return e.num === highlightedNum; })) highlightedNum = -1;
     render();
-    updateUrl();
+    updateUrl(push);
   }
 
   function loadParams() {
@@ -422,6 +435,8 @@
     if (['newest','oldest','line-length'].indexOf(nextSort) >= 0) sortMode = nextSort;
     activeTopic = params.get('topic') || '';
     filterText = params.get('q') || '';
+    var held = Number(params.get('entry'));
+    highlightedNum = Number.isInteger(held) && held > 0 ? held : -1;
     filterInput.value = filterText;
   }
 
@@ -429,13 +444,13 @@
     if (!ev.target.dataset.mode) return;
     mode = ev.target.dataset.mode;
     highlightedNum = -1;
-    refresh();
+    refresh(true);
   });
 
   document.getElementById('sort-row').addEventListener('click', function(ev) {
     if (!ev.target.dataset.sort) return;
     sortMode = ev.target.dataset.sort;
-    refresh();
+    refresh(true);
   });
 
   document.getElementById('topic-row').addEventListener('click', function(ev) {
@@ -443,13 +458,13 @@
     var topic = ev.target.dataset.topic;
     activeTopic = activeTopic === topic ? '' : topic;
     highlightedNum = -1;
-    refresh();
+    refresh(true);
   });
 
   filterInput.addEventListener('input', function() {
     filterText = filterInput.value;
     highlightedNum = -1;
-    refresh();
+    refresh(false);
   });
 
   document.getElementById('btn-clear').addEventListener('click', function() {
@@ -459,7 +474,7 @@
     filterText = '';
     highlightedNum = -1;
     filterInput.value = '';
-    refresh();
+    refresh(true);
     filterInput.focus();
   });
 
@@ -472,9 +487,30 @@
       tries++;
     } while (next === highlightedNum && filtered.length > 1 && tries < 10);
     highlightedNum = next;
-    render();
+    refresh(true);
     var el = document.querySelector('.line-item.highlighted');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function() {
+    var button = this;
+    var label = button.textContent;
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(window.location.href).then(function() {
+      button.textContent = 'copied';
+      window.setTimeout(function() { button.textContent = label; }, 1200);
+    }).catch(function() {
+      button.textContent = 'copy unavailable';
+      window.setTimeout(function() { button.textContent = label; }, 1200);
+    });
+  });
+
+  window.addEventListener('popstate', function() {
+    loadParams();
+    applyFilters();
+    render();
+    var held = document.querySelector('.line-item.highlighted');
+    if (held) held.scrollIntoView({ block: 'center' });
   });
 
   Promise.all([
