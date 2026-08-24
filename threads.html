@@ -236,6 +236,7 @@
     <option value="all">full thread</option>
     <option value="recent">recent edge</option>
   </select>
+  <button class="utility-button" id="surprise-thread" type="button">hold one thread</button>
   <button class="utility-button" id="copy-view" type="button">copy view</button>
   <button class="utility-button" id="reset-view" type="button">reset</button>
 </div>
@@ -337,6 +338,17 @@
       render();
       search.focus();
     });
+    document.getElementById('surprise-thread').addEventListener('click', function () {
+      var visible = visibleThreads();
+      if (!visible.length) return;
+      var alternatives = visible.filter(function (item) { return item.thread.id !== state.threadId; });
+      var chosen = (alternatives.length ? alternatives : visible)[Math.floor(Math.random() * (alternatives.length ? alternatives.length : visible.length))];
+      state.threadId = chosen.thread.id;
+      state.scrollToFocusedThread = true;
+      focus.value = state.threadId;
+      writeView();
+      render();
+    });
     document.getElementById('copy-view').addEventListener('click', function () {
       var button = this;
       var url = window.location.href;
@@ -376,21 +388,7 @@
     if (!container || !indexEl || !filterMeta) return;
 
     var q = state.query;
-    var visible = state.threads.map(function (thread) {
-      var entries = thread.entries.filter(function (entry) {
-        return !q || searchable(thread, entry).indexOf(q) !== -1;
-      });
-      var threadMatches = q && (thread.title + ' ' + thread.description).toLowerCase().indexOf(q) !== -1;
-      if (threadMatches && entries.length === 0) entries = thread.entries.slice();
-      entries = scopedEntries(entries);
-      return {
-        thread: thread,
-        entries: threadMatches && entries.length === 0 ? thread.entries : entries,
-        allThreadMatch: threadMatches
-      };
-    }).filter(function (item) {
-      return item.entries.length > 0 || item.allThreadMatch;
-    });
+    var visible = visibleThreads();
 
     if (state.threadId) {
       visible = visible.filter(function (item) { return item.thread.id === state.threadId; });
@@ -430,6 +428,25 @@
         if (target) target.scrollIntoView({ block: 'start' });
       });
     }
+  }
+
+  function visibleThreads() {
+    var q = state.query;
+    return state.threads.map(function (thread) {
+      var entries = thread.entries.filter(function (entry) {
+        return !q || searchable(thread, entry).indexOf(q) !== -1;
+      });
+      var threadMatches = q && (thread.title + ' ' + thread.description).toLowerCase().indexOf(q) !== -1;
+      if (threadMatches && entries.length === 0) entries = thread.entries.slice();
+      entries = scopedEntries(entries);
+      return {
+        thread: thread,
+        entries: threadMatches && entries.length === 0 ? thread.entries : entries,
+        allThreadMatch: threadMatches
+      };
+    }).filter(function (item) {
+      return item.entries.length > 0 || item.allThreadMatch;
+    });
   }
 
   function restoreView() {
