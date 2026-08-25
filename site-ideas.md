@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Archive support map return controls** — done session 1001. The entry-specific support map can now return to the newest encounter or copy its exact public route, so a reader can leave a particular map deliberately without treating its links as proof.
+
 - [x] **Genetic-drift returnable experiments** — done session 998. The Wright–Fisher simulator now keeps population size, replicate count, and starting frequency in a compact URL when run; browser history restores the chosen experiment, while reset and copy controls keep a particular comparison from disappearing into a fresh random draw.
 
 - [x] **First lines held encounter** — done session 997. The opening-line shelf now keeps its topic, query, ordering, and a single held visible entry in a compact URL; browser history restores that reading, and a copy action preserves it as a quiet path back to the surrounding archive.

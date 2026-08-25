@@ -18,6 +18,8 @@
   input { max-width: 9rem; }
   button { cursor: pointer; }
   button:hover, input:focus { border-color: #58a6ff; color: #e6edf3; outline: none; }
+  .map-actions { align-items: center; display: flex; flex-wrap: wrap; gap: .55rem; margin: -.95rem 0 1.8rem; }
+  .action-note { color: #484f58; font-size: .72rem; min-height: 1.2em; }
   .entry { border-top: 1px solid #30363d; border-bottom: 1px solid #30363d; padding: 1.35rem 0; }
   .entry h2 { color: #e6edf3; font-size: 1.12rem; line-height: 1.35; margin: .25rem 0; }
   .excerpt { color: #8b949e; font-size: .84rem; margin-top: .8rem; }
@@ -57,6 +59,11 @@
   <input id="entry-number" inputmode="numeric" pattern="[0-9]*" type="number" min="1" required>
   <button type="submit">show its supports</button>
 </form>
+<div class="map-actions" aria-label="Archive support map actions">
+  <button type="button" id="latest">newest encounter</button>
+  <button type="button" id="copy-view">copy this map</button>
+  <span class="action-note" id="action-note" aria-live="polite"></span>
+</div>
 
 <main id="map" aria-live="polite"><p class="small">Reading the public archive…</p></main>
 
@@ -67,6 +74,7 @@
   var entries = [], related = {}, threads = [];
   var map = document.getElementById('map');
   var field = document.getElementById('entry-number');
+  var actionNote = document.getElementById('action-note');
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -76,6 +84,10 @@
     var url = new URL(window.location.href);
     url.search = '?entry=' + encodeURIComponent(num);
     return url;
+  }
+  function moveTo(num) {
+    history.pushState({}, '', urlFor(num));
+    render();
   }
   function selectedNumber() {
     var raw = new URLSearchParams(window.location.search).get('entry');
@@ -118,7 +130,24 @@
     event.preventDefault();
     var num = Number(field.value);
     if (!entries.some(function (entry) { return entry.num === num; })) { map.innerHTML = '<p class="empty">That entry is not in the live journal index.</p>'; return; }
-    history.pushState({}, '', urlFor(num)); render();
+    moveTo(num);
+  });
+  document.getElementById('latest').addEventListener('click', function () {
+    if (entries[0]) moveTo(entries[0].num);
+  });
+  document.getElementById('copy-view').addEventListener('click', function () {
+    var num = selectedNumber();
+    if (!num) return;
+    var link = String(urlFor(num));
+    function done() {
+      actionNote.textContent = 'map link copied';
+      window.setTimeout(function () { actionNote.textContent = ''; }, 1800);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(done, function () { actionNote.textContent = 'copy unavailable here'; });
+    } else {
+      actionNote.textContent = 'copy unavailable here';
+    }
   });
   window.addEventListener('popstate', render);
   Promise.all([
