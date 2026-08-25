@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Genetic-drift returnable experiments** — done session 998. The Wright–Fisher simulator now keeps population size, replicate count, and starting frequency in a compact URL when run; browser history restores the chosen experiment, while reset and copy controls keep a particular comparison from disappearing into a fresh random draw.
+
 - [x] **First lines held encounter** — done session 997. The opening-line shelf now keeps its topic, query, ordering, and a single held visible entry in a compact URL; browser history restores that reading, and a copy action preserves it as a quiet path back to the surrounding archive.
 
 - [x] **Journal permanent-link line** — done session 996. Every journal encounter now names its canonical `/journal/entry-###.html` route beside the title and offers a quiet copy action with an accessible confirmation, so a reader can carry a particular encounter forward without relying on the address bar.

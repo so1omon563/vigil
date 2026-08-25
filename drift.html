@@ -128,6 +128,26 @@
   }
   .run-btn:hover { background: #388bfd; }
   .run-btn:disabled { background: #21262d; border-color: #30363d; color: #484f58; cursor: default; }
+  .view-actions {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    margin: -0.25rem 0 1.5rem;
+  }
+  .view-action {
+    font-family: inherit;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+  }
+  .view-action:hover, .view-action:focus { color: #58a6ff; border-color: #58a6ff; outline: none; }
+  .view-note { font-size: 0.7rem; color: #484f58; min-height: 1em; }
 
   /* Stats */
   .stats-row {
@@ -210,6 +230,7 @@
   html[data-theme="light"] .explainer strong { color: #24292e; }
   html[data-theme="light"] .formula { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .preset-btn { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] input[type="range"] { background: #d0d7de; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] .section-label { border-color: #d0d7de; }
@@ -261,6 +282,12 @@
   </div>
 
   <button class="run-btn" id="runBtn">Run</button>
+</div>
+
+<div class="view-actions" aria-label="Experiment link controls">
+  <button class="view-action" type="button" id="resetView">reset</button>
+  <button class="view-action" type="button" id="copyView">copy experiment</button>
+  <span class="view-note" id="viewNote" aria-live="polite"></span>
 </div>
 
 <div class="stats-row">
@@ -347,6 +374,55 @@
   var p0Slider = document.getElementById('p0Slider');
   var repsVal = document.getElementById('repsVal');
   var p0Val = document.getElementById('p0Val');
+  var resetView = document.getElementById('resetView');
+  var copyView = document.getElementById('copyView');
+  var viewNote = document.getElementById('viewNote');
+  var DEFAULTS = { pop: 100, reps: 30, p: 0.5 };
+
+  function validOneOf(value, choices, fallback) {
+    return choices.indexOf(value) !== -1 ? value : fallback;
+  }
+
+  function readState() {
+    var params = new URLSearchParams(window.location.search);
+    var pop = validOneOf(parseInt(params.get('pop'), 10), [20, 100, 500, 2000], DEFAULTS.pop);
+    var reps = parseInt(params.get('reps'), 10);
+    if (!Number.isFinite(reps) || reps < 5 || reps > 80 || reps % 5 !== 0) reps = DEFAULTS.reps;
+    var p = parseFloat(params.get('p'));
+    if (!Number.isFinite(p) || p < 0.05 || p > 0.95 || Math.round(p * 100) % 5 !== 0) p = DEFAULTS.p;
+    return { pop: pop, reps: reps, p: Math.round(p * 100) / 100 };
+  }
+
+  function applyState(state) {
+    popSize = state.pop;
+    replicates = state.reps;
+    p0 = state.p;
+    repsSlider.value = replicates;
+    p0Slider.value = p0.toFixed(2);
+    repsVal.textContent = replicates;
+    p0Val.textContent = p0.toFixed(2);
+    document.querySelectorAll('.preset-btn[data-pop]').forEach(function (button) {
+      button.classList.toggle('active', parseInt(button.dataset.pop, 10) === popSize);
+    });
+  }
+
+  function stateFromControls() {
+    return { pop: popSize, reps: parseInt(repsSlider.value, 10), p: parseFloat(p0Slider.value) };
+  }
+
+  function writeState(state, replace) {
+    var params = new URLSearchParams();
+    if (state.pop !== DEFAULTS.pop) params.set('pop', state.pop);
+    if (state.reps !== DEFAULTS.reps) params.set('reps', state.reps);
+    if (state.p !== DEFAULTS.p) params.set('p', state.p.toFixed(2));
+    var next = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+    if (replace) window.history.replaceState(null, '', next);
+    else window.history.pushState(null, '', next);
+  }
+
+  function describeState(state) {
+    return 'N=' + state.pop + ' · ' + state.reps + ' paths · p₀=' + state.p.toFixed(2);
+  }
 
   // Preset population buttons
   document.querySelectorAll('.preset-btn[data-pop]').forEach(function (btn) {
@@ -354,20 +430,51 @@
       document.querySelectorAll('.preset-btn[data-pop]').forEach(function (b) { b.classList.remove('active'); });
       btn.classList.add('active');
       popSize = parseInt(btn.dataset.pop);
+      viewNote.textContent = describeState(stateFromControls());
     });
   });
 
   repsSlider.addEventListener('input', function () {
     replicates = parseInt(repsSlider.value);
     repsVal.textContent = replicates;
+    viewNote.textContent = describeState(stateFromControls());
   });
 
   p0Slider.addEventListener('input', function () {
     p0 = parseFloat(p0Slider.value);
     p0Val.textContent = p0.toFixed(2);
+    viewNote.textContent = describeState(stateFromControls());
   });
 
   runBtn.addEventListener('click', function () {
+    writeState(stateFromControls(), false);
+    startSim();
+  });
+
+  resetView.addEventListener('click', function () {
+    applyState(DEFAULTS);
+    writeState(DEFAULTS, false);
+    viewNote.textContent = 'Returned to the starting experiment.';
+    startSim();
+  });
+
+  copyView.addEventListener('click', function () {
+    var state = stateFromControls();
+    writeState(state, true);
+    var link = window.location.href;
+    function copied() {
+      viewNote.textContent = 'Experiment link copied.';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(copied).catch(function () { viewNote.textContent = link; });
+    } else {
+      viewNote.textContent = link;
+    }
+  });
+
+  window.addEventListener('popstate', function () {
+    applyState(readState());
+    viewNote.textContent = 'Restored ' + describeState(stateFromControls()) + '.';
     startSim();
   });
 
@@ -664,6 +771,9 @@
       document.getElementById('statFixTime').textContent = simComplete ? 'none' : '…';
     }
   }
+
+  applyState(readState());
+  viewNote.textContent = describeState(stateFromControls());
 
   // Initial blank canvas
   drawFrame();
