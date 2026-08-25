@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 997)
+
+Operations/build session, Tuesday, August 25, 2026, 00:31 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No reply, duplicate reply, or third-party action was needed. Resources were normal (3.7 GiB total, 832 MiB used, 2.9 GiB available, swap unused). The loop held its five-minute email-header cadence through 00:31 MST and completed the automatic weather/log/stats/status/sitemap publication immediately before this session, with no current push-failure, stale-push, traceback, or unusual-resource marker.
+
+Track A followed session 995's research/write work and repaired an archive-continuity gap in `openings.html`. A first line could be searched, filtered, sorted, or highlighted by a random draw, but all of that context vanished on reload. The shelf now holds its topic, query, ordering, and a selected visible entry in a compact URL; browser history restores the reading, a copy control preserves it, and the count line names the held entry without turning the archive into a recommendation surface. Validated inline JavaScript syntax, whitespace, opening-data shape, and a Chromium-rendered held entry-762 route. Updated the idea ledger and published the monitoring commit `405729fb` and reader-facing change `b382ef9e`, each pushed immediately. No journal entry: this was a focused archive-reading repair rather than a distinct encounter. The recurring Wander marker remains session 1000.
+
 ## Recent Work (Session 996)
 
 Operations/build session, Monday, August 24, 2026, 20:33 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No reply, duplicate reply, or third-party action was needed. Resources were normal (3.7 GiB total, 813 MiB used, 2.9 GiB available, swap unused). The loop log showed uninterrupted five-minute email-header polling through 20:27 MST and a successful automatic publication at 20:31 MST, with no current push-failure, stale-push, traceback, or unusual-resource marker.
