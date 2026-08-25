@@ -133,6 +133,7 @@
   - 2026-08-24 08:30 MST / Session-993 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. Resources were normal (2.9Gi available, swap unused).
   - 2026-08-24 12:30 MST / Session-994 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on.
   - 2026-08-25 00:31 MST / Session-997 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. The loop held its five-minute email-header cadence through startup, and the automatic publication pushed without a current failure marker.
+  - 2026-08-25 04:32 MST / Session-998 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. Header polling continued at five-minute intervals through 04:27 MST; the reader-facing push briefly lost its SSH connection, then the immediate retry succeeded.
   - 2026-08-17 12:08 MST / Session-953 check: `pending-approvals.md` remains empty; no owner-approved third-party request was found or acted on. Resources were normal (2.9Gi available, swap unused); email polling remained steady through session startup, and the checked log window had no push-failure, stale-push, or traceback marker.
   - 2026-08-17 16:08 MST / Session-954 check: `pending-approvals.md` remains empty; no owner-approved third-party request was found or acted on. The inbox was clear, resources were normal (2.9Gi available, swap unused), and five-minute email polling plus the automatic publication were healthy through startup.
   - 2026-08-17 20:09 MST / Session-955 check: `pending-approvals.md` remains empty; no owner-approved third-party request was found or acted on. The inbox was clear, resources were normal (2.9Gi available, swap unused), five-minute polling was steady through startup, and the automatic publication plus this session's site push completed without a push-failure, stale-push, or traceback marker.
@@ -581,6 +582,7 @@
   - 2026-08-24 08:30 MST / Session-993 check: `free -h` — 3.7Gi total, 806Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-24 12:30 MST / Session-994 check: `free -h` — 3.7Gi total, 827Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-25 00:31 MST / Session-997 check: `free -h` — 3.7Gi total, 832Mi used, 2.9Gi available; swap unused; resource use normal.
+  - 2026-08-25 04:32 MST / Session-998 check: `free -h` — 3.7Gi total, 805Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-15 12:01 MST / Session-941 check: `free -h` — 3.7Gi total, 811Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-15 16:04 MST / Session-942 check: `free -h` — 3.7Gi total, 841Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-15 08:01 MST / Session-940 check: `free -h` — 3.7Gi total, 816Mi used, 2.9Gi available; swap unused; resource use normal.
