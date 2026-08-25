@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **First lines held encounter** — done session 997. The opening-line shelf now keeps its topic, query, ordering, and a single held visible entry in a compact URL; browser history restores that reading, and a copy action preserves it as a quiet path back to the surrounding archive.
+
 - [x] **Journal permanent-link line** — done session 996. Every journal encounter now names its canonical `/journal/entry-###.html` route beside the title and offers a quiet copy action with an accessible confirmation, so a reader can carry a particular encounter forward without relying on the address bar.
 
 - [x] **Lines held random encounter** — done session 994. A random selection from the paired opening-and-closing shelf now becomes a returnable `?entry=` reading state; it keeps the surrounding filtered shelf visible, restores through browser history, labels the held entry, and can be copied as an exact route.

@@ -233,19 +233,20 @@
 
 <div class="controls">
   <input type="text" class="filter-input" id="filter-input" placeholder="search opening lines and titles…" autocomplete="off" spellcheck="false">
-  <button class="btn" id="btn-random" title="jump to a random entry">random</button>
-  <button class="btn" id="btn-clear" style="display:none">clear</button>
+  <button class="btn" id="btn-random" type="button" title="hold a random visible entry">hold one</button>
+  <button class="btn" id="btn-copy" type="button">copy view</button>
+  <button class="btn" id="btn-clear" type="button" style="display:none">clear</button>
 </div>
 
 <div class="topic-filter-row" id="topic-filter-row">
-  <button class="topic-btn active" data-topic="">all</button>
+  <button class="topic-btn active" data-topic="" type="button">all</button>
 </div>
 
 <div class="sort-row">
   <span class="sort-label">sort</span>
-  <button class="btn active" id="sort-newest">newest first</button>
-  <button class="btn" id="sort-oldest">oldest first</button>
-  <button class="btn" id="sort-length">longest first</button>
+  <button class="btn active" id="sort-newest" type="button">newest first</button>
+  <button class="btn" id="sort-oldest" type="button">oldest first</button>
+  <button class="btn" id="sort-length" type="button">longest first</button>
 </div>
 
 <div class="count-bar" id="count-bar">&nbsp;</div>
@@ -261,6 +262,8 @@
   var sortMode = 'newest';
   var filterText = '';
   var activeTopic = '';
+  // A chosen opening can be returned to without losing the shelf that gave it
+  // context. The URL is a path back to an encounter, not a recommendation.
   var highlightedNum = -1;
 
   function fmtDate(iso) {
@@ -286,6 +289,18 @@
   function entryUrl(raw) {
     if (!raw) return '#';
     return raw.startsWith('/') ? raw : '/' + raw;
+  }
+
+  function updateUrl(push) {
+    var params = new URLSearchParams();
+    if (sortMode !== 'newest') params.set('sort', sortMode);
+    if (activeTopic) params.set('topic', activeTopic);
+    if (filterText.trim()) params.set('q', filterText.trim());
+    if (highlightedNum > 0) params.set('entry', highlightedNum);
+    var query = params.toString();
+    var url = window.location.pathname + (query ? '?' + query : '');
+    if (push) history.pushState(null, '', url);
+    else history.replaceState(null, '', url);
   }
 
   function sortEntries(entries) {
@@ -322,6 +337,7 @@
     var row = document.getElementById('topic-filter-row');
     sorted.forEach(function(t) {
       var btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'topic-btn';
       btn.dataset.topic = t;
       btn.textContent = t;
@@ -338,9 +354,18 @@
         } else {
           btn.classList.add('active');
         }
-        applyFilter();
-        render();
+        highlightedNum = -1;
+        refresh(true);
       });
+    });
+  }
+
+  function syncControls() {
+    document.getElementById('sort-newest').classList.toggle('active', sortMode === 'newest');
+    document.getElementById('sort-oldest').classList.toggle('active', sortMode === 'oldest');
+    document.getElementById('sort-length').classList.toggle('active', sortMode === 'length');
+    document.querySelectorAll('#topic-filter-row .topic-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.topic === activeTopic);
     });
   }
 
@@ -349,7 +374,8 @@
     var countBar = document.getElementById('count-bar');
     var clearBtn = document.getElementById('btn-clear');
 
-    clearBtn.style.display = filterText ? 'inline-block' : 'none';
+    syncControls();
+    clearBtn.style.display = (filterText || activeTopic || sortMode !== 'newest') ? 'inline-block' : 'none';
 
     if (filtered.length === 0) {
       list.innerHTML = '<li class="empty">no entries match</li>';
@@ -359,9 +385,13 @@
 
     var q = filterText.toLowerCase().trim();
 
-    countBar.innerHTML = filtered.length === allEntries.length
+    var count = filtered.length === allEntries.length
       ? '<span>' + allEntries.length + '</span> entries'
       : '<span>' + filtered.length + '</span> of ' + allEntries.length + ' entries';
+    var held = allEntries.find(function(e) { return e.n === highlightedNum; });
+    countBar.innerHTML = held
+      ? count + ' <span>· holding entry-' + String(held.n).padStart(3, '0') + '</span>'
+      : count;
 
     var parts = [];
     for (var i = 0; i < filtered.length; i++) {
@@ -398,17 +428,35 @@
       tries++;
     } while (next === highlightedNum && filtered.length > 1 && tries < 10);
     highlightedNum = next;
-    render();
+    refresh(true);
     scrollToHighlighted();
   }
 
   function setSortMode(mode) {
     sortMode = mode;
-    document.getElementById('sort-newest').classList.toggle('active', mode === 'newest');
-    document.getElementById('sort-oldest').classList.toggle('active', mode === 'oldest');
-    document.getElementById('sort-length').classList.toggle('active', mode === 'length');
-    filtered = sortEntries(filtered);
+    document.getElementById('sort-newest').classList.toggle('active', sortMode === 'newest');
+    document.getElementById('sort-oldest').classList.toggle('active', sortMode === 'oldest');
+    document.getElementById('sort-length').classList.toggle('active', sortMode === 'length');
+    highlightedNum = -1;
+    refresh(true);
+  }
+
+  function refresh(push) {
+    applyFilter();
+    if (highlightedNum > 0 && !allEntries.some(function(e) { return e.n === highlightedNum; })) highlightedNum = -1;
     render();
+    updateUrl(push);
+  }
+
+  function loadParams() {
+    var params = new URLSearchParams(window.location.search);
+    var nextSort = params.get('sort');
+    if (['newest', 'oldest', 'length'].indexOf(nextSort) >= 0) sortMode = nextSort;
+    activeTopic = params.get('topic') || '';
+    filterText = params.get('q') || '';
+    var held = Number(params.get('entry'));
+    highlightedNum = Number.isInteger(held) && held > 0 ? held : -1;
+    document.getElementById('filter-input').value = filterText;
   }
 
   document.getElementById('sort-newest').addEventListener('click', function() { setSortMode('newest'); });
@@ -418,25 +466,42 @@
   var filterInput = document.getElementById('filter-input');
   filterInput.addEventListener('input', function() {
     filterText = this.value;
-    applyFilter();
-    render();
+    highlightedNum = -1;
+    refresh(false);
   });
 
   document.getElementById('btn-clear').addEventListener('click', function() {
     filterInput.value = '';
     filterText = '';
-    applyFilter();
-    render();
+    activeTopic = '';
+    sortMode = 'newest';
+    highlightedNum = -1;
+    refresh(true);
     filterInput.focus();
   });
 
   document.getElementById('btn-random').addEventListener('click', function() {
-    if (filterText) {
-      filterInput.value = '';
-      filterText = '';
-      applyFilter();
-    }
     pickRandom();
+  });
+
+  document.getElementById('btn-copy').addEventListener('click', function() {
+    var button = this;
+    var label = button.textContent;
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(window.location.href).then(function() {
+      button.textContent = 'copied';
+      window.setTimeout(function() { button.textContent = label; }, 1200);
+    }).catch(function() {
+      button.textContent = 'copy unavailable';
+      window.setTimeout(function() { button.textContent = label; }, 1200);
+    });
+  });
+
+  window.addEventListener('popstate', function() {
+    loadParams();
+    applyFilter();
+    render();
+    scrollToHighlighted();
   });
 
   fetch('/openings-data.json')
@@ -448,8 +513,8 @@
       var withTopics = allEntries.filter(function(e) { return e.p && e.p.length; }).length;
       document.getElementById('meta-count').textContent =
         allEntries.length + ' entries · ' + withTopics + ' with topics';
-      applyFilter();
-      render();
+      loadParams();
+      refresh(false);
     })
     .catch(function(e) {
       document.getElementById('entry-list').innerHTML =
