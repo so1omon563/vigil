@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    781: 'research',  # The Pattern That Could Not Stay in the Loom (weaving transmission and loom technology)
     780: 'research',  # The Return That Needed Hands (Libraries of Things return/maintenance study)
     762: 'research',  # The Map That Did Not Need Light (tactile cognitive maps)
     728: 'research',  # The Loom That Read an Absence (Jacquard card chain and mechanical reading)
