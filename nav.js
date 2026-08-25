@@ -583,6 +583,71 @@
   // --- Related entries (journal pages only) ---
   var relM = window.location.pathname.match(/\/(?:journal\/)?entry-(\d+)(?:\.html)?$/i);
   if (relM) {
+    // An entry is already a stable page, but the address bar is an easy thing to
+    // overlook when arriving through a search result or a related path. Keep one
+    // quiet, reader-facing citation line near the encounter itself.
+    var citationStyle = document.createElement('style');
+    citationStyle.textContent =
+      '.journal-citation{display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;margin:0.65rem 0 1.1rem;font-size:0.72rem;color:#8b949e;}' +
+      '.journal-citation-label{text-transform:uppercase;letter-spacing:0.12em;color:#58a6ff;}' +
+      '.journal-citation-link{color:#8b949e;text-decoration:none;overflow-wrap:anywhere;}' +
+      '.journal-citation-link:hover{color:#c9d1d9;text-decoration:underline;}' +
+      '.journal-citation-copy{font:inherit;font-size:0.68rem;color:#8b949e;background:transparent;border:1px solid #30363d;border-radius:3px;padding:0.2rem 0.45rem;cursor:pointer;}' +
+      '.journal-citation-copy:hover{color:#58a6ff;border-color:#58a6ff;}' +
+      '.journal-citation-status{min-height:1em;color:#8b949e;}' +
+      'html[data-theme="light"] .journal-citation{color:#57606a;}' +
+      'html[data-theme="light"] .journal-citation-label{color:#0969da;}' +
+      'html[data-theme="light"] .journal-citation-link{color:#57606a;}' +
+      'html[data-theme="light"] .journal-citation-link:hover{color:#24292e;}' +
+      'html[data-theme="light"] .journal-citation-copy{color:#57606a;border-color:#d0d7de;}' +
+      'html[data-theme="light"] .journal-citation-copy:hover{color:#0969da;border-color:#0969da;}';
+    document.head.appendChild(citationStyle);
+
+    function addJournalCitation() {
+      if (document.querySelector('.journal-citation')) return;
+      var heading = document.querySelector('article h1, h1');
+      if (!heading || !heading.parentNode) return;
+      var canonical = window.location.origin + '/journal/entry-' + relM[1] + '.html';
+      var citation = document.createElement('div');
+      citation.className = 'journal-citation';
+      citation.setAttribute('aria-label', 'Permanent link for this journal entry');
+      var label = document.createElement('span');
+      label.className = 'journal-citation-label';
+      label.textContent = 'permanent link';
+      var link = document.createElement('a');
+      link.className = 'journal-citation-link';
+      link.href = canonical;
+      link.textContent = '/journal/entry-' + relM[1] + '.html';
+      var copy = document.createElement('button');
+      copy.className = 'journal-citation-copy';
+      copy.type = 'button';
+      copy.textContent = 'copy link';
+      var status = document.createElement('span');
+      status.className = 'journal-citation-status';
+      status.setAttribute('aria-live', 'polite');
+      copy.addEventListener('click', function () {
+        function done(message) {
+          status.textContent = message;
+          window.setTimeout(function () { status.textContent = ''; }, 2200);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(canonical).then(function () { done('link copied'); }, function () { done('copy unavailable — use the link'); });
+        } else {
+          done('copy unavailable — use the link');
+        }
+      });
+      citation.appendChild(label);
+      citation.appendChild(link);
+      citation.appendChild(copy);
+      citation.appendChild(status);
+      heading.parentNode.insertBefore(citation, heading.nextSibling);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', addJournalCitation, { once: true });
+    } else {
+      addJournalCitation();
+    }
+
     var fieldStyle = document.createElement('style');
     fieldStyle.textContent =
       '.journal-field-note{border-left:2px solid #58a6ff;padding:0.75rem 0 0.75rem 0.9rem;' +
