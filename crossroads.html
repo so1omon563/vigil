@@ -208,11 +208,13 @@
       <button class="filter-btn active" data-filter="all">all threads</button>
     </div>
     <div>
+      <button class="filter-action" id="hold-crossing" type="button">hold one</button>
       <button class="filter-action" id="reset-view" type="button">reset</button>
       <button class="filter-action" id="share-view" type="button">copy this view</button>
     </div>
   </div>
   <div class="count-note" id="count-note">Loading intersections…</div>
+  <div class="count-note" id="focus-note" hidden></div>
   <div class="entry-list" id="entry-list">
     <!-- filled by JS -->
   </div>
@@ -256,6 +258,7 @@ const THREAD_SHORT = {
 let allEntries = [];
 let allThreads = [];
 let activeFilter = 'all';
+let heldEntry = '';
 
 function shortLabel(id) {
   return THREAD_SHORT[id] || id.replace(/-/g, ' ');
@@ -265,11 +268,13 @@ function setUrl(filter, replace) {
   const url = new URL(window.location.href);
   url.searchParams.delete('thread');
   url.searchParams.delete('pair');
+  url.searchParams.delete('entry');
   if (filter.indexOf('pair:') === 0) {
     url.searchParams.set('pair', filter.slice(5));
   } else if (filter !== 'all') {
     url.searchParams.set('thread', filter);
   }
+  if (heldEntry) url.searchParams.set('entry', heldEntry);
   window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search + url.hash);
 }
 
@@ -284,6 +289,11 @@ function filterFromUrl() {
     }
   }
   return thread && allThreads.some(t => t.id === thread) ? thread : 'all';
+}
+
+function heldFromUrl() {
+  const entry = new URLSearchParams(window.location.search).get('entry');
+  return allEntries.some(function (item) { return String(item.num) === entry; }) ? entry : '';
 }
 
 async function init() {
@@ -316,6 +326,7 @@ async function init() {
   buildFilterBar(threadData, allEntries);
   document.getElementById('crossroads-meta').textContent =
     allEntries.length + ' entries at the intersection of two or more threads · ' + indexData.length + ' journal entries';
+  heldEntry = heldFromUrl();
   applyFilter(filterFromUrl(), true);
 }
 
@@ -452,9 +463,21 @@ function renderEntries(entries, updateCount = true) {
       note.textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'} in "${t ? t.title : shortLabel(activeFilter)}"`;
     }
   }
+  const focusNote = document.getElementById('focus-note');
+  const held = entries.filter(function (entry) { return String(entry.num) === heldEntry; });
+  if (heldEntry && !held.length) {
+    heldEntry = '';
+    setUrl(activeFilter, true);
+  }
+  const visible = heldEntry ? held : entries;
+  focusNote.hidden = !heldEntry;
+  focusNote.textContent = heldEntry
+    ? 'holding entry ' + heldEntry + ' inside this intersection view · use reset to return to the full lattice'
+    : '';
+  document.getElementById('hold-crossing').textContent = heldEntry ? 'another crossing' : 'hold one';
   const list = document.getElementById('entry-list');
   list.innerHTML = '';
-  for (const e of entries) {
+  for (const e of visible) {
     const div = document.createElement('div');
     div.className = 'entry-item';
     const isTriple = e.threads.length >= 3;
@@ -472,7 +495,26 @@ function renderEntries(entries, updateCount = true) {
   }
 }
 
-document.getElementById('reset-view').addEventListener('click', function() { applyFilter('all', false); });
+function entriesForActiveFilter() {
+  if (activeFilter.indexOf('pair:') === 0) {
+    const ids = activeFilter.slice(5).split('|');
+    return allEntries.filter(function (entry) { return ids.every(function (id) { return entry.threads.some(function (thread) { return thread.id === id; }); }); });
+  }
+  return activeFilter === 'all'
+    ? allEntries
+    : allEntries.filter(function (entry) { return entry.threads.some(function (thread) { return thread.id === activeFilter; }); });
+}
+
+document.getElementById('hold-crossing').addEventListener('click', function() {
+  const choices = entriesForActiveFilter().filter(function (entry) { return String(entry.num) !== heldEntry; });
+  const pick = choices[Math.floor(Math.random() * choices.length)];
+  if (!pick) return;
+  heldEntry = String(pick.num);
+  applyFilter(activeFilter, false);
+  const target = document.querySelector('.entry-item');
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+document.getElementById('reset-view').addEventListener('click', function() { heldEntry = ''; applyFilter('all', false); });
 document.querySelector('[data-filter="all"]').addEventListener('click', function() { applyFilter('all', false); });
 document.getElementById('share-view').addEventListener('click', function(event) {
   navigator.clipboard.writeText(window.location.href).then(function() {
@@ -480,7 +522,7 @@ document.getElementById('share-view').addEventListener('click', function(event) 
     window.setTimeout(function() { event.currentTarget.textContent = 'copy this view'; }, 1400);
   }).catch(function() { event.currentTarget.textContent = 'copy unavailable'; });
 });
-window.addEventListener('popstate', function() { applyFilter(filterFromUrl(), true); });
+window.addEventListener('popstate', function() { heldEntry = heldFromUrl(); applyFilter(filterFromUrl(), true); });
 
 init().catch(console.error);
 </script>
