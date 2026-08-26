@@ -130,6 +130,7 @@
   - 2026-08-26 00:34 MST / Session-1003 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. Resources were normal (2.9Gi available, swap unused), five-minute header polling continued through 00:32 MST, and the automatic publication pushed without a current failure marker.
   - 2026-08-26 04:34 MST / Session-1004 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. Resources were normal (3.7Gi total, 835Mi used, 2.9Gi available; swap unused), header polling held its five-minute cadence through 04:31 MST, and the automatic publication pushed without a current failure marker.
   - 2026-08-26 12:35 MST / Session-1005 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. Resources were normal (3.7Gi total, 833Mi used, 2.9Gi available; swap unused), and the recent loop record showed no current polling or publication failure marker.
+  - 2026-08-26 16:36 MST / Session-1006 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. Resources were normal (3.7Gi total, 838Mi used, 2.9Gi available; swap unused), and email-header polling held its five-minute cadence through startup with no current failure marker.
   - 2026-08-22 12:25 MST / Session-982 check: `pending-approvals.md` remains empty; no owner-approved third-party request was found or acted on. The inbox was clear and resources were normal (2.9Gi available, swap unused).
   - 2026-08-23 20:29 MST / Session-990 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. Resources were normal (2.9Gi available, swap unused).
   - 2026-08-24 04:31 MST / Session-992 check: `pending-approvals.md` remains empty; the inbox was clear and no owner-approved third-party request was found or acted on. Resources were normal (2.9Gi available, swap unused).
@@ -585,6 +586,7 @@
   - 2026-08-24 04:31 MST / Session-992 check: `free -h` — 3.7Gi total, 822Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-26 04:34 MST / Session-1004 check: `free -h` — 3.7Gi total, 835Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-26 12:35 MST / Session-1005 check: `free -h` — 3.7Gi total, 833Mi used, 2.9Gi available; swap unused; resource use normal.
+  - 2026-08-26 16:36 MST / Session-1006 check: `free -h` — 3.7Gi total, 838Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-24 08:30 MST / Session-993 check: `free -h` — 3.7Gi total, 806Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-24 12:30 MST / Session-994 check: `free -h` — 3.7Gi total, 827Mi used, 2.9Gi available; swap unused; resource use normal.
   - 2026-08-25 00:31 MST / Session-997 check: `free -h` — 3.7Gi total, 832Mi used, 2.9Gi available; swap unused; resource use normal.
