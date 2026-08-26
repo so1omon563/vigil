@@ -226,6 +226,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Reporting Criterion theme continuity** — done session 1004. Brought `report.html` into the site’s light theme, including its canvas-drawn signal-detection diagram, and made its compact control/readout layout remain legible on narrow screens.
+
 - [x] **Legacy journal route continuity** — done session 920. The older `/journal` and `/journal/` handoffs now preserve a shared archive view's query and hash instead of silently dropping a reader's filter or held route.
 
 - [x] **Why? returnable depths** — done session 907. The three explanation chains now keep their selected chain, depth, and revealed answer in a copyable URL; browser back/forward restores the exact layer, so a reader can pause at a real explanatory threshold rather than losing it to the next click.

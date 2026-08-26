@@ -149,6 +149,33 @@
   .view-action:hover, .view-action:focus-visible { color: #58a6ff; border-color: #58a6ff; }
   .view-status { font-size: 0.72rem; color: #484f58; min-height: 1.2em; align-self: center; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  html[data-theme="light"] body { background: #ffffff; color: #24292e; }
+  html[data-theme="light"] h1 { color: #24292e; }
+  html[data-theme="light"] .intro { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .sim-wrap { background: #ffffff; border-color: #d0d7de; }
+  html[data-theme="light"] .preset-row,
+  html[data-theme="light"] .controls,
+  html[data-theme="light"] .readout-grid { border-color: #d0d7de; }
+  html[data-theme="light"] .preset-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .preset-btn:hover,
+  html[data-theme="light"] .preset-btn.active { background: #ddf4ff; color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .readout-cell { border-color: #d0d7de; }
+  html[data-theme="light"] .note { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .section { border-color: #d0d7de; }
+  html[data-theme="light"] .view-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .view-status,
+  html[data-theme="light"] .subtitle,
+  html[data-theme="light"] .readout-key,
+  html[data-theme="light"] .readout-sub { color: #57606a; }
+  @media (max-width: 520px) {
+    body { padding: 1.5rem 1rem; }
+    .back { margin-bottom: 1.75rem; }
+    .control-label { min-width: 100%; }
+    .readout-grid { grid-template-columns: 1fr; }
+    .readout-cell { border-right: none; border-bottom: 1px solid #21262d; }
+    .readout-cell:nth-last-child(-n+2) { border-bottom: 1px solid #21262d; }
+    .readout-cell:last-child { border-bottom: none; }
+  }
 </style>
 </head>
 <body>
@@ -242,6 +269,12 @@ const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 const W = cv.width, H = cv.height;
 
+function palette() {
+  return document.documentElement.dataset.theme === 'light'
+    ? { grid: '#d0d7de', axis: '#afb8c1', label: '#57606a', noise: '#0969da', signal: '#1a7f37', criterion: '#9a6700' }
+    : { grid: '#21262d', axis: '#30363d', label: '#8b949e', noise: '#58a6ff', signal: '#3fb950', criterion: '#e3b341' };
+}
+
 // Normal CDF approximation (Abramowitz & Stegun)
 function phi(x) {
   const t = 1 / (1 + 0.2316419 * Math.abs(x));
@@ -310,6 +343,7 @@ function gauss(x, mu, sigma) {
 
 function draw() {
   ctx.clearRect(0, 0, W, H);
+  const colors = palette();
 
   // layout
   const padL = 40, padR = 20, padT = 28, padB = 50;
@@ -387,7 +421,7 @@ function draw() {
   }
 
   // Draw grid lines
-  ctx.strokeStyle = '#21262d';
+  ctx.strokeStyle = colors.grid;
   ctx.lineWidth = 1;
   for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
     if (x === 0) continue;
@@ -400,7 +434,7 @@ function draw() {
   ctx.setLineDash([]);
 
   // Zero line
-  ctx.strokeStyle = '#30363d';
+  ctx.strokeStyle = colors.axis;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(xToPixel(0), padT);
@@ -408,7 +442,7 @@ function draw() {
   ctx.stroke();
 
   // Baseline
-  ctx.strokeStyle = '#30363d';
+  ctx.strokeStyle = colors.axis;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(padL, padT + plotH);
@@ -432,12 +466,12 @@ function draw() {
     ctx.stroke();
   }
 
-  drawCurve(muNoise, '#388bfd');
-  drawCurve(muSignal, '#3fb950');
+  drawCurve(muNoise, colors.noise);
+  drawCurve(muSignal, colors.signal);
 
   // Criterion line
   ctx.save();
-  ctx.strokeStyle = '#e3b341';
+  ctx.strokeStyle = colors.criterion;
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 3]);
   ctx.beginPath();
@@ -464,23 +498,23 @@ function draw() {
 
   // Labels
   ctx.font = '11px Berkeley Mono, monospace';
-  ctx.fillStyle = '#484f58';
+  ctx.fillStyle = colors.label;
   for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
     const px = xToPixel(x);
     ctx.fillText(x.toString(), px - 4, padT + plotH + 14);
   }
 
   // Curve labels
-  ctx.fillStyle = '#388bfd';
+  ctx.fillStyle = colors.noise;
   ctx.font = 'bold 11px Berkeley Mono, monospace';
   ctx.fillText('noise', xToPixel(muNoise) - 20, padT + 14);
 
-  ctx.fillStyle = '#3fb950';
+  ctx.fillStyle = colors.signal;
   const sigLabelX = Math.min(xToPixel(muSignal) + 6, W - padR - 50);
   ctx.fillText('signal+noise', sigLabelX, padT + 14);
 
   // Criterion label
-  ctx.fillStyle = '#e3b341';
+  ctx.fillStyle = colors.criterion;
   ctx.font = '10px Berkeley Mono, monospace';
   const critLabelX = pxCrit + 5;
   const critLabelFits = critLabelX + 55 < W - padR;
@@ -489,18 +523,18 @@ function draw() {
   // Yellow zone label (if visible)
   if (xCrit > xFCthresh + 0.3) {
     const zoneCenter = xToPixel((xFCthresh + xCrit) / 2);
-    ctx.fillStyle = '#e3b341';
+    ctx.fillStyle = colors.criterion;
     ctx.font = '9px Berkeley Mono, monospace';
     ctx.fillText('blindsight', zoneCenter - 22, padT + plotH - 12);
     ctx.fillText('zone', zoneCenter - 12, padT + plotH - 2);
   }
 
   // d′ arrow annotation
-  ctx.fillStyle = '#484f58';
+  ctx.fillStyle = colors.label;
   ctx.font = '11px Berkeley Mono, monospace';
   const arrowY = padT + 50;
   ctx.beginPath();
-  ctx.strokeStyle = '#484f58';
+  ctx.strokeStyle = colors.label;
   ctx.lineWidth = 1;
   ctx.moveTo(xToPixel(muNoise), arrowY);
   ctx.lineTo(xToPixel(muSignal), arrowY);
@@ -575,6 +609,11 @@ window.addEventListener('popstate', () => {
   criterion = restored.c;
   syncControls();
   draw();
+});
+
+new MutationObserver(() => draw()).observe(document.documentElement, {
+  attributes: true,
+  attributeFilter: ['data-theme']
 });
 
 const restored = readView();
