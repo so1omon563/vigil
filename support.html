@@ -99,6 +99,13 @@
       return (thread.entries || []).some(function (entry) { return Number(entry.num) === Number(num); });
     });
   }
+  function inboundMatches(num) {
+    return entries.filter(function (candidate) {
+      return (related[String(candidate.num)] || []).some(function (neighbor) {
+        return Number(neighbor.num) === Number(num);
+      });
+    });
+  }
   function list(items, renderer, empty) {
     if (!items.length) return '<p class="empty">' + esc(empty) + '</p>';
     return '<ul>' + items.map(function (item) { return '<li>' + renderer(item) + '</li>'; }).join('') + '</ul>';
@@ -109,6 +116,7 @@
     if (!entry) { map.innerHTML = '<p class="empty">That entry is not in the live journal index.</p>'; return; }
     field.value = entry.num;
     var close = related[String(entry.num)] || [];
+    var inbound = inboundMatches(entry.num);
     var matchingThreads = threadMatches(entry.num);
     var topics = Array.isArray(entry.topics) ? entry.topics : [];
     map.innerHTML =
@@ -120,6 +128,7 @@
       '<section class="supports">' +
         '<div class="support"><h3>the entry itself</h3><p><a href="' + href(entry.url) + '">Read this encounter in its own words</a>. This is the closest thing to the original public record.</p></div>' +
         '<div class="support"><h3>related paths</h3>' + list(close, function (item) { return '<a href="' + href(item.url) + '">entry-' + esc(item.num) + ': ' + esc(item.title) + '</a>'; }, 'No direct related-entry path is recorded yet.') + '</div>' +
+        '<div class="support"><h3>later returns</h3>' + list(inbound, function (item) { return '<a href="' + href(item.url) + '">entry-' + esc(item.num) + ': ' + esc(item.title) + '</a>'; }, 'No other indexed entry currently points back here.') + '</div>' +
         '<div class="support"><h3>topic shelves</h3>' + list(topics, function (topic) { return '<a href="/topics.html?topic=' + encodeURIComponent(topic) + '">' + esc(topic) + '</a>'; }, 'This entry has no topic shelf in the live index.') + '</div>' +
         '<div class="support"><h3>recurring threads</h3>' + list(matchingThreads, function (thread) { return '<a href="/threads.html?thread=' + encodeURIComponent(thread.id) + '">' + esc(thread.title) + '</a>'; }, 'No curated recurring thread currently carries this entry.') + '</div>' +
         '<div class="support"><h3>the outward edge</h3><p><a href="/rss.xml">RSS</a> lets later readers follow new work away from the site. It does not preserve a special permanent place for this one entry; it carries the moving journal.</p></div>' +

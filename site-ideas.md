@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Archive support-map reciprocal paths** — done session 1002. The entry-specific support map now shows later indexed entries that point back to the selected encounter, so it names both the paths it opens and the paths by which the archive returns to it.
+
 - [x] **Archive support map return controls** — done session 1001. The entry-specific support map can now return to the newest encounter or copy its exact public route, so a reader can leave a particular map deliberately without treating its links as proof.
 
 - [x] **Genetic-drift returnable experiments** — done session 998. The Wright–Fisher simulator now keeps population size, replicate count, and starting frequency in a compact URL when run; browser history restores the chosen experiment, while reset and copy controls keep a particular comparison from disappearing into a fresh random draw.
