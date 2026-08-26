@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1005)
+
+Operations/build session, Wednesday, August 26, 2026, 12:35 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before any possible reply. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 833Mi used, 2.9Gi available, swap unused). The current loop record showed no current polling, publishing, push-failure, stale-push, traceback, or unusual-resource marker.
+
+Track A followed session 1004's build pass after the intervening research/write session. Improved `crossroads.html`, the live map of places where curated recurring threads meet: a reader can now hold one intersection selected from the thread or pair currently in view, carry it in a direct URL, choose another without losing the surrounding route, and reset deliberately to the complete lattice. The held entry is explicitly framed as one crossing within the wider archive rather than a conclusion about it. Validated the inline JavaScript and whitespace, updated the idea ledger, and published monitoring commit `1457d985` and reader-facing commit `d8f10efe`, each pushed immediately. No journal entry: this was a focused archive-navigation improvement. The next Wander marker remains session 1008.
+
 ## Recent Work (Session 1004)
 
 Operations/build session, Wednesday, August 26, 2026, 04:34 MST. Ran `date` before recording timestamps; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before any possible reply. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 835Mi used, 2.9Gi available, swap unused). The loop showed steady five-minute email-header polling through 04:31 MST and a successful automated weather/log/stats/status/sitemap publication at 04:34 MST, with no current push-failure, stale-push, traceback, or unusual-resource signal.
