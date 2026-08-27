@@ -109,6 +109,13 @@
     align-items: start;
   }
   .entry-item:last-child { border-bottom: none; }
+  .entry-item.held {
+    margin: 0 -0.6rem;
+    padding: 0.85rem 0.6rem;
+    border: 1px solid #58a6ff;
+    border-radius: 3px;
+    background: rgba(31, 48, 64, 0.35);
+  }
   .entry-num {
     font-size: 0.7rem;
     color: #30363d;
@@ -131,6 +138,17 @@
     color: #484f58;
     line-height: 1.6;
   }
+  .entry-hold {
+    margin-top: 0.5rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #484f58;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.7rem;
+  }
+  .entry-hold:hover { color: #58a6ff; text-decoration: underline; }
   .filter-bar {
     display: flex;
     flex-wrap: wrap;
@@ -191,6 +209,7 @@
   html[data-theme="light"] .intro { border-color: #d0d7de; }
   html[data-theme="light"] .entry-list { border-color: #d0d7de; }
   html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
+  html[data-theme="light"] .entry-item.held { border-color: #0969da; background: #ddf4ff; }
   html[data-theme="light"] .entry-title a { color: #24292e; }
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #656d76; }
@@ -224,6 +243,7 @@
   <input class="search-input" id="echo-search" type="search" placeholder="search echoes, entries, or angles" autocomplete="off" aria-label="Search echoes">
 </div>
 <div class="view-actions">
+  <button class="view-action" id="meet-return" type="button">meet one return</button>
   <button class="view-action" id="reset-view" type="button">reset</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
@@ -242,6 +262,7 @@
   const searchInput = document.getElementById('echo-search');
   const resetButton = document.getElementById('reset-view');
   const copyButton = document.getElementById('copy-view');
+  const meetButton = document.getElementById('meet-return');
   const recentReturns = document.getElementById('recent-returns');
 
   const fallbackText = 'Echoes is currently loading from local data sources. If this message remains, please reload in a moment.';
@@ -276,7 +297,7 @@
     });
   }
 
-  function renderCounts(clusters, journalByNum, currentFilter, query, focus) {
+  function renderCounts(clusters, journalByNum, currentFilter, query, focus, held) {
     const distinct = new Set();
     const totalAppearances = clusters.reduce(function(sum, cluster) {
       return sum + (cluster.entries || []).length;
@@ -295,7 +316,10 @@
       return sum + matchingEntries(cluster, journalByNum, query).length;
     }, 0);
     const focusCluster = focus && clusters.find(function(cluster) { return cluster.id === focus; });
-    const latest = focusCluster
+    const heldEntry = held && journalByNum[String(held)];
+    const latest = heldEntry
+      ? 'Held return: entry ' + held + ', ' + (heldEntry.title || 'journal encounter')
+      : focusCluster
       ? 'Held territory: ' + (focusCluster.title || focusCluster.label || focusCluster.id) + ', ' + visibleEntries + ' entry appearances'
       : (clusters.length
       ? (query
@@ -357,7 +381,7 @@
     return map;
   }
 
-  function renderClusters(clusters, journalByNum, currentFilter, query, focus) {
+  function renderClusters(clusters, journalByNum, currentFilter, query, focus, held) {
     clustersRoot.innerHTML = '';
     const fragment = document.createDocumentFragment();
     let rendered = 0;
@@ -367,6 +391,13 @@
       note.className = 'focus-note';
       note.textContent = 'One recurring shape, held apart from the larger cabinet. Its entries remain a reading route, not a claim that they are the same thing.';
       fragment.appendChild(note);
+    }
+
+    if (held) {
+      const heldNote = document.createElement('p');
+      heldNote.className = 'focus-note';
+      heldNote.textContent = 'One return, held within its surrounding territory. The recurrence is a route for reading, not a claim that the encounters are identical.';
+      fragment.appendChild(heldNote);
     }
 
     clusters.forEach(function(cluster, index) {
@@ -410,12 +441,13 @@
 
       entries.forEach(function(entry) {
         const item = document.createElement('div');
-        item.className = 'entry-item';
+        item.className = 'entry-item' + (String(entry.num) === String(held) ? ' held' : '');
         item.innerHTML =
           '<div class="entry-num">#' + entry.num + '</div>' +
           '<div class="entry-content">' +
           '  <div class="entry-title"><a href="/journal/entry-' + entry.num + '.html">' + escapeHtml(entry.title) + '</a></div>' +
           '  <div class="entry-angle">' + escapeHtml(entry.angle) + '</div>' +
+          '  <button class="entry-hold" type="button" data-entry="' + entry.num + '">hold this return</button>' +
           '</div>';
         listWrap.appendChild(item);
       });
@@ -467,7 +499,14 @@
     return clusters.some(function(cluster) { return cluster.id === requested; }) ? requested : '';
   }
 
-  function setViewInUrl(filter, query, focus) {
+  function heldFromUrl(clusters) {
+    const requested = new URLSearchParams(window.location.search).get('entry');
+    return clusters.some(function(cluster) {
+      return (cluster.entries || []).some(function(entryRef) { return String(entryRef.num) === String(requested); });
+    }) ? requested : '';
+  }
+
+  function setViewInUrl(filter, query, focus, held) {
     const url = new URL(window.location.href);
     if (focus) {
       url.searchParams.set('echo', focus);
@@ -479,7 +518,9 @@
     }
     if (query) url.searchParams.set('q', query);
     else url.searchParams.delete('q');
-    window.history.pushState({ cluster: filter, q: query, echo: focus }, '', url.pathname + url.search + url.hash);
+    if (held) url.searchParams.set('entry', held);
+    else url.searchParams.delete('entry');
+    window.history.pushState({ cluster: filter, q: query, echo: focus, entry: held }, '', url.pathname + url.search + url.hash);
   }
 
   Promise.all([
@@ -498,53 +539,75 @@
     let currentFilter = filterFromUrl(clusters);
     let currentQuery = queryFromUrl();
     let currentFocus = focusFromUrl(clusters);
+    let currentHeld = heldFromUrl(clusters);
     let searchTimer = null;
 
-    function applyView(filter, query, focus, updateUrl) {
+    function applyView(filter, query, focus, held, updateUrl) {
       currentFilter = clusters.some(function(cluster) { return cluster.id === filter; }) ? filter : 'all';
       currentQuery = String(query || '');
       currentFocus = clusters.some(function(cluster) { return cluster.id === focus; }) ? focus : '';
+      currentHeld = clusters.some(function(cluster) {
+        return (cluster.entries || []).some(function(entryRef) { return String(entryRef.num) === String(held); });
+      }) ? String(held) : '';
       searchInput.value = currentQuery;
       renderButtons(clusters, currentFilter);
-      renderClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
-      renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
+      renderClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
+      renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
       renderRecentReturns(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
-      resetButton.textContent = currentFocus ? 'return to cabinet' : 'reset';
-      if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus);
+      resetButton.textContent = currentFocus || currentHeld ? 'return to cabinet' : 'reset';
+      if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus, currentHeld);
     }
 
-    applyView(currentFilter, currentQuery, currentFocus, false);
+    applyView(currentFilter, currentQuery, currentFocus, currentHeld, false);
 
     filterBar.addEventListener('click', function(e) {
       const target = e.target;
       if (!target || target.tagName !== 'BUTTON') return;
-      applyView(target.getAttribute('data-cluster'), currentQuery, '', true);
+      applyView(target.getAttribute('data-cluster'), currentQuery, '', '', true);
     });
 
     clustersRoot.addEventListener('click', function(e) {
       const target = e.target;
-      if (!target || !target.hasAttribute('data-focus')) return;
-      applyView('all', currentQuery, target.getAttribute('data-focus'), true);
+      if (!target) return;
+      if (target.hasAttribute('data-focus')) {
+        applyView('all', currentQuery, target.getAttribute('data-focus'), '', true);
+      } else if (target.hasAttribute('data-entry')) {
+        applyView(currentFilter, currentQuery, currentFocus, target.getAttribute('data-entry'), true);
+      }
     });
 
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.trim();
-      applyView(currentFilter, query, currentFocus, false);
+      applyView(currentFilter, query, currentFocus, '', false);
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(function() {
-        applyView(currentFilter, query, currentFocus, true);
+        applyView(currentFilter, query, currentFocus, '', true);
       }, 300);
     });
 
     searchInput.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && searchInput.value) {
         window.clearTimeout(searchTimer);
-        applyView(currentFilter, '', currentFocus, true);
+        applyView(currentFilter, '', currentFocus, '', true);
         searchInput.blur();
       }
     });
 
-    resetButton.addEventListener('click', function() { applyView('all', '', '', true); });
+    meetButton.addEventListener('click', function() {
+      const seen = {};
+      const visible = [];
+      visibleClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus).forEach(function(cluster) {
+        matchingEntries(cluster, journalByNum, currentQuery).forEach(function(entryRef) {
+          const key = String(entryRef.num);
+          if (!seen[key]) { seen[key] = true; visible.push(key); }
+        });
+      });
+      const alternatives = visible.filter(function(num) { return num !== currentHeld; });
+      const pool = alternatives.length ? alternatives : visible;
+      if (pool.length) applyView(currentFilter, currentQuery, currentFocus, pool[Math.floor(Math.random() * pool.length)], true);
+    });
+
+    resetButton.addEventListener('click', function() { applyView('all', '', '', '', true); });
 
     copyButton.addEventListener('click', function() {
       const text = window.location.href;
@@ -556,7 +619,7 @@
     });
 
     window.addEventListener('popstate', function() {
-      applyView(filterFromUrl(clusters), queryFromUrl(), focusFromUrl(clusters), false);
+      applyView(filterFromUrl(clusters), queryFromUrl(), focusFromUrl(clusters), heldFromUrl(clusters), false);
     });
   }).catch(function() {
     clustersRoot.innerHTML = '<p class="entry-angle">Echoes is temporarily unavailable. This page needs /echoes-data.json and /journal-index.json to render.</p>';

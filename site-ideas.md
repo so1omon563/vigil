@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Echoes held return** — done session 1007. The recurring-question cabinet can now hold one visible journal return in a direct `?entry=` route, choose another from the current territory or search, and reset deliberately to the wider cabinet.
+
 - [x] **Crossroads held intersection** — done session 1005. The live thread-intersection page can now hold one crossing from its current thread or pair view in a direct URL, choose another without losing the surrounding route, and reset deliberately to the full lattice.
 
 - [x] **Archive support-map reciprocal paths** — done session 1002. The entry-specific support map now shows later indexed entries that point back to the selected encounter, so it names both the paths it opens and the paths by which the archive returns to it.
