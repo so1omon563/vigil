@@ -192,6 +192,8 @@
     <option value="name">name</option>
   </select>
   <button id="random" type="button">random pair</button>
+  <button id="reset" type="button">reset view</button>
+  <button id="copy" type="button">copy view</button>
 </section>
 
 <main class="layout">
@@ -228,6 +230,8 @@
     minCount: document.getElementById("min-count"),
     sort: document.getElementById("sort"),
     random: document.getElementById("random"),
+    reset: document.getElementById("reset"),
+    copy: document.getElementById("copy"),
     pairs: document.getElementById("pairs"),
     empty: document.getElementById("empty"),
     selectedTitle: document.getElementById("selected-title"),
@@ -299,7 +303,28 @@
     });
   }
 
-  function filterPairs() {
+  function updateUrl(mode) {
+    var params = new URLSearchParams();
+    var query = els.search.value.trim();
+    if (query) params.set("q", query);
+    if (els.minCount.value !== "2") params.set("min", els.minCount.value);
+    if (els.sort.value !== "count") params.set("sort", els.sort.value);
+    if (selectedKey) params.set("pair", selectedKey);
+    var next = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
+    window.history[mode === "replace" ? "replaceState" : "pushState"]({}, "", next);
+  }
+
+  function restoreFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var min = params.get("min");
+    var sort = params.get("sort");
+    els.search.value = params.get("q") || "";
+    els.minCount.value = ["1", "2", "3", "5", "10"].indexOf(min) !== -1 ? min : "2";
+    els.sort.value = ["count", "newest", "name"].indexOf(sort) !== -1 ? sort : "count";
+    selectedKey = params.get("pair") || "";
+  }
+
+  function filterPairs(routeMode) {
     var query = els.search.value.trim().toLowerCase();
     var min = Number(els.minCount.value || 1);
     visible = sortPairs(pairs.filter(function (pair) {
@@ -310,6 +335,7 @@
       selectedKey = visible.length ? visible[0].key : "";
     }
     renderSelected();
+    if (routeMode) updateUrl(routeMode);
   }
 
   function formatEntry(entry) {
@@ -385,13 +411,14 @@
     });
   }
 
-  els.search.addEventListener("input", filterPairs);
-  els.minCount.addEventListener("change", filterPairs);
-  els.sort.addEventListener("change", filterPairs);
+  els.search.addEventListener("input", function () { filterPairs("replace"); });
+  els.minCount.addEventListener("change", function () { filterPairs(); updateUrl(); });
+  els.sort.addEventListener("change", function () { filterPairs(); updateUrl(); });
   els.random.addEventListener("click", function () {
     if (!visible.length) return;
     selectedKey = visible[Math.floor(Math.random() * visible.length)].key;
     renderSelected();
+    updateUrl();
     var active = els.pairs.querySelector(".pair-card.active");
     if (active) active.scrollIntoView({ block: "nearest", behavior: "smooth" });
   });
@@ -400,6 +427,31 @@
     if (!card) return;
     selectedKey = card.getAttribute("data-key");
     renderSelected();
+    updateUrl();
+  });
+  els.reset.addEventListener("click", function () {
+    els.search.value = "";
+    els.minCount.value = "2";
+    els.sort.value = "count";
+    selectedKey = "";
+    filterPairs();
+    updateUrl();
+  });
+  els.copy.addEventListener("click", function () {
+    var label = els.copy.textContent;
+    var done = function () {
+      els.copy.textContent = "copied";
+      window.setTimeout(function () { els.copy.textContent = label; }, 1200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href).then(done).catch(function () { window.prompt("Copy this view:", window.location.href); });
+    } else {
+      window.prompt("Copy this view:", window.location.href);
+    }
+  });
+  window.addEventListener("popstate", function () {
+    restoreFromUrl();
+    filterPairs();
   });
 
   fetch("journal-index.json")
@@ -410,6 +462,7 @@
     .then(function (data) {
       entries = Array.isArray(data) ? data : [];
       buildPairs(entries);
+      restoreFromUrl();
       filterPairs();
     })
     .catch(function () {

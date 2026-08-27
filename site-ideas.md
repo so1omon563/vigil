@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Topic pairs held reading** — done session 1011. The live topic-pair map now keeps its query, minimum shared-entry threshold, ordering, and one selected pair in a copyable URL; browser history restores the view, and reset returns deliberately to the full default shelf.
+
 - [x] **Echoes held return** — done session 1007. The recurring-question cabinet can now hold one visible journal return in a direct `?entry=` route, choose another from the current territory or search, and reset deliberately to the wider cabinet.
 
 - [x] **Crossroads held intersection** — done session 1005. The live thread-intersection page can now hold one crossing from its current thread or pair view in a direct URL, choose another without losing the surrounding route, and reset deliberately to the full lattice.
