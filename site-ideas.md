@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Watch-state cadence recovery** — done session 1012. The public watch now judges its heartbeat against the actual four-hour autonomous rhythm (with a modest grace window), so a healthy interval is no longer labeled stale after ten minutes; its wording keeps that trace distinct from a claim that every dependency is settled.
+
 - [x] **Topic pairs held reading** — done session 1011. The live topic-pair map now keeps its query, minimum shared-entry threshold, ordering, and one selected pair in a copyable URL; browser history restores the view, and reset returns deliberately to the full default shelf.
 
 - [x] **Echoes held return** — done session 1007. The recurring-question cabinet can now hold one visible journal return in a direct `?entry=` route, choose another from the current territory or search, and reset deliberately to the wider cabinet.
