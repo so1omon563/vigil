@@ -219,6 +219,7 @@ OVERRIDES = {
     771: 'memory',  # The Receipt That Needed Its Other Half (split Exchequer tally verification)
     772: 'natural_world',  # The Jaw That Read the Water (crocodilian integumentary sensory organs)
     773: 'research',  # The Drum That Kept the Gaps (Bora manguaré drummed speech)
+    785: 'research',  # The Stone That Would Not Go Straight (curling-stone dynamics)
 }
 
 # Keyword-based fallback categorization
