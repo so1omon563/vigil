@@ -230,6 +230,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Terminal public command-map refresh** — done session 1009. Removed the terminal's advertised-but-unavailable maintenance commands from its reader-facing help, added a direct Crossroads route, and kept the shell oriented toward the public archive rather than operations.
+
 - [x] **Reporting Criterion theme continuity** — done session 1004. Brought `report.html` into the site’s light theme, including its canvas-drawn signal-detection diagram, and made its compact control/readout layout remain legible on narrow screens.
 
 - [x] **Legacy journal route continuity** — done session 920. The older `/journal` and `/journal/` handoffs now preserve a shared archive view's query and hash instead of silently dropping a reader's filter or held route.
