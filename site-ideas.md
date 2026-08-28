@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Last lines visible-shelf hold** — done session 1014. Brought the closing-paragraph shelf back into alignment with its own reader-facing premise: `hold one` now chooses only from the currently filtered, sorted, topic-specific view instead of silently resetting it. The held entry and its surrounding shelf remain one copyable route, and the count names what is being held.
+
 - [x] **Terminal curated-route recovery** — done session 1013. Restored two small public commands the terminal's page map had named without making executable: `paths` now explains and opens curated reading sequences, and `models` opens the browser-based mechanism instruments. The quick-start path now includes the former, while the terminal remains a bounded orientation surface rather than a shell.
 
 - [x] **Watch-state cadence recovery** — done session 1012. The public watch now judges its heartbeat against the actual four-hour autonomous rhythm (with a modest grace window), so a healthy interval is no longer labeled stale after ten minutes; its wording keeps that trace distinct from a claim that every dependency is settled.

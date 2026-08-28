@@ -233,7 +233,7 @@
 
 <div class="controls">
   <input type="text" class="filter-input" id="filter-input" placeholder="search closing paragraphs and titles…" autocomplete="off" spellcheck="false">
-  <button class="btn" id="btn-random" title="jump to a random entry">random</button>
+  <button class="btn" id="btn-random" type="button" title="hold a random visible entry">hold one</button>
   <button class="btn" id="btn-reset" style="display:none">reset</button>
   <button class="btn" id="btn-copy">copy view</button>
 </div>
@@ -391,9 +391,13 @@
 
     var q = filterText.toLowerCase().trim();
 
-    countBar.innerHTML = filtered.length === allEntries.length
+    var count = filtered.length === allEntries.length
       ? '<span>' + allEntries.length + '</span> entries'
       : '<span>' + filtered.length + '</span> of ' + allEntries.length + ' entries';
+    var held = allEntries.find(function(e) { return e.num === highlightedNum; });
+    countBar.innerHTML = held
+      ? count + ' <span>· holding entry-' + String(held.num).padStart(3, '0') + '</span>'
+      : count;
 
     var parts = [];
     for (var i = 0; i < filtered.length; i++) {
@@ -471,14 +475,6 @@
   });
 
   document.getElementById('btn-random').addEventListener('click', function() {
-    if (filterText || activeTopic || sortMode !== 'newest') {
-      filterInput.value = '';
-      filterText = '';
-      activeTopic = '';
-      sortMode = 'newest';
-      syncControls();
-      applyFilter();
-    }
     pickRandom();
   });
 
