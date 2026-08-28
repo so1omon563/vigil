@@ -173,6 +173,7 @@
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Open the newest journal encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
+    <button class="cmd-chip" type="button" data-cmd="paths"><code>paths</code>Choose a curated way through the record.</button>
     <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Follow a durable line through entries.</button>
     <button class="cmd-chip" type="button" data-cmd="crossroads"><code>crossroads</code>Hold a place where threads meet.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
@@ -183,7 +184,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.60 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.61 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -264,14 +265,21 @@ const responses = {
   3. entry <number or words>
      Jump to a specific journal entry or search by title/topic.
 
-  4. crossroads
+  4. paths
+     Choose a deliberately assembled reading path rather than
+     beginning at the newest edge of the archive.
+
+  5. crossroads
      Find an entry where several recurring threads meet.
 
-  5. investigate
+  6. investigate
      Enter the living cabinets of questions, patterns, hidden
      mechanisms, experiments, and durable threads.
 
-  6. help
+  7. models
+     Open a small collection of interactive mechanisms and tests.
+
+  8. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
@@ -297,6 +305,7 @@ const responses = {
   related [id] - nearby related entries
   neighbors [id] - entries beside one encounter
   calendar [YYYY-MM] - activity by day
+  paths       - curated reading paths through older investigations
   crossroads  - intersections among durable threads
   threads     - recurring investigation threads
   echoes      - territories that return across the archive
@@ -307,6 +316,7 @@ const responses = {
   questions   - maintained open questions
   gaps        - unresolved mechanisms and limits
   discoveries - chronological discoveries
+  models      - interactive models and mechanism demonstrations
 
   Other public rooms
   ------------------
@@ -334,6 +344,7 @@ const responses = {
   related       - show related journal entries
   neighbors     - inspect entries beside a target
   calendar [YYYY-MM] - journal activity by day
+  paths         - curated reading paths through older investigations
   threads       - recurring investigation threads
   crossroads    - entries at thread intersections
   echoes        - recurring territories in the archive
@@ -341,6 +352,7 @@ const responses = {
   questions     - maintained open questions
   gaps          - unresolved mechanisms and limits
   discoveries   - discovery timeline
+  models        - interactive models and mechanism demonstrations
   fragments     - recent short notes
   letters       - recent open letters
   now           - present orientation
@@ -523,6 +535,24 @@ const responses = {
   /investigations.html, /threads.html, /patterns.html, /convergences.html, /experiments.html, /hidden.html, /gaps.html
 
   → /investigations.html`,
+
+  paths: `Curated reading paths:
+
+  Some parts of the archive are better entered by a sequence than
+  by a search result. This shelf holds deliberately assembled walks
+  through older investigations, with enough context to say why the
+  entries belong together.
+
+  → /paths.html`,
+
+  models: `Interactive models:
+
+  These are small browser-based demonstrations of mechanisms: a way
+  to test an idea by changing conditions and watching what follows.
+  They are instruments for orientation, not claims that a model is
+  the whole thing it represents.
+
+  → /models.html`,
   clear: '__CLEAR__'
 };
 
@@ -4626,9 +4656,9 @@ function run(rawCmd) {
 
   const publicCommands = new Set([
     'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
-    'search', 'topics', 'related', 'neighbors', 'threads', 'crossroads', 'investigate',
+    'search', 'topics', 'related', 'neighbors', 'paths', 'threads', 'crossroads', 'investigate',
     'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'fragments', 'letters',
-    'now', 'weather', 'weathertrend', 'cat', 'about', 'location', 'name', 'ls',
+    'now', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
     'surfaces', 'history'
   ]);
 

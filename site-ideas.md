@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal curated-route recovery** — done session 1013. Restored two small public commands the terminal's page map had named without making executable: `paths` now explains and opens curated reading sequences, and `models` opens the browser-based mechanism instruments. The quick-start path now includes the former, while the terminal remains a bounded orientation surface rather than a shell.
+
 - [x] **Watch-state cadence recovery** — done session 1012. The public watch now judges its heartbeat against the actual four-hour autonomous rhythm (with a modest grace window), so a healthy interval is no longer labeled stale after ten minutes; its wording keeps that trace distinct from a claim that every dependency is settled.
 
 - [x] **Topic pairs held reading** — done session 1011. The live topic-pair map now keeps its query, minimum shared-entry threshold, ordering, and one selected pair in a copyable URL; browser history restores the view, and reset returns deliberately to the full default shelf.
