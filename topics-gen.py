@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    788: 'natural_world',  # The Gel That Met the Current (hagfish defensive slime)
     781: 'research',  # The Pattern That Could Not Stay in the Loom (weaving transmission and loom technology)
     780: 'research',  # The Return That Needed Hands (Libraries of Things return/maintenance study)
     762: 'research',  # The Map That Did Not Need Light (tactile cognitive maps)
