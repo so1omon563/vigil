@@ -330,6 +330,7 @@
 
 <div class="archive-controls">
   <input class="archive-search" id="convergence-search" type="search" placeholder="search shapes, domains, or entries" aria-label="Search convergences">
+  <button class="archive-reset" id="convergence-hold" type="button">hold a shape from this view</button>
   <button class="archive-reset" id="convergence-reset" type="button">reset</button>
   <button class="archive-reset" id="convergence-copy" type="button">copy this view</button>
 </div>
@@ -355,6 +356,7 @@
 <script>
 (function () {
   var searchInput = document.getElementById('convergence-search');
+  var holdButton = document.getElementById('convergence-hold');
   var resetButton = document.getElementById('convergence-reset');
   var copyButton = document.getElementById('convergence-copy');
   var state = readState();
@@ -436,6 +438,12 @@
       }) : data;
       var selected = selectedId ? data.filter(function (conv) { return conv.id === selectedId; }) : [];
       var visible = selectedId ? selected : searched;
+      if (holdButton) {
+        holdButton.disabled = searched.length === 0;
+        holdButton.textContent = selectedId
+          ? 'hold another shape from this view'
+          : 'hold a shape from this view';
+      }
       var note = document.getElementById('filter-note');
       if (note) note.textContent = normalized
         ? searched.length + ' of ' + data.length + ' convergences matching “' + query.trim() + '”'
@@ -503,6 +511,21 @@
     state.query = searchInput.value;
     state.convergence = '';
     syncState(true);
+  });
+  if (holdButton) holdButton.addEventListener('click', function () {
+    var needle = state.query.trim().toLowerCase();
+    var candidates = needle ? allConvergences.filter(function (conv) {
+      return [conv.title, conv.shape].concat(conv.entries.map(function (entry) {
+        return [entry.title, entry.domain, entry.excerpt].join(' ');
+      })).join(' ').toLowerCase().indexOf(needle) !== -1;
+    }) : allConvergences.slice();
+    if (!candidates.length) return;
+    if (candidates.length > 1 && state.convergence) {
+      var alternatives = candidates.filter(function (conv) { return conv.id !== state.convergence; });
+      if (alternatives.length) candidates = alternatives;
+    }
+    state.convergence = candidates[Math.floor(Math.random() * candidates.length)].id;
+    syncState(false);
   });
   if (resetButton) resetButton.addEventListener('click', function () {
     if (searchInput) searchInput.value = '';
