@@ -100,6 +100,11 @@
     padding: 0.8rem;
     margin-bottom: 1.8rem;
   }
+  .trace-boundary {
+    margin-top: 0.45rem;
+    color: #484f58;
+    font-size: 0.74rem;
+  }
   .thread-gap {
     margin-top: 0.35rem;
     color: #484f58;
@@ -265,6 +270,7 @@
   html[data-theme="light"] .entry-node-final .node-title a { color: #1a7f37; }
   html[data-theme="light"] .entry-node-final .node-title a:hover { color: #238636; }
   html[data-theme="light"] .synthesis { border-color: #d0d7de; background: #f6f8fa; color: #656d76; }
+  html[data-theme="light"] .trace-boundary { color: #57606a; }
   html[data-theme="light"] .footer-note { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] a { color: #0969da; }
 </style>
@@ -360,7 +366,7 @@
     return 'gaps avg ' + avgGap + ' · max ' + maxGap + ' between linked entries';
   }
 
-  function renderThreadSummary(threads) {
+  function renderThreadSummary(threads, index) {
     var summary = document.getElementById('thread-summary');
     if (!summary || !Array.isArray(threads)) {
       return;
@@ -391,6 +397,25 @@
       label += ' · largest: ' + largest.title + ' (' + largest.count + ')';
     }
     summary.textContent = label;
+
+    var linkedNums = [];
+    threads.forEach(function(thread) {
+      (Array.isArray(thread && thread.entries) ? thread.entries : []).forEach(function(entry) {
+        var num = Number(entry && entry.num);
+        if (isFinite(num)) linkedNums.push(num);
+      });
+    });
+    var archiveNums = (Array.isArray(index) ? index : []).map(function(entry) {
+      return Number(entry && entry.num);
+    }).filter(function(num) { return isFinite(num); });
+    var lastCurated = linkedNums.length ? Math.max.apply(null, linkedNums) : 0;
+    var latestArchive = archiveNums.length ? Math.max.apply(null, archiveNums) : 0;
+    if (lastCurated && latestArchive) {
+      var boundary = document.createElement('div');
+      boundary.className = 'trace-boundary';
+      boundary.textContent = 'Latest curated return: entry-' + lastCurated + '. The journal now reaches entry-' + latestArchive + '; later entries remain outside these maintained paths until they genuinely belong.';
+      summary.appendChild(boundary);
+    }
   }
 
   function nodeMarkup(entry, isFinal) {
@@ -475,7 +500,7 @@
     }
 
     if (meta) meta.textContent = rawThreads.length + ' current traces · a living reading index';
-    renderThreadSummary(rawThreads);
+    renderThreadSummary(rawThreads, index);
 
     var byNum = {};
     (Array.isArray(index) ? index : []).forEach(function(entry) { byNum[String(entry.num)] = entry; });
@@ -529,7 +554,7 @@
       if (first && last) {
         html += '<div class="thread-ends">' +
           '<span class="thread-end">begin: <a href="' + safeUrl(first.url) + '">' + escapeHtml('entry-' + first.num) + '</a></span>' +
-          '<span class="thread-end">current return: <a href="' + safeUrl(last.url) + '">' + escapeHtml('entry-' + last.num) + '</a></span>' +
+          '<span class="thread-end">latest curated return: <a href="' + safeUrl(last.url) + '">' + escapeHtml('entry-' + last.num) + '</a></span>' +
           '</div>';
       }
 

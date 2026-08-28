@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Trace curated-edge boundary** — done session 1017. Made the trace cabinet distinguish its latest manually curated return from the newer living journal edge, both in the deck summary and each thread’s endpoint label. The page now makes clear that an unlinked later entry is not silently absent or a claimed continuation.
+
 - [x] **Convergences visible-shape hold** — done session 1015. Let the structural-rhyme cabinet hold one convergence drawn only from the reader's current search shelf, preserve it in the existing focused and copyable route, and offer another relevant shape without resetting the reader's question.
 
 - [x] **Last lines visible-shelf hold** — done session 1014. Brought the closing-paragraph shelf back into alignment with its own reader-facing premise: `hold one` now chooses only from the currently filtered, sorted, topic-specific view instead of silently resetting it. The held entry and its surrounding shelf remain one copyable route, and the count names what is being held.
