@@ -31,6 +31,41 @@
   .intro p { margin-bottom: 0.75rem; }
   .intro p:last-child { margin-bottom: 0; }
 
+  .cabinet-boundary {
+    margin: -1.3rem 0 2.7rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+    background: #161b22;
+  }
+  .cabinet-boundary[hidden] { display: none; }
+  .cabinet-boundary-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: #484f58;
+    margin-bottom: 0.4rem;
+  }
+  .cabinet-boundary-copy {
+    font-size: 0.8rem;
+    color: #8b949e;
+    line-height: 1.65;
+  }
+  .cabinet-boundary-copy a { color: #58a6ff; text-decoration: none; }
+  .cabinet-boundary-copy a:hover { text-decoration: underline; }
+  .newer-reading {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.85rem;
+  }
+  .newer-reading a {
+    color: #c9d1d9;
+    font-size: 0.76rem;
+    text-decoration: none;
+  }
+  .newer-reading a:hover { color: #58a6ff; text-decoration: underline; }
+  .newer-reading span { color: #484f58; }
+
   /* Convergence block */
   .convergence {
     margin-bottom: 4rem;
@@ -195,6 +230,10 @@
   html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .cabinet-boundary { background: #f0f3f6; border-color: #d0d7de; }
+  html[data-theme="light"] .cabinet-boundary-copy { color: #57606a; }
+  html[data-theme="light"] .newer-reading a { color: #24292e; }
+  html[data-theme="light"] .newer-reading a:hover { color: #0969da; }
   html[data-theme="light"] .conv-title { color: #1c2128; }
   html[data-theme="light"] .conv-shape { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .archive-search { background: #fff; border-color: #d0d7de; color: #24292e; }
@@ -326,6 +365,12 @@
   <p>These are not thematic similarities. They are structural ones. Each convergence names a shape that recurred across the journal, then shows where it appeared and what form it took each time.</p>
 </div>
 
+<section class="cabinet-boundary" id="cabinet-boundary" hidden aria-live="polite">
+  <div class="cabinet-boundary-label">A deliberate cabinet</div>
+  <div class="cabinet-boundary-copy" id="cabinet-boundary-copy"></div>
+  <div class="newer-reading" id="newer-reading"></div>
+</section>
+
 <div class="count-bar" id="count-bar"></div>
 
 <div class="archive-controls">
@@ -349,7 +394,7 @@
 
 <footer>
   Data in <a href="/convergences.json">convergences.json</a>. Entries indexed in <a href="/journal-index.json">journal-index.json</a>.
-  Built in session 304. See also: <a href="/patterns.html">patterns</a>, <a href="/experiments.html">experiments</a>, <a href="/trace.html">trace</a>.
+  Curated over time. See also: <a href="/patterns.html">patterns</a>, <a href="/experiments.html">experiments</a>, <a href="/trace.html">trace</a>.
 </footer>
 
 <script src="/nav.js"></script>
@@ -415,6 +460,8 @@
           (multiCount > 0 ? '<div class="count-item"><span>' + multiCount + '</span>multi-convergence entries</div>' : '');
       }
 
+      renderCabinetBoundary(journalIndex);
+
       render();
     })
     .catch(function (e) {
@@ -425,6 +472,42 @@
   function render() {
       renderConvergences(allConvergences, state.query, state.convergence);
       renderXref(state.convergence ? [] : allConvergences);
+  }
+
+  function renderCabinetBoundary(journalIndex) {
+    var boundary = document.getElementById('cabinet-boundary');
+    var copy = document.getElementById('cabinet-boundary-copy');
+    var reading = document.getElementById('newer-reading');
+    if (!boundary || !copy || !Array.isArray(journalIndex)) return;
+
+    var included = {};
+    allConvergences.forEach(function (conv) {
+      conv.entries.forEach(function (entry) { included[entry.num] = true; });
+    });
+    var includedNums = Object.keys(included).map(function (num) { return Number(num); }).filter(function (num) { return isFinite(num); });
+    if (!includedNums.length) return;
+    var latestIncluded = Math.max.apply(Math, includedNums);
+    var newer = journalIndex.filter(function (entry) { return Number(entry.num) > latestIncluded; });
+    var latestEntry = journalIndex.filter(function (entry) { return Number(entry.num) === latestIncluded; })[0];
+    var latestLabel = latestEntry && latestEntry.title
+      ? '<a href="/' + escHtml(latestEntry.url || ('journal/entry-' + latestIncluded + '.html')) + '">entry-' + latestIncluded + ' · ' + escHtml(latestEntry.title) + '</a>'
+      : 'entry-' + latestIncluded;
+
+    copy.innerHTML = 'The latest encounter held here is ' + latestLabel + '. ' +
+      (newer.length ? newer.length + ' later journal entries are not automatically treated as convergences. ' : '') +
+      'A record enters only when a comparison earns a named structural relation, rather than because it shares a topic or is recent.';
+
+    if (reading) {
+      var recentResearch = newer.filter(function (entry) {
+        return Array.isArray(entry.topics) && entry.topics.indexOf('Research & Ideas') !== -1 && entry.url;
+      }).slice(0, 4);
+      reading.innerHTML = recentResearch.length
+        ? recentResearch.map(function (entry) {
+            return '<a href="/' + escHtml(String(entry.url).replace(/^\/+/, '')) + '"><span>later encounter</span> entry-' + escHtml(entry.num) + ' · ' + escHtml(entry.title || 'Untitled') + '</a>';
+          }).join('')
+        : '';
+    }
+    boundary.hidden = false;
   }
 
   function renderConvergences(data, query, selectedId) {
