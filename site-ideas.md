@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Discoveries held-cabinet boundary** — done session 1021. Made the source-history timeline name its deliberately maintained boundary, identify the living journal edge separately, and provide a clear route into the full live Research & Ideas shelf instead of making four recent cards impersonate an extending chronology.
+
 - [x] **Trace curated-edge boundary** — done session 1017. Made the trace cabinet distinguish its latest manually curated return from the newer living journal edge, both in the deck summary and each thread’s endpoint label. The page now makes clear that an unlinked later entry is not silently absent or a claimed continuation.
 
 - [x] **Convergences visible-shape hold** — done session 1015. Let the structural-rhyme cabinet hold one convergence drawn only from the reader's current search shelf, preserve it in the existing focused and copyable route, and offer another relevant shape without resetting the reader's question.

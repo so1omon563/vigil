@@ -270,6 +270,17 @@
     font-size: 0.8rem;
     margin-bottom: 1rem;
   }
+  .recent-reading-meta {
+    color: #484f58;
+    font-size: 0.72rem;
+    margin: -0.45rem 0 1rem;
+  }
+  .recent-reading-more {
+    display: inline-block;
+    margin-top: 0.95rem;
+    color: #58a6ff;
+    font-size: 0.76rem;
+  }
   .recent-reading-list { display: grid; gap: 0.7rem; }
   .recent-reading-card {
     display: block;
@@ -338,6 +349,8 @@
   html[data-theme="light"] .recent-reading h2 { color: #1c2128; }
   html[data-theme="light"] .recent-reading > p,
   html[data-theme="light"] .recent-reading-card span { color: #57606a; }
+  html[data-theme="light"] .recent-reading-meta { color: #57606a; }
+  html[data-theme="light"] .recent-reading-more { color: #0969da; }
   html[data-theme="light"] .recent-reading-card { border-color: #d0d7de; }
   html[data-theme="light"] .recent-reading-card:hover { border-color: #8b949e; }
   html[data-theme="light"] .recent-reading-card strong { color: #1c2128; }
@@ -577,8 +590,10 @@
 
 <section class="recent-reading" aria-labelledby="recent-reading-title">
   <h2 id="recent-reading-title">What the journal is reading now</h2>
-  <p>This curated timeline names past scientific turns. These are newer research encounters from the journal: not a substitute chronology, but a way back into the living inquiry.</p>
+  <p>This source-history cabinet is deliberately held rather than an automatic feed. These are newer research encounters from the journal: not a substitute chronology, but a way back into the living inquiry.</p>
+  <p class="recent-reading-meta" id="recent-reading-meta">Loading the journal’s current research edge.</p>
   <div class="recent-reading-list" id="recent-reading-list"></div>
+  <a class="recent-reading-more" id="recent-reading-more" href="/topics.html?topic=Research%20%26%20Ideas">Continue into the live research shelf →</a>
 </section>
 
 <footer>
@@ -609,6 +624,7 @@
   var focusedEvent = '';
   var categories = [];
   var recentReadingList = document.getElementById('recent-reading-list');
+  var recentReadingMeta = document.getElementById('recent-reading-meta');
 
   function titleCase(value) {
     return String(value || '').replace(/\b\w/g, function (char) { return char.toUpperCase(); });
@@ -980,7 +996,7 @@
 
       var spanText = eventsYearRange(events);
       var spanSuffix = spanText ? (' (' + spanText + ')' ) : '';
-      metaLine.textContent = 'Discoveries dataset (session ' + sessionText + ' as source point) · ' + eventCount + ' records' + spanSuffix;
+      metaLine.textContent = 'Held source-history cabinet (session ' + sessionText + ' revision) · ' + eventCount + ' records' + spanSuffix;
     }
 
     if (introLine) {
@@ -991,7 +1007,7 @@
         eventCount = declaredCount;
       }
 
-      introLine.textContent = 'This is a timeline of the underlying science — when discoveries were made, not when they were written about here. ' +
+      introLine.textContent = 'This is a deliberately maintained timeline of the underlying science — when discoveries were made, not when they were written about here. It does not claim to absorb every newer research entry. ' +
         (rangeText ? ('It currently covers ' + eventCount + ' events from ' + rangeText + '.') : ('It currently covers ' + eventCount + ' events.')) +
         ' Each item links to a related journal entry or letter.';
     }
@@ -1015,6 +1031,14 @@
       card.appendChild(excerpt);
       recentReadingList.appendChild(card);
     });
+    if (recentReadingMeta) {
+      var newest = index[0];
+      if (newest && newest.url) {
+        recentReadingMeta.textContent = 'The living archive currently reaches entry-' + newest.num + '; this cabinet is not silently treating that edge as a new discovery timeline.';
+      } else {
+        recentReadingMeta.textContent = 'These are a small return from the living archive, not an automatically extended chronology.';
+      }
+    }
     if (!recent.length) {
       recentReadingList.textContent = 'Recent research encounters will appear here as the journal index updates.';
     }
@@ -1065,6 +1089,9 @@
     categories = categoryList(events);
     updateMeta();
     restoreView();
+    if (recentReadingMeta) {
+      recentReadingMeta.textContent = 'The current journal edge could not be reached just now; the source-history cabinet remains available.';
+    }
   });
 })();
 </script>
