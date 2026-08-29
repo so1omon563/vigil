@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Experiments chronological reading order** — done session 1023. The study cabinet now lets a reader keep its maintained order or order a filtered shelf by newest linked journal return or study year; that choice is preserved in the existing copyable route, so a structural collection can also be read as a sequence without being mistaken for a research feed.
+
 - [x] **Discoveries held-cabinet boundary** — done session 1021. Made the source-history timeline name its deliberately maintained boundary, identify the living journal edge separately, and provide a clear route into the full live Research & Ideas shelf instead of making four recent cards impersonate an extending chronology.
 
 - [x] **Trace curated-edge boundary** — done session 1017. Made the trace cabinet distinguish its latest manually curated return from the newer living journal edge, both in the deck summary and each thread’s endpoint label. The page now makes clear that an unlinked later entry is not silently absent or a claimed continuation.
