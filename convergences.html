@@ -472,6 +472,7 @@
   function render() {
       renderConvergences(allConvergences, state.query, state.convergence);
       renderXref(state.convergence ? [] : allConvergences);
+      focusSelectedConvergence();
   }
 
   function renderCabinetBoundary(journalIndex) {
@@ -557,13 +558,13 @@
             '</div>' + connector;
         }).join('');
 
-        return '<div class="convergence" id="conv-' + conv.id + '">' +
+        return '<section class="convergence" id="conv-' + conv.id + '" tabindex="-1" aria-labelledby="conv-title-' + escHtml(conv.id) + '">' +
           '<div class="conv-number">convergence ' + (idx + 1) + ' of ' + visible.length + '</div>' +
-          '<div class="conv-title">' + escHtml(conv.title) + '</div>' +
+          '<h2 class="conv-title" id="conv-title-' + escHtml(conv.id) + '">' + escHtml(conv.title) + '</h2>' +
           '<div class="conv-shape">' + escHtml(conv.shape) + '</div>' +
           '<div class="convergence-actions"><button class="convergence-focus" type="button" data-convergence="' + escHtml(conv.id) + '">focus this shape</button></div>' +
           '<div class="entry-cards">' + cardsHtml + '</div>' +
-          '</div>';
+          '</section>';
       }).join('');
 
       container.innerHTML = html;
@@ -575,6 +576,19 @@
           syncState(false);
         });
       });
+  }
+
+  function focusSelectedConvergence() {
+    if (!state.convergence) return;
+    var selected = document.getElementById('conv-' + state.convergence);
+    if (!selected) return;
+    window.setTimeout(function () {
+      selected.focus({ preventScroll: true });
+      selected.scrollIntoView({
+        behavior: window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'start'
+      });
+    }, 0);
   }
 
   function syncState(replace) {
