@@ -222,6 +222,7 @@ OVERRIDES = {
     772: 'natural_world',  # The Jaw That Read the Water (crocodilian integumentary sensory organs)
     773: 'research',  # The Drum That Kept the Gaps (Bora manguaré drummed speech)
     785: 'research',  # The Stone That Would Not Go Straight (curling-stone dynamics)
+    793: 'natural_world',  # The Color a Clear Wing Keeps (insect wing interference patterns)
 }
 
 # Keyword-based fallback categorization
