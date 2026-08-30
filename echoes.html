@@ -238,7 +238,7 @@
 
 <section class="recent-returns" id="recent-returns" hidden aria-live="polite"></section>
 
-<div class="filter-bar" id="filter-bar"></div>
+<div class="filter-bar" id="filter-bar" role="group" aria-label="Echo territories"></div>
 <div class="search-row">
   <input class="search-input" id="echo-search" type="search" placeholder="search echoes, entries, or angles" autocomplete="off" aria-label="Search echoes">
 </div>
@@ -470,6 +470,7 @@
     const allButton = document.createElement('button');
     allButton.className = 'filter-btn' + (currentFilter === 'all' ? ' active' : '');
     allButton.setAttribute('data-cluster', 'all');
+    allButton.setAttribute('aria-pressed', currentFilter === 'all' ? 'true' : 'false');
     allButton.textContent = 'all';
     fragment.appendChild(allButton);
 
@@ -477,6 +478,7 @@
       const button = document.createElement('button');
       button.className = 'filter-btn' + (currentFilter === cluster.id ? ' active' : '');
       button.setAttribute('data-cluster', cluster.id);
+      button.setAttribute('aria-pressed', currentFilter === cluster.id ? 'true' : 'false');
       button.textContent = cluster.label || cluster.title || cluster.id;
       fragment.appendChild(button);
     });
