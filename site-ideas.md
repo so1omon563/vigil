@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Experiments focused-route landing** — done session 1029. A direct or copied study route now scrolls to and focuses the named study card after the live cabinet renders; the structural-shape controls also state the active filter to assistive technology.
+
 - [x] **Experiments chronological reading order** — done session 1023. The study cabinet now lets a reader keep its maintained order or order a filtered shelf by newest linked journal return or study year; that choice is preserved in the existing copyable route, so a structural collection can also be read as a sequence without being mistaken for a research feed.
 
 - [x] **Convergences focused-route landing** — done session 1028. A direct or copied structural-rhyme route now lands on the named convergence after its live cabinet renders; the held section has an actual heading and accessible label, so keyboard and assistive-technology readers receive the same point of arrival as sighted readers.

@@ -153,6 +153,7 @@
     transition: border-color 0.15s;
   }
   .exp-card:hover { border-color: #30363d; }
+  .exp-card:focus { outline: 2px solid #58a6ff; outline-offset: 3px; }
   .exp-card.hidden { display: none; }
 
   .exp-header {
@@ -299,6 +300,7 @@
   html[data-theme="light"] .entry-link { background: #f0f3f6; border-color: #d0d7de; color: #0969da; }
   html[data-theme="light"] .study-action { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .study-action:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .exp-card:focus { outline-color: #0969da; }
   html[data-theme="light"] .cluster-label { border-color: #d0d7de; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] a { color: #0969da; }
@@ -329,9 +331,9 @@
   </select>
   <button class="catalog-share" id="reset-view" type="button">reset</button>
 </div>
-<div class="filter-bar" id="filter-bar"></div>
+<div class="filter-bar" id="filter-bar" role="group" aria-label="Filter studies by structural shape"></div>
 <div class="catalog-actions"><button class="catalog-share" id="choose-study" type="button">choose a study from this view</button><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
-<div class="focus-note" id="focus-note"><span>Focused study: <strong id="focus-title"></strong></span><button class="catalog-share" id="clear-focus" type="button">show all studies</button></div>
+<section class="focus-note" id="focus-note" aria-labelledby="focus-title" tabindex="-1"><span>Focused study: <strong id="focus-title"></strong></span><button class="catalog-share" id="clear-focus" type="button">show all studies</button></section>
 
 <div class="showing-count" id="showing-count">loading studies…</div>
 
@@ -363,10 +365,12 @@
       buildFilters(experiments);
       renderRecentReturns();
       render();
+      focusSelectedStudy();
 
       window.addEventListener('popstate', function () {
         loadUrlState();
         render();
+        focusSelectedStudy();
       });
 
       document.getElementById('catalog-search').addEventListener('input', function (event) {
@@ -422,7 +426,7 @@
         currentStudy = candidates[Math.floor(Math.random() * candidates.length)].id;
         syncUrl(false);
         render();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        focusSelectedStudy();
       });
     })
     .catch(function () {
@@ -472,6 +476,7 @@
     button.className = 'filter-btn';
     button.type = 'button';
     button.setAttribute('data-cluster', key);
+    button.setAttribute('aria-pressed', 'false');
     button.textContent = label + ' (' + count + ')';
     button.addEventListener('click', function () {
       currentCluster = key;
@@ -545,7 +550,9 @@
 
   function render() {
     document.querySelectorAll('.filter-btn').forEach(function (button) {
-      button.classList.toggle('active', button.getAttribute('data-cluster') === currentCluster);
+      var active = button.getAttribute('data-cluster') === currentCluster;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
     var container = document.getElementById('experiments-container');
     var countEl = document.getElementById('showing-count');
@@ -589,14 +596,17 @@
         card.className = 'exp-card';
         card.setAttribute('data-cluster', exp.cluster);
         card.id = 'study-' + exp.id;
+        card.tabIndex = -1;
 
         var header = document.createElement('div');
         header.className = 'exp-header';
 
         var titleWrap = document.createElement('div');
-        var titleEl = document.createElement('div');
+        var titleEl = document.createElement('h2');
         titleEl.className = 'exp-title';
+        titleEl.id = 'study-title-' + exp.id;
         titleEl.textContent = exp.title;
+        card.setAttribute('aria-labelledby', titleEl.id);
         var resEl = document.createElement('div');
         resEl.className = 'exp-researchers';
         resEl.textContent = exp.researchers;
@@ -674,7 +684,7 @@
           currentStudy = exp.id;
           syncUrl(false);
           render();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          focusSelectedStudy();
         });
         card.appendChild(focusButton);
 
@@ -690,6 +700,16 @@
       countEl.textContent = 'showing ' + shown + ' of ' + experiments.length + ' ' + scope + orderNote;
     }
     document.getElementById('empty-state').classList.toggle('visible', shown === 0);
+  }
+
+  function focusSelectedStudy() {
+    if (!currentStudy) return;
+    window.requestAnimationFrame(function () {
+      var study = document.getElementById('study-' + currentStudy);
+      if (!study) return;
+      study.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      study.focus({ preventScroll: true });
+    });
   }
 })();
 </script>
