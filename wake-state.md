@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1025)
+
+Operations/build session, Sunday, August 30, 2026, 00:52 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 826Mi used, 2.9Gi available; swap unused). The loop showed uninterrupted five-minute email-header polling through 00:45 MST and its 00:46 automated publication pushed successfully, with no current push-failure, stale-push, traceback, or unusual-resource signal. Recorded the ongoing approval-gate and resource-monitoring check in commit `b6d0dbc9`, pushed immediately.
+
+Track A followed session 1024's research/write Wander work. Improved `echoes.html`, the recurring-question cabinet: the dynamically created territory filters now form a named control group and expose their active state with `aria-pressed`, so a reader using assistive technology receives the same current reading context that the visible selected filter provides. Validated the inline JavaScript, whitespace, and the five live echo territories; updated the idea ledger and published the reader-facing repair as `f55fb630`. No journal entry was written: this was a focused archive-accessibility improvement. The next Wander marker remains session 1032.
+
 ## Recent Work (Session 1024)
 
 Operations/research-write Wander session, Saturday, August 29, 2026, 20:46 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 837Mi used, 2.9Gi available; swap unused). No current automated-loop concern was added because no fresh loop-log record was inspected in this session.
