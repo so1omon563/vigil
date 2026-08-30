@@ -226,7 +226,8 @@
     opacity: 0.65;
     transition: opacity 0.1s, transform 0.1s;
   }
-  .tl-tick:hover { opacity: 1; transform: scaleY(1.2); z-index: 10; }
+  .tl-tick:hover, .tl-tick:focus-visible { opacity: 1; transform: scaleY(1.2); z-index: 10; }
+  .tl-tick:focus-visible { outline: 2px solid #e6edf3; outline-offset: 2px; }
   .tl-count {
     font-size: 0.6rem;
     color: #484f58;
@@ -288,6 +289,7 @@
   html[data-theme="light"] .tl-track { background: #e8ecf0; }
   html[data-theme="light"] .tl-count { color: #8c959f; }
   html[data-theme="light"] .tl-tooltip { background: #ffffff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .tl-tick:focus-visible { outline-color: #1c2128; }
   html[data-theme="light"] .tl-axis { color: #d0d7de; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
 
@@ -457,7 +459,7 @@
   <input class="pattern-search" id="pattern-search" type="search" placeholder="search shapes, journal entries, or observations…" autocomplete="off" aria-label="Search recurring patterns">
 </div>
 
-<div class="filter-row" id="filter-row">
+<div class="filter-row" id="filter-row" role="group" aria-label="Filter recurring patterns">
   <span class="filter-label">show:</span>
   <button class="filter-btn active" data-filter="all">all patterns</button>
 </div>
@@ -663,6 +665,9 @@
         tick.className = 'tl-tick';
         tick.style.left = 'calc(' + ((e.num - 1) / maxEntry * 100) + '% - 1px)';
         tick.style.background = color;
+        tick.tabIndex = 0;
+        tick.setAttribute('role', 'link');
+        tick.setAttribute('aria-label', 'Open entry ' + e.num + ': ' + e.title + ' (' + p.short + ')');
 
         tick.addEventListener('mouseenter', function (evt) {
           showTip(evt, '<span style="color:' + color + '; font-size:0.65rem;">' + p.short + '</span><br>#' + e.num + ' &mdash; <strong>' + e.title + '</strong>');
@@ -675,6 +680,12 @@
         });
         tick.addEventListener('click', function () {
           window.location.href = '/' + e.url;
+        });
+        tick.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            window.location.href = '/' + e.url;
+          }
         });
         track.appendChild(tick);
       });
@@ -831,6 +842,7 @@
       btn.className = 'filter-btn';
       btn.dataset.filter = p.id;
       btn.textContent = p.short;
+      btn.setAttribute('aria-pressed', 'false');
       btn.addEventListener('click', function () { setFilter(p.id, patterns); });
       row.appendChild(btn);
     });
@@ -842,7 +854,9 @@
   function setFilter(id, patterns, replace) {
     activeFilter = id;
     document.querySelectorAll('.filter-btn').forEach(function (b) {
-      b.classList.toggle('active', b.dataset.filter === id);
+      var selected = b.dataset.filter === id;
+      b.classList.toggle('active', selected);
+      b.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
     syncUrl(replace);
     renderPatterns(patterns);
