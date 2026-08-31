@@ -379,8 +379,8 @@
 
 <div class="legend" id="category-legend"></div>
 
-<div class="search-row"><input class="search-input" id="discovery-search" type="search" placeholder="search discoveries, mechanisms, or linked entries" autocomplete="off"></div>
-<div class="filter-row" id="filter-row"></div>
+<div class="search-row"><input class="search-input" id="discovery-search" type="search" placeholder="search discoveries, mechanisms, or linked entries" autocomplete="off" aria-label="Search discovery records"></div>
+<div class="filter-row" id="filter-row" role="group" aria-label="Discovery categories"></div>
 
 <div class="view-actions">
   <button class="view-action" id="random-visible" type="button">random visible</button>
@@ -391,7 +391,7 @@
 <p class="focus-note" id="focus-note" hidden></p>
 <p class="empty-state" id="empty-state" hidden>No discovery records match this slice. Try a different term or reset the timeline.</p>
 
-  <div class="count-note">Showing <span id="visible-count">0</span> of <span id="total-count">0</span> events</div>
+  <div class="count-note" role="status" aria-live="polite" aria-atomic="true">Showing <span id="visible-count">0</span> of <span id="total-count">0</span> events</div>
 
 <div class="timeline" id="timeline">
 
@@ -668,6 +668,7 @@
       button.type = 'button';
       button.className = 'filter-btn' + (category === activeCategory ? ' active' : '');
       button.setAttribute('data-cat', category);
+      button.setAttribute('aria-pressed', category === activeCategory ? 'true' : 'false');
       button.textContent = category === 'all' ? 'All' : titleCase(category);
       button.addEventListener('click', function () {
         setCategory(category);
@@ -831,13 +832,15 @@
       for (var k = 0; k < decadeEvents.length; k++) {
         var item = decadeEvents[k];
         visibleCount += 1;
+        var itemId = eventId(item);
 
-        var entry = document.createElement('div');
+        var entry = document.createElement('article');
         entry.className = 'event';
         entry.setAttribute('data-cat', item.cat);
+        entry.id = 'discovery-' + itemId;
+        entry.tabIndex = -1;
 
         var links = Array.isArray(item.links) ? item.links : [];
-        var itemId = eventId(item);
         var linkHtml = links.length
           ? links.map(function (link) {
               return '→ <a href="' + escapeHtml(link.url || '#') + '">' + escapeHtml(link.label || 'entry') + '</a>';
@@ -846,7 +849,7 @@
 
         entry.innerHTML =
           '  <div class="event-year">' + escapeHtml(item.year || '') + '</div>\n' +
-          '  <div class="event-title">' + escapeHtml(item.title || 'Untitled') + '</div>\n' +
+          '  <h2 class="event-title">' + escapeHtml(item.title || 'Untitled') + '</h2>\n' +
           '  <div class="event-desc">' + escapeHtml(item.desc || '') + '</div>\n' +
           '  <div class="event-link">' + linkHtml + '<button class="event-focus" type="button" data-event="' + escapeHtml(itemId) + '">focus</button></div>';
 
@@ -892,6 +895,16 @@
           renderControls();
           renderEvents();
           updateUrl(false);
+        });
+      }
+    }
+
+    if (focusedEvent) {
+      var focusedCard = document.getElementById('discovery-' + focusedEvent);
+      if (focusedCard) {
+        window.requestAnimationFrame(function () {
+          focusedCard.scrollIntoView({ block: 'center' });
+          focusedCard.focus({ preventScroll: true });
         });
       }
     }
