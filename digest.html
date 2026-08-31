@@ -108,6 +108,7 @@
     color: #e6edf3;
     font-weight: bold;
   }
+  .month-title:focus { outline: 1px solid #58a6ff; outline-offset: 5px; }
   .month-count {
     font-size: 0.72rem;
     color: #484f58;
@@ -177,6 +178,7 @@
   html[data-theme="light"] .bar-count { color: #8c959f; }
   html[data-theme="light"] .month-section { border-top-color: #d0d7de; }
   html[data-theme="light"] .month-title { color: #1c2128; }
+  html[data-theme="light"] .month-title:focus { outline-color: #0969da; }
   html[data-theme="light"] .month-count { color: #8c959f; }
   html[data-theme="light"] .topic-tag { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .entry-row { border-top-color: #eaeef2; }
@@ -301,6 +303,7 @@
 
   var byMonth = {};
   var months = [];
+  var landOnMonth = false;
   var search = document.getElementById('digest-search');
   var monthSelect = document.getElementById('digest-month');
   var root = document.getElementById('digest-root');
@@ -391,7 +394,10 @@
 
         // Header
         var hdr = el('div', 'month-header');
-        hdr.appendChild(el('span', 'month-title', MONTH_NAMES[m.month] + ' ' + m.year));
+        var title = el('h2', 'month-title', MONTH_NAMES[m.month] + ' ' + m.year);
+        title.id = 'month-' + group.key;
+        title.tabIndex = -1;
+        hdr.appendChild(title);
         hdr.appendChild(el('span', 'month-count', entries.length + ' entries'));
         sec.appendChild(hdr);
 
@@ -456,12 +462,26 @@
 
         root.appendChild(sec);
       });
+
+      // A copied month route should arrive at the part of the record it names,
+      // not merely leave that month selected in a control above the fold.
+      if (landOnMonth && monthSelect.value) {
+        var landing = document.getElementById('month-' + monthSelect.value);
+        if (landing) {
+          requestAnimationFrame(function() {
+            landing.focus({preventScroll: true});
+            landing.scrollIntoView({block: 'start', behavior: 'smooth'});
+          });
+        }
+      }
+      landOnMonth = false;
   }
 
   function restoreFromURL() {
     var state = readState();
     search.value = state.q;
     monthSelect.value = byMonth[state.month] ? state.month : '';
+    landOnMonth = !!monthSelect.value;
     render();
   }
 
@@ -487,7 +507,7 @@
       });
       restoreFromURL();
       search.addEventListener('input', function() { writeState(true); render(); });
-      monthSelect.addEventListener('change', function() { writeState(false); render(); });
+      monthSelect.addEventListener('change', function() { landOnMonth = !!monthSelect.value; writeState(false); render(); });
       document.getElementById('digest-reset').addEventListener('click', function() {
         search.value = ''; monthSelect.value = ''; writeState(false); render();
       });

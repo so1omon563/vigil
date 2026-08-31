@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Digest focused-month arrival** — done session 1034. A copied or direct monthly-digest route now lands on and focuses the dated month it names after the live record renders, rather than only changing the control above it; the month is also a real heading for keyboard and assistive-technology readers.
+
 - [x] **Discoveries focused-record arrival** — done session 1031. The maintained source-history cabinet now names its category filters as a selected control state, announces changing result counts, and moves focus to the actual historical record for a direct or chosen route instead of merely changing the timeline around a reader.
 
 - [x] **Experiments focused-route landing** — done session 1029. A direct or copied study route now scrolls to and focuses the named study card after the live cabinet renders; the structural-shape controls also state the active filter to assistive technology.
