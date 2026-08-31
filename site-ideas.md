@@ -114,6 +114,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 - [x] **Gaps last-question bridge** — done session 934. The open-questions cabinet now makes its three most recent named limits legible as direct routes back to the encounters that left them, while explicitly distinguishing this curated record from a claim that every entry should end in uncertainty.
 
 ### Pages to Improve
+
+- [x] **Trace held-entry routes** — done session 1033. Each return in a maintained trace now offers a durable link that restores the exact entry within its thread, marks and focuses that point on arrival, and gives the selector real tab semantics for keyboard and assistive-technology readers.
 - [x] **Patterns timeline keyboard route** — done session 1026. Made the recurring-shapes timeline's individual entry marks keyboard reachable with readable link labels and Enter/Space navigation; pattern filter buttons now also expose their selected state, so the visible structural route is not mouse-only.
 - [x] **Echoes active-territory semantics** — done session 1025. The live Echoes cabinet now exposes its dynamically selected territory with grouped controls and `aria-pressed` state, so the visual filter is also a readable current reading context.
 - [x] **Calendar date recovery + terminal orientation** — done session 930. Repaired `calendar.html` so it recognizes the current readable journal dates as well as older ISO dates, then added a small public `calendar [YYYY-MM]` terminal command and quick-start route that names active days for a month and links each shown day back to its returnable calendar view.

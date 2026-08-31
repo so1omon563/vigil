@@ -195,6 +195,22 @@
     font-style: italic;
     line-height: 1.6;
   }
+  .node-hold {
+    display: inline-block;
+    margin-top: 0.55rem;
+    font-size: 0.7rem;
+    color: #484f58;
+  }
+  .node-hold:hover { color: #58a6ff; }
+  .entry-node.held .node-dot {
+    border-color: #d29922;
+    background: #0d1117;
+  }
+  .entry-node.held .node-content {
+    outline: 1px solid #d29922;
+    outline-offset: 0.45rem;
+    border-radius: 2px;
+  }
   .entry-node-final .node-dot {
     border-color: #3fb950;
     background: #0d1117;
@@ -266,6 +282,10 @@
   html[data-theme="light"] .node-title a:hover { color: #0969da; }
   html[data-theme="light"] .node-contribution { color: #57606a; }
   html[data-theme="light"] .node-source { border-color: #d0d7de; color: #8c959f; }
+  html[data-theme="light"] .node-hold { color: #57606a; }
+  html[data-theme="light"] .node-hold:hover { color: #0969da; }
+  html[data-theme="light"] .entry-node.held .node-dot { border-color: #9a6700; background: #f6f8fa; }
+  html[data-theme="light"] .entry-node.held .node-content { outline-color: #9a6700; }
   html[data-theme="light"] .entry-node-final .node-source { border-color: #1a7f37; color: #57606a; }
   html[data-theme="light"] .entry-node-final .node-title a { color: #1a7f37; }
   html[data-theme="light"] .entry-node-final .node-title a:hover { color: #238636; }
@@ -293,8 +313,8 @@
 
 <label class="sr-only" for="thread-filter">Filter thread traces</label>
 <input class="thread-filter" id="thread-filter" type="search" placeholder="filter traces by thread, description, or linked entry" autocomplete="off">
-<div class="thread-filter-note" id="thread-filter-note">Loading trace index…</div>
-<div class="thread-tabs" id="thread-tabs" aria-label="thread selector"></div>
+<div class="thread-filter-note" id="thread-filter-note" role="status" aria-live="polite">Loading trace index…</div>
+<div class="thread-tabs" id="thread-tabs" role="tablist" aria-label="thread selector"></div>
 <div class="thread-actions"><button class="thread-share" id="thread-random" type="button">choose a visible trace</button><button class="thread-share" id="thread-reset" type="button">reset</button><button class="thread-share" id="thread-share" type="button">copy this trace</button></div>
 <div id="thread-content"></div>
 
@@ -418,32 +438,36 @@
     }
   }
 
-  function nodeMarkup(entry, isFinal) {
+  function nodeMarkup(entry, isFinal, threadId) {
     var num = isFinite(Number(entry.num)) ? 'entry-' + entry.num : 'untitled';
     var nodeClass = 'entry-node' + (isFinal ? ' entry-node-final' : '');
+    var holdUrl = '/trace.html?thread=' + encodeURIComponent(threadId) + '&entry=' + encodeURIComponent(entry.num);
     return (
-      '<div class="' + nodeClass + '">\n' +
+      '<div class="' + nodeClass + '" id="trace-entry-' + escapeHtml(entry.num) + '" tabindex="-1">\n' +
       '  <div class="node-line"><div class="node-dot"></div><div class="node-connector"></div></div>\n' +
       '  <div class="node-content">\n' +
       '    <div class="node-num">' + num + '</div>\n' +
       '    <div class="node-title"><a href="' + safeUrl(entry.url) + '">' + escapeHtml(entry.title || 'Untitled') + '</a></div>\n' +
       '    <div class="node-contribution">' + escapeHtml(entry.note || 'No note was provided.') + '</div>\n' +
       '    <div class="node-source">what this entry added to the trace</div>\n' +
+      '    <a class="node-hold" href="' + holdUrl + '">hold this point in the trace</a>\n' +
       '  </div>\n' +
       '</div>\n'
     );
   }
 
-  function updateThreadUrl(threadId, query, mode) {
+  function updateThreadUrl(threadId, query, mode, entryNum) {
     var url = new URL(window.location.href);
     if (threadId) url.searchParams.set('thread', threadId);
     else url.searchParams.delete('thread');
     if (query) url.searchParams.set('q', query);
     else url.searchParams.delete('q');
+    if (entryNum) url.searchParams.set('entry', entryNum);
+    else url.searchParams.delete('entry');
     window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url.pathname + url.search + url.hash);
   }
 
-  function showThread(threads, targetId, query, tabs, content, historyMode) {
+  function showThread(threads, targetId, query, tabs, content, historyMode, entryNum) {
     var needle = String(query || '').trim().toLowerCase();
     var visible = threads.filter(function(thread) { return thread.searchText.indexOf(needle) !== -1; });
     tabs.innerHTML = '';
@@ -454,12 +478,23 @@
       btn.type = 'button';
       btn.className = 'thread-tab';
       btn.dataset.id = thread.id;
+      btn.id = 'trace-tab-' + thread.id;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-controls', thread.id);
+      btn.setAttribute('aria-selected', 'false');
+      btn.tabIndex = -1;
       btn.textContent = thread.title;
       tabs.appendChild(btn);
       content.appendChild(thread.section);
     });
 
     var selected = targetId || '';
+    if (!selected && entryNum) {
+      var containing = visible.filter(function(thread) {
+        return thread.entries.some(function(entry) { return String(entry.num) === String(entryNum); });
+      });
+      if (containing.length) selected = containing[0].id;
+    }
     content.querySelectorAll('.thread').forEach(function (node) { node.classList.remove('visible'); });
     tabs.querySelectorAll('.thread-tab').forEach(function (btn) { btn.classList.remove('active'); });
 
@@ -473,9 +508,27 @@
     if (selectedThread) {
       selectedThread.classList.add('visible');
       var next = selectedThread.id;
-      if (historyMode !== 'none') updateThreadUrl(next, needle, historyMode);
+      if (historyMode !== 'none') updateThreadUrl(next, needle, historyMode, entryNum);
     }
-    if (selectedBtn) selectedBtn.classList.add('active');
+    if (selectedBtn) {
+      selectedBtn.classList.add('active');
+      selectedBtn.setAttribute('aria-selected', 'true');
+      selectedBtn.tabIndex = 0;
+    }
+
+    content.querySelectorAll('.entry-node.held').forEach(function(node) { node.classList.remove('held'); });
+    if (entryNum && selectedThread) {
+      var held = Array.prototype.filter.call(selectedThread.querySelectorAll('.entry-node'), function(node) {
+        return node.id === 'trace-entry-' + String(entryNum);
+      })[0];
+      if (held) {
+        held.classList.add('held');
+        setTimeout(function() {
+          held.focus({ preventScroll: true });
+          held.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }, 0);
+      }
+    }
 
     var note = document.getElementById('thread-filter-note');
     if (note) note.textContent = visible.length ? visible.length + ' of ' + threads.length + ' traces visible' : 'No traces match this filter.';
@@ -526,16 +579,11 @@
     });
 
     normalized.forEach(function(thread) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'thread-tab';
-      btn.dataset.id = thread.id;
-      btn.textContent = thread.title;
-      tabs.appendChild(btn);
-
       var section = document.createElement('div');
       section.className = 'thread';
       section.id = thread.id;
+      section.setAttribute('role', 'tabpanel');
+      section.setAttribute('aria-labelledby', 'trace-tab-' + thread.id);
 
       var html =
         '<div class="thread-header">' +
@@ -562,7 +610,7 @@
         section.innerHTML = html + '<p class="thread-missing">No linked entries yet.</p>';
       } else {
         html += items.map(function(entry, index) {
-          return nodeMarkup(entry, index === items.length - 1);
+          return nodeMarkup(entry, index === items.length - 1, thread.id);
         }).join('');
         html +=
           '<div class="synthesis">' +
@@ -581,33 +629,54 @@
 
     var params = new URLSearchParams(window.location.search);
     var initial = params.get('thread');
+    var initialEntry = params.get('entry');
     var filter = document.getElementById('thread-filter');
     var query = params.get('q') || '';
     if (filter) filter.value = query;
-    showThread(normalized, initial, query, tabs, content, 'replace');
+    showThread(normalized, initial, query, tabs, content, 'replace', initialEntry);
 
     tabs.addEventListener('click', function(e) {
       if (!e.target || !e.target.matches('.thread-tab')) return;
       var target = e.target.dataset.id;
-      showThread(normalized, target, filter ? filter.value : '', tabs, content, 'push');
+      showThread(normalized, target, filter ? filter.value : '', tabs, content, 'push', '');
+    });
+
+    tabs.addEventListener('keydown', function(e) {
+      if (!e.target || !e.target.matches('.thread-tab')) return;
+      var keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+      if (keys.indexOf(e.key) === -1) return;
+      e.preventDefault();
+      var buttons = Array.prototype.slice.call(tabs.querySelectorAll('.thread-tab'));
+      var currentIndex = buttons.indexOf(e.target);
+      var nextIndex = currentIndex;
+      if (e.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+      if (e.key === 'ArrowRight') nextIndex = (currentIndex + 1) % buttons.length;
+      if (e.key === 'Home') nextIndex = 0;
+      if (e.key === 'End') nextIndex = buttons.length - 1;
+      var nextButton = buttons[nextIndex];
+      if (!nextButton) return;
+      showThread(normalized, nextButton.dataset.id, filter ? filter.value : '', tabs, content, 'push', '');
+      var activeButton = tabs.querySelector('[data-id="' + nextButton.dataset.id + '"]');
+      if (activeButton) activeButton.focus();
     });
 
     if (filter) filter.addEventListener('input', function() {
-      showThread(normalized, '', filter.value, tabs, content, 'push');
+      showThread(normalized, '', filter.value, tabs, content, 'push', '');
     });
 
     window.addEventListener('popstate', function() {
       var state = new URLSearchParams(window.location.search);
       var target = state.get('thread');
       var nextQuery = state.get('q') || '';
+      var nextEntry = state.get('entry');
       if (filter) filter.value = nextQuery;
-      showThread(normalized, target, nextQuery, tabs, content, 'none');
+      showThread(normalized, target, nextQuery, tabs, content, 'none', nextEntry);
     });
 
     var reset = document.getElementById('thread-reset');
     if (reset) reset.addEventListener('click', function() {
       if (filter) filter.value = '';
-      showThread(normalized, '', '', tabs, content, 'push');
+      showThread(normalized, '', '', tabs, content, 'push', '');
     });
 
     var random = document.getElementById('thread-random');
@@ -622,7 +691,7 @@
       var alternatives = visible.filter(function(thread) { return thread.id !== current; });
       var pool = alternatives.length ? alternatives : visible;
       var chosen = pool[Math.floor(Math.random() * pool.length)];
-      showThread(normalized, chosen.id, filter ? filter.value : '', tabs, content, 'push');
+      showThread(normalized, chosen.id, filter ? filter.value : '', tabs, content, 'push', '');
     });
 
     var share = document.getElementById('thread-share');
