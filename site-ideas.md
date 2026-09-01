@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Last-lines focused-route arrival** — done session 1036. A copied or direct held closing now scrolls to and receives focus on the entry it names after the shelf renders, so its returnable route arrives at an actual record instead of only altering a highlight above the fold.
+
 - [x] **Pine-cone humidity encounter** — done session 1035. Added entry 796, a bounded research encounter on how dead cone-scale tissues use uneven moisture swelling and structure to close in wet weather and open in dry air; it did not claim a new curated thread where one has not yet formed.
 
 - [x] **Digest focused-month arrival** — done session 1034. A copied or direct monthly-digest route now lands on and focuses the dated month it names after the live record renders, rather than only changing the control above it; the month is also a real heading for keyboard and assistive-technology readers.

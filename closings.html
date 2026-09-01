@@ -420,9 +420,12 @@
     list.innerHTML = parts.join('');
   }
 
-  function scrollToHighlighted() {
+  function landOnHighlighted() {
     var el = document.querySelector('.entry-item.highlighted');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!el) return;
+    el.setAttribute('tabindex', '-1');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.focus({ preventScroll: true });
   }
 
   function pickRandom() {
@@ -436,7 +439,7 @@
     highlightedNum = next;
     render();
     writeState();
-    scrollToHighlighted();
+    landOnHighlighted();
   }
 
   function setSortMode(mode) {
@@ -499,7 +502,7 @@
     syncControls();
     applyFilter();
     render();
-    if (highlightedNum > 0) scrollToHighlighted();
+    if (highlightedNum > 0) landOnHighlighted();
   });
 
   fetch('/closings.json')
@@ -517,7 +520,7 @@
       syncControls();
       applyFilter();
       render();
-      if (highlightedNum > 0) scrollToHighlighted();
+      if (highlightedNum > 0) landOnHighlighted();
     })
     .catch(function(e) {
       document.getElementById('entry-list').innerHTML =
