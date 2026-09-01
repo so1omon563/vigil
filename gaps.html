@@ -261,11 +261,11 @@
   <button class="gap-action" id="share-view" type="button">copy this view</button>
 </div>
 
-<div class="filter-bar" id="filter-bar" aria-label="Filter open questions by kind">
+<div class="filter-bar" id="filter-bar" role="group" aria-label="Filter open questions by kind">
   <span class="count-note" id="count-note"></span>
 </div>
 
-<p class="focus-note" id="focus-note">One named uncertainty is in view.<button class="gap-action" id="show-all" type="button">return to all questions</button></p>
+<p class="focus-note" id="focus-note" aria-live="polite">One named uncertainty is in view.<button class="gap-action" id="show-all" type="button">return to all questions</button></p>
 <div id="gaps-container"></div>
 <div class="empty-state" id="empty-state">No open questions match this view. Try a different term or reset the filters.</div>
 
@@ -282,6 +282,7 @@ let journalEntries = [];
 let currentFilter = 'all';
 let currentQuery = '';
 let currentGapId = '';
+let landOnFocusedGap = false;
 
 function escapeHtml(value) {
   const node = document.createElement('span');
@@ -333,6 +334,7 @@ function renderFilters() {
     button.type = 'button';
     button.className = 'filter-btn' + (item.id === currentFilter ? ' active' : '');
     button.dataset.filter = item.id;
+    button.setAttribute('aria-pressed', item.id === currentFilter ? 'true' : 'false');
     const count = item.id === 'all' ? allGaps.length : allGaps.filter(g => g.type === item.id).length;
     button.textContent = `${item.label} (${count})`;
     button.addEventListener('click', () => {
@@ -357,16 +359,20 @@ function render() {
     const card = document.createElement('div');
     card.className = 'gap-card' + (focusedGap ? ' focused' : '');
     card.dataset.type = g.type;
+    card.id = `gap-card-${g.id}`;
+    card.tabIndex = -1;
     card.innerHTML = `
       <div class="gap-header">
-        <div class="gap-title">${escapeHtml(g.title)}</div>
-        <span><button class="gap-focus-link" type="button" data-gap-id="${escapeHtml(g.id)}">focus</button> · <a class="gap-entry-link" href="journal/entry-${Number(g.entry)}.html">entry-${Number(g.entry)}: ${escapeHtml(g.entry_title)} →</a></span>
+        <div class="gap-title" id="gap-title-${g.id}">${escapeHtml(g.title)}</div>
+        <span><button class="gap-focus-link" type="button" data-gap-id="${escapeHtml(g.id)}" aria-label="Focus ${escapeHtml(g.title)}">${focusedGap ? 'held in view' : 'focus'}</button> · <a class="gap-entry-link" href="journal/entry-${Number(g.entry)}.html">entry-${Number(g.entry)}: ${escapeHtml(g.entry_title)} →</a></span>
       </div>
       <div class="gap-type-badge badge-${g.type}">${TYPE_LABELS[g.type]}</div>
       <div class="gap-question">${escapeHtml(g.question)}</div>
     `;
+    card.setAttribute('aria-labelledby', `gap-title-${g.id}`);
     card.querySelector('[data-gap-id]').addEventListener('click', event => {
       currentGapId = event.currentTarget.dataset.gapId;
+      landOnFocusedGap = true;
       syncUrl(false);
       render();
     });
@@ -376,6 +382,15 @@ function render() {
   document.getElementById('focus-note').classList.toggle('visible', !!focusedGap);
   renderFilters();
   updateCount(focusedGap);
+  if (focusedGap && landOnFocusedGap) {
+    landOnFocusedGap = false;
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(`gap-card-${focusedGap.id}`);
+      if (!target) return;
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.focus({ preventScroll: true });
+    });
+  }
 }
 
 function updateCount(focusedGap) {
@@ -435,6 +450,7 @@ document.getElementById('hold-visible').addEventListener('click', event => {
   const alternatives = candidates.filter(g => g.id !== currentGapId);
   const pool = alternatives.length ? alternatives : candidates;
   currentGapId = pool[Math.floor(Math.random() * pool.length)].id;
+  landOnFocusedGap = true;
   syncUrl(false);
   render();
 });
@@ -470,6 +486,7 @@ window.addEventListener('popstate', () => {
   currentFilter = validFilter(requested) ? requested : 'all';
   currentQuery = params.get('q') || '';
   currentGapId = validGapId(params.get('gap')) ? params.get('gap') : '';
+  landOnFocusedGap = !!currentGapId;
   document.getElementById('gap-search').value = currentQuery;
   render();
 });
@@ -483,6 +500,7 @@ Promise.all([fetch('gaps.json').then(r => r.json()), fetch('journal-index.json')
     currentFilter = validFilter(requested) ? requested : 'all';
     currentQuery = params.get('q') || '';
     currentGapId = validGapId(params.get('gap')) ? params.get('gap') : '';
+    landOnFocusedGap = !!currentGapId;
     document.getElementById('gap-search').value = currentQuery;
     renderLastLeft();
     render();
