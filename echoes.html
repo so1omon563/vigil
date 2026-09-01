@@ -116,6 +116,7 @@
     border-radius: 3px;
     background: rgba(31, 48, 64, 0.35);
   }
+  .entry-item.held:focus { outline: 2px solid #58a6ff; outline-offset: 3px; }
   .entry-num {
     font-size: 0.7rem;
     color: #30363d;
@@ -210,6 +211,7 @@
   html[data-theme="light"] .entry-list { border-color: #d0d7de; }
   html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
   html[data-theme="light"] .entry-item.held { border-color: #0969da; background: #ddf4ff; }
+  html[data-theme="light"] .entry-item.held:focus { outline-color: #0969da; }
   html[data-theme="light"] .entry-title a { color: #24292e; }
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #656d76; }
@@ -442,6 +444,11 @@
       entries.forEach(function(entry) {
         const item = document.createElement('div');
         item.className = 'entry-item' + (String(entry.num) === String(held) ? ' held' : '');
+        if (String(entry.num) === String(held)) {
+          item.tabIndex = -1;
+          item.setAttribute('data-held-return', String(entry.num));
+          item.setAttribute('aria-label', 'Held return: entry ' + entry.num + ', ' + entry.title);
+        }
         item.innerHTML =
           '<div class="entry-num">#' + entry.num + '</div>' +
           '<div class="entry-content">' +
@@ -463,6 +470,16 @@
     }
 
     clustersRoot.appendChild(fragment);
+  }
+
+  function arriveAtHeldReturn(held) {
+    if (!held) return;
+    const target = clustersRoot.querySelector('[data-held-return="' + String(held) + '"]');
+    if (!target) return;
+    window.requestAnimationFrame(function() {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.focus({ preventScroll: true });
+    });
   }
 
   function renderButtons(clusters, currentFilter) {
@@ -557,6 +574,7 @@
       renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
       renderRecentReturns(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
       resetButton.textContent = currentFocus || currentHeld ? 'return to cabinet' : 'reset';
+      arriveAtHeldReturn(currentHeld);
       if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus, currentHeld);
     }
 

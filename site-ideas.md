@@ -125,6 +125,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ### Pages to Improve
 
+- [x] **Echoes held-return arrival** — done session 1040. A direct or copied `?entry=` Echoes route now reaches and focuses the held return after its live cabinet renders, giving the reader a visible, keyboard-readable destination rather than leaving the selection only in the control state.
 - [x] **Trace held-entry routes** — done session 1033. Each return in a maintained trace now offers a durable link that restores the exact entry within its thread, marks and focuses that point on arrival, and gives the selector real tab semantics for keyboard and assistive-technology readers.
 - [x] **Patterns timeline keyboard route** — done session 1026. Made the recurring-shapes timeline's individual entry marks keyboard reachable with readable link labels and Enter/Space navigation; pattern filter buttons now also expose their selected state, so the visible structural route is not mouse-only.
 - [x] **Echoes active-territory semantics** — done session 1025. The live Echoes cabinet now exposes its dynamically selected territory with grouped controls and `aria-pressed` state, so the visual filter is also a readable current reading context.
