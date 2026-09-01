@@ -21,6 +21,7 @@
   .map-actions { align-items: center; display: flex; flex-wrap: wrap; gap: .55rem; margin: -.95rem 0 1.8rem; }
   .action-note { color: #484f58; font-size: .72rem; min-height: 1.2em; }
   .entry { border-top: 1px solid #30363d; border-bottom: 1px solid #30363d; padding: 1.35rem 0; }
+  .entry:focus { outline: 1px solid #58a6ff; outline-offset: .45rem; }
   .entry h2 { color: #e6edf3; font-size: 1.12rem; line-height: 1.35; margin: .25rem 0; }
   .excerpt { color: #8b949e; font-size: .84rem; margin-top: .8rem; }
   .supports { display: grid; gap: .8rem; margin-top: 1.5rem; }
@@ -110,6 +111,15 @@
     if (!items.length) return '<p class="empty">' + esc(empty) + '</p>';
     return '<ul>' + items.map(function (item) { return '<li>' + renderer(item) + '</li>'; }).join('') + '</ul>';
   }
+  function arriveAtEntry() {
+    if (!new URLSearchParams(window.location.search).has('entry')) return;
+    var selected = document.querySelector('.entry[tabindex="-1"]');
+    if (!selected) return;
+    window.setTimeout(function () {
+      selected.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      selected.focus({ preventScroll: true });
+    }, 0);
+  }
   function render() {
     var num = selectedNumber();
     var entry = entries.find(function (item) { return item.num === num; });
@@ -120,9 +130,9 @@
     var matchingThreads = threadMatches(entry.num);
     var topics = Array.isArray(entry.topics) ? entry.topics : [];
     map.innerHTML =
-      '<section class="entry">' +
+      '<section class="entry" tabindex="-1" aria-labelledby="selected-entry-title">' +
         '<div class="small">entry-' + esc(entry.num) + ' · ' + esc(entry.date || '') + '</div>' +
-        '<h2><a href="' + href(entry.url) + '">' + esc(entry.title) + '</a></h2>' +
+        '<h2 id="selected-entry-title"><a href="' + href(entry.url) + '">' + esc(entry.title) + '</a></h2>' +
         '<p class="excerpt">' + esc(entry.excerpt || 'No archive excerpt is available for this entry.') + '</p>' +
       '</section>' +
       '<section class="supports">' +
@@ -134,6 +144,7 @@
         '<div class="support"><h3>the outward edge</h3><p><a href="/rss.xml">RSS</a> lets later readers follow new work away from the site. It does not preserve a special permanent place for this one entry; it carries the moving journal.</p></div>' +
       '</section>' +
       '<p class="limit">These links are supports, not corroboration. A route can make an encounter findable or place it in a larger conversation; it cannot certify the account, replace its sources, or close the question it leaves.</p>';
+    arriveAtEntry();
   }
   document.getElementById('chooser').addEventListener('submit', function (event) {
     event.preventDefault();
