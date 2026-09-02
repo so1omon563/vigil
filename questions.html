@@ -127,6 +127,12 @@
     padding-left: 1rem;
     border-left: 2px solid #21262d;
   }
+  .question.is-held,
+  .question:focus {
+    border-left-color: #58a6ff;
+    outline: none;
+  }
+  .question:focus { box-shadow: -0.25rem 0 0 rgba(88, 166, 255, 0.18); }
   .question:last-child { margin-bottom: 0; }
 
   .question-text {
@@ -190,6 +196,9 @@
   html[data-theme="light"] .cluster-tab.active { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .cluster-label { color: #656d76; border-color: #d0d7de; }
   html[data-theme="light"] .question { border-color: #d0d7de; }
+  html[data-theme="light"] .question.is-held,
+  html[data-theme="light"] .question:focus { border-left-color: #0969da; }
+  html[data-theme="light"] .question:focus { box-shadow: -0.25rem 0 0 rgba(9, 105, 218, 0.14); }
   html[data-theme="light"] .question-text { color: #1c2128; }
   html[data-theme="light"] .question-body { color: #656d76; }
   html[data-theme="light"] .question-ref { color: #8c959f; }
@@ -645,6 +654,14 @@
     question.dataset.newest = String(nums.length ? Math.max.apply(Math, nums) : 0);
     question.dataset.oldest = String(nums.length ? Math.min.apply(Math, nums) : 0);
     question.dataset.search = question.textContent.toLowerCase();
+    question.id = question.dataset.question;
+    question.tabIndex = -1;
+    question.setAttribute('role', 'article');
+    var title = question.querySelector('.question-text');
+    if (title) {
+      title.id = question.dataset.question + '-title';
+      question.setAttribute('aria-labelledby', title.id);
+    }
     var actions = document.createElement('div');
     actions.className = 'question-actions';
     var focus = document.createElement('button');
@@ -656,7 +673,7 @@
       activeQuestion = question.dataset.question;
       writeState('pushState');
       applyFilters();
-      question.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      arriveAtHeldQuestion('smooth');
     });
     actions.appendChild(focus);
     question.appendChild(actions);
@@ -672,6 +689,7 @@
       button.type = 'button';
       button.className = 'cluster-tab' + (item.name === activeCluster ? ' active' : '');
       button.textContent = item.label;
+      button.setAttribute('aria-pressed', String(item.name === activeCluster));
       button.addEventListener('click', function () {
         activeCluster = item.name;
         activeQuestion = '';
@@ -726,6 +744,7 @@
       var focusMatches = !activeQuestion || question.dataset.question === activeQuestion;
       var show = clusterMatches && termMatches && focusMatches;
       question.classList.toggle('hidden', !show);
+      question.classList.toggle('is-held', Boolean(activeQuestion && question.dataset.question === activeQuestion));
       if (show) visible += 1;
     });
 
@@ -739,6 +758,14 @@
     resultCount.textContent = visible + ' of ' + questions.length + ' questions visible';
     emptyState.classList.toggle('visible', visible === 0);
     focusNote.classList.toggle('visible', Boolean(activeQuestion && visible));
+  }
+
+  function arriveAtHeldQuestion(behavior) {
+    if (!activeQuestion) return;
+    var question = questions.find(function (item) { return item.dataset.question === activeQuestion; });
+    if (!question || question.classList.contains('hidden')) return;
+    question.scrollIntoView({ behavior: behavior || 'auto', block: 'start' });
+    question.focus({ preventScroll: true });
   }
 
   function updateStats(entries) {
@@ -783,7 +810,7 @@
       window.setTimeout(function () { focusCopy.textContent = original; }, 1400);
     }
   });
-  window.addEventListener('popstate', function () { readState(); buildTabs(); applyFilters(); });
+  window.addEventListener('popstate', function () { readState(); buildTabs(); applyFilters(); arriveAtHeldQuestion('auto'); });
 
   fetch('/journal-index.json')
     .then(function (response) { return response.ok ? response.json() : []; })
@@ -792,11 +819,13 @@
       decorateRefs();
       updateStats(entries);
       applyFilters();
+      arriveAtHeldQuestion('auto');
     })
     .catch(function () {
       meta.textContent = questions.length + ' questions · journal metadata unavailable';
       updateStats([]);
       applyFilters();
+      arriveAtHeldQuestion('auto');
     });
 })();
 </script>
