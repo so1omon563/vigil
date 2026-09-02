@@ -212,7 +212,7 @@
   Knowing about them doesn't let you feel them. The saccadic suppression still runs. The binding window still calibrates. The convexity prior still overrides stereopsis. The mechanisms exist at a level below where attention reaches.
 </p>
 
-<div class="count" id="count-line"></div>
+<div class="count" id="count-line" aria-live="polite"></div>
 
 <div class="catalog-controls">
   <input class="catalog-search" id="catalog-search" type="search" placeholder="search mechanisms, experiments, or entries…" autocomplete="off" aria-label="Search hidden cognition">
@@ -221,7 +221,7 @@
   <button class="catalog-action" id="share-view" type="button">copy this view</button>
 </div>
 <div class="focus-note" id="focus-note" aria-live="polite"></div>
-<div class="filter-bar" id="filter-bar" aria-label="Filter mechanisms by journal connection"></div>
+<div class="filter-bar" id="filter-bar" role="group" aria-label="Filter mechanisms by journal connection"></div>
 
 <div id="cards"></div>
 <div class="empty-state" id="empty-state">No mechanisms match this view. Try a different term or reset the filters.</div>
@@ -231,6 +231,7 @@ var allMechanisms = [];
 var currentFilter = 'all';
 var currentQuery = '';
 var currentMechanism = '';
+var focusHeldMechanism = false;
 
 function normalizedFilter(value) {
   return ['all', 'journal', 'cabinet'].includes(value) ? value : 'all';
@@ -262,6 +263,7 @@ function loadUrlState() {
   currentQuery = params.get('q') || '';
   var requestedMechanism = params.get('mechanism') || '';
   currentMechanism = allMechanisms.some(function(item) { return item.id === requestedMechanism; }) ? requestedMechanism : '';
+  focusHeldMechanism = !!currentMechanism;
   document.getElementById('catalog-search').value = currentQuery;
 }
 
@@ -279,6 +281,7 @@ function renderFilters() {
     button.type = 'button';
     button.className = 'filter-btn' + (key === currentFilter ? ' active' : '');
     button.textContent = labels[key] + ' (' + counts[key] + ')';
+    button.setAttribute('aria-pressed', key === currentFilter ? 'true' : 'false');
     button.addEventListener('click', function() {
       currentFilter = key;
       syncUrl(false);
@@ -309,6 +312,8 @@ function render() {
     visible.forEach(function(item) {
       var card = document.createElement('div');
       card.className = 'card';
+      card.id = 'mechanism-' + item.id;
+      card.tabIndex = -1;
 
       // Header
       var hdr = document.createElement('div');
@@ -332,6 +337,7 @@ function render() {
       focusLink.textContent = currentMechanism === item.id ? 'held in view' : 'hold this note';
       focusLink.addEventListener('click', function() {
         currentMechanism = item.id;
+        focusHeldMechanism = true;
         syncUrl(false);
         render();
       });
@@ -380,6 +386,16 @@ function render() {
       container.appendChild(card);
     });
   document.getElementById('empty-state').classList.toggle('visible', visible.length === 0);
+  if (focused && focusHeldMechanism) {
+    focusHeldMechanism = false;
+    window.requestAnimationFrame(function() {
+      var heldCard = document.getElementById('mechanism-' + focused.id);
+      if (heldCard) {
+        heldCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        heldCard.focus({ preventScroll: true });
+      }
+    });
+  }
 }
 
 fetch('/hidden.json')
@@ -405,6 +421,7 @@ document.getElementById('random-visible').addEventListener('click', function() {
   currentMechanism = held;
   if (!candidates.length) return;
   currentMechanism = candidates[Math.floor(Math.random() * candidates.length)].id;
+  focusHeldMechanism = true;
   syncUrl(false);
   render();
 });
