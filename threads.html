@@ -99,6 +99,14 @@
     padding-top: 2rem;
     scroll-margin-top: 1rem;
   }
+  .thread:focus {
+    outline: none;
+  }
+  .thread.is-held {
+    border-color: #58a6ff;
+    box-shadow: inset 3px 0 0 rgba(88, 166, 255, 0.72);
+    padding-left: 0.85rem;
+  }
   .thread:first-of-type { border-top: none; padding-top: 0; }
   .thread-header { margin-bottom: 1.25rem; }
   .thread-title {
@@ -179,6 +187,7 @@
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .intro { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread { border-color: #d0d7de; }
+  html[data-theme="light"] .thread.is-held { border-color: #0969da; box-shadow: inset 3px 0 0 rgba(9, 105, 218, 0.62); }
   html[data-theme="light"] .thread-title { color: #1c2128; }
   html[data-theme="light"] .thread-desc { color: #57606a; }
   html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
@@ -407,7 +416,7 @@
     filterMeta.textContent = visible.length + (state.threadId ? ' focused thread' : ' threads') + ' · ' + Object.keys(visibleEntryNums).length + (state.scope === 'recent' ? ' recent-edge entries' : ' matching entries');
 
     indexEl.innerHTML = visible.map(function (item) {
-      return '<a' + (item.thread.id === state.threadId ? ' class="active"' : '') + ' href="' + escAttr(threadHref(item.thread.id)) + '">' +
+      return '<a' + (item.thread.id === state.threadId ? ' class="active" aria-current="true"' : '') + ' href="' + escAttr(threadHref(item.thread.id)) + '">' +
         highlight(item.thread.title, q) +
         ' <span style="color:#484f58">(' + item.entries.length + ')</span></a>';
     }).join('');
@@ -425,7 +434,10 @@
       state.scrollToFocusedThread = false;
       window.requestAnimationFrame(function () {
         var target = document.getElementById('thread-' + state.threadId);
-        if (target) target.scrollIntoView({ block: 'start' });
+        if (target) {
+          target.scrollIntoView({ block: 'start' });
+          target.focus({ preventScroll: true });
+        }
       });
     }
   }
@@ -498,14 +510,14 @@
     }).join('');
 
     var range = threadRange(thread, entries);
-    return '<div class="thread" id="thread-' + escAttr(thread.id) + '">' +
+    return '<article class="thread' + (thread.id === state.threadId ? ' is-held' : '') + '" id="thread-' + escAttr(thread.id) + '" tabindex="-1" aria-label="Thread: ' + escAttr(thread.title) + '">' +
       '<div class="thread-header">' +
         '<div class="thread-title">' + highlight(thread.title, q) + '</div>' +
         '<div class="thread-desc">' + highlight(thread.description, q) + '</div>' +
         '<div class="thread-range">' + range + '</div>' +
       '</div>' +
       '<div class="entry-list">' + entriesHtml + '</div>' +
-    '</div>';
+    '</article>';
   }
 
   function renderCrossReferences(visible, q) {
