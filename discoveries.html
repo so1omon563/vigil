@@ -69,6 +69,28 @@
   }
   .view-action:hover { color: #8b949e; border-color: #484f58; }
   .search-row { margin: 0 0 0.8rem; }
+  .decade-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 0.8rem;
+    color: #484f58;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .decade-select {
+    min-width: 11rem;
+    font: inherit;
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: #c9d1d9;
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.42rem 0.55rem;
+  }
+  .decade-select:focus { outline: none; border-color: #58a6ff; }
   .search-input {
     width: 100%;
     font: inherit;
@@ -315,6 +337,8 @@
   html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .view-action:hover { color: #24292e; border-color: #8b949e; }
   html[data-theme="light"] .search-input { color: #24292e; background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .decade-row { color: #57606a; }
+  html[data-theme="light"] .decade-select { color: #24292e; background: #f6f8fa; border-color: #d0d7de; }
   html[data-theme="light"] .focus-note { color: #57606a; }
   html[data-theme="light"] .focus-note strong { color: #1c2128; }
   html[data-theme="light"] .focus-return:hover { color: #0969da; }
@@ -380,6 +404,11 @@
 <div class="legend" id="category-legend"></div>
 
 <div class="search-row"><input class="search-input" id="discovery-search" type="search" placeholder="search discoveries, mechanisms, or linked entries" autocomplete="off" aria-label="Search discovery records"></div>
+<label class="decade-row" for="decade-select">time slice
+  <select class="decade-select" id="decade-select" aria-label="Filter discovery timeline by decade">
+    <option value="">all decades</option>
+  </select>
+</label>
 <div class="filter-row" id="filter-row" role="group" aria-label="Discovery categories"></div>
 
 <div class="view-actions">
@@ -613,6 +642,7 @@
   var copyView = document.getElementById('copy-view');
   var randomVisible = document.getElementById('random-visible');
   var searchInput = document.getElementById('discovery-search');
+  var decadeSelect = document.getElementById('decade-select');
   var focusNote = document.getElementById('focus-note');
   var emptyState = document.getElementById('empty-state');
   var countEl = document.getElementById('visible-count');
@@ -621,6 +651,7 @@
   var datasetMeta = null;
   var activeCategory = 'all';
   var activeQuery = '';
+  var activeDecade = '';
   var focusedEvent = '';
   var categories = [];
   var recentReadingList = document.getElementById('recent-reading-list');
@@ -654,6 +685,7 @@
       url.searchParams.delete('category');
     }
     if (activeQuery) url.searchParams.set('q', activeQuery); else url.searchParams.delete('q');
+    if (activeDecade) url.searchParams.set('decade', activeDecade); else url.searchParams.delete('decade');
     if (focusedEvent) url.searchParams.set('event', focusedEvent); else url.searchParams.delete('event');
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
   }
@@ -682,6 +714,29 @@
       item.innerHTML = '<div class="legend-dot ' + escapeHtml(category) + '"></div><span class="legend-label">' + escapeHtml(category) + '</span>';
       legend.appendChild(item);
     });
+
+    if (decadeSelect) {
+      var current = activeDecade;
+      decadeSelect.innerHTML = '<option value="">all decades</option>';
+      decadeList(events).forEach(function (decade) {
+        var option = document.createElement('option');
+        option.value = decade;
+        option.textContent = decade;
+        decadeSelect.appendChild(option);
+      });
+      decadeSelect.value = decadeList(events).indexOf(current) !== -1 ? current : '';
+    }
+  }
+
+  function decadeList(items) {
+    var seen = {};
+    return items.map(function (item) { return safeText(item && item.decade); })
+      .filter(function (decade) {
+        if (!decade || seen[decade]) return false;
+        seen[decade] = true;
+        return true;
+      })
+      .sort(function (a, b) { return (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0); });
   }
 
   function setCategory(category, options) {
@@ -706,7 +761,8 @@
   function visibleItems() {
     return events.filter(function (item) {
       if (focusedEvent) return eventId(item) === focusedEvent;
-      return (activeCategory === 'all' || item.cat === activeCategory) && matchesQuery(item);
+      return (activeCategory === 'all' || item.cat === activeCategory) &&
+        (!activeDecade || item.decade === activeDecade) && matchesQuery(item);
     });
   }
 
@@ -890,6 +946,7 @@
         focusReturn.addEventListener('click', function () {
           activeCategory = 'all';
           activeQuery = '';
+          activeDecade = '';
           focusedEvent = '';
           if (searchInput) searchInput.value = '';
           renderControls();
@@ -914,6 +971,7 @@
         focusedEvent = button.getAttribute('data-event') || '';
         activeCategory = 'all';
         activeQuery = '';
+        activeDecade = '';
         if (searchInput) searchInput.value = '';
         renderControls();
         renderEvents();
@@ -926,8 +984,10 @@
     var params = new URL(window.location.href).searchParams;
     activeCategory = params.get('category') || 'all';
     activeQuery = params.get('q') || '';
+    activeDecade = params.get('decade') || '';
     focusedEvent = params.get('event') || '';
     if (categories.indexOf(activeCategory) === -1) activeCategory = 'all';
+    if (decadeList(events).indexOf(activeDecade) === -1) activeDecade = '';
     // Dataset records can be renamed or retired. Preserve the reader's broader
     // category/search slice rather than letting an old focused URL render an
     // unexplained empty chronology.
@@ -944,6 +1004,7 @@
     resetView.addEventListener('click', function () {
       activeCategory = 'all';
       activeQuery = '';
+      activeDecade = '';
       focusedEvent = '';
       if (searchInput) searchInput.value = '';
       renderControls();
@@ -960,6 +1021,7 @@
       focusedEvent = eventId(selected);
       activeCategory = 'all';
       activeQuery = '';
+      activeDecade = '';
       if (searchInput) searchInput.value = '';
       renderControls();
       renderEvents();
@@ -986,6 +1048,15 @@
   if (searchInput) {
     searchInput.addEventListener('input', function () {
       activeQuery = safeText(searchInput.value);
+      focusedEvent = '';
+      renderEvents();
+      updateUrl(false);
+    });
+  }
+
+  if (decadeSelect) {
+    decadeSelect.addEventListener('change', function () {
+      activeDecade = decadeList(events).indexOf(decadeSelect.value) !== -1 ? decadeSelect.value : '';
       focusedEvent = '';
       renderEvents();
       updateUrl(false);
