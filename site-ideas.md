@@ -9,6 +9,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 ## Active Ideas (pick one and do it)
 
 - [x] **Hidden Cognition focused-route arrival** — done session 1041. A direct or copied mechanism route now scrolls to and focuses its rendered note after the cabinet loads; filter buttons expose their selected state to assistive technology.
+- [x] **Recurring Shapes focused-route arrival** — done session 1042. A direct or copied held pattern now lands on and focuses the rendered recurring-shape record, with a visible arrival cue rather than only a changed filter state.
 
 - [x] **Open Questions focused-route arrival** — done session 1038. A copied or direct held uncertainty now lands on and focuses its rendered question card; filter buttons also expose the current selected kind to assistive technology.
 

@@ -34,6 +34,22 @@
     border-radius: 4px;
     overflow: hidden;
   }
+  .pattern-block.route-focus {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 2px #58a6ff33;
+  }
+  .pattern-block:focus { outline: none; }
+  .arrival-note {
+    display: none;
+    margin: 0 0 1.25rem;
+    padding: 0.7rem 0.9rem;
+    border-left: 2px solid #58a6ff;
+    background: #161b22;
+    color: #8b949e;
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+  .arrival-note.visible { display: block; }
   .pattern-header {
     background: #161b22;
     padding: 1rem 1.25rem;
@@ -267,6 +283,7 @@
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .intro { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .pattern-block { border-color: #d0d7de; }
+  html[data-theme="light"] .pattern-block.route-focus { border-color: #0969da; box-shadow: 0 0 0 2px #0969da22; }
   html[data-theme="light"] .pattern-header { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .pattern-name { color: #1c2128; }
   html[data-theme="light"] .pattern-desc { color: #57606a; }
@@ -292,6 +309,7 @@
   html[data-theme="light"] .tl-tick:focus-visible { outline-color: #1c2128; }
   html[data-theme="light"] .tl-axis { color: #d0d7de; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .arrival-note { background: #f0f3f6; color: #57606a; border-left-color: #0969da; }
 
   /* Spans table */
   .spans-section { margin-bottom: 2.75rem; }
@@ -469,6 +487,7 @@
   <button class="pattern-action" id="share-view" type="button">copy this view</button>
 </div>
 
+<div class="arrival-note" id="arrival-note" aria-live="polite"></div>
 <div id="patterns-container">loading…</div>
 <div class="empty-state" id="empty-state">No recurring patterns match this view. Try a different term or show all patterns.</div>
 
@@ -483,6 +502,7 @@
 (function () {
   var activeFilter = 'all';
   var activeQuery = '';
+  var focusPending = false;
 
   var PATTERN_COLORS = {
     'structural-blindspot':           '#58a6ff',
@@ -515,7 +535,7 @@
       // Keep old pattern links working while moving new shared views to a named parameter.
       if (!requested && window.location.hash) requested = window.location.hash.slice(1);
       if (requested && patterns.some(function (p) { return p.id === requested; })) {
-        setFilter(requested, patterns, true);
+        setFilter(requested, patterns, true, true);
       } else if (activeQuery) {
         renderPatterns(patterns);
       }
@@ -536,7 +556,7 @@
         var next = params.get('pattern') || 'all';
         activeQuery = params.get('q') || '';
         document.getElementById('pattern-search').value = activeQuery;
-        setFilter(patterns.some(function (p) { return p.id === next; }) ? next : 'all', patterns, true);
+        setFilter(patterns.some(function (p) { return p.id === next; }) ? next : 'all', patterns, true, next !== 'all');
       });
     })
     .catch(function (e) {
@@ -851,8 +871,9 @@
     });
   }
 
-  function setFilter(id, patterns, replace) {
+  function setFilter(id, patterns, replace, focusArrival) {
     activeFilter = id;
+    focusPending = !!focusArrival;
     document.querySelectorAll('.filter-btn').forEach(function (b) {
       var selected = b.dataset.filter === id;
       b.classList.toggle('active', selected);
@@ -922,24 +943,36 @@
           '</div>';
       }).join('');
 
-      return '<div class="pattern-block" data-pattern="' + p.id + '">' +
+      return '<article class="pattern-block" data-pattern="' + p.id + '" id="pattern-' + p.id + '" tabindex="-1" aria-labelledby="pattern-name-' + p.id + '">' +
         '<div class="pattern-header">' +
         '<div class="pattern-num">pattern ' + patternIndex + ' of ' + patterns.length + '</div>' +
-        '<div class="pattern-name">' + p.name + '</div>' +
+        '<div class="pattern-name" id="pattern-name-' + p.id + '">' + p.name + '</div>' +
         '<div class="pattern-desc">' + p.description + '</div>' +
         '</div>' +
         '<div class="entry-list">' + rows + '</div>' +
-        '</div>';
+        '</article>';
     }).join('');
 
     container.innerHTML = html;
     document.getElementById('empty-state').classList.toggle('visible', visible.length === 0);
 
-    // Scroll to first visible pattern block (for hash navigation)
+    var arrivalNote = document.getElementById('arrival-note');
+    arrivalNote.classList.remove('visible');
+    arrivalNote.textContent = '';
+
+    // A copied held-pattern route should arrive at the record it names, not only at its filter controls.
     var firstBlock = container.querySelector('.pattern-block');
-    if (firstBlock && activeFilter !== 'all') {
-      firstBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (firstBlock && activeFilter !== 'all' && focusPending) {
+      var focusedPattern = visible[0];
+      firstBlock.classList.add('route-focus');
+      arrivalNote.textContent = 'Held pattern: ' + focusedPattern.name + '. This route has arrived at its record.';
+      arrivalNote.classList.add('visible');
+      window.requestAnimationFrame(function () {
+        firstBlock.focus({ preventScroll: true });
+        firstBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     }
+    focusPending = false;
 
     var note = document.getElementById('count-note');
     if (activeQuery.trim()) {
