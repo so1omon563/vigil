@@ -82,6 +82,11 @@
     margin: -0.7rem 0 1rem;
   }
   .category-section { margin-bottom: 2.5rem; }
+  .category-section.held-topic {
+    border-left: 2px solid var(--held-color, #58a6ff);
+    padding-left: 0.8rem;
+    scroll-margin-top: 1.25rem;
+  }
   .category-header {
     display: flex; align-items: baseline; gap: 0.75rem;
     margin-bottom: 0.75rem;
@@ -92,6 +97,7 @@
     font-size: 0.85rem; font-weight: bold; color: var(--cat-color, #58a6ff);
     text-transform: uppercase; letter-spacing: 0.06em;
   }
+  .category-label:focus { outline: none; }
   .category-desc { font-size: 0.75rem; color: #484f58; }
   .category-count { font-size: 0.72rem; color: #484f58; margin-left: auto; }
   .entry-list { display: flex; flex-direction: column; gap: 0.15rem; }
@@ -180,7 +186,7 @@
 
 <div class="filter-row" id="filter-row"></div>
 
-<div class="result-meta" id="result-meta"></div>
+<div class="result-meta" id="result-meta" aria-live="polite"></div>
 <span id="research" aria-hidden="true"></span>
 <div id="topics-content">Loading...</div>
 
@@ -233,14 +239,16 @@ Promise.all([
     const resetView = document.getElementById('reset-view');
     const copyView = document.getElementById('copy-view');
     let activeTopic = null;
+    let shouldArrive = false;
 
-    function readState() {
+    function readState(arrive = false) {
       const params = new URLSearchParams(window.location.search);
       const requestedTopic = params.get('topic');
       activeTopic = requestedTopic && topicMap.has(requestedTopic) ? requestedTopic : null;
       searchInput.value = params.get('q') || '';
       const requestedSort = params.get('sort');
       sortSelect.value = ['newest', 'oldest', 'number'].includes(requestedSort) ? requestedSort : 'newest';
+      shouldArrive = arrive && !!activeTopic;
     }
 
     function viewURL() {
@@ -263,6 +271,7 @@ Promise.all([
       btn.className = 'filter-btn';
       btn.style.setProperty('--cat-color', topic.color);
       btn.dataset.topic = topic.label;
+      btn.setAttribute('aria-pressed', 'false');
       btn.append(document.createTextNode(topic.label.toLowerCase()));
       const count = document.createElement('span');
       count.className = 'topic-count';
@@ -270,6 +279,7 @@ Promise.all([
       btn.appendChild(count);
       btn.addEventListener('click', () => {
         activeTopic = activeTopic === topic.label ? null : topic.label;
+        shouldArrive = false;
         writeState();
         render();
       });
@@ -279,8 +289,10 @@ Promise.all([
     const allBtn = document.createElement('button');
     allBtn.className = 'filter-btn active';
     allBtn.textContent = 'all';
+    allBtn.setAttribute('aria-pressed', 'true');
     allBtn.addEventListener('click', () => {
       activeTopic = null;
+      shouldArrive = false;
       writeState();
       render();
     });
@@ -313,14 +325,16 @@ Promise.all([
       window.setTimeout(() => { copyView.textContent = label; }, 1400);
     });
     window.addEventListener('popstate', () => {
-      readState();
+      readState(true);
       render();
     });
 
     function render() {
       const query = searchInput.value.trim().toLowerCase();
       document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.toggle('active', btn === allBtn ? !activeTopic : btn.dataset.topic === activeTopic);
+        const selected = btn === allBtn ? !activeTopic : btn.dataset.topic === activeTopic;
+        btn.classList.toggle('active', selected);
+        btn.setAttribute('aria-pressed', String(selected));
       });
 
       const source = activeTopic ? (topicMap.get(activeTopic) || []) : usableEntries;
@@ -361,8 +375,27 @@ Promise.all([
         return;
       }
 
-      const section = document.createElement('div');
-      section.className = 'category-section';
+      const section = document.createElement('section');
+      section.className = 'category-section' + (activeTopic ? ' held-topic' : '');
+      if (activeTopic) {
+        const topic = topics.find(item => item.label === activeTopic);
+        section.style.setProperty('--held-color', topic && topic.color || '#58a6ff');
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        const label = document.createElement('h2');
+        label.className = 'category-label';
+        label.id = 'topic-result-heading';
+        label.tabIndex = -1;
+        label.textContent = activeTopic;
+        const desc = document.createElement('span');
+        desc.className = 'category-desc';
+        desc.textContent = 'one live subject shelf';
+        const count = document.createElement('span');
+        count.className = 'category-count';
+        count.textContent = `${entriesToShow.length} matching`;
+        header.append(label, desc, count);
+        section.appendChild(header);
+      }
       const list = document.createElement('div');
       list.className = 'entry-list';
 
@@ -401,9 +434,18 @@ Promise.all([
       }
 
       container.appendChild(section);
+      if (shouldArrive && activeTopic) {
+        shouldArrive = false;
+        requestAnimationFrame(() => {
+          const heading = document.getElementById('topic-result-heading');
+          if (!heading) return;
+          heading.scrollIntoView({ block: 'start' });
+          heading.focus({ preventScroll: true });
+        });
+      }
     }
 
-    readState();
+    readState(true);
     render();
   })
   .catch(err => {

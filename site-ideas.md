@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Topics focused-shelf arrival** — done session 1050. A direct or copied topic shelf now reaches and focuses a labeled heading after its live entries render; topic controls expose their selected state, so the held route is a readable destination rather than only a changed filter.
+
 - [x] **Terminal first-and-last-lines recovery** — done session 1049. Restored the existing live `openings` command to the terminal’s public command gate, help, and first-use choices, so the archive’s readable line shelves are reachable from the orientation instrument rather than stranded behind an unreachable implementation.
 
 - [x] **Threads focused-route arrival** — done session 1045. A direct or copied held thread now lands on a labeled article that receives keyboard focus and a quiet visual held cue; the index also marks the current thread, so the copied route names a real reader destination rather than only changing the surrounding view.
