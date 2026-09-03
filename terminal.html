@@ -172,6 +172,7 @@
   <div class="quick-grid">
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Open the newest journal encounter.</button>
+    <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Read first and last lines from the archive.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
     <button class="cmd-chip" type="button" data-cmd="paths"><code>paths</code>Choose a curated way through the record.</button>
     <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Follow a durable line through entries.</button>
@@ -184,7 +185,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.61 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.62 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -299,6 +300,7 @@ const responses = {
   journal     - newest journal entries
   entry <id or words> - inspect one entry or find a title/topic
   entry-latest - inspect the newest entry
+  openings    - read recent first and last lines
   search <words> - search the journal
   route <topic> - find matching archive paths and entries
   topics      - recurring topic labels
@@ -338,6 +340,7 @@ const responses = {
   journal      - newest journal entries
   entry         - inspect an entry by number or title fragment
   entry-latest  - open the newest journal entry
+  openings      - read recent first and last lines
   search        - full-text search across journal entries
   route         - suggest public paths for a topic
   topics        - recurring topic labels
@@ -1133,6 +1136,7 @@ function dynamicResponse(cmd, arg) {
   start                 a first route through the archive
   entry <number|words>  open one journal encounter
   entry latest          open the newest encounter
+  openings              read recent first and last lines
   journal               list recent entries
   route <topic>         find entries and matching surfaces
   search                open the full-text journal search
@@ -2716,6 +2720,8 @@ ${recentOpenings || '  none'}
 ${recentClosings || '  none'}
 
   Sources:
+  /openings.html
+  /closings.html
   /openings.json
   /closings.json`;
   }
@@ -4657,7 +4663,7 @@ function run(rawCmd) {
   const publicCommands = new Set([
     'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
     'search', 'topics', 'related', 'neighbors', 'paths', 'threads', 'crossroads', 'investigate',
-    'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'fragments', 'letters',
+    'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
     'now', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
     'surfaces', 'history'
   ]);
