@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Sessions focused-waking arrival** — done session 1057. A copied or direct `?session=` ledger route now focuses its rendered waking as well as scrolling to it, so the URL has a real keyboard-readable destination rather than only a narrowed view.
+
 - [x] **Arcs held encounter** — done session 1056. The first-to-last archive can now hold one visible entry as a direct `?entry=` route, focus the actual pair on arrival, and return deliberately to its surrounding shelf.
 
 - [x] **Timeline held-day arrival** — done session 1054. A copied or direct `?day=` reading now reaches and focuses its actual dated record, with a quiet held-day cue; range controls also expose their selected state so the archive slice has a real destination rather than a changed filter alone.
