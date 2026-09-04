@@ -72,6 +72,11 @@
     padding: 1.4rem 0;
     border-bottom: 1px solid #161b22;
   }
+  .arc-item.is-held {
+    border-left: 2px solid #58a6ff;
+    margin-left: -1rem;
+    padding-left: calc(1rem - 2px);
+  }
   .arc-item:last-child { border-bottom: none; }
   .arc-header {
     display: flex;
@@ -94,6 +99,25 @@
     font-weight: bold;
   }
   .arc-title a:hover { color: #58a6ff; }
+  .arc-focus {
+    font: inherit;
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8b949e;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .arc-focus:hover { color: #58a6ff; }
+  .held-note {
+    color: #8b949e;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    margin: -1.15rem 0 1.5rem;
+  }
+  .held-note strong { color: #e6edf3; }
   .arc-date {
     font-size: 0.72rem;
     color: #484f58;
@@ -147,9 +171,14 @@
   html[data-theme="light"] .view-action:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .count-label { color: #8c959f; }
   html[data-theme="light"] .arc-item { border-color: #eaeef2; }
+  html[data-theme="light"] .arc-item.is-held { border-color: #0969da; }
   html[data-theme="light"] .arc-num { color: #8c959f; }
   html[data-theme="light"] .arc-title a { color: #1c2128; }
   html[data-theme="light"] .arc-title a:hover { color: #0969da; }
+  html[data-theme="light"] .arc-focus { color: #57606a; }
+  html[data-theme="light"] .arc-focus:hover { color: #0969da; }
+  html[data-theme="light"] .held-note { color: #57606a; }
+  html[data-theme="light"] .held-note strong { color: #1c2128; }
   html[data-theme="light"] .arc-date { color: #8c959f; }
   html[data-theme="light"] .arc-open { color: #57606a; border-color: #eaeef2; }
   html[data-theme="light"] .arc-close { color: #24292e; }
@@ -181,6 +210,8 @@
   <span class="count-label" id="count-label"></span>
 </div>
 
+<p class="held-note" id="held-note" hidden></p>
+
 <div class="arc-list" id="arc-list">Loading…</div>
 
 <footer>
@@ -192,6 +223,7 @@
 (function () {
   var allArcs = [];
   var newestFirst = true;
+  var heldNum = 0;
 
   function esc(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -200,6 +232,12 @@
   function render(list) {
     var container = document.getElementById('arc-list');
     var countEl = document.getElementById('count-label');
+    var heldNote = document.getElementById('held-note');
+    var held = allArcs.filter(function (a) { return a.num === heldNum; })[0];
+    if (heldNote) {
+      heldNote.hidden = !held;
+      heldNote.innerHTML = held ? 'Holding <strong>entry ' + held.num + '</strong>: its first sentence and last paragraph. <button class="arc-focus" type="button" data-clear-held="true">return to shelf</button>' : '';
+    }
     if (!list.length) {
       container.innerHTML = '<div style="color:#484f58;font-size:0.85rem;padding:2rem 0;">No entries match.</div>';
       if (countEl) countEl.textContent = '0 of ' + allArcs.length;
@@ -207,10 +245,10 @@
     }
     if (countEl) countEl.textContent = list.length + ' of ' + allArcs.length;
     container.innerHTML = list.map(function (a) {
-      return '<div class="arc-item" data-num="' + a.num + '">' +
+      return '<article class="arc-item' + (a.num === heldNum ? ' is-held' : '') + '" data-num="' + a.num + '"' + (a.num === heldNum ? ' tabindex="-1" aria-label="Held entry ' + a.num + ': ' + esc(a.title) + '"' : '') + '>' +
         '<div class="arc-header">' +
           '<span class="arc-num">' + a.num + '</span>' +
-          '<span class="arc-title"><a href="/' + esc(a.url) + '">' + esc(a.title) + '</a></span>' +
+          '<span class="arc-title"><a href="/' + esc(a.url) + '">' + esc(a.title) + '</a> <button class="arc-focus" type="button" data-hold="' + a.num + '">hold</button></span>' +
           (a.date ? '<span class="arc-date">' + esc(a.date) + '</span>' : '') +
         '</div>' +
         '<div class="arc-body">' +
@@ -223,8 +261,29 @@
             '<span class="arc-text">' + esc(a.closing || '') + '</span>' +
           '</div>' +
         '</div>' +
-      '</div>';
+      '</article>';
     }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('[data-hold]'), function (button) {
+      button.addEventListener('click', function () {
+        heldNum = Number(button.getAttribute('data-hold')) || 0;
+        applyFilter(true, false);
+      });
+    });
+    var clearHeld = document.querySelector('[data-clear-held]');
+    if (clearHeld) clearHeld.addEventListener('click', function () {
+      heldNum = 0;
+      applyFilter(true, false);
+      document.getElementById('filter-input').focus();
+    });
+    if (held && heldNum) {
+      window.requestAnimationFrame(function () {
+        var item = container.querySelector('[data-num="' + heldNum + '"]');
+        if (item) {
+          item.focus({ preventScroll: true });
+          item.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      });
+    }
   }
 
   function updateUrl(replace) {
@@ -233,6 +292,7 @@
     var params = new URLSearchParams();
     if (q) params.set('q', q);
     if (!newestFirst) params.set('order', 'oldest');
+    if (heldNum) params.set('entry', heldNum);
     var query = params.toString();
     var next = window.location.pathname + (query ? '?' + query : '');
     window.history[replace ? 'replaceState' : 'pushState']({}, '', next);
@@ -242,12 +302,17 @@
     var q = (document.getElementById('filter-input').value || '').toLowerCase().trim();
     var list = allArcs.slice();
     if (!newestFirst) list = list.slice().reverse();
-    if (q) {
+    if (q && !heldNum) {
       list = list.filter(function (a) {
         return (a.title || '').toLowerCase().indexOf(q) !== -1 ||
                (a.opening || '').toLowerCase().indexOf(q) !== -1 ||
                (a.closing || '').toLowerCase().indexOf(q) !== -1;
       });
+    }
+    if (heldNum) {
+      var held = allArcs.filter(function (a) { return a.num === heldNum; })[0];
+      if (held) list = [held];
+      else heldNum = 0;
     }
     render(list);
     if (updateHistory) updateUrl(replaceHistory);
@@ -258,6 +323,7 @@
     var input = document.getElementById('filter-input');
     if (input) input.value = params.get('q') || '';
     newestFirst = params.get('order') !== 'oldest';
+    heldNum = Number(params.get('entry')) || 0;
     var btn = document.getElementById('order-btn');
     if (btn) btn.textContent = newestFirst ? 'oldest first' : 'newest first';
     applyFilter(false);
@@ -311,6 +377,7 @@
     if (resetBtn) resetBtn.addEventListener('click', function () {
       if (input) input.value = '';
       newestFirst = true;
+      heldNum = 0;
       if (btn) btn.textContent = 'oldest first';
       applyFilter(true, false);
       if (input) input.focus();
