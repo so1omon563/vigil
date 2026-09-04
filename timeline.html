@@ -22,6 +22,9 @@
   .month { margin: 2rem 0; } .month:first-of-type { margin-top: 0; }
   .month-title { font-size: .72rem; color: #58a6ff; text-transform: uppercase; letter-spacing: .12em; padding-bottom: .45rem; border-bottom: 1px solid #21262d; }
   .day { display: grid; grid-template-columns: 98px 1fr; gap: 1rem; padding: .8rem 0; border-bottom: 1px solid #161b22; }
+  .day[tabindex] { outline: none; scroll-margin-top: 1.5rem; }
+  .day.held { border-left: 2px solid #58a6ff; padding-left: .7rem; background: rgba(88,166,255,.045); }
+  .day.held:focus { box-shadow: 0 0 0 1px rgba(88,166,255,.72); }
   .day-date { color: #8b949e; font-size: .75rem; } .day-date span { display: block; color: #484f58; font-size: .68rem; }
   .day-focus { margin-top: .45rem; padding: .26rem .42rem; font-size: .64rem; }
   .dots { height: 12px; position: relative; margin: .35rem 0 .7rem; background: #161b22; border-radius: 10px; }
@@ -47,7 +50,7 @@
   <button type="button" data-range="30">30 days</button><button type="button" data-range="90">90 days</button><button type="button" data-range="all" class="active">all time</button>
   <button type="button" id="reset">reset</button><button type="button" id="copy">copy view</button>
 </div>
-<p class="count" id="count"></p>
+<p class="count" id="count" aria-live="polite"></p>
 <main id="timeline"><p class="loading">Reading the archive…</p></main>
 <footer id="footer">Timeline derives from <a href="/journal-index.json">journal-index.json</a> when opened.</footer>
 <script src="/nav.js"></script>
@@ -67,7 +70,7 @@
   function render() {
     var needle = term.toLowerCase(), cutoff = range === 'all' ? null : new Date(Date.now() - Number(range) * 86400000);
     var visible = all.filter(function (e) { return (!cutoff || e.when >= cutoff) && (!heldDay || dayKey(e.when) === heldDay) && (!needle || (e.title + ' ' + e.excerpt + ' ' + e.topics.join(' ')).toLowerCase().indexOf(needle) !== -1); });
-    document.querySelectorAll('[data-range]').forEach(function (b) { b.classList.toggle('active', b.dataset.range === range); });
+    document.querySelectorAll('[data-range]').forEach(function (b) { var selected = b.dataset.range === range; b.classList.toggle('active', selected); b.setAttribute('aria-pressed', selected ? 'true' : 'false'); });
     document.getElementById('count').innerHTML = 'Showing <strong>' + visible.length + '</strong> dated entries' + (heldDay ? ' from <strong>' + esc(heldDay) + '</strong>' : '') + (term ? ' matching “' + esc(term) + '”' : '') + '.';
     if (!visible.length) { timeline.innerHTML = '<p class="empty">Nothing in this slice yet. Try a wider range or clear the filter.</p>'; return; }
     var days = {}; visible.forEach(function (e) { var k = dayKey(e.when); (days[k] || (days[k] = [])).push(e); });
@@ -75,9 +78,14 @@
     keys.forEach(function (k) { var d = days[k][0].when, mk = d.getFullYear() + '-' + d.getMonth(); (months[mk] || (months[mk] = [])).push(k); });
     Object.keys(months).sort().reverse().forEach(function (mk) { var first = days[months[mk][0]][0].when; html += '<section class="month"><h2 class="month-title">' + first.toLocaleDateString('en-US', {month:'long', year:'numeric'}) + '</h2>';
       months[mk].forEach(function (k) { var entries = days[k].sort(function(a,b){return a.when-b.when;}), dots = entries.map(function(e){ return '<i class="dot" style="left:' + ((e.when.getHours()*60+e.when.getMinutes())/14.4) + '%"></i>'; }).join('');
-        html += '<div class="day"><div class="day-date">' + dateLabel(entries[0].when) + '<span>' + entries.length + ' ' + (entries.length===1?'entry':'entries') + '</span>' + (heldDay ? '' : '<button class="day-focus" type="button" data-day="' + k + '">hold this day</button>') + '</div><div><div class="dots">' + dots + '</div><div class="entry-list">' + entries.map(function(e){ return '<div class="entry"><time>' + timeLabel(e.when) + '</time><a href="/' + esc(e.url) + '">#' + e.num + ' · ' + esc(e.title) + '</a></div>'; }).join('') + '</div></div></div>';
+        var isHeld = heldDay === k;
+        html += '<section class="day' + (isHeld ? ' held' : '') + '"' + (isHeld ? ' id="day-' + k + '" data-day-record="' + k + '" tabindex="-1" aria-label="Held day: ' + esc(dateLabel(entries[0].when)) + '"' : '') + '><div class="day-date">' + dateLabel(entries[0].when) + '<span>' + entries.length + ' ' + (entries.length===1?'entry':'entries') + '</span>' + (heldDay ? '' : '<button class="day-focus" type="button" data-day="' + k + '">hold this day</button>') + '</div><div><div class="dots">' + dots + '</div><div class="entry-list">' + entries.map(function(e){ return '<div class="entry"><time>' + timeLabel(e.when) + '</time><a href="/' + esc(e.url) + '">#' + e.num + ' · ' + esc(e.title) + '</a></div>'; }).join('') + '</div></div></section>';
       }); html += '</section>'; }); timeline.innerHTML = html;
     timeline.querySelectorAll('[data-day]').forEach(function (button) { button.addEventListener('click', function () { heldDay = button.dataset.day; term = ''; range = 'all'; query.value = ''; setUrl(false); render(); }); });
+    if (heldDay) {
+      var held = timeline.querySelector('[data-day-record="' + heldDay + '"]');
+      if (held) setTimeout(function () { held.focus(); held.scrollIntoView({block:'center'}); }, 0);
+    }
   }
   function refreshFromUrl() { var p = new URLSearchParams(location.search); range = p.get('range') || 'all'; term = p.get('q') || ''; heldDay = p.get('day') || ''; query.value = term; render(); }
   query.addEventListener('input', function(){ term=query.value.trim(); heldDay=''; setUrl(true); render(); });

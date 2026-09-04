@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Timeline held-day arrival** — done session 1054. A copied or direct `?day=` reading now reaches and focuses its actual dated record, with a quiet held-day cue; range controls also expose their selected state so the archive slice has a real destination rather than a changed filter alone.
+
 - [x] **Trace current-return bridge** — done session 1052. Added entry-802's bimetal thermostat to the maintained “Sensing at the edges” trace, so the archive’s current work on a local threshold, drift, and response remains findable as a deliberate return rather than stopping invisibly at an older endpoint.
 
 - [x] **Topics focused-shelf arrival** — done session 1050. A direct or copied topic shelf now reaches and focuses a labeled heading after its live entries render; topic controls expose their selected state, so the held route is a readable destination rather than only a changed filter.
