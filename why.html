@@ -105,6 +105,12 @@
     opacity: 1;
     max-height: 600px;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .answer-wrap,
+    .depth-dot,
+    .chain-btn,
+    .why-btn { transition: none; }
+  }
   .answer-label {
     font-size: 0.65rem;
     text-transform: uppercase;
@@ -233,15 +239,15 @@
 
 <div class="page-label">inquiry</div>
 <h1>Why?</h1>
-<div class="subtitle">Three chains of explanation, drilled to bedrock</div>
+<div class="subtitle">Three chains of explanation, followed until their present limits</div>
 
 <div class="intro">
-  <p>A good scientific answer doesn't dissolve the question. It finds the first layer underneath it — relocates the mystery to somewhere more tractable, and stops there. The new question is better than the original one, not because it's answered, but because it sits at a level where real work can happen.</p>
-  <p>These three chains descend through the same structure. Each asks why something is the case, gets an answer, and discovers what the answer opens up. Follow a chain to its floor.</p>
+  <p>A good scientific answer doesn't dissolve the question. It finds a layer underneath it — relocates the mystery somewhere more tractable — and makes clear what it has and has not explained. The new question is better than the original one when it sits at a level where real work can happen.</p>
+  <p>These three chains are compact models, not final descents. Each asks why something is the case, takes one useful answer seriously, and notices the question it opens. Follow a chain to its present floor.</p>
 </div>
 
 <div id="app">
-  <div class="chain-selector" id="chain-selector"></div>
+  <div class="chain-selector" id="chain-selector" role="tablist" aria-label="Explanatory chains"></div>
   <div class="depth-track" id="depth-track">
     <span>depth</span>
     <div class="depth-dots" id="depth-dots"></div>
@@ -279,20 +285,20 @@
       steps: [
         {
           q: 'Why do zebrafish have stripes?',
-          a: 'Two chemicals in their skin react and diffuse at different rates. One activates pigment; the other inhibits it. When the inhibitor travels faster, it suppresses activation at a distance — leaving alternating bands where activation wins and loses. The pattern forms without any blueprint.'
+          a: 'Reaction-and-diffusion models show one route by which repeated pigment patterns can emerge: local activation is opposed by inhibition that spreads farther. In fish, real pigment cells also interact directly and migrate, so the model is a useful mechanism, not a complete blueprint for every stripe.'
         },
         {
           q: 'Why does that produce a fixed wavelength — stripes of a specific width, not random patches?',
-          a: 'The wavelength is set by the ratio of the diffusion coefficients: how much faster the inhibitor moves relative to the activator. That ratio determines the distance at which inhibition consistently wins. Change the ratio, and you get spots instead of stripes, or narrower or wider bands.'
+          a: 'In the simplified model, the relative movement and interaction rates help select a characteristic spacing. Change those parameters and the model can yield spots, stripes, or different widths. In an animal, cell behavior, growth, and tissue geometry also help determine what finally appears.'
         },
         {
           q: 'Where is that ratio stored?',
-          a: 'In the genome. The genes encode the morphogen proteins. The proteins\' molecular weights and binding properties determine how fast they diffuse through tissue. The genome carries the wavelength without ever representing it directly — the number 0.7 millimeters appears nowhere in the DNA.'
+          a: 'Genes participate, but not as a single stored wavelength. Gene products, cellular interactions, developmental timing, and the growing tissue together constrain the spacing. The resulting scale is an outcome of that system, not a number written plainly in DNA.'
         },
         {
           q: 'How did the genome acquire those particular values?',
-          a: 'Selection. Zebrafish ancestors with these diffusion ratios produced offspring that survived and reproduced. But selection didn\'t specify a target wavelength. It selected for fish that were fit, and these are the parameters the fit fish happened to carry.',
-          bedrock: 'The wavelength is latent in the chemistry. The chemistry is latent in the genome. The genome is a record of what survived. There is no instruction that says "make stripes this wide" — the width is what the physics guarantees, given the parameters that happened to persist. Below survival is noise. We have hit the floor.'
+          a: 'Evolution can preserve developmental systems whose outcomes remain workable in particular environments, but it does not specify one target pattern in isolation. History, selection, constraint, and contingency all help determine which parameters persist.',
+          bedrock: 'The spacing is an outcome of relations among chemistry, cells, tissue, development, and evolutionary history. A model can make part of that outcome tractable without exhausting it. The floor here is not noise; it is the boundary of what this explanatory chain has chosen to hold still.'
         }
       ]
     },
@@ -303,16 +309,16 @@
       steps: [
         {
           q: 'Why do neutral mutations — ones that don\'t help or hurt — accumulate at a predictable, universal rate?',
-          a: 'Because the rate is exactly μ substitutions per site per generation, where μ is the mutation rate. Population size doesn\'t enter. Fitness doesn\'t enter. The rate is determined by how often mutations arise, nothing else.'
+          a: 'Under the ideal neutral model, the expected substitution rate is μ substitutions per site per generation, where μ is the mutation rate. Population size drops out of that expectation. Real genomes add selection, changing mutation rates, linked sites, and demographic history.'
         },
         {
           q: 'Why does population size drop out? Surely a large population, with more copies of each gene, would preserve neutrals differently than a small one?',
-          a: 'In a large population, a neutral mutation is less likely to reach fixation by chance — but more copies exist, so more mutations arise. These two effects cancel exactly. The probability of any given neutral mutation going to fixation is 1/(2N); the number of new neutral mutations per generation is 2N·μ. Multiply them: the substitution rate is μ, independent of N.'
+          a: 'In a diploid idealization, a new neutral mutation has fixation probability 1/(2N), while about 2N·μ new mutations arise per generation. The factors cancel in expectation. That is a powerful baseline, not a promise that every observed molecular clock will be perfectly constant.'
         },
         {
           q: 'Why do those two effects cancel so precisely?',
           a: 'It isn\'t coincidence — it follows from the definition of a neutral mutation. A neutral allele competes only through random sampling. In random sampling with replacement from a pool of 2N items, the probability that any one item becomes the ancestor of all future items is exactly 1/(2N). That\'s not a biological fact; it\'s a consequence of what random sampling does.',
-          bedrock: 'We have reached probability theory. The rate is not encoded in life — it follows from what life is embedded in: finite populations, random sampling across generations, time. Any organism in a finite population is subject to drift at rate μ, because that\'s what the mathematics of finite random sampling does with mutations. Below this is combinatorics. There is nothing more specific to find.'
+          bedrock: 'We have reached probability theory as a baseline: finite populations and random sampling generate drift. Biology then supplies the departures worth measuring — selection, structure, history, and changing mutation. The floor is a useful abstraction, not a place where specificity ends.'
         }
       ]
     },
@@ -322,17 +328,17 @@
       title: 'Metabolic scaling',
       steps: [
         {
-          q: 'Why do metabolic rates scale as body mass to the three-quarter power — across bacteria, insects, fish, mammals, trees?',
-          a: 'Because supply networks — circulatory systems, lung trees, plant vascular systems — are fractal: branching, self-similar, space-filling. Fractal geometry produces 3/4 scaling. The law holds across twenty-seven orders of magnitude in body mass.'
+          q: 'Why do many metabolic measurements rise sublinearly with body mass, often near a three-quarter power?',
+          a: 'Across broad comparisons, metabolic rate commonly rises less than proportionally with mass, and three-quarter scaling has been an influential summary. The exponent varies with taxa, measurement conditions, and biological process, so it is a pattern to explain rather than a universal law already settled.'
         },
         {
           q: 'Why are supply networks fractal?',
-          a: 'Fractal branching minimizes the energy needed to move resources through a network while maximizing the volume reached. It\'s the most efficient architecture for distributing materials to a 3D volume. Natural selection found this solution independently in plants, animals, and fungi — the same mathematical structure, derived from the same constraint, by organisms that last shared a common ancestor over a billion years ago.'
+          a: 'Branching supply networks are one influential explanation: they can distribute resources through a volume while managing transport costs. But organisms use different architectures and constraints, and the degree to which a single network model explains their scaling remains debated.'
         },
         {
           q: 'Why does fractal branching give 3/4 specifically? Why not 2/3, or some other exponent?',
-          a: 'The key constraint is that terminal units — capillaries, alveoli, leaf cells — are invariant: they don\'t scale with body mass. A whale\'s capillaries are the same diameter as a shrew\'s. This means a 3D volume is being supplied by terminal units that don\'t grow with it. West, Brown, and Enquist showed in 1997 that a 3D volume supplied through a fractal network of invariant terminals must obey the 3/4 law. It\'s a geometric result.',
-          bedrock: 'We have hit geometry. A three-dimensional organism supplied through terminal units of fixed size cannot obey any other scaling law. 3/4 is not a biological discovery — it is a mathematical fact about the class of space-filling networks that life happens to have built. Selection didn\'t choose 3/4; it chose fractal supply networks, and 3/4 came with them, as a consequence, from the structure of three-dimensional space.'
+          a: 'The West, Brown, and Enquist model derives a three-quarter result from specific assumptions about branching networks, terminal units, and optimization. Its value is that it states those assumptions clearly enough to test. Other models and data challenge whether they apply uniformly across life.',
+          bedrock: 'We have reached a model’s boundary conditions. Geometry can constrain a proposed class of networks, but the biological question remains whether an organism belongs to that class and which measurements should count. The floor is not “three-quarters”; it is the maintained contact between an abstraction and the living systems it claims to describe.'
         }
       ]
     }
@@ -385,8 +391,25 @@
       var btn = document.createElement('button');
       btn.className = 'chain-btn' + (i === currentChain ? ' active' : '');
       btn.textContent = ch.label;
+      btn.type = 'button';
+      btn.id = 'chain-tab-' + ch.id;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', i === currentChain ? 'true' : 'false');
+      btn.setAttribute('aria-controls', 'card');
+      btn.tabIndex = i === currentChain ? 0 : -1;
       btn.addEventListener('click', function () {
         setView(i, 0, false, 'push');
+      });
+      btn.addEventListener('keydown', function (event) {
+        var next = null;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (i + 1) % CHAINS.length;
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (i - 1 + CHAINS.length) % CHAINS.length;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = CHAINS.length - 1;
+        if (next === null) return;
+        event.preventDefault();
+        setView(next, 0, false, 'push');
+        document.getElementById('chain-tab-' + CHAINS[next].id).focus();
       });
       sel.appendChild(btn);
     });

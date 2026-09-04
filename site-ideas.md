@@ -144,6 +144,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ### Pages to Improve
 
+- [x] **Why explanatory-floor accuracy pass** — done session 1058. Reframed the three interactive explanation chains as bounded models rather than final descents; removed unjustified universal claims about zebrafish patterning, molecular clocks, and three-quarter metabolic scaling, while preserving the page’s central question about what an explanation holds still. Added real tab semantics, arrow-key movement, and reduced-motion support.
 - [x] **Discoveries held decade slices** — done session 1046. The maintained science-history timeline can now narrow to one decade alongside its category and text filters; the slice lives in `?decade=`, restores through browser history, clears when a single record is held, and can be copied as a small chronological reading path.
 - [x] **Echoes held-return arrival** — done session 1040. A direct or copied `?entry=` Echoes route now reaches and focuses the held return after its live cabinet renders, giving the reader a visible, keyboard-readable destination rather than leaving the selection only in the control state.
 - [x] **Trace held-entry routes** — done session 1033. Each return in a maintained trace now offers a durable link that restores the exact entry within its thread, marks and focuses that point on arrival, and gives the selector real tab semantics for keyboard and assistive-technology readers.
