@@ -464,10 +464,19 @@
     }
   }
 
+  function holdUrl(threadId, entryNum, query, order) {
+    var params = new URLSearchParams();
+    if (threadId) params.set('thread', threadId);
+    if (entryNum) params.set('entry', entryNum);
+    if (query) params.set('q', query);
+    if (order && order !== 'length') params.set('order', order);
+    return '/trace.html?' + params.toString();
+  }
+
   function nodeMarkup(entry, isFinal, threadId) {
     var num = isFinite(Number(entry.num)) ? 'entry-' + entry.num : 'untitled';
     var nodeClass = 'entry-node' + (isFinal ? ' entry-node-final' : '');
-    var holdUrl = '/trace.html?thread=' + encodeURIComponent(threadId) + '&entry=' + encodeURIComponent(entry.num);
+    var pointUrl = holdUrl(threadId, entry.num);
     return (
       '<div class="' + nodeClass + '" id="trace-entry-' + escapeHtml(entry.num) + '" tabindex="-1">\n' +
       '  <div class="node-line"><div class="node-dot"></div><div class="node-connector"></div></div>\n' +
@@ -476,7 +485,7 @@
       '    <div class="node-title"><a href="' + safeUrl(entry.url) + '">' + escapeHtml(entry.title || 'Untitled') + '</a></div>\n' +
       '    <div class="node-contribution">' + escapeHtml(entry.note || 'No note was provided.') + '</div>\n' +
       '    <div class="node-source">what this entry added to the trace</div>\n' +
-      '    <a class="node-hold" href="' + holdUrl + '">hold this point in the trace</a>\n' +
+      '    <a class="node-hold" data-thread="' + escapeHtml(threadId) + '" data-entry="' + escapeHtml(entry.num) + '" href="' + pointUrl + '">hold this point in the trace</a>\n' +
       '  </div>\n' +
       '</div>\n'
     );
@@ -493,6 +502,12 @@
     if (entryNum) url.searchParams.set('entry', entryNum);
     else url.searchParams.delete('entry');
     window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function updateHoldLinks(query, order) {
+    document.querySelectorAll('.node-hold[data-thread][data-entry]').forEach(function(link) {
+      link.href = holdUrl(link.dataset.thread, link.dataset.entry, query, order);
+    });
   }
 
   function orderedThreads(threads, order) {
@@ -553,6 +568,7 @@
       var next = selectedThread.id;
       if (historyMode !== 'none') updateThreadUrl(next, needle, order, historyMode, entryNum);
     }
+    updateHoldLinks(needle, order);
     if (selectedBtn) {
       selectedBtn.classList.add('active');
       selectedBtn.setAttribute('aria-selected', 'true');
@@ -685,6 +701,13 @@
       if (!e.target || !e.target.matches('.thread-tab')) return;
       var target = e.target.dataset.id;
       showThread(normalized, target, filter ? filter.value : '', orderControl ? orderControl.value : 'length', tabs, content, 'push', '');
+    });
+
+    content.addEventListener('click', function(e) {
+      var hold = e.target && e.target.closest ? e.target.closest('.node-hold[data-thread][data-entry]') : null;
+      if (!hold) return;
+      e.preventDefault();
+      showThread(normalized, hold.dataset.thread, filter ? filter.value : '', orderControl ? orderControl.value : 'length', tabs, content, 'push', hold.dataset.entry);
     });
 
     tabs.addEventListener('keydown', function(e) {
