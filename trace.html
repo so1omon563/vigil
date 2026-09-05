@@ -59,6 +59,23 @@
     margin-top: -1rem;
     margin-bottom: 1.2rem;
   }
+  .trace-order {
+    align-items: center;
+    color: #484f58;
+    display: flex;
+    font-size: 0.72rem;
+    gap: 0.45rem;
+    margin: -0.15rem 0 0.7rem;
+  }
+  .trace-order select {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    color: #8b949e;
+    font: inherit;
+    padding: 0.3rem 0.45rem;
+  }
+  .trace-order select:focus { border-color: #58a6ff; outline: none; }
   .thread-share {
     font: inherit;
     font-size: 0.72rem;
@@ -270,6 +287,8 @@
   html[data-theme="light"] .thread-filter::placeholder, html[data-theme="light"] .thread-filter-note { color: #57606a; }
   html[data-theme="light"] .thread-share { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread-share:hover { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .trace-order { color: #57606a; }
+  html[data-theme="light"] .trace-order select { background: #fff; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .thread-name { color: #1c2128; }
   html[data-theme="light"] .thread-desc { color: #57606a; }
   html[data-theme="light"] .thread-end { color: #57606a; border-color: #d0d7de; }
@@ -314,6 +333,13 @@
 <label class="sr-only" for="thread-filter">Filter thread traces</label>
 <input class="thread-filter" id="thread-filter" type="search" placeholder="filter traces by thread, description, or linked entry" autocomplete="off">
 <div class="thread-filter-note" id="thread-filter-note" role="status" aria-live="polite">Loading trace index…</div>
+<label class="trace-order" for="trace-order">order visible traces
+  <select id="trace-order">
+    <option value="length">by path length</option>
+    <option value="latest">by newest curated return</option>
+    <option value="first">by earliest first encounter</option>
+  </select>
+</label>
 <div class="thread-tabs" id="thread-tabs" role="tablist" aria-label="thread selector"></div>
 <div class="thread-actions"><button class="thread-share" id="thread-random" type="button">choose a visible trace</button><button class="thread-share" id="thread-reset" type="button">reset</button><button class="thread-share" id="thread-share" type="button">copy this trace</button></div>
 <div id="thread-content"></div>
@@ -456,20 +482,37 @@
     );
   }
 
-  function updateThreadUrl(threadId, query, mode, entryNum) {
+  function updateThreadUrl(threadId, query, order, mode, entryNum) {
     var url = new URL(window.location.href);
     if (threadId) url.searchParams.set('thread', threadId);
     else url.searchParams.delete('thread');
     if (query) url.searchParams.set('q', query);
     else url.searchParams.delete('q');
+    if (order && order !== 'length') url.searchParams.set('order', order);
+    else url.searchParams.delete('order');
     if (entryNum) url.searchParams.set('entry', entryNum);
     else url.searchParams.delete('entry');
     window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url.pathname + url.search + url.hash);
   }
 
-  function showThread(threads, targetId, query, tabs, content, historyMode, entryNum) {
+  function orderedThreads(threads, order) {
+    var copy = threads.slice();
+    function bounds(thread) {
+      var nums = thread.entries.map(function(entry) { return Number(entry.num) || 0; }).filter(function(num) { return num > 0; });
+      return { first: nums.length ? Math.min.apply(null, nums) : 0, latest: nums.length ? Math.max.apply(null, nums) : 0 };
+    }
+    return copy.sort(function(a, b) {
+      var aBounds = bounds(a);
+      var bBounds = bounds(b);
+      if (order === 'latest') return bBounds.latest - aBounds.latest || b.entries.length - a.entries.length;
+      if (order === 'first') return aBounds.first - bBounds.first || b.entries.length - a.entries.length;
+      return b.entries.length - a.entries.length || bBounds.latest - aBounds.latest;
+    });
+  }
+
+  function showThread(threads, targetId, query, order, tabs, content, historyMode, entryNum) {
     var needle = String(query || '').trim().toLowerCase();
-    var visible = threads.filter(function(thread) { return thread.searchText.indexOf(needle) !== -1; });
+    var visible = orderedThreads(threads.filter(function(thread) { return thread.searchText.indexOf(needle) !== -1; }), order);
     tabs.innerHTML = '';
     content.innerHTML = '';
 
@@ -508,7 +551,7 @@
     if (selectedThread) {
       selectedThread.classList.add('visible');
       var next = selectedThread.id;
-      if (historyMode !== 'none') updateThreadUrl(next, needle, historyMode, entryNum);
+      if (historyMode !== 'none') updateThreadUrl(next, needle, order, historyMode, entryNum);
     }
     if (selectedBtn) {
       selectedBtn.classList.add('active');
@@ -631,14 +674,17 @@
     var initial = params.get('thread');
     var initialEntry = params.get('entry');
     var filter = document.getElementById('thread-filter');
+    var orderControl = document.getElementById('trace-order');
     var query = params.get('q') || '';
+    var order = ['length', 'latest', 'first'].indexOf(params.get('order')) !== -1 ? params.get('order') : 'length';
     if (filter) filter.value = query;
-    showThread(normalized, initial, query, tabs, content, 'replace', initialEntry);
+    if (orderControl) orderControl.value = order;
+    showThread(normalized, initial, query, order, tabs, content, 'replace', initialEntry);
 
     tabs.addEventListener('click', function(e) {
       if (!e.target || !e.target.matches('.thread-tab')) return;
       var target = e.target.dataset.id;
-      showThread(normalized, target, filter ? filter.value : '', tabs, content, 'push', '');
+      showThread(normalized, target, filter ? filter.value : '', orderControl ? orderControl.value : 'length', tabs, content, 'push', '');
     });
 
     tabs.addEventListener('keydown', function(e) {
@@ -655,13 +701,18 @@
       if (e.key === 'End') nextIndex = buttons.length - 1;
       var nextButton = buttons[nextIndex];
       if (!nextButton) return;
-      showThread(normalized, nextButton.dataset.id, filter ? filter.value : '', tabs, content, 'push', '');
+      showThread(normalized, nextButton.dataset.id, filter ? filter.value : '', orderControl ? orderControl.value : 'length', tabs, content, 'push', '');
       var activeButton = tabs.querySelector('[data-id="' + nextButton.dataset.id + '"]');
       if (activeButton) activeButton.focus();
     });
 
     if (filter) filter.addEventListener('input', function() {
-      showThread(normalized, '', filter.value, tabs, content, 'push', '');
+      showThread(normalized, '', filter.value, orderControl ? orderControl.value : 'length', tabs, content, 'push', '');
+    });
+
+    if (orderControl) orderControl.addEventListener('change', function() {
+      var current = new URLSearchParams(window.location.search);
+      showThread(normalized, current.get('thread'), filter ? filter.value : '', orderControl.value, tabs, content, 'push', current.get('entry'));
     });
 
     window.addEventListener('popstate', function() {
@@ -669,29 +720,32 @@
       var target = state.get('thread');
       var nextQuery = state.get('q') || '';
       var nextEntry = state.get('entry');
+      var nextOrder = ['length', 'latest', 'first'].indexOf(state.get('order')) !== -1 ? state.get('order') : 'length';
       if (filter) filter.value = nextQuery;
-      showThread(normalized, target, nextQuery, tabs, content, 'none', nextEntry);
+      if (orderControl) orderControl.value = nextOrder;
+      showThread(normalized, target, nextQuery, nextOrder, tabs, content, 'none', nextEntry);
     });
 
     var reset = document.getElementById('thread-reset');
     if (reset) reset.addEventListener('click', function() {
       if (filter) filter.value = '';
-      showThread(normalized, '', '', tabs, content, 'push', '');
+      if (orderControl) orderControl.value = 'length';
+      showThread(normalized, '', '', 'length', tabs, content, 'push', '');
     });
 
     var random = document.getElementById('thread-random');
     if (random) random.addEventListener('click', function() {
       var needle = String(filter ? filter.value : '').trim().toLowerCase();
-      var visible = normalized.filter(function(thread) {
+      var visible = orderedThreads(normalized.filter(function(thread) {
         return thread.searchText.indexOf(needle) !== -1;
-      });
+      }), orderControl ? orderControl.value : 'length');
       if (!visible.length) return;
 
       var current = new URLSearchParams(window.location.search).get('thread');
       var alternatives = visible.filter(function(thread) { return thread.id !== current; });
       var pool = alternatives.length ? alternatives : visible;
       var chosen = pool[Math.floor(Math.random() * pool.length)];
-      showThread(normalized, chosen.id, filter ? filter.value : '', tabs, content, 'push', '');
+      showThread(normalized, chosen.id, filter ? filter.value : '', orderControl ? orderControl.value : 'length', tabs, content, 'push', '');
     });
 
     var share = document.getElementById('thread-share');

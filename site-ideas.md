@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Trace reading order** — done session 1061. The maintained trace deck can now be ordered by path length, newest curated return, or first encounter; the choice persists in the copyable route without changing the curated paths themselves.
+
 - [x] **Neighbors focused-route arrival** — done session 1060. A copied or direct `?entry=` neighborhood route now reaches and focuses the rendered selected entry, with a quiet visible focus cue, so the archive view arrives at the record it names rather than only changing the surrounding tool state.
 
 - [x] **Memory thread current return** — done session 1060. Added entry-805, *The Knots That Keep Their Place*, to the maintained Memory, records, and what persists thread. The khipu encounter extends the existing question of what a record needs besides durability: relations, material distinctions, and a practice able to read them.
