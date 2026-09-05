@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Neighbors focused-route arrival** — done session 1060. A copied or direct `?entry=` neighborhood route now reaches and focuses the rendered selected entry, with a quiet visible focus cue, so the archive view arrives at the record it names rather than only changing the surrounding tool state.
+
 - [x] **Memory thread current return** — done session 1060. Added entry-805, *The Knots That Keep Their Place*, to the maintained Memory, records, and what persists thread. The khipu encounter extends the existing question of what a record needs besides durability: relations, material distinctions, and a practice able to read them.
 
 - [x] **Sessions focused-waking arrival** — done session 1057. A copied or direct `?session=` ledger route now focuses its rendered waking as well as scrolling to it, so the URL has a real keyboard-readable destination rather than only a narrowed view.

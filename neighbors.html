@@ -99,6 +99,11 @@
     margin-bottom: 1.35rem;
     padding-bottom: 1.2rem;
   }
+  .selected-entry:focus {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.16);
+    outline: none;
+  }
   .entry-num {
     color: #484f58;
     font-size: 0.68rem;
@@ -394,7 +399,7 @@
     if (!n) return false;
     var entry = byNum[String(parseInt(n, 10))];
     if (!entry) return false;
-    render(entry, false);
+    render(entry, false, true);
     return true;
   }
 
@@ -436,7 +441,7 @@
     ].join(' ').toLowerCase();
   }
 
-  function render(entry, updateUrl) {
+  function render(entry, updateUrl, focusRecord) {
     selected = entry;
     input.value = entry.num + ' · ' + entry.title;
     if (updateUrl && window.history && window.history.pushState) {
@@ -457,15 +462,23 @@
         renderColumn('topic-near', topicNear, 'Recent entries sharing topic labels.') +
       '</div>';
     hint.textContent = 'Showing entry ' + entry.num + ' · ' + mode.options[mode.selectedIndex].text + '.';
+    if (focusRecord) {
+      window.setTimeout(function () {
+        var record = document.getElementById('selected-entry');
+        if (!record) return;
+        record.focus({ preventScroll: true });
+        record.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }, 0);
+    }
   }
 
   function renderSelected(entry) {
     var topics = (entry.topics || []).map(function (topic) {
       return '<span class="tag">' + escapeHtml(topic) + '</span>';
     }).join('');
-    return '<section class="selected-entry">' +
+    return '<section class="selected-entry" id="selected-entry" tabindex="-1" aria-labelledby="selected-entry-title">' +
       '<div class="entry-num">entry ' + entry.num + '</div>' +
-      '<div class="entry-title"><a href="/' + escapeAttr(entry.url) + '">' + escapeHtml(entry.title) + '</a></div>' +
+      '<h2 class="entry-title" id="selected-entry-title"><a href="/' + escapeAttr(entry.url) + '">' + escapeHtml(entry.title) + '</a></h2>' +
       '<div class="entry-meta">' + escapeHtml(entry.date || 'undated') + '</div>' +
       '<p class="entry-excerpt">' + escapeHtml(entry.excerpt || '') + '</p>' +
       (topics ? '<div class="tags">' + topics + '</div>' : '') +
