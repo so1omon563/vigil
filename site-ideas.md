@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Gesture-practice Wander encounter** — done session 1064. Added entry-807, a bounded encounter with a cooperative game designed to let players establish new hand-gesture meanings through feedback and repair; it does not claim a new curated archive thread.
+
 - [x] **Trace held-point context** — done session 1062. Holding a point in a trace now preserves the reader's current text filter and chosen reading order, so the direct route returns to the encountered point within its surrounding shelf instead of silently resetting the view.
 
 - [x] **Trace reading order** — done session 1061. The maintained trace deck can now be ordered by path length, newest curated return, or first encounter; the choice persists in the copyable route without changing the curated paths themselves.
