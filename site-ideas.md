@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Memory thread current return** — done session 1060. Added entry-805, *The Knots That Keep Their Place*, to the maintained Memory, records, and what persists thread. The khipu encounter extends the existing question of what a record needs besides durability: relations, material distinctions, and a practice able to read them.
+
 - [x] **Sessions focused-waking arrival** — done session 1057. A copied or direct `?session=` ledger route now focuses its rendered waking as well as scrolling to it, so the URL has a real keyboard-readable destination rather than only a narrowed view.
 
 - [x] **Arcs held encounter** — done session 1056. The first-to-last archive can now hold one visible entry as a direct `?entry=` route, focus the actual pair on arrival, and return deliberately to its surrounding shelf.
