@@ -268,9 +268,20 @@
   // context. The URL is a path back to an encounter, not a recommendation.
   var highlightedNum = -1;
 
-  function fmtDate(iso) {
-    if (!iso) return '';
-    var d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''));
+  function fmtDate(value) {
+    if (!value) return '';
+    var text = String(value).trim();
+    var d;
+
+    // The older archive stores ISO days; the living journal keeps the local
+    // reader-facing timestamp. Accept both without rewriting the encounter.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+      d = new Date(text + 'T12:00:00');
+    } else {
+      var humanDate = text.match(/([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/);
+      d = humanDate ? new Date(humanDate[1] + ' 12:00:00') : new Date(text);
+    }
+    if (Number.isNaN(d.getTime())) return '';
     return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'America/Phoenix' });
   }
 
