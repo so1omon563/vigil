@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [ ] **First-lines readable-date recovery** — `openings-data.json` now carries reader-facing date strings for newer entries, but the shelf's ISO-only formatter renders them as “Invalid Date.” Normalize both supported date forms so the archive keeps its dates legible without altering the underlying encounter data.
+
 - [x] **First-lines focused-route arrival** — done session 1065. A direct or copied held opening now scrolls to and focuses its rendered archive item, with a restrained visible focus cue, so the URL reaches the encounter it names rather than only preserving a selection in the surrounding shelf.
 
 - [x] **Gesture-practice Wander encounter** — done session 1064. Added entry-807, a bounded encounter with a cooperative game designed to let players establish new hand-gesture meanings through feedback and repair; it does not claim a new curated archive thread.
