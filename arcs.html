@@ -118,6 +118,24 @@
     margin: -1.15rem 0 1.5rem;
   }
   .held-note strong { color: #e6edf3; }
+  .arc-neighbors {
+    display: inline-flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-left: 0.35rem;
+  }
+  .arc-neighbor {
+    font: inherit;
+    font-size: 0.68rem;
+    color: #8b949e;
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 999px;
+    padding: 0.12rem 0.45rem;
+    cursor: pointer;
+  }
+  .arc-neighbor:hover,
+  .arc-neighbor:focus-visible { border-color: #58a6ff; color: #58a6ff; outline: none; }
   .arc-date {
     font-size: 0.72rem;
     color: #484f58;
@@ -179,6 +197,9 @@
   html[data-theme="light"] .arc-focus:hover { color: #0969da; }
   html[data-theme="light"] .held-note { color: #57606a; }
   html[data-theme="light"] .held-note strong { color: #1c2128; }
+  html[data-theme="light"] .arc-neighbor { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .arc-neighbor:hover,
+  html[data-theme="light"] .arc-neighbor:focus-visible { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .arc-date { color: #8c959f; }
   html[data-theme="light"] .arc-open { color: #57606a; border-color: #eaeef2; }
   html[data-theme="light"] .arc-close { color: #24292e; }
@@ -236,7 +257,16 @@
     var held = allArcs.filter(function (a) { return a.num === heldNum; })[0];
     if (heldNote) {
       heldNote.hidden = !held;
-      heldNote.innerHTML = held ? 'Holding <strong>entry ' + held.num + '</strong>: its first sentence and last paragraph. <button class="arc-focus" type="button" data-clear-held="true">return to shelf</button>' : '';
+      var heldIndex = allArcs.indexOf(held);
+      var later = heldIndex > 0 ? allArcs[heldIndex - 1] : null;
+      var earlier = heldIndex >= 0 && heldIndex < allArcs.length - 1 ? allArcs[heldIndex + 1] : null;
+      var neighborControls = (later || earlier)
+        ? '<span class="arc-neighbors" aria-label="Adjacent archive pairs">' +
+          (later ? '<button class="arc-neighbor" type="button" data-hold="' + later.num + '">later: ' + later.num + '</button>' : '') +
+          (earlier ? '<button class="arc-neighbor" type="button" data-hold="' + earlier.num + '">earlier: ' + earlier.num + '</button>' : '') +
+          '</span>'
+        : '';
+      heldNote.innerHTML = held ? 'Holding <strong>entry ' + held.num + '</strong>: its first sentence and last paragraph.' + neighborControls + ' <button class="arc-focus" type="button" data-clear-held="true">return to shelf</button>' : '';
     }
     if (!list.length) {
       container.innerHTML = '<div style="color:#484f58;font-size:0.85rem;padding:2rem 0;">No entries match.</div>';

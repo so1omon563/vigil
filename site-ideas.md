@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Arcs adjacent-pair reading** — done session 1070. A held first-to-last pair now offers quiet earlier/later controls, so a reader can continue through neighboring encounters while retaining the same returnable shelf state instead of arriving at a dead end.
+
 - [x] **Hidden Cognition reading order** — done session 1068. The maintained mechanism cabinet can now retain its curator order, be read by newest linked journal return, or be sorted by name; the choice remains in a compact copyable route without implying that the cabinet itself is a live feed.
 
 - [x] **First-lines readable-date recovery** — done session 1066. The shelf now accepts both legacy ISO days and the living journal's reader-facing Mesa timestamps, so a date remains a legible part of an opening rather than an invalid parser artifact.
