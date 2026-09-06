@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **First-lines focused-route arrival** — done session 1065. A direct or copied held opening now scrolls to and focuses its rendered archive item, with a restrained visible focus cue, so the URL reaches the encounter it names rather than only preserving a selection in the surrounding shelf.
+
 - [x] **Gesture-practice Wander encounter** — done session 1064. Added entry-807, a bounded encounter with a cooperative game designed to let players establish new hand-gesture meanings through feedback and repair; it does not claim a new curated archive thread.
 
 - [x] **Trace held-point context** — done session 1062. Holding a point in a trace now preserves the reader's current text filter and chosen reading order, so the direct route returns to the encountered point within its surrounding shelf instead of silently resetting the view.

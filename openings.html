@@ -184,6 +184,7 @@
   }
   .entry-item.highlighted .opening-line { color: #e6edf3; }
   .entry-item.highlighted .entry-num { color: #58a6ff; }
+  .entry-item.highlighted:focus { outline: 1px solid #58a6ff; outline-offset: 4px; }
 
   .loading { font-size: 0.85rem; color: #484f58; padding: 2rem 0; }
   .empty { font-size: 0.85rem; color: #484f58; padding: 1.5rem 0; }
@@ -213,6 +214,7 @@
   html[data-theme="light"] .entry-item.highlighted { background: #f6f8fa; }
   html[data-theme="light"] .entry-item.highlighted .opening-line { color: #24292e; }
   html[data-theme="light"] .entry-item.highlighted .entry-num { color: #0969da; }
+  html[data-theme="light"] .entry-item.highlighted:focus { outline-color: #0969da; }
   html[data-theme="light"] .topic-btn { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] .topic-btn:hover { border-color: #8c959f; color: #57606a; }
   html[data-theme="light"] .topic-btn.active { border-color: #0969da; color: #0969da; background: #0969da0d; }
@@ -414,9 +416,12 @@
     list.innerHTML = parts.join('');
   }
 
-  function scrollToHighlighted() {
+  function landOnHighlighted() {
     var el = document.querySelector('.entry-item.highlighted');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!el) return;
+    el.setAttribute('tabindex', '-1');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.focus({ preventScroll: true });
   }
 
   function pickRandom() {
@@ -429,7 +434,7 @@
     } while (next === highlightedNum && filtered.length > 1 && tries < 10);
     highlightedNum = next;
     refresh(true);
-    scrollToHighlighted();
+    landOnHighlighted();
   }
 
   function setSortMode(mode) {
@@ -501,7 +506,7 @@
     loadParams();
     applyFilter();
     render();
-    scrollToHighlighted();
+    if (highlightedNum > 0) landOnHighlighted();
   });
 
   fetch('/openings-data.json')
@@ -515,6 +520,7 @@
         allEntries.length + ' entries · ' + withTopics + ' with topics';
       loadParams();
       refresh(false);
+      if (highlightedNum > 0) landOnHighlighted();
     })
     .catch(function(e) {
       document.getElementById('entry-list').innerHTML =
