@@ -6,6 +6,17 @@
 <title>Hidden Cognition · Vigil</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   body {
     font-family: "Berkeley Mono", "Fira Code", "Cascadia Code", monospace;
     background: #0d1117;
@@ -30,6 +41,7 @@
     display: flex;
     gap: 0.6rem;
     align-items: center;
+    flex-wrap: wrap;
     margin: 1.5rem 0 1rem;
   }
   .catalog-search {
@@ -44,6 +56,16 @@
     padding: 0.55rem 0.7rem;
   }
   .catalog-search:focus { outline: none; border-color: #58a6ff; }
+  .catalog-order {
+    font: inherit;
+    font-size: 0.76rem;
+    color: #8b949e;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 3px;
+    padding: 0.53rem 0.55rem;
+  }
+  .catalog-order:focus { outline: none; border-color: #58a6ff; }
   .catalog-action,
   .filter-btn {
     font: inherit;
@@ -188,6 +210,7 @@
   html[data-theme="light"] .catalog-search { color: #24292e; background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .catalog-action,
   html[data-theme="light"] .filter-btn { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .catalog-order { color: #57606a; background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .catalog-action:hover,
   html[data-theme="light"] .filter-btn:hover,
   html[data-theme="light"] .filter-btn.active { color: #0366d6; border-color: #0366d6; }
@@ -216,6 +239,12 @@
 
 <div class="catalog-controls">
   <input class="catalog-search" id="catalog-search" type="search" placeholder="search mechanisms, experiments, or entries…" autocomplete="off" aria-label="Search hidden cognition">
+  <label class="sr-only" for="catalog-order">Reading order</label>
+  <select class="catalog-order" id="catalog-order" aria-label="Reading order">
+    <option value="curated">curator order</option>
+    <option value="recent">newest journal return</option>
+    <option value="name">name A–Z</option>
+  </select>
   <button class="catalog-action" id="random-visible" type="button">hold a visible note</button>
   <button class="catalog-action" id="reset-view" type="button">reset</button>
   <button class="catalog-action" id="share-view" type="button">copy this view</button>
@@ -232,9 +261,15 @@ var currentFilter = 'all';
 var currentQuery = '';
 var currentMechanism = '';
 var focusHeldMechanism = false;
+var currentOrder = 'curated';
+var journalRanks = {};
 
 function normalizedFilter(value) {
   return ['all', 'journal', 'cabinet'].includes(value) ? value : 'all';
+}
+
+function normalizedOrder(value) {
+  return ['curated', 'recent', 'name'].includes(value) ? value : 'curated';
 }
 
 function visibleMechanisms() {
@@ -253,6 +288,7 @@ function syncUrl(replace) {
   if (currentFilter === 'all') url.searchParams.delete('view'); else url.searchParams.set('view', currentFilter);
   if (currentQuery.trim()) url.searchParams.set('q', currentQuery.trim()); else url.searchParams.delete('q');
   if (currentMechanism) url.searchParams.set('mechanism', currentMechanism); else url.searchParams.delete('mechanism');
+  if (currentOrder === 'curated') url.searchParams.delete('order'); else url.searchParams.set('order', currentOrder);
   var target = url.pathname + (url.search || '') + url.hash;
   window.history[replace ? 'replaceState' : 'pushState']({}, '', target);
 }
@@ -261,10 +297,28 @@ function loadUrlState() {
   var params = new URLSearchParams(window.location.search);
   currentFilter = normalizedFilter(params.get('view') || 'all');
   currentQuery = params.get('q') || '';
+  currentOrder = normalizedOrder(params.get('order') || 'curated');
   var requestedMechanism = params.get('mechanism') || '';
   currentMechanism = allMechanisms.some(function(item) { return item.id === requestedMechanism; }) ? requestedMechanism : '';
   focusHeldMechanism = !!currentMechanism;
   document.getElementById('catalog-search').value = currentQuery;
+  document.getElementById('catalog-order').value = currentOrder;
+}
+
+function orderedMechanisms(items) {
+  var indexed = items.map(function(item, index) { return { item: item, index: index }; });
+  if (currentOrder === 'name') {
+    indexed.sort(function(a, b) { return a.item.name.localeCompare(b.item.name); });
+  }
+  if (currentOrder === 'recent') {
+    indexed.sort(function(a, b) {
+      var aRank = a.item.entry && Object.prototype.hasOwnProperty.call(journalRanks, a.item.entry) ? journalRanks[a.item.entry] : Infinity;
+      var bRank = b.item.entry && Object.prototype.hasOwnProperty.call(journalRanks, b.item.entry) ? journalRanks[b.item.entry] : Infinity;
+      if (aRank !== bRank) return aRank - bRank;
+      return a.index - b.index;
+    });
+  }
+  return indexed.map(function(record) { return record.item; });
 }
 
 function renderFilters() {
@@ -292,7 +346,7 @@ function renderFilters() {
 }
 
 function render() {
-  var visible = visibleMechanisms();
+  var visible = orderedMechanisms(visibleMechanisms());
   var focused = allMechanisms.find(function(item) { return item.id === currentMechanism; });
   document.getElementById('count-line').textContent = focused
     ? 'one mechanism held in view · ' + allMechanisms.length + ' notes in the cabinet'
@@ -398,10 +452,10 @@ function render() {
   }
 }
 
-fetch('/hidden.json')
-  .then(r => r.json())
-  .then(data => {
-    allMechanisms = data;
+Promise.all([fetch('/hidden.json').then(r => r.json()), fetch('/journal-index.json').then(r => r.json())])
+  .then(function(results) {
+    allMechanisms = results[0];
+    results[1].forEach(function(entry, index) { journalRanks[entry.num] = index; });
     loadUrlState();
     render();
   })
@@ -412,6 +466,11 @@ fetch('/hidden.json')
 document.getElementById('catalog-search').addEventListener('input', function(event) {
   currentQuery = event.target.value;
   syncUrl(true);
+  render();
+});
+document.getElementById('catalog-order').addEventListener('change', function(event) {
+  currentOrder = normalizedOrder(event.target.value);
+  syncUrl(false);
   render();
 });
 document.getElementById('random-visible').addEventListener('click', function() {
@@ -429,7 +488,9 @@ document.getElementById('reset-view').addEventListener('click', function() {
   currentFilter = 'all';
   currentQuery = '';
   currentMechanism = '';
+  currentOrder = 'curated';
   document.getElementById('catalog-search').value = '';
+  document.getElementById('catalog-order').value = currentOrder;
   syncUrl(false);
   render();
 });
