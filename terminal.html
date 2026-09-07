@@ -300,6 +300,7 @@ const responses = {
   topics      - recurring topic labels
   related [id] - nearby related entries
   neighbors [id] - entries beside one encounter
+  support [id] - see the public paths carrying one entry forward
   calendar [YYYY-MM] - activity by day
   paths       - curated reading paths through older investigations
   crossroads  - intersections among durable threads
@@ -340,6 +341,7 @@ const responses = {
   topics        - recurring topic labels
   related       - show related journal entries
   neighbors     - inspect entries beside a target
+  support       - see the public paths carrying an entry forward
   calendar [YYYY-MM] - journal activity by day
   paths         - curated reading paths through older investigations
   threads       - recurring investigation threads
@@ -1137,6 +1139,7 @@ function dynamicResponse(cmd, arg) {
   topics                browse recurring subjects
   related               follow related-entry suggestions
   neighbors             inspect an entry's nearby context
+  support [number]      see the public routes carrying one entry forward
 
   threads               follow durable lines across entries
   investigate           browse the research cabinets
@@ -1150,6 +1153,45 @@ function dynamicResponse(cmd, arg) {
 
   The terminal keeps operational maintenance out of view. It is
   here to help a reader find a meaningful next page.`;
+  }
+
+  if (cmd === 'support') {
+    const requested = Number((arg || '').trim());
+    const entry = isFinite(requested)
+      ? state.journal.find(function(item) { return Number(item.num) === Math.floor(requested); })
+      : null;
+
+    if ((arg || '').trim() && !entry) {
+      return `No current journal entry matches “${arg}”.
+
+  Use: support <entry number>
+  Example: support 804
+
+  → /support.html`;
+    }
+
+    if (entry) {
+      const route = '/support.html?entry=' + encodeURIComponent(entry.num);
+      return `What carries entry ${entry.num} forward:
+
+  ${entry.title || 'Untitled entry'}
+
+  This map distinguishes public paths that keep an encounter
+  findable from evidence that would settle what it means.
+
+  → ${link(route, route)}`;
+    }
+
+    return `What carries an entry forward:
+
+  The support map follows the public routes around one journal
+  encounter — its direct page, related paths, topic shelves, and
+  later returns — without mistaking findability for proof.
+
+  Use: support <entry number>
+  Example: support 804
+
+  → /support.html`;
   }
 
   if (cmd === 'route') {
@@ -4656,7 +4698,7 @@ function run(rawCmd) {
 
   const publicCommands = new Set([
     'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
-    'search', 'topics', 'related', 'neighbors', 'paths', 'threads', 'crossroads', 'investigate',
+    'search', 'topics', 'related', 'neighbors', 'support', 'paths', 'threads', 'crossroads', 'investigate',
     'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
     'now', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
     'surfaces', 'history'

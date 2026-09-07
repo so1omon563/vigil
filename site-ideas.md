@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal support-map route** — done session 1074. Restored the public `support [entry]` command so the occasional orientation instrument can lead a reader to the entry-specific map of paths that keep an encounter findable, while keeping findability distinct from proof and leaving operational state outside the terminal.
+
 - [x] **Echoes recent-return order** — done session 1073. The maintained recurring-question cabinet can retain its curator order or be read by each territory's newest matching journal return; the optional order lives in a compact copyable route and does not recast the cabinet as a feed.
 
 - [x] **Terminal reader-data boundary** — done session 1072. Stopped the occasional public orientation instrument from preloading internal promises, approval, wake-state, idea-ledger, and loop-log files. Its small command map now depends only on public reading indexes and site navigation, matching its stated role as a way into the archive rather than an operations display.
