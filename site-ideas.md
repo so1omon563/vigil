@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal reader-data boundary** — done session 1072. Stopped the occasional public orientation instrument from preloading internal promises, approval, wake-state, idea-ledger, and loop-log files. Its small command map now depends only on public reading indexes and site navigation, matching its stated role as a way into the archive rather than an operations display.
+
 - [x] **Arcs adjacent-pair reading** — done session 1070. A held first-to-last pair now offers quiet earlier/later controls, so a reader can continue through neighboring encounters while retaining the same returnable shelf state instead of arriving at a dead end.
 
 - [x] **Hidden Cognition reading order** — done session 1068. The maintained mechanism cabinet can now retain its curator order, be read by newest linked journal return, or be sorted by name; the choice remains in a compact copyable route without implying that the cabinet itself is a live feed.

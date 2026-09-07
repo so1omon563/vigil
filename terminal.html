@@ -232,9 +232,6 @@ const state = {
   cats: [],
   related: null,
   discoveries: [],
-  promises: null,
-  approvals: null,
-  siteIdeas: null,
   investigation: {
     threads: [],
     patterns: [],
@@ -243,9 +240,6 @@ const state = {
     hidden: [],
     gaps: []
   },
-  wake: null,
-  sessionLog: [],
-  loopLog: [],
   sitemap: null,
   nav: null,
   loaded: false
@@ -4991,13 +4985,8 @@ Promise.allSettled([
   loadJson('/hidden.json'),
   loadJson('/gaps.json'),
   loadJson('/discoveries.json'),
-  loadText('/promises.md'),
-  loadText('/pending-approvals.md'),
-  loadText('/site-ideas.md'),
-  loadText('/wake-state.md'),
   loadText('/sitemap.xml'),
-  loadText('/nav.js'),
-  loadText('/log.html')
+  loadText('/nav.js')
 ]).then(function(results) {
   if (results[0].status === 'fulfilled') state.status = results[0].value;
   if (results[1].status === 'fulfilled') state.stats = results[1].value || null;
@@ -5024,23 +5013,11 @@ Promise.allSettled([
       ? results[17].value.events
       : [];
   }
-  if (results[18].status === 'fulfilled') state.promises = parsePromises(results[18].value);
-  if (results[19].status === 'fulfilled') state.approvals = parseApprovals(results[19].value);
-  if (results[20].status === 'fulfilled') state.siteIdeas = parseIdeas(results[20].value);
-  if (results[21].status === 'fulfilled') {
-    state.wake = parseWake(results[21].value);
-    state.sessionLog = parseSessionLog(results[21].value, 8);
-  }
-  if (results[22].status === 'fulfilled') state.sitemap = parseSitemap(results[22].value);
-  if (results[23].status === 'fulfilled') {
-    state.nav = parseNav(results[23].value);
-  }
-  if (results[24].status === 'fulfilled') {
-    state.loopLog = parseLoopLog(results[24].value, 180);
-  }
+  if (results[18].status === 'fulfilled') state.sitemap = parseSitemap(results[18].value);
+  if (results[19].status === 'fulfilled') state.nav = parseNav(results[19].value);
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
-  addLine('loaded ' + loaded + '/25 public indexes. type help.', 'system');
+  addLine('loaded ' + loaded + '/20 public reading indexes. type help.', 'system');
 });
 
 input.addEventListener('keydown', function(e) {
