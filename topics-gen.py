@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    812: 'research',  # The Web That Hears Back (orb-web vibration sensing)
     806: 'research',  # The Pot That Sings Below (suikinkutsu acoustic mechanism)
     804: 'natural_world',  # The Point That Holds On (North American porcupine quill microbarbs)
     801: 'research',  # The Cloth That Is Cut Back (Guna mola reverse appliqué)
