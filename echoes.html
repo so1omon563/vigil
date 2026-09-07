@@ -163,6 +163,23 @@
     padding: 0.55rem 0.65rem;
   }
   .search-input:focus { outline: none; border-color: #58a6ff; }
+  .echo-order {
+    align-items: center;
+    color: #484f58;
+    display: flex;
+    font-size: 0.72rem;
+    gap: 0.45rem;
+    margin: -0.35rem 0 1rem;
+  }
+  .echo-order select {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 2px;
+    color: #8b949e;
+    font: inherit;
+    padding: 0.3rem 0.45rem;
+  }
+  .echo-order select:focus { border-color: #58a6ff; outline: none; }
   .view-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 2rem; }
   .view-action {
     font-family: inherit; font-size: 0.72rem; padding: 0.3rem 0.65rem;
@@ -218,6 +235,8 @@
   html[data-theme="light"] .filter-btn.active { background: #dbeafe; border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .cluster-count { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .search-input { color: #24292e; background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .echo-order { color: #57606a; }
+  html[data-theme="light"] .echo-order select { background: #fff; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .view-action { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .view-action:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .cluster-focus { color: #57606a; border-color: #d0d7de; }
@@ -244,6 +263,12 @@
 <div class="search-row">
   <input class="search-input" id="echo-search" type="search" placeholder="search echoes, entries, or angles" autocomplete="off" aria-label="Search echoes">
 </div>
+<label class="echo-order" for="echo-order">read territories
+  <select id="echo-order">
+    <option value="curated">in curator order</option>
+    <option value="recent">by newest journal return</option>
+  </select>
+</label>
 <div class="view-actions">
   <button class="view-action" id="meet-return" type="button">meet one return</button>
   <button class="view-action" id="reset-view" type="button">reset</button>
@@ -266,6 +291,7 @@
   const copyButton = document.getElementById('copy-view');
   const meetButton = document.getElementById('meet-return');
   const recentReturns = document.getElementById('recent-returns');
+  const orderSelect = document.getElementById('echo-order');
 
   const fallbackText = 'Echoes is currently loading from local data sources. If this message remains, please reload in a moment.';
   clustersRoot.innerHTML = '<p class="entry-angle">' + fallbackText + '</p>';
@@ -296,6 +322,19 @@
     return clusters.filter(function(cluster) {
       return (!focus && (currentFilter === 'all' || cluster.id === currentFilter) || focus === cluster.id) &&
         matchingEntries(cluster, journalByNum, query).length > 0;
+    });
+  }
+
+  function orderedClusters(clusters, journalByNum, currentFilter, query, focus, order) {
+    const visible = visibleClusters(clusters, journalByNum, currentFilter, query, focus);
+    if (order !== 'recent') return visible;
+    return visible.slice().sort(function(a, b) {
+      const newest = function(cluster) {
+        return matchingEntries(cluster, journalByNum, query).reduce(function(latest, entryRef) {
+          return Math.max(latest, Number(entryRef.num) || 0);
+        }, 0);
+      };
+      return newest(b) - newest(a) || clusters.indexOf(a) - clusters.indexOf(b);
     });
   }
 
@@ -383,7 +422,7 @@
     return map;
   }
 
-  function renderClusters(clusters, journalByNum, currentFilter, query, focus, held) {
+  function renderClusters(clusters, journalByNum, currentFilter, query, focus, held, order) {
     clustersRoot.innerHTML = '';
     const fragment = document.createDocumentFragment();
     let rendered = 0;
@@ -402,10 +441,8 @@
       fragment.appendChild(heldNote);
     }
 
-    clusters.forEach(function(cluster, index) {
-      if (focus ? cluster.id !== focus : (currentFilter !== 'all' && cluster.id !== currentFilter)) return;
+    orderedClusters(clusters, journalByNum, currentFilter, query, focus, order).forEach(function(cluster, index) {
       const matching = matchingEntries(cluster, journalByNum, query);
-      if (!matching.length) return;
 
       const wrap = document.createElement('div');
       wrap.className = 'cluster';
@@ -525,7 +562,11 @@
     }) ? requested : '';
   }
 
-  function setViewInUrl(filter, query, focus, held) {
+  function orderFromUrl() {
+    return new URLSearchParams(window.location.search).get('order') === 'recent' ? 'recent' : 'curated';
+  }
+
+  function setViewInUrl(filter, query, focus, held, order) {
     const url = new URL(window.location.href);
     if (focus) {
       url.searchParams.set('echo', focus);
@@ -539,7 +580,9 @@
     else url.searchParams.delete('q');
     if (held) url.searchParams.set('entry', held);
     else url.searchParams.delete('entry');
-    window.history.pushState({ cluster: filter, q: query, echo: focus, entry: held }, '', url.pathname + url.search + url.hash);
+    if (order === 'recent') url.searchParams.set('order', order);
+    else url.searchParams.delete('order');
+    window.history.pushState({ cluster: filter, q: query, echo: focus, entry: held, order: order }, '', url.pathname + url.search + url.hash);
   }
 
   Promise.all([
@@ -559,56 +602,59 @@
     let currentQuery = queryFromUrl();
     let currentFocus = focusFromUrl(clusters);
     let currentHeld = heldFromUrl(clusters);
+    let currentOrder = orderFromUrl();
     let searchTimer = null;
 
-    function applyView(filter, query, focus, held, updateUrl) {
+    function applyView(filter, query, focus, held, order, updateUrl) {
       currentFilter = clusters.some(function(cluster) { return cluster.id === filter; }) ? filter : 'all';
       currentQuery = String(query || '');
       currentFocus = clusters.some(function(cluster) { return cluster.id === focus; }) ? focus : '';
       currentHeld = clusters.some(function(cluster) {
         return (cluster.entries || []).some(function(entryRef) { return String(entryRef.num) === String(held); });
       }) ? String(held) : '';
+      currentOrder = order === 'recent' ? 'recent' : 'curated';
       searchInput.value = currentQuery;
+      orderSelect.value = currentOrder;
       renderButtons(clusters, currentFilter);
-      renderClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
+      renderClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld, currentOrder);
       renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
       renderRecentReturns(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
       resetButton.textContent = currentFocus || currentHeld ? 'return to cabinet' : 'reset';
       arriveAtHeldReturn(currentHeld);
-      if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus, currentHeld);
+      if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus, currentHeld, currentOrder);
     }
 
-    applyView(currentFilter, currentQuery, currentFocus, currentHeld, false);
+    applyView(currentFilter, currentQuery, currentFocus, currentHeld, currentOrder, false);
 
     filterBar.addEventListener('click', function(e) {
       const target = e.target;
       if (!target || target.tagName !== 'BUTTON') return;
-      applyView(target.getAttribute('data-cluster'), currentQuery, '', '', true);
+      applyView(target.getAttribute('data-cluster'), currentQuery, '', '', currentOrder, true);
     });
 
     clustersRoot.addEventListener('click', function(e) {
       const target = e.target;
       if (!target) return;
       if (target.hasAttribute('data-focus')) {
-        applyView('all', currentQuery, target.getAttribute('data-focus'), '', true);
+        applyView('all', currentQuery, target.getAttribute('data-focus'), '', currentOrder, true);
       } else if (target.hasAttribute('data-entry')) {
-        applyView(currentFilter, currentQuery, currentFocus, target.getAttribute('data-entry'), true);
+        applyView(currentFilter, currentQuery, currentFocus, target.getAttribute('data-entry'), currentOrder, true);
       }
     });
 
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.trim();
-      applyView(currentFilter, query, currentFocus, '', false);
+      applyView(currentFilter, query, currentFocus, '', currentOrder, false);
       window.clearTimeout(searchTimer);
       searchTimer = window.setTimeout(function() {
-        applyView(currentFilter, query, currentFocus, '', true);
+        applyView(currentFilter, query, currentFocus, '', currentOrder, true);
       }, 300);
     });
 
     searchInput.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && searchInput.value) {
         window.clearTimeout(searchTimer);
-        applyView(currentFilter, '', currentFocus, '', true);
+        applyView(currentFilter, '', currentFocus, '', currentOrder, true);
         searchInput.blur();
       }
     });
@@ -624,10 +670,14 @@
       });
       const alternatives = visible.filter(function(num) { return num !== currentHeld; });
       const pool = alternatives.length ? alternatives : visible;
-      if (pool.length) applyView(currentFilter, currentQuery, currentFocus, pool[Math.floor(Math.random() * pool.length)], true);
+      if (pool.length) applyView(currentFilter, currentQuery, currentFocus, pool[Math.floor(Math.random() * pool.length)], currentOrder, true);
     });
 
-    resetButton.addEventListener('click', function() { applyView('all', '', '', '', true); });
+    orderSelect.addEventListener('change', function() {
+      applyView(currentFilter, currentQuery, currentFocus, currentHeld, orderSelect.value, true);
+    });
+
+    resetButton.addEventListener('click', function() { applyView('all', '', '', '', 'curated', true); });
 
     copyButton.addEventListener('click', function() {
       const text = window.location.href;
@@ -639,7 +689,7 @@
     });
 
     window.addEventListener('popstate', function() {
-      applyView(filterFromUrl(clusters), queryFromUrl(), focusFromUrl(clusters), heldFromUrl(clusters), false);
+      applyView(filterFromUrl(clusters), queryFromUrl(), focusFromUrl(clusters), heldFromUrl(clusters), orderFromUrl(), false);
     });
   }).catch(function() {
     clustersRoot.innerHTML = '<p class="entry-angle">Echoes is temporarily unavailable. This page needs /echoes-data.json and /journal-index.json to render.</p>';
