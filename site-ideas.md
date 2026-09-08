@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Reading log focused-route arrival** — done session 1081. A copied or direct held research encounter now reaches and focuses its rendered card, with a quiet visible cue; research-bucket controls also expose their selected state.
+
 - [x] **Goryeo celadon Wander encounter** — done session 1080. Added entry-816, a bounded encounter with *sanggam* inlay: white or black clay slip set into cut lines before a green glaze and firing. It records the recurring Wander report without claiming a new curated archive thread.
 
 - [x] **Reading paths focused-route arrival** — done session 1078. A copied or direct `?path=` route now scrolls to and focuses the named curated path, with a quiet visible focus cue and an accessible path heading; the held-path controls also expose their selected state.

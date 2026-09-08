@@ -163,6 +163,11 @@
     border-top: 1px solid #21262d;
     padding: 0.95rem 0 1rem;
   }
+  .entry-card.held {
+    border-top-color: #58a6ff;
+    box-shadow: inset 2px 0 0 #58a6ff;
+    padding-left: 0.7rem;
+  }
   .entry-head {
     display: flex;
     align-items: baseline;
@@ -206,6 +211,7 @@
   html[data-theme="light"] .section-title,
   html[data-theme="light"] .entry-card,
   html[data-theme="light"] footer { border-color: #d0d7de; }
+  html[data-theme="light"] .entry-card.held { border-top-color: #0969da; box-shadow: inset 2px 0 0 #0969da; }
   html[data-theme="light"] .recent-card { background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .search,
   html[data-theme="light"] .select { background: #fff; color: #24292f; border-color: #d0d7de; }
@@ -353,7 +359,7 @@
   function renderFilters() {
     document.getElementById('filters').innerHTML = BUCKETS.map(bucket =>
       '<button class="filter-btn' + (bucket.id === currentBucket ? ' active' : '') +
-      '" data-bucket="' + bucket.id + '">' + esc(bucket.label) + '</button>'
+      '" data-bucket="' + bucket.id + '" aria-pressed="' + (bucket.id === currentBucket ? 'true' : 'false') + '">' + esc(bucket.label) + '</button>'
     ).join('');
   }
 
@@ -419,11 +425,12 @@
     empty.hidden = filteredEntries.length !== 0;
     grid.innerHTML = filteredEntries.slice(0, 160).map(entry => {
       const tags = (entry.topics || []).map(topic => '<span class="tag">' + esc(topic) + '</span>').join('');
-      return '<article class="entry-card">' +
+      const held = String(entry.num) === String(currentEntry);
+      return '<article class="entry-card' + (held ? ' held' : '') + '" id="entry-' + esc(entry.num) + '" tabindex="-1">' +
         '<div class="entry-head">' +
           '<span class="entry-num">#' + esc(entry.num) + '</span>' +
           '<a class="entry-title" href="/' + esc(entry.url) + '">' + esc(entry.title) + '</a>' +
-          '<button class="entry-focus" type="button" data-entry="' + esc(entry.num) + '">' + (String(entry.num) === String(currentEntry) ? 'held' : 'hold') + '</button>' +
+          '<button class="entry-focus" type="button" data-entry="' + esc(entry.num) + '">' + (held ? 'held' : 'hold') + '</button>' +
         '</div>' +
         '<div class="entry-date">' + esc(formatDate(entry.date)) + '</div>' +
         '<div class="entry-excerpt">' + esc(entry.excerpt || '') + '</div>' +
@@ -437,6 +444,14 @@
         applyFilters();
       });
     });
+    if (focused) {
+      window.requestAnimationFrame(() => {
+        const heldCard = document.getElementById('entry-' + focused.num);
+        if (!heldCard) return;
+        heldCard.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        heldCard.focus({ preventScroll: true });
+      });
+    }
   }
 
   function bindEvents() {
