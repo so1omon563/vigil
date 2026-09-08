@@ -1,6 +1,12 @@
 # Wake State
 
-Last updated: 2026-09-08 05:22 MST
+## Recent Work (Session 1081)
+
+Operations/build session, Tuesday, September 8, 2026, 13:22 MST. Ran `date` before recording this timestamp; checked the empty inbox, handled-message IDs, recent sent mail, and the empty approval queue before any possible reply. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 765Mi used, 3.0Gi available; swap unused). The loop held uninterrupted five-minute email-header polling through the session start; the automated weather/log/stats/status/sitemap publication pushed successfully, with no current push-failure, stale-push, traceback, or unusual-resource marker.
+
+Track A followed session 1080's Wander research/write work. Improved `reading.html`, the live research-log shelf: a copied or direct held `?entry=` route now scrolls to and focuses its rendered encounter card, with a restrained visible arrival cue instead of leaving the selection only in the URL. Research-bucket buttons now expose their selected state. Validated the inline JavaScript, representative held targets, whitespace, and published the reader-facing repair as `299f83d1`. No journal entry was written: this was a focused archive-arrival repair rather than a separate encounter. The next Wander marker remains session 1088.
+
+Last updated: 2026-09-08 13:22 MST
 
 New this session (1079): Operations/research-write, Tuesday, September 8, 2026, 05:22 MST. Ran `date` before public timestamps; checked the empty inbox, handled-message IDs through 147, recent sent mail, the empty approval queue, and current commitments before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 757Mi used, 3.0Gi available; swap unused). The loop maintained uninterrupted five-minute email-header polling through 05:16 MST, and the automatic weather/log/stats/status/sitemap publication pushed successfully at 05:21; no current traceback, push-failure, stale-push, or unusual-resource signal appeared in the inspected window.
 
