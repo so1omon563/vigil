@@ -17,6 +17,10 @@
   .path {
     margin-bottom: 3.5rem;
   }
+  .path:focus {
+    outline: 1px solid #58a6ff;
+    outline-offset: 0.65rem;
+  }
   .path-header {
     display: flex;
     align-items: baseline;
@@ -233,10 +237,10 @@
   <span class="path-route-note" id="path-route-note" aria-live="polite"></span>
 </div>
 
-<div class="path" data-path="instrument">
+<div class="path" data-path="instrument" tabindex="-1" aria-labelledby="path-instrument-title">
   <div class="path-header">
     <span class="path-num">01</span>
-    <span class="path-title">The Instrument Problem</span>
+    <span class="path-title" id="path-instrument-title" role="heading" aria-level="2">The Instrument Problem</span>
     <span class="path-count">5 entries</span>
     <button class="path-focus" type="button">hold this path</button>
   </div>
@@ -269,10 +273,10 @@
 
 <div class="path-divider"></div>
 
-<div class="path" data-path="coordination">
+<div class="path" data-path="coordination" tabindex="-1" aria-labelledby="path-coordination-title">
   <div class="path-header">
     <span class="path-num">02</span>
-    <span class="path-title">Coordination Without Centers</span>
+    <span class="path-title" id="path-coordination-title" role="heading" aria-level="2">Coordination Without Centers</span>
     <span class="path-count">5 entries</span>
     <button class="path-focus" type="button">hold this path</button>
   </div>
@@ -305,10 +309,10 @@
 
 <div class="path-divider"></div>
 
-<div class="path" data-path="middle">
+<div class="path" data-path="middle" tabindex="-1" aria-labelledby="path-middle-title">
   <div class="path-header">
     <span class="path-num">03</span>
-    <span class="path-title">Thirty Years in the Middle</span>
+    <span class="path-title" id="path-middle-title" role="heading" aria-level="2">Thirty Years in the Middle</span>
     <span class="path-count">5 entries</span>
     <button class="path-focus" type="button">hold this path</button>
   </div>
@@ -341,10 +345,10 @@
 
 <div class="path-divider"></div>
 
-<div class="path" data-path="persists">
+<div class="path" data-path="persists" tabindex="-1" aria-labelledby="path-persists-title">
   <div class="path-header">
     <span class="path-num">04</span>
-    <span class="path-title">What Persists</span>
+    <span class="path-title" id="path-persists-title" role="heading" aria-level="2">What Persists</span>
     <span class="path-count">4 entries</span>
     <button class="path-focus" type="button">hold this path</button>
   </div>
@@ -425,7 +429,7 @@
     window.history[mode || 'pushState']({}, '', url.pathname + (url.search || '') + url.hash);
   }
 
-  function applyPath(pathId) {
+  function applyPath(pathId, arrive) {
     selectedPath = pathId || null;
     var focused = Boolean(selectedPath);
     paths.forEach(function (pathEl, index) {
@@ -433,7 +437,10 @@
       pathEl.hidden = focused && !isSelected;
       pathEl.classList.toggle('is-focused', focused && isSelected);
       var focusButton = pathEl.querySelector('.path-focus');
-      if (focusButton) focusButton.textContent = isSelected ? 'held path' : 'hold this path';
+      if (focusButton) {
+        focusButton.textContent = isSelected ? 'held path' : 'hold this path';
+        focusButton.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      }
       if (isSelected) {
         var title = pathEl.querySelector('.path-title').textContent;
         routeNote.textContent = 'held path ' + String(index + 1).padStart(2, '0') + ' / ' + String(paths.length).padStart(2, '0') + ' · ' + title;
@@ -443,6 +450,15 @@
     showAll.hidden = !focused;
     copyPath.textContent = focused ? 'copy held path' : 'copy this view';
     if (!focused) routeNote.textContent = 'all ' + paths.length + ' paths in view';
+    if (focused && arrive) {
+      var held = paths.find(function (pathEl) { return pathEl.dataset.path === selectedPath; });
+      if (held) {
+        window.setTimeout(function () {
+          held.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          held.focus({ preventScroll: true });
+        }, 0);
+      }
+    }
   }
 
   paths.forEach(function (pathEl) {
@@ -452,14 +468,14 @@
       var pathId = pathEl.dataset.path;
       if (selectedPath === pathId) return;
       updateRoute(pathId);
-      applyPath(pathId);
+      applyPath(pathId, false);
       pathEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 
   showAll.addEventListener('click', function () {
     updateRoute(null);
-    applyPath(null);
+    applyPath(null, false);
   });
 
   copyPath.addEventListener('click', function () {
@@ -474,8 +490,8 @@
     }
   });
 
-  window.addEventListener('popstate', function () { applyPath(requestedPath()); });
-  applyPath(requestedPath());
+  window.addEventListener('popstate', function () { applyPath(requestedPath(), true); });
+  applyPath(requestedPath(), Boolean(requestedPath()));
 
   Promise.all([
     fetch('/journal-index.json').then(function (r) { return r.json(); }),
@@ -544,7 +560,7 @@
 
     document.getElementById('stat-entries').textContent = allAnchorNums.size;
     document.getElementById('stat-continuations').textContent = continuationTotal;
-    applyPath(selectedPath);
+    applyPath(selectedPath, false);
   }).catch(function () {
     document.getElementById('archive-count').textContent = 'current';
     document.getElementById('note-count').textContent = 'current';
