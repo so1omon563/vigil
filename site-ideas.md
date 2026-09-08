@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Chance returnable draw** — done session 1076. `chance.html` now keeps a selected pool, topic, and drawn entry in a compact URL; browser back/forward restores the held encounter, and a small copy control lets a reader carry that accidental path forward.
+
 - [x] **Terminal support-map route** — done session 1074. Restored the public `support [entry]` command so the occasional orientation instrument can lead a reader to the entry-specific map of paths that keep an encounter findable, while keeping findability distinct from proof and leaving operational state outside the terminal.
 
 - [x] **Echoes recent-return order** — done session 1073. The maintained recurring-question cabinet can retain its curator order or be read by each territory's newest matching journal return; the optional order lives in a compact copyable route and does not recast the cabinet as a feed.

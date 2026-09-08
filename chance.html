@@ -201,6 +201,11 @@
   .history-item .h-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .history-item.current { color: #58a6ff; }
   .history-item.current .h-num { color: #1f6feb; }
+  .copy-note {
+    color: #484f58;
+    font-size: 0.72rem;
+    min-height: 1.2rem;
+  }
 
   /* Stats line */
   #stats-line {
@@ -253,6 +258,7 @@
   html[data-theme="light"] .history-item:hover { color: #24292f; }
   html[data-theme="light"] .history-item.current { color: #0969da; }
   html[data-theme="light"] .history-item.current .h-num { color: #0969da; }
+  html[data-theme="light"] .copy-note { color: #57606a; }
   html[data-theme="light"] #stats-line { color: #57606a; }
   html[data-theme="light"] footer { border-top-color: #d0d7de; color: #57606a; }
 </style>
@@ -303,7 +309,9 @@
   <button class="btn" id="btn-open" disabled>open entry</button>
   <button class="btn" id="btn-prev" disabled>← prev</button>
   <button class="btn" id="btn-next" disabled>next →</button>
+  <button class="btn" id="btn-copy" disabled>copy this draw</button>
 </div>
+<div class="copy-note" id="copy-note" aria-live="polite"></div>
 
 <div id="history-section">
   <div class="history-label">this session</div>
@@ -334,6 +342,8 @@
   var btnPrev = document.getElementById('btn-prev');
   var btnNext = document.getElementById('btn-next');
   var btnClear = document.getElementById('btn-clear');
+  var btnCopy = document.getElementById('btn-copy');
+  var copyNote = document.getElementById('copy-note');
   var statsLine = document.getElementById('stats-line');
   var historySection = document.getElementById('history-section');
   var historyList = document.getElementById('history-list');
@@ -404,7 +414,17 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
-  function showEntry(entry, pushHistory) {
+  function writeRoute(entry, replace) {
+    if (!entry || !window.history) return;
+    var params = new URLSearchParams();
+    if (currentPool !== 'all') params.set('pool', currentPool);
+    if (currentTopic !== 'all') params.set('topic', currentTopic);
+    params.set('entry', entry.num);
+    var url = window.location.pathname + '?' + params.toString();
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+  }
+
+  function showEntry(entry, pushHistory, routeMode) {
     if (pushHistory === undefined) pushHistory = true;
 
     // If pushing new entry (not navigating history), truncate forward history
@@ -432,11 +452,14 @@
     btnPrev.disabled = (historyPos <= 0);
     btnNext.disabled = (historyPos >= history.length - 1);
     btnOpen.disabled = false;
+    btnCopy.disabled = false;
 
     updateStatsLine(entry, filteredEntries());
 
     // Update history strip
     updateHistoryStrip();
+
+    if (routeMode) writeRoute(entry, routeMode === 'replace');
   }
 
   function updateHistoryStrip() {
@@ -457,7 +480,7 @@
       item.addEventListener('click', (function (e, idx) {
         return function () {
           historyPos = idx;
-          showEntry(e, false);
+          showEntry(e, false, 'push');
         };
       })(entry, origIdx));
       historyList.appendChild(item);
@@ -469,7 +492,7 @@
     historyPos = -1;
     var entry = pickRandom();
     if (entry) {
-      showEntry(entry, true);
+      showEntry(entry, true, 'push');
       btnOpen.disabled = false;
       btnRoll.disabled = false;
       btnClear.disabled = false;
@@ -482,6 +505,7 @@
       btnPrev.disabled = true;
       btnNext.disabled = true;
       btnClear.disabled = true;
+      btnCopy.disabled = true;
       historySection.style.display = 'none';
     }
   }
@@ -499,6 +523,29 @@
     });
   }
 
+  function restoreRoute() {
+    var params = new URLSearchParams(window.location.search);
+    var pool = params.get('pool');
+    var topic = params.get('topic');
+    var entryNum = Number(params.get('entry'));
+
+    currentPool = pool && Array.prototype.some.call(poolSelect.options, function (option) { return option.value === pool; }) ? pool : 'all';
+    currentTopic = topic && Array.prototype.some.call(topicSelect.options, function (option) { return option.value === topic; }) ? topic : 'all';
+    poolSelect.value = currentPool;
+    topicSelect.value = currentTopic;
+
+    var poolEntries = filteredEntries();
+    var target = poolEntries.find(function (entry) { return Number(entry.num) === entryNum; });
+    history = [];
+    historyPos = -1;
+    if (target) {
+      showEntry(target, true);
+      writeRoute(target, true);
+    } else {
+      resetHistoryAndRoll();
+    }
+  }
+
   // Load entries
   fetch('/journal-index.json')
     .then(function (r) { return r.json(); })
@@ -511,10 +558,7 @@
       populateTopics();
       btnRoll.disabled = false;
       btnClear.disabled = false;
-
-      // Auto-roll on load
-      var initial = pickRandom();
-      if (initial) showEntry(initial);
+      restoreRoute();
     })
     .catch(function (err) {
       loading.textContent = 'error loading entries.';
@@ -524,7 +568,7 @@
   btnRoll.addEventListener('click', function () {
     if (!loaded) return;
     var entry = pickRandom();
-    if (entry) showEntry(entry, true);
+    if (entry) showEntry(entry, true, 'push');
   });
 
   poolSelect.addEventListener('change', function () {
@@ -547,18 +591,36 @@
     window.location.href = '/' + history[historyPos].url;
   });
 
+  btnCopy.addEventListener('click', function () {
+    if (historyPos < 0) return;
+    var url = window.location.href;
+    function copied() {
+      copyNote.textContent = 'draw copied';
+      window.setTimeout(function () { copyNote.textContent = ''; }, 1400);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(copied).catch(function () { window.prompt('Copy this draw:', url); });
+    } else {
+      window.prompt('Copy this draw:', url);
+    }
+  });
+
   btnPrev.addEventListener('click', function () {
     if (historyPos > 0) {
       historyPos--;
-      showEntry(history[historyPos], false);
+      showEntry(history[historyPos], false, 'push');
     }
   });
 
   btnNext.addEventListener('click', function () {
     if (historyPos < history.length - 1) {
       historyPos++;
-      showEntry(history[historyPos], false);
+      showEntry(history[historyPos], false, 'push');
     }
+  });
+
+  window.addEventListener('popstate', function () {
+    if (loaded) restoreRoute();
   });
 
   // Keyboard shortcuts
