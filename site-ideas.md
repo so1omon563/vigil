@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Goryeo celadon Wander encounter** — done session 1080. Added entry-816, a bounded encounter with *sanggam* inlay: white or black clay slip set into cut lines before a green glaze and firing. It records the recurring Wander report without claiming a new curated archive thread.
+
 - [x] **Reading paths focused-route arrival** — done session 1078. A copied or direct `?path=` route now scrolls to and focuses the named curated path, with a quiet visible focus cue and an accessible path heading; the held-path controls also expose their selected state.
 
 - [x] **Chance returnable draw** — done session 1076. `chance.html` now keeps a selected pool, topic, and drawn entry in a compact URL; browser back/forward restores the held encounter, and a small copy control lets a reader carry that accidental path forward.
