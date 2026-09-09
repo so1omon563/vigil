@@ -179,6 +179,12 @@
   .result-item:last-child {
     border-bottom: 1px solid #21262d;
   }
+  .result-item.held-result {
+    border-left: 2px solid #58a6ff;
+    padding-left: 0.8rem;
+    margin-left: -0.8rem;
+  }
+  .result-item:focus { outline: 1px solid #58a6ff; outline-offset: 4px; }
   .result-meta-row {
     display: flex;
     align-items: center;
@@ -219,6 +225,19 @@
     color: #58a6ff;
     text-decoration: underline;
   }
+  .result-hold {
+    margin-left: auto;
+    border: 1px solid #30363d;
+    background: none;
+    color: #8b949e;
+    font: inherit;
+    font-size: 0.61rem;
+    letter-spacing: 0.08em;
+    padding: 0.08rem 0.35rem;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .result-hold:hover { border-color: #58a6ff; color: #58a6ff; }
   .result-excerpt {
     font-size: 0.82rem;
     color: #8b949e;
@@ -300,6 +319,10 @@
   html[data-theme="light"] .result-type.letter { color: #953800; border-color: #f9d0a0; }
   html[data-theme="light"] .result-type.fragment { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .result-date { color: #8c959f; }
+  html[data-theme="light"] .result-item.held-result { border-left-color: #0969da; }
+  html[data-theme="light"] .result-item:focus { outline-color: #0969da; }
+  html[data-theme="light"] .result-hold { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .result-hold:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .result-title a { color: #1c2128; }
   html[data-theme="light"] .result-title a:hover { color: #0969da; }
   html[data-theme="light"] .result-excerpt { color: #57606a; }
@@ -345,6 +368,7 @@
 let allItems = [];
 let activeFilter = 'all';
 let activeTopic = 'all';
+let activeHeldKey = '';
 let topicCatalog = [];
 let filterCounts = { all: 0, journal: 0, letter: 0, fragment: 0 };
   const RECENT_QUERIES_KEY = 'vigil.search.recent';
@@ -353,6 +377,10 @@ let recentQueries = [];
 
 function normalizeQuery(raw) {
   return raw.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+function resultKey(item) {
+  return `${item.type}:${item.num}`;
 }
 
 function loadRecentQueries() {
@@ -465,8 +493,17 @@ function updateSearchUrl() {
   } else {
     params.set('topic', activeTopic);
   }
+  if (activeHeldKey) {
+    params.set('result', activeHeldKey);
+  } else {
+    params.delete('result');
+  }
   const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
   window.history.replaceState({}, '', next);
+}
+
+function clearHeldResult() {
+  activeHeldKey = '';
 }
 
 function renderRecentQueries() {
@@ -494,6 +531,8 @@ function render(items, terms) {
     return;
   }
   container.innerHTML = items.map(e => {
+    const key = resultKey(e);
+    const held = key === activeHeldKey;
     const ex = excerpt(e.text, terms);
     const numStr = String(e.num).padStart(3, '0');
     const typeLabel = e.type === 'letter' ? 'letter' : e.type === 'fragment' ? 'fragment' : 'entry';
@@ -505,17 +544,32 @@ function render(items, terms) {
       : e.type === 'fragment'
         ? `Fragment ${numStr}`
         : `Entry ${numStr}`;
-    return `<div class="result-item">
+    return `<article class="result-item${held ? ' held-result' : ''}" id="result-${escapeHtml(key)}" data-result-key="${escapeHtml(key)}" tabindex="-1">
   <div class="result-meta-row">
     <span class="result-num">${label}</span>
     <span class="result-type ${typeClass}">${typeLabel}</span>
     ${date}
+    <button class="result-hold" type="button" data-result-key="${escapeHtml(key)}">${held ? 'held' : 'hold'}</button>
   </div>
   <div class="result-title"><a href="${e.url}">${highlight(e.title, terms)}</a></div>
   <div class="result-excerpt">${highlight(ex, terms)}</div>
   ${topics ? `<div class="result-topics">${topics}</div>` : ''}
-</div>`;
+</article>`;
   }).join('');
+  container.querySelectorAll('.result-hold').forEach(button => {
+    button.addEventListener('click', () => {
+      activeHeldKey = button.dataset.resultKey || '';
+      updateSearchUrl();
+      rerunSearch();
+    });
+  });
+  if (activeHeldKey) {
+    const held = document.getElementById(`result-${activeHeldKey}`);
+    if (held) {
+      held.scrollIntoView({ block: 'center' });
+      held.focus({ preventScroll: true });
+    }
+  }
 }
 
 function showAll() {
@@ -595,6 +649,7 @@ function rerunSearch() {
 }
 
 function setTypeFilter(filter) {
+  clearHeldResult();
   activeFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
   if (activeTopic !== 'all' && activeFilter !== 'journal') {
@@ -620,6 +675,7 @@ function renderTopicFilters() {
   row.innerHTML = buttons.join('');
   row.querySelectorAll('.topic-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      clearHeldResult();
       activeTopic = btn.dataset.topic;
       row.querySelectorAll('.topic-btn').forEach(b => b.classList.toggle('active', b === btn));
       if (activeTopic !== 'all' && activeFilter !== 'journal') {
@@ -643,6 +699,7 @@ function initializeFromUrl() {
   const type = params.get('type') || 'all';
   const topic = params.get('topic') || 'all';
   const query = normalizeQuery(params.get('q') || '');
+  const held = params.get('result') || '';
 
   if (['all', 'journal', 'letter', 'fragment'].includes(type)) {
     activeFilter = type;
@@ -664,6 +721,7 @@ function initializeFromUrl() {
 
   const input = document.getElementById('search-input');
   if (query) input.value = query;
+  activeHeldKey = allItems.some(item => resultKey(item) === held) ? held : '';
   recentQueries = loadRecentQueries();
   renderRecentQueries();
 
@@ -720,6 +778,7 @@ input.addEventListener('input', function() {
   const val = this.value.trim();
   const clearButton = document.getElementById('search-clear');
   clearButton.disabled = !val;
+  clearHeldResult();
   debounce = setTimeout(() => search(val), 120);
 });
 
@@ -727,6 +786,7 @@ document.getElementById('search-clear').addEventListener('click', () => {
   input.value = '';
   input.focus();
   document.getElementById('search-clear').disabled = true;
+  clearHeldResult();
   search('');
 });
 
@@ -741,6 +801,7 @@ document.addEventListener('keydown', (event) => {
       event.preventDefault();
       input.value = '';
       document.getElementById('search-clear').disabled = true;
+      clearHeldResult();
       search('');
     }
   }
