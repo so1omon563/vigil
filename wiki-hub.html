@@ -110,6 +110,11 @@
     text-decoration: none;
   }
   .mini-list a:hover { text-decoration: underline; }
+  .mini-list .route-note {
+    color: #484f58;
+    font-size: 0.7rem;
+    margin-left: 0.25rem;
+  }
   .mini-list .meta-note {
     color: #484f58;
     font-size: 0.74rem;
@@ -174,7 +179,8 @@
   html[data-theme="light"] .surface-links h3 { color: #0969da; }
   html[data-theme="light"] .stat .value { color: #1c2128; }
   html[data-theme="light"] .stat .meta-note,
-  html[data-theme="light"] .mini-list .meta-note { color: #6e7781; }
+  html[data-theme="light"] .mini-list .meta-note,
+  html[data-theme="light"] .mini-list .route-note { color: #6e7781; }
   html[data-theme="light"] .surface-links a { color: #57606a; }
   html[data-theme="light"] .surface-links a:hover { color: #0969da; }
   html[data-theme="light"] .footer { border-top-color: #d0d7de; }
@@ -261,6 +267,26 @@
   function pluralize(value, label) {
     return value + ' ' + label + (value === 1 ? '' : 's');
   }
+  function conceptDomainKey(raw) {
+    var s = String(raw || '').toLowerCase();
+    var domainKeywords = {
+      'biology': ['biology', 'microbiology', 'immunology', 'ecology', 'ornithology', 'neuroethology', 'physiology', 'biochemistry', 'plant', 'cephalopod'],
+      'earth science': ['earth', 'geology', 'astrobiology', 'hydrology'],
+      'history': ['history', 'heritage', 'material culture', 'textile craft'],
+      'epistemology': ['epistemology'],
+      'linguistics': ['linguistics', 'language'],
+      'materials': ['materials science', 'conservation'],
+      'mathematics': ['mathematics', 'thermodynamics', 'information theory'],
+      'navigation': ['navigation'],
+      'neuroscience': ['neuroscience', 'neurology', 'perception', 'sensory', 'retinal', 'consciousness', 'pain science'],
+      'physics': ['physics', 'optics'],
+      'psychology': ['psychology', 'cognitive science', 'cognition', 'insight', 'psychophysics', 'philosophy of mind', 'consciousness studies', 'accessible design', 'spatial cognition'],
+      'society': ['governance', 'society', 'systems']
+    };
+    return Object.keys(domainKeywords).find(function (key) {
+      return domainKeywords[key].some(function (word) { return s.indexOf(word) !== -1; });
+    }) || s || 'other';
+  }
   function itemLink(label, num) {
     if (!num || isNaN(num)) return String(label);
     var href = '/journal/entry-' + num + '.html';
@@ -325,7 +351,7 @@
       } else {
         sample = 'no linked entries yet';
       }
-      html += '<li><span class="name">' + esc(pattern.title || pattern.id || 'Pattern') + '</span> · <span class="meta-note">' + pluralize(pattern.count, 'entry') + '</span><div class="meta-note">' + sample + '</div></li>';
+      html += '<li><a class="name" href="/convergences.html?convergence=' + encodeURIComponent(pattern.id) + '">' + esc(pattern.title || pattern.id || 'Pattern') + '</a><span class="route-note">→ recurring shape</span> · <span class="meta-note">' + pluralize(pattern.count, 'entry') + '</span><div class="meta-note">' + sample + '</div></li>';
     });
     list.innerHTML = html;
   }
@@ -392,8 +418,13 @@
     updateStat('stat-concepts', concepts.length + ' terms, ' + conceptDetailCount + ' detailed');
     updateStat('stat-gaps', gaps.length + ' unresolved');
     updateStat('stat-patterns', convergences.length + ' recurring frames');
-    renderTopCounts('concept-domain-list', conceptStats, function (key) { return key; }, null, 'term');
-    renderTopCounts('gap-type-list', gapStats, null, null, 'question');
+    renderTopCounts('concept-domain-list', conceptStats, function (key) {
+      var domain = conceptDomainKey(key);
+      return '<a href="/concepts.html?domain=' + encodeURIComponent(domain) + '">' + esc(key) + '</a><span class="route-note">→ glossary</span>';
+    }, null, 'term');
+    renderTopCounts('gap-type-list', gapStats, function (key) {
+      return '<a href="/gaps.html?type=' + encodeURIComponent(key) + '">' + esc(key.replace(/_/g, ' ')) + '</a><span class="route-note">→ questions</span>';
+    }, null, 'question');
     renderPatterns();
     setHubMeta();
   }).catch(function (error) {

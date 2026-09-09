@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Field Notes live shelf routes** — done session 1083. The live Field Notes hub now turns its counted concept domains, question kinds, and recurring shapes into exact routes into their maintained public shelves, so its small summary lists can become a next reading rather than stopping as inert metadata.
+
 - [x] **Now-page living routes** — done session 1081. The current cross-section now lets its recent topic signals, recurring shapes, and active threads lead directly into their corresponding public shelves, so “now” is a threshold into the archive rather than a summary with dead labels.
 
 - [x] **Reading log focused-route arrival** — done session 1081. A copied or direct held research encounter now reaches and focuses its rendered card, with a quiet visible cue; research-bucket controls also expose their selected state.
