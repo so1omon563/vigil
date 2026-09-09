@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Letters focused-thread arrival** — done session 1086. A stable correspondence-thread route such as `?view=thread&thread=prediction` now narrows to, scrolls to, and focuses its actual rendered thread; ordinary free-text thread filtering still works, and view controls expose their selected state.
+
 - [x] **Search held-result route** — done session 1084. A search can now retain one actual result alongside its query and filters; a copied return reaches and focuses that record, while changing the search deliberately releases it back into the wider results.
 
 - [x] **Field Notes live shelf routes** — done session 1083. The live Field Notes hub now turns its counted concept domains, question kinds, and recurring shapes into exact routes into their maintained public shelves, so its small summary lists can become a next reading rather than stopping as inert metadata.

@@ -113,6 +113,7 @@
   .view-btn.active:hover { color: #58a6ff; border-color: #58a6ff; }
   /* Thread groups */
   .thread-group { margin-bottom: 1.25rem; }
+  .thread-group:focus { outline: 1px solid #58a6ff; outline-offset: 6px; }
   .thread-header {
     display: flex;
     align-items: baseline;
@@ -130,6 +131,7 @@
   html[data-theme="light"] .thread-header { border-color: #d0d7de; }
   html[data-theme="light"] .thread-label { color: #1c2128; }
   html[data-theme="light"] .thread-desc { color: #8c959f; }
+  html[data-theme="light"] .thread-group:focus { outline-color: #0969da; }
   .thread-empty {
     color: #8b949e;
     font-size: 0.8rem;
@@ -228,8 +230,8 @@
 </div>
 
 <div class="view-toggle">
-  <button class="view-btn active" id="btn-date" onclick="setView('date')">by date</button>
-  <button class="view-btn" id="btn-thread" onclick="setView('thread')">by thread</button>
+  <button class="view-btn active" id="btn-date" type="button" aria-pressed="true" onclick="setView('date')">by date</button>
+  <button class="view-btn" id="btn-thread" type="button" aria-pressed="false" onclick="setView('thread')">by thread</button>
 </div>
 
 <div class="search-wrap" id="letters-search-wrap">
@@ -257,6 +259,7 @@ var params = new URLSearchParams(window.location.search);
 var currentView = params.get('view') === 'thread' ? 'thread' : 'date';
 var currentSearchQuery = '';
 var currentThreadFilter = '';
+var heldThreadId = '';
 var threadsData = null;
 var lettersLoaded = false;
 
@@ -275,6 +278,7 @@ function normalizeThreadToken(value) {
 
 if (currentView === 'thread') {
   currentThreadFilter = normalizeThreadToken(params.get('thread'));
+  heldThreadId = currentThreadFilter;
 } else {
   currentSearchQuery = (params.get('q') || '').trim();
 }
@@ -341,12 +345,15 @@ function setView(view) {
   currentView = view;
   document.getElementById('btn-date').classList.toggle('active', view === 'date');
   document.getElementById('btn-thread').classList.toggle('active', view === 'thread');
+  document.getElementById('btn-date').setAttribute('aria-pressed', view === 'date' ? 'true' : 'false');
+  document.getElementById('btn-thread').setAttribute('aria-pressed', view === 'thread' ? 'true' : 'false');
   var indexLabel = document.getElementById('index-label');
   var threadWrap = document.getElementById('letters-search-wrap');
   var filterInput = document.getElementById('letters-filter');
   var listRows = document.getElementById('letter-index-rows');
   if (view === 'date') {
     currentThreadFilter = '';
+    heldThreadId = '';
     if (listRows) listRows.style.display = '';
     if (threadWrap) threadWrap.style.display = '';
     if (filterInput) filterInput.style.display = '';
@@ -396,6 +403,12 @@ function buildThreadView() {
     if (n) rowMap[n.textContent.trim()] = r;
   });
 
+  var heldThread = threadsData.filter(function(thread) { return thread.id === heldThreadId; })[0] || null;
+  if (heldThread) {
+    query = '';
+    indexLabel.textContent = 'Correspondence thread: ' + heldThread.label;
+  }
+
   threadsData.forEach(function(thread) {
     var label = normalizeThreadToken(thread.label);
     var desc = normalizeThreadToken(thread.desc);
@@ -403,6 +416,11 @@ function buildThreadView() {
 
     var group = document.createElement('div');
     group.className = 'thread-group';
+    group.id = 'letter-thread-' + thread.id;
+    if (heldThread && thread.id === heldThread.id) {
+      group.tabIndex = -1;
+      group.setAttribute('aria-label', 'Held correspondence thread: ' + thread.label);
+    }
     var hdr = document.createElement('div');
     hdr.className = 'thread-header';
     hdr.innerHTML = '<span class="thread-label">' + esc(thread.label) + '</span><span class="thread-desc">' + esc(thread.desc) + '</span>';
@@ -432,6 +450,16 @@ function buildThreadView() {
     msg.className = 'thread-empty';
     msg.textContent = 'No thread matches that query.';
     letterIndex.appendChild(msg);
+  }
+
+  if (heldThread) {
+    var heldGroup = document.getElementById('letter-thread-' + heldThread.id);
+    if (heldGroup) {
+      requestAnimationFrame(function() {
+        heldGroup.scrollIntoView({ block: 'center' });
+        heldGroup.focus({ preventScroll: true });
+      });
+    }
   }
 }
 
