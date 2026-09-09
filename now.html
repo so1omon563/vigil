@@ -138,6 +138,7 @@
   }
   .arc-topic-row { display: flex; gap: 0.3rem; flex-wrap: wrap; }
   .arc-topic {
+    display: inline-block;
     font-size: 0.7rem;
     color: #8b949e;
     background: #161b22;
@@ -145,6 +146,7 @@
     border-radius: 3px;
     padding: 0.15rem 0.4rem;
   }
+  a.arc-topic:hover { color: #58a6ff; border-color: #58a6ff; text-decoration: none; }
   @media (max-width: 560px) {
     .arc-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
@@ -157,6 +159,7 @@
   .entry-title-link { font-size: 0.93rem; color: #58a6ff; }
   .entry-topics { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.2rem; }
   .topic-tag {
+    display: inline-block;
     font-size: 0.66rem;
     background: #161b22;
     border: 1px solid #21262d;
@@ -165,6 +168,7 @@
     border-radius: 3px;
     letter-spacing: 0.03em;
   }
+  a.topic-tag:hover { color: #58a6ff; border-color: #58a6ff; text-decoration: none; }
   .entry-excerpt {
     font-size: 0.83rem;
     color: #6e7681;
@@ -236,6 +240,7 @@
   .thread-row:last-child { margin-bottom: 0; }
   .thread-meta { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.1rem; }
   .thread-name { font-size: 0.91rem; color: #e6edf3; }
+  a.thread-name:hover { color: #58a6ff; text-decoration: underline; }
   .thread-count { font-size: 0.72rem; color: #484f58; }
   .thread-last { font-size: 0.8rem; color: #6e7681; }
   .thread-last a { color: #58a6ff; }
@@ -256,6 +261,7 @@
   .inv-pattern { margin-bottom: 1.4rem; }
   .inv-pattern:last-child { margin-bottom: 0; }
   .inv-pattern-name { font-size: 0.91rem; color: #e6edf3; margin-bottom: 0.2rem; }
+  a.inv-pattern-name:hover { color: #58a6ff; text-decoration: underline; }
   .inv-pattern-desc { font-size: 0.8rem; color: #6e7681; line-height: 1.6; margin-bottom: 0.4rem; }
   .inv-entry-list { display: flex; flex-direction: column; gap: 0.2rem; }
   .inv-entry-item { font-size: 0.8rem; color: #484f58; }
@@ -646,10 +652,14 @@
     if (journal && journal.length > 0) {
       var arcEntries = journal.slice(0, 8);
       var topicCounts = {};
+      var topicLabels = {};
       arcEntries.forEach(function(entry) {
         (entry.topics || []).forEach(function(topic) {
           var key = normalizedTopic(topic);
-          if (key) topicCounts[key] = (topicCounts[key] || 0) + 1;
+          if (key) {
+            topicCounts[key] = (topicCounts[key] || 0) + 1;
+            if (!topicLabels[key]) topicLabels[key] = topic;
+          }
         });
       });
       var topTopics = Object.keys(topicCounts).sort(function(a, b) {
@@ -673,7 +683,13 @@
       if (topTopics.length > 0) {
         var topicRow = el('div', 'arc-topic-row');
         topTopics.forEach(function(topic) {
-          topicRow.appendChild(el('span', 'arc-topic', escapeHtml(topic) + ' x' + topicCounts[topic]));
+          var label = topicLabels[topic] || topic;
+          var topicLink = document.createElement('a');
+          topicLink.className = 'arc-topic';
+          topicLink.href = '/topics.html?topic=' + encodeURIComponent(label);
+          topicLink.textContent = label + ' x' + topicCounts[topic];
+          topicLink.title = 'read the ' + label + ' topic shelf';
+          topicRow.appendChild(topicLink);
         });
         secArc.appendChild(topicRow);
       }
@@ -724,7 +740,15 @@
         var maxNum = entriesSorted[0].num;
 
         var div = el('div', 'inv-pattern');
-        div.appendChild(el('div', 'inv-pattern-name', p.name + ' <span class="inv-count">' + p.entries.length + ' entries</span>'));
+        var patternHeading = document.createElement('div');
+        var patternLink = document.createElement('a');
+        patternLink.className = 'inv-pattern-name';
+        patternLink.href = '/patterns.html?pattern=' + encodeURIComponent(p.id);
+        patternLink.textContent = p.name;
+        patternLink.title = 'read this recurring shape';
+        patternHeading.appendChild(patternLink);
+        patternHeading.appendChild(el('span', 'inv-count', ' ' + p.entries.length + ' entries'));
+        div.appendChild(patternHeading);
         div.appendChild(el('div', 'inv-pattern-desc', p.description.length > 140 ? p.description.slice(0, 140) + '…' : p.description));
 
         var entryList = el('div', 'inv-entry-list');
@@ -778,7 +802,12 @@
         if (entry.topics && entry.topics.length > 0) {
           var tagRow = el('div', 'entry-topics');
           entry.topics.forEach(function(t) {
-            tagRow.appendChild(el('span', 'topic-tag', t));
+            var topicLink = document.createElement('a');
+            topicLink.className = 'topic-tag';
+            topicLink.href = '/topics.html?topic=' + encodeURIComponent(t);
+            topicLink.textContent = t;
+            topicLink.title = 'read the ' + t + ' topic shelf';
+            tagRow.appendChild(topicLink);
           });
           row.appendChild(tagRow);
         }
@@ -855,7 +884,12 @@
         activeThreads.forEach(function(t) {
           var row = el('div', 'thread-row');
           var meta = el('div', 'thread-meta');
-          meta.appendChild(el('span', 'thread-name', t.title));
+          var threadLink = document.createElement('a');
+          threadLink.className = 'thread-name';
+          threadLink.href = '/threads.html?thread=' + encodeURIComponent(t.id);
+          threadLink.textContent = t.title;
+          threadLink.title = 'read this recurring thread';
+          meta.appendChild(threadLink);
           meta.appendChild(el('span', 'thread-count', t.count + ' entries'));
           row.appendChild(meta);
           var lastTitle = entryTitles[t.last] || ('entry-' + t.last);
