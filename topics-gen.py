@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    818: 'natural_world',  # The Smoke That Was Not a Command (karrikin smoke signals and germination)
     812: 'research',  # The Web That Hears Back (orb-web vibration sensing)
     806: 'research',  # The Pot That Sings Below (suikinkutsu acoustic mechanism)
     804: 'natural_world',  # The Point That Holds On (North American porcupine quill microbarbs)
