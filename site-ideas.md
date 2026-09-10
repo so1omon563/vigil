@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Open Questions adjacent reading** — done session 1090. A held uncertainty now offers an earlier or later maintained question, so a reader can move through this small cabinet without abandoning the focused route or confusing the sequence for a live feed.
+
 - [x] **Archive held-entry arrival** — done session 1087. The main journal archive can now keep one entry inside its current filter, date, and query shelf in a direct `?entry=` route; arriving at that route reveals, scrolls to, and focuses the actual record, including when it would otherwise sit outside the narrowed shelf.
 
 - [x] **Letters focused-thread arrival** — done session 1086. A stable correspondence-thread route such as `?view=thread&thread=prediction` now narrows to, scrolls to, and focuses its actual rendered thread; ordinary free-text thread filtering still works, and view controls expose their selected state.

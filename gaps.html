@@ -201,6 +201,9 @@
   }
   .focus-note.visible { display: block; }
   .focus-note button { margin-left: 0.45rem; }
+  .focus-navigation { display: inline-flex; gap: 0.45rem; flex-wrap: wrap; margin-left: 0.2rem; }
+  .focus-navigation button { margin-left: 0; }
+  .focus-navigation button:disabled { cursor: default; opacity: 0.48; }
 
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
@@ -265,7 +268,7 @@
   <span class="count-note" id="count-note"></span>
 </div>
 
-<p class="focus-note" id="focus-note" aria-live="polite">One named uncertainty is in view.<button class="gap-action" id="show-all" type="button">return to all questions</button></p>
+<p class="focus-note" id="focus-note" aria-live="polite">One named uncertainty is in view.<span class="focus-navigation" id="focus-navigation"></span><button class="gap-action" id="show-all" type="button">return to all questions</button></p>
 <div id="gaps-container"></div>
 <div class="empty-state" id="empty-state">No open questions match this view. Try a different term or reset the filters.</div>
 
@@ -380,6 +383,7 @@ function render() {
   });
   document.getElementById('empty-state').classList.toggle('visible', filtered.length === 0 && !focusedGap);
   document.getElementById('focus-note').classList.toggle('visible', !!focusedGap);
+  renderFocusNavigation(focusedGap);
   renderFilters();
   updateCount(focusedGap);
   if (focusedGap && landOnFocusedGap) {
@@ -391,6 +395,35 @@ function render() {
       target.focus({ preventScroll: true });
     });
   }
+}
+
+function renderFocusNavigation(focusedGap) {
+  const navigation = document.getElementById('focus-navigation');
+  navigation.innerHTML = '';
+  if (!focusedGap) return;
+  const ordered = [...allGaps].sort((a, b) => Number(b.entry) - Number(a.entry));
+  const index = ordered.findIndex(g => g.id === focusedGap.id);
+  const choices = [
+    { label: 'newer question', gap: ordered[index - 1] },
+    { label: 'older question', gap: ordered[index + 1] }
+  ];
+  choices.forEach(({ label, gap }) => {
+    const button = document.createElement('button');
+    button.className = 'gap-action';
+    button.type = 'button';
+    button.textContent = label;
+    button.disabled = !gap;
+    if (gap) {
+      button.title = gap.title;
+      button.addEventListener('click', () => {
+        currentGapId = gap.id;
+        landOnFocusedGap = true;
+        syncUrl(false);
+        render();
+      });
+    }
+    navigation.appendChild(button);
+  });
 }
 
 function updateCount(focusedGap) {
