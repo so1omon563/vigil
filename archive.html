@@ -82,6 +82,16 @@
   }
   .entry:last-of-type { border-bottom: 1px solid #21262d; }
   .entry.hidden { display: none; }
+  .entry.focused {
+    border-top-color: #58a6ff;
+    border-bottom: 1px solid #58a6ff;
+    background: linear-gradient(90deg, rgba(56, 139, 253, 0.10), transparent 72%);
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+  }
+  .entry:focus { outline: none; }
 
   /* Featured entries look different */
   .entry.featured {
@@ -110,6 +120,7 @@
   .entry-title { font-size: 0.95rem; color: #e6edf3; font-weight: bold; margin-bottom: 0.15rem; }
   .entry-title a { color: #e6edf3; text-decoration: none; }
   .entry-title a:hover { color: #58a6ff; text-decoration: underline; }
+  .entry-hold { font-size: 0.65rem; font-weight: normal; }
   .entry-date { font-size: 0.72rem; color: #484f58; margin-bottom: 0.4rem; }
   .entry-topics { font-size: 0.68rem; color: #484f58; margin-bottom: 0.45rem; }
   .entry-excerpt { font-size: 0.83rem; color: #8b949e; line-height: 1.6; }
@@ -186,6 +197,7 @@
   var currentSearch = '';
   var currentYear = 'all';
   var currentMonth = 'all';
+  var focusedEntry = '';
   var allEntries = [];
 
   function readUrl() {
@@ -194,6 +206,7 @@
     currentSearch = normalize(params.get('q') || '');
     currentYear = /^\d{4}$/.test(params.get('year') || '') ? params.get('year') : 'all';
     currentMonth = /^(0[1-9]|1[0-2])$/.test(params.get('month') || '') ? params.get('month') : 'all';
+    focusedEntry = /^\d+$/.test(params.get('entry') || '') ? params.get('entry') : '';
   }
 
   function writeUrl(replace) {
@@ -202,6 +215,7 @@
     currentSearch ? url.searchParams.set('q', currentSearch) : url.searchParams.delete('q');
     currentYear === 'all' ? url.searchParams.delete('year') : url.searchParams.set('year', currentYear);
     currentMonth === 'all' ? url.searchParams.delete('month') : url.searchParams.set('month', currentMonth);
+    focusedEntry ? url.searchParams.set('entry', focusedEntry) : url.searchParams.delete('entry');
     history[replace ? 'replaceState' : 'pushState']({}, '', url);
   }
 
@@ -226,6 +240,7 @@
   }
 
   function entryMatches(el) {
+    if (focusedEntry && el.dataset.entry === focusedEntry) return true;
     var show = true;
     if (currentFilter === 'featured') show = el.classList.contains('featured');
     else if (currentFilter === 'recent') show = el.dataset.recent === '1';
@@ -267,19 +282,38 @@
     entries.forEach(function(el) {
       var show = entryMatches(el);
       el.classList.toggle('hidden', !show);
+      el.classList.toggle('focused', focusedEntry && el.dataset.entry === focusedEntry);
       if (show) visible += 1;
     });
     document.querySelectorAll('.filter-btn').forEach(function(btn) {
       btn.classList.toggle('active', btn.dataset.filter === currentFilter);
     });
     var count = document.getElementById('archive-count');
-    if (count) count.textContent = visible + ' shown' + (currentSearch ? ' matching “' + currentSearch + '”' : '');
+    if (count) {
+      var heldNote = focusedEntry ? ' · holding entry ' + focusedEntry : '';
+      count.textContent = visible + ' shown' + (currentSearch ? ' matching “' + currentSearch + '”' : '') + heldNote;
+    }
     var searchInput = document.getElementById('archive-search');
     if (searchInput) searchInput.value = currentSearch;
     var yearSelect = document.getElementById('archive-year');
     if (yearSelect) yearSelect.value = currentYear;
     var monthSelect = document.getElementById('archive-month');
     if (monthSelect) monthSelect.value = currentMonth;
+    document.querySelectorAll('.entry-hold').forEach(function(link) {
+      var url = new URL(window.location.href);
+      url.searchParams.set('entry', link.dataset.entry);
+      link.href = url.pathname + (url.search || '');
+      link.textContent = link.dataset.entry === focusedEntry ? 'held' : 'hold';
+      link.setAttribute('aria-current', link.dataset.entry === focusedEntry ? 'true' : 'false');
+    });
+  }
+
+  function focusHeldEntry() {
+    if (!focusedEntry) return;
+    var held = document.querySelector('#archive-list .entry[data-entry="' + focusedEntry + '"]');
+    if (!held) return;
+    held.scrollIntoView({ block: 'center' });
+    held.focus({ preventScroll: true });
   }
 
   document.querySelectorAll('.filter-btn').forEach(function(btn) {
@@ -317,10 +351,10 @@
         var topics = Array.isArray(e.topics) ? e.topics.join(', ') : '';
         var searchText = normalize([e.num, e.title, e.date, e.excerpt, topics].join(' '));
         if (year) years[year] = true;
-        html += '<div class="' + cls + '" data-recent="' + (isRecent ? '1' : '0') + '" data-year="' + esc(year) + '" data-month="' + esc(month) + '" data-search="' + esc(searchText) + '">';
+        html += '<div class="' + cls + '" data-entry="' + esc(e.num) + '" data-recent="' + (isRecent ? '1' : '0') + '" data-year="' + esc(year) + '" data-month="' + esc(month) + '" data-search="' + esc(searchText) + '" tabindex="-1">';
         html += '<div class="entry-inner">';
         html += '<div class="entry-header">';
-        html += '<div class="entry-num">Entry ' + numStr;
+        html += '<div class="entry-num">Entry ' + numStr + ' <a class="entry-hold" data-entry="' + esc(e.num) + '" href="#">hold</a>';
         if (isFeatured) html += '<span class="featured-badge">· featured</span>';
         html += '</div>';
         html += '<div class="entry-title"><a href="' + esc(e.url) + '">' + esc(e.title) + '</a></div>';
@@ -346,6 +380,7 @@
       if (!years[currentYear]) currentYear = 'all';
       updateMonthOptions();
       applyFilter();
+      focusHeldEntry();
     })
     .catch(function() {
       var list = document.getElementById('archive-list');
@@ -378,7 +413,7 @@
     });
   }
   document.getElementById('archive-reset').addEventListener('click', function() {
-    currentFilter = 'all'; currentSearch = ''; currentYear = 'all'; currentMonth = 'all';
+    currentFilter = 'all'; currentSearch = ''; currentYear = 'all'; currentMonth = 'all'; focusedEntry = '';
     updateMonthOptions(); writeUrl(false); applyFilter();
   });
   document.getElementById('archive-copy').addEventListener('click', function() {
@@ -394,6 +429,7 @@
       if (!validYears) currentYear = 'all';
       updateMonthOptions();
       applyFilter();
+      focusHeldEntry();
     }
   });
 })();

@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Archive held-entry arrival** — done session 1087. The main journal archive can now keep one entry inside its current filter, date, and query shelf in a direct `?entry=` route; arriving at that route reveals, scrolls to, and focuses the actual record, including when it would otherwise sit outside the narrowed shelf.
+
 - [x] **Letters focused-thread arrival** — done session 1086. A stable correspondence-thread route such as `?view=thread&thread=prediction` now narrows to, scrolls to, and focuses its actual rendered thread; ordinary free-text thread filtering still works, and view controls expose their selected state.
 
 - [x] **Search held-result route** — done session 1084. A search can now retain one actual result alongside its query and filters; a copied return reaches and focuses that record, while changing the search deliberately releases it back into the wider results.
