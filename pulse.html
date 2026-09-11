@@ -71,6 +71,14 @@
     border-bottom: 1px solid #161b22;
     font-size: 0.82rem;
   }
+  .thread-bar-row.held-thread {
+    margin: 0.15rem -0.65rem;
+    padding: 0.72rem 0.65rem;
+    border: 1px solid #1f6feb;
+    border-radius: 4px;
+    background: #111d2c;
+  }
+  .thread-bar-row.held-thread:focus { outline: 2px solid #58a6ff; outline-offset: 3px; }
   .thread-bar-row:last-child { border-bottom: none; }
   .thread-name { color: #c9d1d9; }
   .thread-name a { color: #c9d1d9; text-decoration: none; }
@@ -191,6 +199,7 @@
   html[data-theme="light"] .entry-title a { color: #1c2128; }
   html[data-theme="light"] .entry-row { border-color: #e8ecf0; }
   html[data-theme="light"] .thread-bar-row { border-color: #e8ecf0; }
+  html[data-theme="light"] .thread-bar-row.held-thread { border-color: #0969da; background: #ddf4ff; }
   html[data-theme="light"] .overview-row { border-color: #e8ecf0; }
   html[data-theme="light"] .thread-tag { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .overview-name { color: #24292e; }
@@ -280,7 +289,17 @@
     fetch('/journal-index.json').then(function (r) { return r.json(); }).then(function (d) { journalData = d; done(); }).catch(function () { journalData = []; done(); });
   }
 
-  function render(threads, journal) {
+  function focusThreadArrival(thread) {
+    if (!thread) return;
+    var target = document.getElementById('pulse-thread-' + thread.id);
+    if (!target) return;
+    window.requestAnimationFrame(function () {
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
+  function render(threads, journal, arrive) {
     // Build a map: entry num → entry object (journal-index.json)
     var journalMap = {};
     journal.forEach(function (e) { journalMap[e.num] = e; });
@@ -337,11 +356,12 @@
         else if (t._fresh >= (1 - WARM_WITHIN)) badgeHtml = '<span class="badge badge-warm">active</span>';
         var lastEntry = t.entries && t.entries.length ? t.entries[t.entries.length - 1] : null;
         var lastHtml = lastEntry ? '<a href="/' + lastEntry.url + '">#' + lastEntry.num + '</a>' : '—';
-        return '<div class="thread-bar-row">' +
+        var held = selectedThread && t.id === selectedThread.id;
+        return '<article class="thread-bar-row' + (held ? ' held-thread' : '') + '" id="pulse-thread-' + escapeHtml(t.id) + '" tabindex="-1" aria-label="' + escapeHtml(t.title) + ' thread activity">' +
           '<div class="thread-name"><a href="/threads.html?thread=' + encodeURIComponent(t.id) + '">' + escapeHtml(t.title) + '</a>' + badgeHtml + '<button class="thread-focus" type="button" data-thread="' + escapeHtml(t.id) + '">focus</button></div>' +
           '<div class="bar-track"><div class="bar-fill ' + barClass + '" style="width:' + pct + '%"></div></div>' +
           '<div class="thread-meta">' + lastHtml + ' · ' + t._count + ' entries</div>' +
-          '</div>';
+          '</article>';
       }).join('');
       barsEl.innerHTML = html;
     }
@@ -399,10 +419,12 @@
     Array.prototype.forEach.call(document.querySelectorAll('.thread-focus'), function (button) {
       button.addEventListener('click', function () {
         focusedThread = button.getAttribute('data-thread') || '';
-        render(threads, journal);
+        render(threads, journal, true);
         updateUrl(false);
       });
     });
+
+    if (arrive && selectedThread) focusThreadArrival(selectedThread);
   }
 
   var loadedThreads = [];
@@ -410,13 +432,13 @@
 
   function restoreView() {
     focusedThread = new URL(window.location.href).searchParams.get('thread') || '';
-    if (loadedThreads.length || loadedJournal.length) render(loadedThreads, loadedJournal);
+    if (loadedThreads.length || loadedJournal.length) render(loadedThreads, loadedJournal, true);
   }
 
   if (resetView) {
     resetView.addEventListener('click', function () {
       focusedThread = '';
-      render(loadedThreads, loadedJournal);
+      render(loadedThreads, loadedJournal, false);
       updateUrl(false);
     });
   }
