@@ -240,18 +240,18 @@
   <button class="btn" id="btn-clear" type="button" style="display:none">clear</button>
 </div>
 
-<div class="topic-filter-row" id="topic-filter-row">
+<div class="topic-filter-row" id="topic-filter-row" role="group" aria-label="Filter first lines by topic">
   <button class="topic-btn active" data-topic="" type="button">all</button>
 </div>
 
-<div class="sort-row">
+<div class="sort-row" role="group" aria-label="Order first lines">
   <span class="sort-label">sort</span>
   <button class="btn active" id="sort-newest" type="button">newest first</button>
   <button class="btn" id="sort-oldest" type="button">oldest first</button>
   <button class="btn" id="sort-length" type="button">longest first</button>
 </div>
 
-<div class="count-bar" id="count-bar">&nbsp;</div>
+<div class="count-bar" id="count-bar" aria-live="polite">&nbsp;</div>
 
 <ul class="entry-list" id="entry-list">
   <li class="loading">loading…</li>
@@ -267,6 +267,11 @@
   // A chosen opening can be returned to without losing the shelf that gave it
   // context. The URL is a path back to an encounter, not a recommendation.
   var highlightedNum = -1;
+  // A direct held route is allowed to show its named encounter even when the
+  // surrounding shelf is narrow. The exception is named in the count rather
+  // than silently pretending the entry matched the filter.
+  var heldOutsideFilter = false;
+  var matchedCount = 0;
 
   function fmtDate(value) {
     if (!value) return '';
@@ -338,6 +343,13 @@
       }
       return true;
     });
+    matchedCount = filtered.length;
+    heldOutsideFilter = false;
+    var held = allEntries.find(function(e) { return e.n === highlightedNum; });
+    if (held && !filtered.some(function(e) { return e.n === held.n; })) {
+      filtered.push(held);
+      heldOutsideFilter = true;
+    }
     filtered = sortEntries(filtered);
   }
 
@@ -379,7 +391,11 @@
     document.getElementById('sort-length').classList.toggle('active', sortMode === 'length');
     document.querySelectorAll('#topic-filter-row .topic-btn').forEach(function(btn) {
       btn.classList.toggle('active', btn.dataset.topic === activeTopic);
+      btn.setAttribute('aria-pressed', String(btn.dataset.topic === activeTopic));
     });
+    document.getElementById('sort-newest').setAttribute('aria-pressed', String(sortMode === 'newest'));
+    document.getElementById('sort-oldest').setAttribute('aria-pressed', String(sortMode === 'oldest'));
+    document.getElementById('sort-length').setAttribute('aria-pressed', String(sortMode === 'length'));
   }
 
   function render() {
@@ -388,7 +404,7 @@
     var clearBtn = document.getElementById('btn-clear');
 
     syncControls();
-    clearBtn.style.display = (filterText || activeTopic || sortMode !== 'newest') ? 'inline-block' : 'none';
+    clearBtn.style.display = (filterText || activeTopic || sortMode !== 'newest' || highlightedNum > 0) ? 'inline-block' : 'none';
 
     if (filtered.length === 0) {
       list.innerHTML = '<li class="empty">no entries match</li>';
@@ -398,12 +414,12 @@
 
     var q = filterText.toLowerCase().trim();
 
-    var count = filtered.length === allEntries.length
+    var count = matchedCount === allEntries.length
       ? '<span>' + allEntries.length + '</span> entries'
-      : '<span>' + filtered.length + '</span> of ' + allEntries.length + ' entries';
+      : '<span>' + matchedCount + '</span> of ' + allEntries.length + ' entries';
     var held = allEntries.find(function(e) { return e.n === highlightedNum; });
     countBar.innerHTML = held
-      ? count + ' <span>· holding entry-' + String(held.n).padStart(3, '0') + '</span>'
+      ? count + ' <span>· holding entry-' + String(held.n).padStart(3, '0') + (heldOutsideFilter ? ' outside this shelf' : '') + '</span>'
       : count;
 
     var parts = [];

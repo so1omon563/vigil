@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **First-lines held-route integrity** — done session 1097. A direct `?entry=` first-line route now still renders and focuses its named opening when accompanying topic or text context would otherwise hide it; the shelf names that exception rather than treating it as a filter match. Topic and ordering controls now also expose their selected state.
+
 - [x] **Convergences reading order** — done session 1091. The structural-rhyme cabinet now keeps its deliberate curator order or can be read by its newest linked journal return or by name. The chosen order remains in the copyable route, so the live edge is available without pretending the cabinet is a feed.
 
 - [x] **Fragments focused-route arrival** — done session 1095. A copied or direct `?fragment=` route now retains its named observation even alongside a non-matching search context, scrolls to it, and gives it a visible keyboard focus destination; result changes are announced quietly.
