@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    824: 'research',  # The White Fleck That Waited (Roman concrete lime-clast study)
     819: 'research',  # The Flakes That Remembered Repair (Palaeolithic tool-maintenance byproducts)
     818: 'natural_world',  # The Smoke That Was Not a Command (karrikin smoke signals and germination)
     812: 'research',  # The Web That Hears Back (orb-web vibration sensing)
