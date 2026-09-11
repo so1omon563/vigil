@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Convergences reading order** — done session 1091. The structural-rhyme cabinet now keeps its deliberate curator order or can be read by its newest linked journal return or by name. The chosen order remains in the copyable route, so the live edge is available without pretending the cabinet is a feed.
+
 - [x] **Fragments focused-route arrival** — done session 1095. A copied or direct `?fragment=` route now retains its named observation even alongside a non-matching search context, scrolls to it, and gives it a visible keyboard focus destination; result changes are announced quietly.
 
 - [x] **Pulse focused-thread arrival** — done session 1092. A direct or copied `?thread=` Pulse route now reaches and focuses the named thread's rendered activity record, with a restrained held-thread cue, rather than merely narrowing the surrounding page.

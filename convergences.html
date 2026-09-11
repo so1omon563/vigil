@@ -184,6 +184,17 @@
     padding: 0.55rem 0.7rem;
   }
   .archive-search:focus { outline: none; border-color: #58a6ff; }
+  .archive-order {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+    padding: 0.55rem 0.6rem;
+  }
+  .archive-order:focus { outline: none; border-color: #58a6ff; }
   .archive-reset {
     background: none;
     border: 1px solid #30363d;
@@ -237,6 +248,7 @@
   html[data-theme="light"] .conv-title { color: #1c2128; }
   html[data-theme="light"] .conv-shape { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .archive-search { background: #fff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .archive-order { background: #fff; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .archive-reset { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .convergence-focus { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .convergence { border-left-color: #d0d7de; }
@@ -375,6 +387,11 @@
 
 <div class="archive-controls">
   <input class="archive-search" id="convergence-search" type="search" placeholder="search shapes, domains, or entries" aria-label="Search convergences">
+  <select class="archive-order" id="convergence-order" aria-label="Order convergences">
+    <option value="curated">curator order</option>
+    <option value="recent">newest journal return</option>
+    <option value="name">name</option>
+  </select>
   <button class="archive-reset" id="convergence-hold" type="button">hold a shape from this view</button>
   <button class="archive-reset" id="convergence-reset" type="button">reset</button>
   <button class="archive-reset" id="convergence-copy" type="button">copy this view</button>
@@ -401,12 +418,14 @@
 <script>
 (function () {
   var searchInput = document.getElementById('convergence-search');
+  var orderSelect = document.getElementById('convergence-order');
   var holdButton = document.getElementById('convergence-hold');
   var resetButton = document.getElementById('convergence-reset');
   var copyButton = document.getElementById('convergence-copy');
   var state = readState();
   var allConvergences = [];
   if (searchInput) searchInput.value = state.query;
+  if (orderSelect) orderSelect.value = state.order;
 
   Promise.all([
     fetch('/convergences.json').then(function (r) { return r.json(); }),
@@ -431,7 +450,8 @@
               excerpt: entry.excerpt || entry.note || indexed.excerpt || 'No excerpt retained for this entry.',
               url: indexed.url || ('/journal/entry-' + entry.num + '.html')
             };
-          })
+          }),
+          latestNum: Math.max.apply(Math, conv.entries.map(function (entry) { return Number(entry.num) || 0; }))
         };
       });
       // Count unique entries and multi-convergence entries
@@ -521,7 +541,7 @@
         })).join(' ').toLowerCase().indexOf(normalized) !== -1;
       }) : data;
       var selected = selectedId ? data.filter(function (conv) { return conv.id === selectedId; }) : [];
-      var visible = selectedId ? selected : searched;
+      var visible = orderConvergences(selectedId ? selected : searched, state.order);
       if (holdButton) {
         holdButton.disabled = searched.length === 0;
         holdButton.textContent = selectedId
@@ -529,9 +549,12 @@
           : 'hold a shape from this view';
       }
       var note = document.getElementById('filter-note');
-      if (note) note.textContent = normalized
-        ? searched.length + ' of ' + data.length + ' convergences matching “' + query.trim() + '”'
-        : 'Showing all ' + data.length + ' convergences.';
+      if (note) {
+        var orderNote = state.order === 'recent' ? ' Ordered by newest journal return.' : state.order === 'name' ? ' Ordered by name.' : '';
+        note.textContent = (normalized
+          ? searched.length + ' of ' + data.length + ' convergences matching “' + query.trim() + '”'
+          : 'Showing all ' + data.length + ' convergences.') + orderNote;
+      }
       var focusNote = document.getElementById('focus-note');
       if (focusNote) focusNote.textContent = selected.length
         ? 'Focused on one convergence. The cross-reference field is hidden until you return to the full cabinet.'
@@ -578,6 +601,16 @@
       });
   }
 
+  function orderConvergences(data, order) {
+    var ordered = data.slice();
+    if (order === 'recent') {
+      ordered.sort(function (a, b) { return b.latestNum - a.latestNum || a.title.localeCompare(b.title); });
+    } else if (order === 'name') {
+      ordered.sort(function (a, b) { return a.title.localeCompare(b.title); });
+    }
+    return ordered;
+  }
+
   function focusSelectedConvergence() {
     if (!state.convergence) return;
     var selected = document.getElementById('conv-' + state.convergence);
@@ -595,19 +628,26 @@
     var url = new URL(window.location.href);
     if (state.query.trim()) url.searchParams.set('q', state.query.trim()); else url.searchParams.delete('q');
     if (state.convergence) url.searchParams.set('convergence', state.convergence); else url.searchParams.delete('convergence');
+    if (state.order !== 'curated') url.searchParams.set('order', state.order); else url.searchParams.delete('order');
     history[replace ? 'replaceState' : 'pushState'](null, '', url.pathname + (url.search || '') + url.hash);
     render();
   }
 
   function readState() {
     var params = new URLSearchParams(window.location.search);
-    return { query: params.get('q') || '', convergence: params.get('convergence') || '' };
+    var order = params.get('order') || 'curated';
+    if (['curated', 'recent', 'name'].indexOf(order) === -1) order = 'curated';
+    return { query: params.get('q') || '', convergence: params.get('convergence') || '', order: order };
   }
 
   if (searchInput) searchInput.addEventListener('input', function () {
     state.query = searchInput.value;
     state.convergence = '';
     syncState(true);
+  });
+  if (orderSelect) orderSelect.addEventListener('change', function () {
+    state.order = orderSelect.value;
+    syncState(false);
   });
   if (holdButton) holdButton.addEventListener('click', function () {
     var needle = state.query.trim().toLowerCase();
@@ -626,7 +666,8 @@
   });
   if (resetButton) resetButton.addEventListener('click', function () {
     if (searchInput) searchInput.value = '';
-    state = { query: '', convergence: '' };
+    state = { query: '', convergence: '', order: 'curated' };
+    if (orderSelect) orderSelect.value = state.order;
     syncState(false);
     if (searchInput) searchInput.focus();
   });
@@ -639,6 +680,7 @@
   window.addEventListener('popstate', function () {
     state = readState();
     if (searchInput) searchInput.value = state.query;
+    if (orderSelect) orderSelect.value = state.order;
     render();
   });
 
