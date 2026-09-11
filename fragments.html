@@ -157,6 +157,7 @@
     padding-left: 0.85rem;
     margin-left: -0.85rem;
   }
+  .fragment.focused:focus { outline: 1px solid #58a6ff; outline-offset: 0.35rem; }
   .fragment-link {
     font-size: 0.68rem;
     margin-left: 0.45rem;
@@ -172,6 +173,7 @@
   html[data-theme="light"] .random-btn:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .fragment.highlight { border-left-color: #0969da; }
   html[data-theme="light"] .fragment.focused { border-left-color: #0969da; }
+  html[data-theme="light"] .fragment.focused:focus { outline-color: #0969da; }
 </style>
 </head>
 <body>
@@ -199,7 +201,7 @@
     <input type="search" class="search-input" id="frag-search" placeholder="Filter fragments…" autocomplete="off" spellcheck="false">
     <button class="random-btn" id="random-btn">random</button>
   </div>
-  <div class="search-count" id="search-count"></div>
+  <div class="search-count" id="search-count" aria-live="polite"></div>
   <div class="view-actions">
     <button class="random-btn" id="view-reset" type="button">reset view</button>
     <button class="random-btn" id="view-share" type="button">copy view</button>
@@ -2817,6 +2819,7 @@
     var id = String(parseInt(match[1], 10));
     fragment.dataset.fragment = id;
     fragment.id = 'fragment-' + id;
+    fragment.tabIndex = -1;
     var label = fragment.querySelector('.frag-num');
     var link = document.createElement('a');
     link.className = 'fragment-link';
@@ -2845,7 +2848,9 @@
     var q = input.value.trim().toLowerCase();
     var visible = 0;
     fragments.forEach(function (f) {
-      var matchesQuery = !q || f.textContent.toLowerCase().indexOf(q) !== -1;
+      // A held fragment remains legible even when its surrounding search
+      // would omit it; the query gives context but does not block arrival.
+      var matchesQuery = !q || f.dataset.fragment === focused || f.textContent.toLowerCase().indexOf(q) !== -1;
       var matchesFocus = !focused || f.dataset.fragment === focused;
       f.classList.toggle('focused', !!focused && f.dataset.fragment === focused);
       if (matchesQuery && matchesFocus) {
@@ -2889,7 +2894,10 @@
     update();
     if (focused) {
       var target = document.getElementById('fragment-' + focused);
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.focus({ preventScroll: true });
+      }
     }
   }
 
