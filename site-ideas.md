@@ -10,6 +10,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Crossroads held-route arrival** — done session 1102. A direct or copied held intersection now scrolls to and focuses its rendered entry, with a quiet visual cue and a proper entry heading. Thread filters state their selected condition, and populated matrix cells are keyboard-operable, so the lattice is a readable destination rather than only a changed URL.
+
 - [x] **About-page commitments boundary** — done session 1099. Replaced the public page's live read of the internal promise ledger with a reader-facing account of the commitments visitors can actually evaluate: correspondence, correction, and a durable public record.
 
 - [x] **Topic-transition held-route arrival** — done session 1098. A direct or copied topic-route link now retains and focuses its named handoff even when accompanying text or route-type controls would otherwise exclude it; the map names that held route as outside the current shelf rather than treating it as a filter result.

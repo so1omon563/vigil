@@ -45,6 +45,10 @@
     border-top: 1px solid #21262d;
     padding: 1.5rem 0;
   }
+  .entry-item.held {
+    border-left: 2px solid #58a6ff;
+    padding-left: 1rem;
+  }
   .entry-item:last-child { border-bottom: 1px solid #21262d; }
   .entry-header { margin-bottom: 0.75rem; }
   .entry-num { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 0.2rem; }
@@ -136,6 +140,10 @@
     cursor: pointer;
   }
   table.mx .cell-count:hover { background: #21262d; }
+  table.mx .cell-count:focus-visible {
+    outline: 2px solid #58a6ff;
+    outline-offset: -2px;
+  }
   table.mx .cell-diag { background: #0d1117; }
 
   footer {
@@ -157,6 +165,7 @@
   html[data-theme="light"] .intro { color: #24292f; }
   html[data-theme="light"] .section-label { color: #0969da; border-color: #d0d7de; }
   html[data-theme="light"] .entry-item { border-color: #d0d7de; }
+  html[data-theme="light"] .entry-item.held { border-left-color: #0969da; }
   html[data-theme="light"] .entry-title a { color: #24292f; }
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
   html[data-theme="light"] .entry-num { color: #57606a; }
@@ -168,6 +177,7 @@
   html[data-theme="light"] table.mx .row-label { background: #f6f8fa; color: #57606a; }
   html[data-theme="light"] table.mx .cell-diag { background: #f6f8fa; }
   html[data-theme="light"] table.mx .cell-count:hover { background: #f6f8fa; }
+  html[data-theme="light"] table.mx .cell-count:focus-visible { outline-color: #0969da; }
   html[data-theme="light"] table.mx .cell-empty { color: #d0d7de; }
   html[data-theme="light"] .filter-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn:hover { border-color: #57606a; color: #24292f; }
@@ -198,7 +208,7 @@
       <!-- filled by JS -->
     </table>
   </div>
-  <p class="matrix-note">Cells show the number of entries shared by each pair of threads. Click a cell to filter the list below.</p>
+  <p class="matrix-note">Cells show the number of entries shared by each pair of threads. Choose a cell to filter the list below.</p>
 </div>
 
 <div class="matrix-section">
@@ -213,8 +223,8 @@
       <button class="filter-action" id="share-view" type="button">copy this view</button>
     </div>
   </div>
-  <div class="count-note" id="count-note">Loading intersections…</div>
-  <div class="count-note" id="focus-note" hidden></div>
+  <div class="count-note" id="count-note" aria-live="polite">Loading intersections…</div>
+  <div class="count-note" id="focus-note" aria-live="polite" hidden></div>
   <div class="entry-list" id="entry-list">
     <!-- filled by JS -->
   </div>
@@ -395,6 +405,15 @@ function buildMatrix(threads, entries) {
           td.textContent = n;
           td.title = `${n} shared entr${n === 1 ? 'y' : 'ies'}`;
           td.addEventListener('click', () => filterByPair(rowId, colId, false));
+          td.tabIndex = 0;
+          td.setAttribute('role', 'button');
+          td.setAttribute('aria-label', `Show ${n} shared entr${n === 1 ? 'y' : 'ies'} in ${shortLabel(rowId)} and ${shortLabel(colId)}`);
+          td.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              filterByPair(rowId, colId, false);
+            }
+          });
         }
       }
       tr.appendChild(td);
@@ -429,6 +448,7 @@ function applyFilter(tid, replace) {
   activeFilter = tid;
   document.querySelectorAll('.filter-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.filter === tid);
+    b.setAttribute('aria-pressed', String(b.dataset.filter === tid));
   });
   if (tid.indexOf('pair:') === 0) {
     const ids = tid.slice(5).split('|');
@@ -480,18 +500,32 @@ function renderEntries(entries, updateCount = true) {
   for (const e of visible) {
     const div = document.createElement('div');
     div.className = 'entry-item';
+    if (String(e.num) === heldEntry) {
+      div.classList.add('held');
+      div.id = 'held-entry-' + e.num;
+      div.tabIndex = -1;
+    }
     const isTriple = e.threads.length >= 3;
     div.innerHTML = `
       <div class="entry-header">
         <div class="entry-num">entry ${e.num}</div>
-        <div class="entry-title">
+        <h2 class="entry-title">
           <a href="/${e.url || ('journal/entry-' + e.num + '.html')}">${e.title || ('Entry ' + e.num)}</a>${isTriple ? '<span class="triple-badge">' + e.threads.length + ' threads</span>' : ''}
-        </div>
+        </h2>
       </div>
       <div class="entry-threads">${e.threads.map(t => `<span class="thread-tag ${THREAD_CLASS[t.id] || ''}" title="${t.title}">${shortLabel(t.id)}</span>`).join('')}</div>
       <div class="entry-note">${e.note || ''}</div>
     `;
     list.appendChild(div);
+  }
+  if (heldEntry) {
+    const target = document.getElementById('held-entry-' + heldEntry);
+    if (target) {
+      window.requestAnimationFrame(function() {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.focus({ preventScroll: true });
+      });
+    }
   }
 }
 
