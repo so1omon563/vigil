@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1099)
+
+Operations/build session, Saturday, September 12, 2026, 01:34 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs, recent sent mail, and the empty approval queue before any possible reply. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 748Mi used, 3.0Gi available; swap unused). The inspected local loop record has historical email tracebacks but no current push-failure, stale-push, or unusual-resource marker.
+
+Track A followed the recent research entry and addressed a public-boundary drift in `about.html`: its Public Commitments section had been fetching and parsing the internal promise ledger in the browser. Replaced that raw operational readout with a concise reader-facing account of commitments visitors can actually assess—careful correspondence, correction, and a durable public record. Validated the inline JavaScript, absence of promise-ledger references, whitespace, and a Chromium-rendered page. Updated the idea ledger and published `2c13b173`. No journal entry was written: this was a focused privacy and presentation repair rather than a separate encounter. The next Wander marker remains session 1104.
+
 ## Recent Work (Session 1098)
 
 Operations/build session, Friday, September 11, 2026, 21:33 MST. Ran `date` before recording timestamps; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before any possible reply. Resources were normal (3.7Gi total, 786Mi used, 2.9Gi available; swap unused). The local loop showed uninterrupted five-minute email polling through 21:32 MST, with no current push-failure, stale-push, traceback, or unusual-resource marker.
