@@ -151,6 +151,19 @@
     font-size: 0.85rem;
     display: none;
   }
+  .focus-note {
+    display: none;
+    margin: -0.25rem 0 0.85rem;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #8b949e;
+    background: #111820;
+    font-size: 0.74rem;
+  }
+  .focus-note.visible { display: block; }
+  .focus-note strong { color: #f0f6fc; }
+  .transition-card.focused { outline: 1px solid #58a6ff; outline-offset: 3px; }
   footer {
     margin-top: 2.5rem;
     padding-top: 1rem;
@@ -161,7 +174,8 @@
   html[data-theme="light"] .metric,
   html[data-theme="light"] .transition-card,
   html[data-theme="light"] .panel,
-  html[data-theme="light"] .empty { background: #f6f8fa; border-color: #d0d7de; }
+  html[data-theme="light"] .empty,
+  html[data-theme="light"] .focus-note { background: #f6f8fa; border-color: #d0d7de; }
   html[data-theme="light"] input,
   html[data-theme="light"] select,
   html[data-theme="light"] button { background: #ffffff; border-color: #d0d7de; color: #24292f; }
@@ -213,6 +227,7 @@
   <button id="reset" type="button">reset</button>
   <button id="copy" type="button">copy view</button>
 </section>
+<div id="focus-note" class="focus-note" aria-live="polite"></div>
 
 <main class="layout">
   <section>
@@ -237,6 +252,7 @@
   var routes = [];
   var visible = [];
   var selectedKey = "";
+  var focusRequested = false;
   var els = {
     pairCount: document.getElementById("pair-count"),
     routeCount: document.getElementById("route-count"),
@@ -248,6 +264,7 @@
     random: document.getElementById("random"),
     reset: document.getElementById("reset"),
     copy: document.getElementById("copy"),
+    focusNote: document.getElementById("focus-note"),
     transitions: document.getElementById("transitions"),
     empty: document.getElementById("empty"),
     selectedTitle: document.getElementById("selected-title"),
@@ -276,6 +293,7 @@
     els.mode.value = params.get("mode") || "all";
     els.sort.value = params.get("sort") || "count";
     selectedKey = keyForSlug(params.get("route"));
+    focusRequested = Boolean(params.get("route"));
   }
 
   function updateUrl(method) {
@@ -368,11 +386,14 @@
     });
 
     els.visibleCount.textContent = visible.length.toLocaleString();
-    renderList();
-    if (!visible.some(function (route) { return route.key === selectedKey; })) {
+    var selected = routes.find(function (route) { return route.key === selectedKey; });
+    if (!selected) {
+      focusRequested = false;
       selectedKey = visible.length ? visible[0].key : "";
     }
+    renderList();
     renderSelected();
+    focusSelectedRoute();
     if (historyMode) updateUrl(historyMode);
   }
 
@@ -389,11 +410,19 @@
   }
 
   function renderList() {
-    els.empty.style.display = visible.length ? "none" : "block";
-    els.transitions.innerHTML = visible.slice(0, 80).map(function (route) {
+    var selected = routes.find(function (route) { return route.key === selectedKey; });
+    var heldOutsideShelf = selected && !visible.some(function (route) { return route.key === selected.key; });
+    var list = heldOutsideShelf ? [selected].concat(visible) : visible;
+    els.empty.style.display = list.length ? "none" : "block";
+    els.focusNote.classList.toggle("visible", Boolean(heldOutsideShelf));
+    els.focusNote.innerHTML = heldOutsideShelf
+      ? '<strong>' + escapeHtml(routeLabel(selected)) + '</strong> is held here as one route, outside the current filtered shelf.'
+      : '';
+    els.transitions.innerHTML = list.slice(0, heldOutsideShelf ? 81 : 80).map(function (route) {
       var latest = route.examples[0];
       var active = route.key === selectedKey ? " active" : "";
-      return '<article class="transition-card' + active + '" data-key="' + route.key + '">' +
+      var focused = route.key === selectedKey ? " focused" : "";
+      return '<article class="transition-card' + active + focused + '" data-key="' + route.key + '"' + (focused ? ' id="route-focus" tabindex="-1"' : '') + '>' +
         '<div>' +
           '<div class="route">' + escapeHtml(route.source) + ' <span class="arrow">-&gt;</span> ' + escapeHtml(route.target) + '</div>' +
           '<div class="transition-meta">' + (route.isPersistent ? 'same topic carried forward' : 'handoff between topics') + ' · latest at entry ' + latest.to.num + '</div>' +
@@ -432,6 +461,17 @@
     Array.prototype.forEach.call(document.querySelectorAll(".transition-card"), function (card) {
       card.classList.toggle("active", card.getAttribute("data-key") === selectedKey);
     });
+  }
+
+  function focusSelectedRoute() {
+    if (!focusRequested || !selectedKey) return;
+    focusRequested = false;
+    window.setTimeout(function () {
+      var card = document.getElementById("route-focus");
+      if (!card) return;
+      card.focus({ preventScroll: true });
+      card.scrollIntoView({ block: "center" });
+    }, 0);
   }
 
   function escapeHtml(value) {
