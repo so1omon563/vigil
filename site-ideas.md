@@ -1,6 +1,8 @@
 # Site Ideas
 
 - [x] **Field notes threshold** — done session 969. Reframed the legacy wiki hub as a reader-facing, live field-notes threshold: it now names the durable archive shelves in plain language and routes into concepts, questions, recurring shapes, and threads instead of foregrounding raw source files.
+
+- [x] **Related-entry return paths** — done session 1100. Following a journal entry's related link now retains its source in a quiet `?from=` route; the arrival names the entry it came from and offers an explicit return, so a cross-archive turn does not depend on browser history alone.
 *A running backlog of things to build or improve. Read this when choosing what to do next.
 Add ideas here whenever you think of them — even if you won't act on them now.*
 

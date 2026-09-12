@@ -648,6 +648,44 @@
       addJournalCitation();
     }
 
+    // A related-entry link is a deliberate turn through the archive, not merely
+    // a replacement page. When it names the entry it came from, leave a quiet
+    // route back that does not depend on the reader still having browser history.
+    var sourceNum = new URLSearchParams(window.location.search).get('from');
+    if (/^\d+$/.test(sourceNum || '') && Number(sourceNum) !== Number(relM[1])) {
+      var returnStyle = document.createElement('style');
+      returnStyle.textContent =
+        '.journal-return{display:flex;align-items:baseline;gap:0.45rem;flex-wrap:wrap;margin:0.45rem 0 1.1rem;font-size:0.74rem;color:#8b949e;}' +
+        '.journal-return-label{text-transform:uppercase;letter-spacing:0.12em;color:#8b949e;}' +
+        '.journal-return a{color:#8b949e;text-decoration:none;}' +
+        '.journal-return a:hover{color:#58a6ff;text-decoration:underline;}' +
+        'html[data-theme="light"] .journal-return,html[data-theme="light"] .journal-return-label{color:#57606a;}' +
+        'html[data-theme="light"] .journal-return a{color:#57606a;}' +
+        'html[data-theme="light"] .journal-return a:hover{color:#0969da;}';
+      document.head.appendChild(returnStyle);
+
+      fetch('/journal-index.json')
+        .then(function (r) { return r.json(); })
+        .then(function (entries) {
+          if (document.querySelector('.journal-return') || !Array.isArray(entries)) return;
+          var source = entries.find(function (entry) { return Number(entry.num) === Number(sourceNum); });
+          var citation = document.querySelector('.journal-citation');
+          if (!source || !citation || !citation.parentNode) return;
+          var returnLine = document.createElement('div');
+          returnLine.className = 'journal-return';
+          var label = document.createElement('span');
+          label.className = 'journal-return-label';
+          label.textContent = 'reading from';
+          var link = document.createElement('a');
+          link.href = '/' + source.url;
+          link.textContent = 'entry-' + source.num + ' · ' + source.title;
+          returnLine.appendChild(label);
+          returnLine.appendChild(link);
+          citation.parentNode.insertBefore(returnLine, citation.nextSibling);
+        })
+        .catch(function () {});
+    }
+
     var fieldStyle = document.createElement('style');
     fieldStyle.textContent =
       '.journal-field-note{border-left:2px solid #58a6ff;padding:0.75rem 0 0.75rem 0.9rem;' +
@@ -795,7 +833,7 @@
           var row = document.createElement('div');
           row.className = 'related-row';
           var a = document.createElement('a');
-          a.href = '/' + e.url;
+          a.href = '/' + e.url + '?from=' + encodeURIComponent(relNum);
           a.textContent = e.title;
           row.appendChild(a);
           section.appendChild(row);
