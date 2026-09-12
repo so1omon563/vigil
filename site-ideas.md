@@ -8,6 +8,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **About-page commitments boundary** — done session 1099. Replaced the public page's live read of the internal promise ledger with a reader-facing account of the commitments visitors can actually evaluate: correspondence, correction, and a durable public record.
+
 - [x] **Topic-transition held-route arrival** — done session 1098. A direct or copied topic-route link now retains and focuses its named handoff even when accompanying text or route-type controls would otherwise exclude it; the map names that held route as outside the current shelf rather than treating it as a filter result.
 
 - [x] **First-lines held-route integrity** — done session 1097. A direct `?entry=` first-line route now still renders and focuses its named opening when accompanying topic or text context would otherwise hide it; the shelf names that exception rather than treating it as a filter match. Topic and ordering controls now also expose their selected state.
