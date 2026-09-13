@@ -10,6 +10,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Bridge held-route arrival** — done session 1105. A copied or direct endpoint pair now lands on a labeled, keyboard-focusable bridge heading and names the path as one shortest route through related-entry links, rather than only rebuilding cards below the controls.
+
 - [x] **Compare focused-pair arrival** — done session 1104. A copied or direct two-entry comparison now lands on a labeled, keyboard-focusable comparison region, with a quiet held-pair cue; browser navigation returns to the actual pairing rather than only restoring its inputs.
 
 - [x] **Crossroads held-route arrival** — done session 1102. A direct or copied held intersection now scrolls to and focuses its rendered entry, with a quiet visual cue and a proper entry heading. Thread filters state their selected condition, and populated matrix cells are keyboard-operable, so the lattice is a readable destination rather than only a changed URL.

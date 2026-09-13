@@ -131,6 +131,23 @@
 
   /* Result area */
   #result { min-height: 2rem; }
+  .bridge-arrival {
+    border-left: 2px solid #58a6ff;
+    color: #e6edf3;
+    font-size: 0.9rem;
+    font-weight: normal;
+    line-height: 1.55;
+    margin: 0 0 1rem;
+    padding-left: 0.8rem;
+  }
+  .bridge-arrival:focus { outline: 2px solid #58a6ff; outline-offset: 5px; }
+  .bridge-arrival-note {
+    color: #8b949e;
+    display: block;
+    font-size: 0.72rem;
+    font-weight: normal;
+    margin-top: 0.2rem;
+  }
 
   .result-meta {
     font-size: 0.78rem;
@@ -293,6 +310,9 @@
   html[data-theme="light"] .path-entry-excerpt { color: #57606a; }
   html[data-theme="light"] .topic-tag { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .shared-topics { color: #1a7f37; }
+  html[data-theme="light"] .bridge-arrival { border-color: #0969da; color: #24292f; }
+  html[data-theme="light"] .bridge-arrival-note { color: #57606a; }
+  html[data-theme="light"] .bridge-arrival:focus { outline-color: #0969da; }
   html[data-theme="light"] .result-meta { color: #8c959f; }
   html[data-theme="light"] .result-meta strong { color: #57606a; }
   html[data-theme="light"] .path-stats,
@@ -353,7 +373,7 @@
   <button id="btn-clear" class="btn-secondary">clear</button>
 </div>
 
-<div id="result"></div>
+<div id="result" aria-live="polite"></div>
 
 <footer>
   connections from <a href="/graph.html">related entries graph</a> &middot;
@@ -369,6 +389,7 @@
   var selectedA = null;
   var selectedB = null;
   var ready = false;
+  var arrivalPending = false;
 
   // ── Load data ───────────────────────────────────────────────
   Promise.all([
@@ -459,8 +480,24 @@
     var result = document.getElementById('result');
     result.innerHTML = '';
 
+    if (arrivalPending) {
+      var start = entriesById[path[0]];
+      var end = entriesById[path[path.length - 1]];
+      var arrival = document.createElement('h2');
+      arrival.className = 'bridge-arrival';
+      arrival.id = 'bridge-arrival';
+      arrival.tabIndex = -1;
+      arrival.textContent = 'Bridge held: ' + (start ? start.title : 'start') + ' → ' + (end ? end.title : 'end');
+      var note = document.createElement('span');
+      note.className = 'bridge-arrival-note';
+      note.textContent = 'This direct route preserves the two endpoints; the chain below is one shortest path through their related-entry links.';
+      arrival.appendChild(note);
+      result.appendChild(arrival);
+    }
+
     if (path.length === 1) {
-      result.innerHTML = '<p class="same-entry-note">That\'s the same entry.</p>';
+      result.insertAdjacentHTML('beforeend', '<p class="same-entry-note">That\'s the same entry.</p>');
+      finishArrival();
       return;
     }
 
@@ -535,6 +572,18 @@
     });
 
     result.appendChild(chain);
+    finishArrival();
+  }
+
+  function finishArrival() {
+    if (!arrivalPending) return;
+    arrivalPending = false;
+    window.requestAnimationFrame(function() {
+      var arrival = document.getElementById('bridge-arrival');
+      if (!arrival) return;
+      arrival.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      arrival.focus({ preventScroll: true });
+    });
   }
 
   function renderStats(path) {
@@ -640,6 +689,7 @@
       var path = bfs(selectedA, selectedB);
       if (!path) {
         result.innerHTML = '<p class="msg-error">No path found — these entries may not be connected through the related-entries graph.</p>';
+        arrivalPending = false;
       } else {
         updateUrl(selectedA, selectedB, historyMode);
         renderPath(path);
@@ -697,6 +747,7 @@
     }
     setSelection('a', entriesById[a]);
     setSelection('b', entriesById[b]);
+    arrivalPending = true;
     findBridge('silent');
   }
 
