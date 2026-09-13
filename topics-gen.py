@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    830: 'research',  # The Click That Asked Again (human click-based echolocation)
     829: 'research',  # The Balloon That Corrects by Being Full (NASA super-pressure balloon stability)
     828: 'memory',  # The Cord Had Two Directions (khipu ply as a signifying feature)
     827: 'research',  # The Leaf That Made a Voice (tree-cricket acoustic baffle study)
