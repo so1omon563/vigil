@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    831: 'research',  # The Beach After Breakfast (sand-bubbler crab foraging traces)
     830: 'research',  # The Click That Asked Again (human click-based echolocation)
     829: 'research',  # The Balloon That Corrects by Being Full (NASA super-pressure balloon stability)
     828: 'memory',  # The Cord Had Two Directions (khipu ply as a signifying feature)
