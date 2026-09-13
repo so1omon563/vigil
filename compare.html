@@ -107,6 +107,14 @@
     gap: 1rem;
     margin-bottom: 1.25rem;
   }
+  .compare-grid.held {
+    border-left: 2px solid #58a6ff;
+    padding-left: 0.85rem;
+  }
+  .compare-grid:focus-visible {
+    outline: 2px solid #58a6ff;
+    outline-offset: 6px;
+  }
   .entry-panel {
     border: 1px solid #21262d;
     border-radius: 4px;
@@ -234,6 +242,8 @@
   html[data-theme="light"] .tag,
   html[data-theme="light"] .link-row a { color: #57606a; }
   html[data-theme="light"] .link-row a:hover { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .compare-grid.held { border-left-color: #0969da; }
+  html[data-theme="light"] .compare-grid:focus-visible { outline-color: #0969da; }
 
   @media (max-width: 760px) {
     body { padding-left: 1.2rem; padding-right: 1.2rem; }
@@ -270,7 +280,7 @@
   <button class="route-action" id="copy-btn" type="button">copy this pairing</button>
 </div>
 
-<div class="compare-grid">
+<div class="compare-grid" id="compare-grid" tabindex="-1" role="region" aria-label="Selected entry comparison">
   <div class="entry-panel" id="left-panel"></div>
   <div class="entry-panel" id="right-panel"></div>
 </div>
@@ -307,6 +317,7 @@
   var rightInput = document.getElementById('right-input');
   var leftPanel = document.getElementById('left-panel');
   var rightPanel = document.getElementById('right-panel');
+  var compareGrid = document.getElementById('compare-grid');
   var hint = document.getElementById('hint');
 
   Promise.all([
@@ -319,7 +330,7 @@
     buildOptions();
     bindControls();
     chooseInitialEntries();
-    render('replace');
+    render('replace', hasPairRoute());
   }).catch(function () {
     hint.innerHTML = '<span class="error">could not load comparison data.</span>';
     leftPanel.innerHTML = '<div class="muted">index unavailable</div>';
@@ -358,7 +369,7 @@
     document.getElementById('copy-btn').addEventListener('click', copyRoute);
     window.addEventListener('popstate', function () {
       chooseInitialEntries();
-      render('none');
+      render('none', true);
     });
   }
 
@@ -368,13 +379,31 @@
     right = findEntry(params.get('right')) || findRelated(left) || entries[1] || left;
   }
 
-  function render(historyMode) {
+  function render(historyMode, announceArrival) {
     renderPanel(leftPanel, left);
     renderPanel(rightPanel, right);
     updateInputs();
     renderSummary();
     updateUrl(historyMode);
     hint.textContent = entries.length + ' entries available. Type a number, title fragment, or topic label.';
+    compareGrid.classList.toggle('held', !!announceArrival);
+    compareGrid.setAttribute('aria-label', comparisonLabel());
+    if (announceArrival) {
+      window.requestAnimationFrame(function () {
+        compareGrid.focus();
+        compareGrid.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      });
+    }
+  }
+
+  function hasPairRoute() {
+    var params = new URLSearchParams(window.location.search);
+    return !!(params.get('left') && params.get('right'));
+  }
+
+  function comparisonLabel() {
+    if (!left || !right) return 'Selected entry comparison';
+    return 'Comparison: entry ' + left.num + ', ' + (left.title || 'Untitled') + ', and entry ' + right.num + ', ' + (right.title || 'Untitled');
   }
 
   function renderPanel(panel, entry) {
