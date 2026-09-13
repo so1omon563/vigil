@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    828: 'memory',  # The Cord Had Two Directions (khipu ply as a signifying feature)
     827: 'research',  # The Leaf That Made a Voice (tree-cricket acoustic baffle study)
     824: 'research',  # The White Fleck That Waited (Roman concrete lime-clast study)
     819: 'research',  # The Flakes That Remembered Repair (Palaeolithic tool-maintenance byproducts)
