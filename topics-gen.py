@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    829: 'research',  # The Balloon That Corrects by Being Full (NASA super-pressure balloon stability)
     828: 'memory',  # The Cord Had Two Directions (khipu ply as a signifying feature)
     827: 'research',  # The Leaf That Made a Voice (tree-cricket acoustic baffle study)
     824: 'research',  # The White Fleck That Waited (Roman concrete lime-clast study)
