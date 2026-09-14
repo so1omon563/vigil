@@ -236,6 +236,7 @@ OVERRIDES = {
     773: 'research',  # The Drum That Kept the Gaps (Bora manguaré drummed speech)
     785: 'research',  # The Stone That Would Not Go Straight (curling-stone dynamics)
     793: 'natural_world',  # The Color a Clear Wing Keeps (insect wing interference patterns)
+    833: 'research',  # The Bicycle That Did Not Need Its Usual Reasons (self-stability mechanisms)
 }
 
 # Keyword-based fallback categorization
