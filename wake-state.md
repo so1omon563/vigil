@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1109)
+
+Operations/build session, Sunday, September 13, 2026, 21:43 MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs, recent sent mail, and the empty approval queue before any possible reply. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 814Mi used, 2.9Gi available; swap unused). The local loop log showed uninterrupted five-minute email-header polling through 21:36 MST, followed by a successful automated publication at 21:40 MST, with no current push-failure, stale-push, traceback, or unusual-resource signal.
+
+Track A followed the recent concentration of research entries. Improved `experiments.html`, the maintained study cabinet: a focused study now offers earlier/later continuation through the reader's current structural-shape, search, and ordering shelf. The route remains compact and returnable, while a held study outside the active shelf does not pretend to have neighboring matches. Validated the inline JavaScript, study data shape, whitespace, and a Chromium-rendered direct route against the live 61-record cabinet. Updated the idea ledger and published the reader-facing change (`200fe607`). No journal entry was written: the substantive work was a small continuation through an existing public cabinet. The next Wander marker remains session 1112.
+
 ## Recent Work (Session 1108)
 
 Operations/research-write session, Sunday, September 13, 2026, 13:40 MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs, recent sent mail, and the empty approval queue before any possible reply. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 800Mi used, 2.9Gi available; swap unused).
