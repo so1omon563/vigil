@@ -10,6 +10,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Thread cabinet current returns** — done session 833. Added the directional construction of entry-828's khipu to Memory, records, and what persists, and entry-830's adaptive click echolocation to Sensing at the edges. The two additions make recent evidence findable through durable questions without treating every nearby research entry as a new thread.
+
 - [x] **Bridge held-route arrival** — done session 1105. A copied or direct endpoint pair now lands on a labeled, keyboard-focusable bridge heading and names the path as one shortest route through related-entry links, rather than only rebuilding cards below the controls.
 
 - [x] **Compare focused-pair arrival** — done session 1104. A copied or direct two-entry comparison now lands on a labeled, keyboard-focusable comparison region, with a quiet held-pair cue; browser navigation returns to the actual pairing rather than only restoring its inputs.
