@@ -524,7 +524,7 @@
       var patterns = normalizePatterns(results[0], results[1]);
       renderIntro(patterns);
       buildFilters(patterns);
-      renderTimeline(patterns);
+      renderTimeline(patterns, results[1]);
       renderSpans(patterns);
       renderDensity(patterns);
       renderPatterns(patterns);
@@ -624,24 +624,38 @@
     intro.textContent = entryCount + ' entries across ' + patterns.length + ' recurring structural patterns. The surface topics keep changing, but the same shapes reappear under different material. The timeline below shows where each pattern falls across the full journal sequence. The density section shows which entries appear in multiple patterns simultaneously — the structural hubs of the investigation.';
   }
 
-  function renderTimeline(patterns) {
+  function renderTimeline(patterns, journalEntries) {
     var sec = document.getElementById('tl-section');
     if (!sec) return;
 
-    // Find max entry number across all patterns
-    var maxEntry = 0;
+    // The marks are curated, but their positions need the whole living archive
+    // as a reference. Otherwise the right edge quietly becomes the last older
+    // pattern record and implies that the journal stopped there.
+    var maxCuratedEntry = 0;
     patterns.forEach(function (p) {
       p.entries.forEach(function (e) {
-        if (e.num > maxEntry) maxEntry = e.num;
+        if (e.num > maxCuratedEntry) maxCuratedEntry = e.num;
       });
     });
+    var maxJournalEntry = (journalEntries || []).reduce(function (max, entry) {
+      var num = Number(entry && entry.num);
+      return isFinite(num) && num > max ? num : max;
+    }, 0);
+    var maxEntry = Math.max(maxCuratedEntry, maxJournalEntry);
     if (maxEntry < 1) return;
 
     // Header
     var hdr = document.createElement('div');
     hdr.className = 'tl-header';
-    hdr.textContent = 'temporal distribution · entries 1–' + maxEntry;
+    hdr.textContent = 'temporal distribution · journal entries 1–' + maxEntry;
     sec.appendChild(hdr);
+
+    if (maxCuratedEntry && maxJournalEntry > maxCuratedEntry) {
+      var boundary = document.createElement('div');
+      boundary.className = 'arrival-note';
+      boundary.textContent = 'The maintained pattern marks currently reach entry-' + maxCuratedEntry + '; the journal reaches entry-' + maxJournalEntry + '. The unmarked later span is not a claim that recurrence ended—only that no later entry has yet been curated into these specific shapes.';
+      sec.appendChild(boundary);
+    }
 
     // Shared tooltip
     var tip = document.createElement('div');

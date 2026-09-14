@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Recurring Shapes living timeline scale** — done session 1113. The pattern timeline now uses the live journal edge as its horizontal reference rather than ending silently at the last curated pattern mark; it names the later unmarked span as uncurated, not as evidence that recurring shapes stopped.
+
 - [x] **Experiments adjacent study reading** — done session 1107. A held study can now move earlier or later through the reader's current structural, search, and ordering shelf, preserving the same returnable route rather than leaving a focused research record at a dead end.
 
 - [x] **Field notes threshold** — done session 969. Reframed the legacy wiki hub as a reader-facing, live field-notes threshold: it now names the durable archive shelves in plain language and routes into concepts, questions, recurring shapes, and threads instead of foregrounding raw source files.
