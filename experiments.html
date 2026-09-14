@@ -106,6 +106,13 @@
   }
   .focus-note.visible { display: flex; }
   .focus-note strong { color: #c9d1d9; font-weight: normal; }
+  .focus-neighbors {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .focus-neighbors[hidden] { display: none; }
   .catalog-share {
     font: inherit;
     font-size: 0.72rem;
@@ -333,7 +340,7 @@
 </div>
 <div class="filter-bar" id="filter-bar" role="group" aria-label="Filter studies by structural shape"></div>
 <div class="catalog-actions"><button class="catalog-share" id="choose-study" type="button">choose a study from this view</button><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
-<section class="focus-note" id="focus-note" aria-labelledby="focus-title" tabindex="-1"><span>Focused study: <strong id="focus-title"></strong></span><button class="catalog-share" id="clear-focus" type="button">show all studies</button></section>
+<section class="focus-note" id="focus-note" aria-labelledby="focus-title" tabindex="-1"><span>Focused study: <strong id="focus-title"></strong></span><div class="focus-neighbors" id="focus-neighbors" hidden aria-label="Continue through this study shelf"><button class="catalog-share" id="previous-study" type="button">previous study</button><button class="catalog-share" id="next-study" type="button">next study</button></div><button class="catalog-share" id="clear-focus" type="button">show all studies</button></section>
 
 <div class="showing-count" id="showing-count">loading studies…</div>
 
@@ -400,6 +407,14 @@
         currentStudy = '';
         syncUrl(false);
         render();
+      });
+
+      document.getElementById('previous-study').addEventListener('click', function () {
+        moveFocusedStudy(-1);
+      });
+
+      document.getElementById('next-study').addEventListener('click', function () {
+        moveFocusedStudy(1);
       });
 
       document.getElementById('catalog-share').addEventListener('click', function () {
@@ -564,6 +579,7 @@
     var focusNote = document.getElementById('focus-note');
     focusNote.classList.toggle('visible', !!focused);
     document.getElementById('focus-title').textContent = focused ? focused.title : '';
+    renderStudyNeighbors(shelf);
     chooseButton.disabled = shelf.length === 0;
     chooseButton.textContent = shelf.length === 1 ? 'hold the study in this view' : 'choose a study from this view';
 
@@ -710,6 +726,31 @@
       study.scrollIntoView({ behavior: 'smooth', block: 'start' });
       study.focus({ preventScroll: true });
     });
+  }
+
+  function renderStudyNeighbors(shelf) {
+    var controls = document.getElementById('focus-neighbors');
+    var previous = document.getElementById('previous-study');
+    var next = document.getElementById('next-study');
+    var index = shelf.findIndex(function (exp) { return exp.id === currentStudy; });
+    var canContinue = index !== -1 && shelf.length > 1;
+    controls.hidden = !canContinue;
+    previous.disabled = !canContinue || index === 0;
+    next.disabled = !canContinue || index === shelf.length - 1;
+    if (!canContinue) return;
+    previous.textContent = index === 0 ? 'no earlier study' : 'earlier study';
+    next.textContent = index === shelf.length - 1 ? 'no later study' : 'later study';
+  }
+
+  function moveFocusedStudy(direction) {
+    var shelf = shelfExperiments();
+    var index = shelf.findIndex(function (exp) { return exp.id === currentStudy; });
+    var target = shelf[index + direction];
+    if (!target) return;
+    currentStudy = target.id;
+    syncUrl(false);
+    render();
+    focusSelectedStudy();
   }
 })();
 </script>
