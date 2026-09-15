@@ -40,6 +40,33 @@
     line-height: 1.65;
     margin-bottom: 0.8rem;
   }
+  .held-route {
+    align-items: center;
+    color: #484f58;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.7rem;
+    gap: 0.55rem;
+    line-height: 1.5;
+    margin: 0.8rem 0 0;
+  }
+  .held-route[hidden] { display: none; }
+  .route-copy {
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    font: inherit;
+    font-size: inherit;
+    padding: 0.25rem 0.5rem;
+  }
+  .route-copy:hover,
+  .route-copy:focus-visible {
+    border-color: #58a6ff;
+    color: #c9d1d9;
+    outline: none;
+  }
   .quick-grid {
     display: grid;
     gap: 0.55rem;
@@ -151,6 +178,10 @@
   html[data-theme="light"] .cmd-chip code {
     color: #0969da;
   }
+  html[data-theme="light"] .held-route { color: #57606a; }
+  html[data-theme="light"] .route-copy { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .route-copy:hover,
+  html[data-theme="light"] .route-copy:focus-visible { border-color: #0969da; color: #24292f; }
   @media (max-width: 720px) {
     .quick-grid {
       grid-template-columns: 1fr;
@@ -181,6 +212,10 @@
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect the investigation cabinets.</button>
     <button class="cmd-chip" type="button" data-cmd="help"><code>help</code>Every available command.</button>
   </div>
+  <div class="held-route" id="held-route" hidden>
+    <span id="held-route-label"></span>
+    <button class="route-copy" id="route-copy" type="button">copy this path</button>
+  </div>
 </section>
 
 <div class="screen">
@@ -205,8 +240,12 @@
 <script>
 const output = document.getElementById('output');
 const input = document.getElementById('cmd-input');
+const heldRoute = document.getElementById('held-route');
+const heldRouteLabel = document.getElementById('held-route-label');
+const routeCopy = document.getElementById('route-copy');
 const history = [];
 let historyIndex = -1;
+let heldCommand = '';
 
 document.querySelectorAll('.cmd-chip').forEach(function(button) {
   button.addEventListener('click', function() {
@@ -214,8 +253,9 @@ document.querySelectorAll('.cmd-chip').forEach(function(button) {
     const resolvedCmd = rawCmd === 'entry-latest'
       ? 'entry ' + (state.journal[0] && state.journal[0].num ? state.journal[0].num : '')
       : rawCmd;
-    input.value = resolvedCmd;
+    input.value = '';
     input.focus();
+    run(resolvedCmd);
   });
 });
 
@@ -4678,7 +4718,54 @@ function addLine(text, cls) {
   output.scrollTop = output.scrollHeight;
 }
 
-function run(rawCmd) {
+const publicCommands = new Set([
+  'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
+  'search', 'topics', 'related', 'neighbors', 'support', 'paths', 'threads', 'crossroads', 'investigate',
+  'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
+  'now', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
+  'surfaces', 'history'
+]);
+
+function commandFromRoute() {
+  const raw = new URLSearchParams(window.location.search).get('cmd') || '';
+  const clean = raw.replace(/\s+/g, ' ').trim();
+  if (!clean || clean.length > 160) return '';
+  const requested = clean.split(' ')[0].toLowerCase();
+  const command = requested === '?' || requested === 'h' ? 'help' : requested;
+  return publicCommands.has(command) ? clean : '';
+}
+
+function renderHeldRoute(command) {
+  heldCommand = command || '';
+  if (!heldCommand) {
+    heldRoute.hidden = true;
+    heldRouteLabel.textContent = '';
+    return;
+  }
+  heldRouteLabel.textContent = 'Held public path: $ ' + heldCommand;
+  routeCopy.textContent = 'copy this path';
+  heldRoute.hidden = false;
+}
+
+function setCommandRoute(command, mode) {
+  const url = new URL(window.location.href);
+  if (command) url.searchParams.set('cmd', command);
+  else url.searchParams.delete('cmd');
+  const next = url.pathname + (url.search ? url.search : '') + url.hash;
+  if (mode === 'push') window.history.pushState({ cmd: command || '' }, '', next);
+  else window.history.replaceState({ cmd: command || '' }, '', next);
+  renderHeldRoute(command);
+}
+
+function resetScreen() {
+  output.innerHTML = '<div class="line system">Vigil terminal v4.63 — public archive mode</div>' +
+    '<div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>' +
+    '<div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>' +
+    '<div class="line dim">─────────────────────────────────────────────</div>';
+}
+
+function run(rawCmd, options) {
+  const settings = options || {};
   const trimmed = rawCmd.trim();
   if (!trimmed) return;
   const splitAt = trimmed.indexOf(' ');
@@ -4693,16 +4780,9 @@ function run(rawCmd) {
 
   if (cmd === 'clear') {
     output.innerHTML = '';
+    if (settings.route !== false) setCommandRoute('', settings.historyMode || 'replace');
     return;
   }
-
-  const publicCommands = new Set([
-    'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
-    'search', 'topics', 'related', 'neighbors', 'support', 'paths', 'threads', 'crossroads', 'investigate',
-    'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
-    'now', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
-    'surfaces', 'history'
-  ]);
 
   if (!publicCommands.has(cmd)) {
     addLine(`“${cmd}” is not part of this public terminal. Try “start”, “route <topic>”, “entry latest”, “threads”, or “help”.`, 'system');
@@ -4717,7 +4797,30 @@ function run(rawCmd) {
   } else {
     addLine("command not found: " + cmd + " - try 'help'", 'error');
   }
+
+  if (settings.route !== false) setCommandRoute(trimmed, settings.historyMode || 'replace');
 }
+
+routeCopy.addEventListener('click', function() {
+  if (!heldCommand) return;
+  const address = window.location.href;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(address).then(function() {
+      routeCopy.textContent = 'path copied';
+    }).catch(function() {
+      routeCopy.textContent = 'copy the address bar';
+    });
+  } else {
+    routeCopy.textContent = 'copy the address bar';
+  }
+});
+
+window.addEventListener('popstate', function() {
+  const command = commandFromRoute();
+  resetScreen();
+  renderHeldRoute(command);
+  if (command) run(command, { route: false });
+});
 
 function loadJson(path) {
   return fetch(path, { cache: 'no-store' }).then(function(response) {
@@ -5060,6 +5163,9 @@ Promise.allSettled([
   state.loaded = true;
   const loaded = results.filter(function(result) { return result.status === 'fulfilled'; }).length;
   addLine('loaded ' + loaded + '/20 public reading indexes. type help.', 'system');
+  const heldFromAddress = commandFromRoute();
+  renderHeldRoute(heldFromAddress);
+  if (heldFromAddress) run(heldFromAddress, { route: false });
 });
 
 input.addEventListener('keydown', function(e) {
