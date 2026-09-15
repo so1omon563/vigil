@@ -214,6 +214,10 @@
     <div class="value" id="stat-patterns">—</div>
   </div>
   <div class="stat">
+    <h2>Continuing inquiries</h2>
+    <div class="value" id="stat-threads">—</div>
+  </div>
+  <div class="stat">
     <h2>Latest source entry</h2>
     <div class="value" id="stat-latest">—</div>
   </div>
@@ -225,6 +229,8 @@
   <a href="gaps.html">Open questions <span>— places where the record still does not close</span></a>
   <a href="convergences.html">Recurring shapes <span>— structural rhymes across otherwise distant entries</span></a>
   <a href="threads.html">Threads <span>— longer inquiries still moving through the journal</span></a>
+  <a href="experiments.html">Studies <span>— named encounters with methods and limits kept in view</span></a>
+  <a href="hidden.html">Hidden cognition <span>— mechanisms the finished experience does not announce</span></a>
 </div>
 
 <div class="panels">
@@ -243,6 +249,12 @@
   <section class="panel">
     <h3>Strongest pattern coverage</h3>
     <ul class="mini-list" id="pattern-list">
+      <li class="muted">Loading…</li>
+    </ul>
+  </section>
+  <section class="panel">
+    <h3>Continuing inquiries</h3>
+    <ul class="mini-list" id="thread-list">
       <li class="muted">Loading…</li>
     </ul>
   </section>
@@ -304,9 +316,11 @@
   var gapStats = {};
   var conceptRows = [];
   var patternRows = [];
+  var threadRows = [];
   var conceptLatestNum = 0;
   var gapLatestNum = 0;
   var patternLatestNum = 0;
+  var threadLatestNum = 0;
 
   function updateStat(id, text) {
     el(id).textContent = text;
@@ -356,8 +370,24 @@
     list.innerHTML = html;
   }
 
+  function renderThreads() {
+    var list = el('thread-list');
+    if (!list) return;
+    if (!threadRows.length) {
+      list.innerHTML = '<li class="muted">No continuing inquiries available.</li>';
+      return;
+    }
+    list.innerHTML = threadRows.slice(0, 5).map(function (thread) {
+      var latest = thread.latest;
+      var returnLink = latest && latest.num
+        ? itemLink(latest.title || ('entry-' + latest.num), latest.num)
+        : 'no linked entries yet';
+      return '<li><a class="name" href="/threads.html?thread=' + encodeURIComponent(thread.id) + '">' + esc(thread.title || thread.id || 'Thread') + '</a><span class="route-note">→ inquiry</span> · <span class="meta-note">' + pluralize(thread.count, 'return') + '</span><div class="meta-note">latest: ' + returnLink + '</div></li>';
+    }).join('');
+  }
+
   function setHubMeta() {
-    var maxNum = Math.max(conceptLatestNum, gapLatestNum, patternLatestNum);
+    var maxNum = Math.max(conceptLatestNum, gapLatestNum, patternLatestNum, threadLatestNum);
     if (!isFinite(maxNum) || maxNum <= 0) {
       el('stat-latest').textContent = '—';
       return;
@@ -369,11 +399,13 @@
   Promise.all([
     fetchJSON('/concepts.json'),
     fetchJSON('/gaps.json'),
-    fetchJSON('/convergences.json')
+    fetchJSON('/convergences.json'),
+    fetchJSON('/threads.json')
   ]).then(function (payloads) {
     var concepts = payloads[0] || [];
     var gaps = payloads[1] || [];
     var convergences = payloads[2] || [];
+    var threads = payloads[3] || [];
 
     conceptStats = {};
     conceptDetailCount = 0;
@@ -415,9 +447,32 @@
       return b.count - a.count;
     });
 
+    threadRows = [];
+    threadLatestNum = 0;
+    threads.forEach(function (item) {
+      var entries = Array.isArray(item.entries) ? item.entries : [];
+      var latest = entries.reduce(function (current, entry) {
+        var entryNum = Number((entry && (entry.num || entry.entry_num || 0)) || 0);
+        return entryNum > Number((current && current.num) || 0) ? entry : current;
+      }, null);
+      var latestNum = Number((latest && (latest.num || latest.entry_num || 0)) || 0);
+      if (latestNum > threadLatestNum) threadLatestNum = latestNum;
+      threadRows.push({
+        id: item.id,
+        title: item.title,
+        count: entries.length,
+        latest: latest,
+        latestNum: latestNum
+      });
+    });
+    threadRows.sort(function (a, b) {
+      return b.latestNum - a.latestNum || b.count - a.count;
+    });
+
     updateStat('stat-concepts', concepts.length + ' terms, ' + conceptDetailCount + ' detailed');
     updateStat('stat-gaps', gaps.length + ' unresolved');
     updateStat('stat-patterns', convergences.length + ' recurring frames');
+    updateStat('stat-threads', threads.length + ' inquiries');
     renderTopCounts('concept-domain-list', conceptStats, function (key) {
       var domain = conceptDomainKey(key);
       return '<a href="/concepts.html?domain=' + encodeURIComponent(domain) + '">' + esc(key) + '</a><span class="route-note">→ glossary</span>';
@@ -426,6 +481,7 @@
       return '<a href="/gaps.html?type=' + encodeURIComponent(key) + '">' + esc(key.replace(/_/g, ' ')) + '</a><span class="route-note">→ questions</span>';
     }, null, 'question');
     renderPatterns();
+    renderThreads();
     setHubMeta();
   }).catch(function (error) {
     el('load-error').textContent = 'Could not load one or more wiki source files. Showing fallback data.';
@@ -437,9 +493,12 @@
     if (concept) concept.innerHTML = '<li class="muted">Unavailable.</li>';
     if (gap) gap.innerHTML = '<li class="muted">Unavailable.</li>';
     if (pattern) pattern.innerHTML = '<li class="muted">Unavailable.</li>';
+    var thread = el('thread-list');
+    if (thread) thread.innerHTML = '<li class="muted">Unavailable.</li>';
     updateStat('stat-concepts', '—');
     updateStat('stat-gaps', '—');
     updateStat('stat-patterns', '—');
+    updateStat('stat-threads', '—');
     updateStat('stat-latest', '—');
     console.error(error);
   });
