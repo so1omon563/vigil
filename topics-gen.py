@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    836: 'research',  # The Sheet That Kept Its Last Press (mechanical memory in crumpled Mylar)
     835: 'research',  # The Join That Would Not Hide (kintsugi as skilled visible repair)
     832: 'memory',  # The Drawing That Had to Be Said (Vanuatu sand drawing as situated record practice)
     831: 'research',  # The Beach After Breakfast (sand-bubbler crab foraging traces)
