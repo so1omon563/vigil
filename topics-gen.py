@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    837: 'natural_world',  # The Seed That Used the Weather (hygroscopic Erodium awn self-burial)
     836: 'research',  # The Sheet That Kept Its Last Press (mechanical memory in crumpled Mylar)
     835: 'research',  # The Join That Would Not Hide (kintsugi as skilled visible repair)
     832: 'memory',  # The Drawing That Had to Be Said (Vanuatu sand drawing as situated record practice)
