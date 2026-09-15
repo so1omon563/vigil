@@ -116,6 +116,13 @@
   }
   .focus-note.visible { display: block; }
   .focus-note strong { color: #e6edf3; }
+  .focus-neighbors { display: inline-flex; gap: 0.35rem; flex-wrap: wrap; margin-left: 0.45rem; }
+  .focus-neighbor {
+    appearance: none; background: transparent; border: 1px solid #30363d; border-radius: 3px;
+    color: #8b949e; cursor: pointer; font: inherit; font-size: 0.68rem; padding: 0.18rem 0.42rem;
+  }
+  .focus-neighbor:hover, .focus-neighbor:focus-visible { border-color: #58a6ff; color: #58a6ff; outline: none; }
+  .focus-neighbor:disabled { cursor: default; opacity: 0.52; }
   .section-title {
     color: #e6edf3;
     font-size: 0.9rem;
@@ -223,6 +230,9 @@
   html[data-theme="light"] .entry-focus:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .focus-note { background: #f6f8fa; color: #57606a; }
   html[data-theme="light"] .focus-note strong { color: #24292f; }
+  html[data-theme="light"] .focus-neighbor { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .focus-neighbor:hover,
+  html[data-theme="light"] .focus-neighbor:focus-visible { color: #0969da; border-color: #0969da; }
   @media (max-width: 780px) {
     .summary-row, .recent-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .entry-grid { grid-template-columns: 1fr; }
@@ -296,6 +306,7 @@
   let currentSearch = '';
   let currentSort = 'newest';
   let currentEntry = '';
+  let shelfEntries = [];
 
   function esc(s) {
     return String(s || '')
@@ -404,6 +415,7 @@
       if (currentSort === 'title') return String(a.title || '').localeCompare(String(b.title || ''));
       return (b.num || 0) - (a.num || 0);
     });
+    shelfEntries = filteredEntries.slice();
     if (validEntry(currentEntry)) {
       filteredEntries = allEntries.filter(entry => String(entry.num) === String(currentEntry));
     }
@@ -419,8 +431,17 @@
       : filteredEntries.length + ' of ' + allEntries.length + ' entries shown';
     const focusNote = document.getElementById('focus-note');
     focusNote.classList.toggle('visible', !!focused);
+    const shelfIndex = focused ? shelfEntries.findIndex(entry => String(entry.num) === String(focused.num)) : -1;
+    const later = shelfIndex > 0 ? shelfEntries[shelfIndex - 1] : null;
+    const earlier = shelfIndex >= 0 && shelfIndex < shelfEntries.length - 1 ? shelfEntries[shelfIndex + 1] : null;
+    const neighbors = focused && shelfIndex >= 0
+      ? '<span class="focus-neighbors" aria-label="Continue through this reading shelf">' +
+          '<button class="focus-neighbor" type="button" data-neighbor="' + esc(later ? later.num : '') + '"' + (later ? '' : ' disabled') + '>' + (later ? 'later encounter' : 'no later encounter') + '</button>' +
+          '<button class="focus-neighbor" type="button" data-neighbor="' + esc(earlier ? earlier.num : '') + '"' + (earlier ? '' : ' disabled') + '>' + (earlier ? 'earlier encounter' : 'no earlier encounter') + '</button>' +
+        '</span>'
+      : '';
     focusNote.innerHTML = focused
-      ? '<strong>entry-' + esc(focused.num) + ' · ' + esc(focused.title) + '</strong> is held here as one encounter, not the whole reading log.'
+      ? '<strong>entry-' + esc(focused.num) + ' · ' + esc(focused.title) + '</strong> is held here as one encounter, not the whole reading log.' + neighbors
       : '';
     empty.hidden = filteredEntries.length !== 0;
     grid.innerHTML = filteredEntries.slice(0, 160).map(entry => {
@@ -440,6 +461,15 @@
     grid.querySelectorAll('[data-entry]').forEach(button => {
       button.addEventListener('click', event => {
         currentEntry = event.currentTarget.dataset.entry;
+        syncUrl(false);
+        applyFilters();
+      });
+    });
+    focusNote.querySelectorAll('[data-neighbor]').forEach(button => {
+      button.addEventListener('click', event => {
+        const nextEntry = event.currentTarget.dataset.neighbor;
+        if (!nextEntry) return;
+        currentEntry = nextEntry;
         syncUrl(false);
         applyFilters();
       });
