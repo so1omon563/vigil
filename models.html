@@ -57,6 +57,11 @@
     font-size: 0.76rem;
     white-space: nowrap;
   }
+  .catalog-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
   .random-model {
     border: 1px solid #30363d;
     border-radius: 4px;
@@ -117,6 +122,12 @@
   .model-card {
     border-top: 1px solid #21262d;
     padding: 1.5rem 0;
+  }
+  .model.is-held,
+  .model-card.is-held {
+    border-color: #58a6ff;
+    box-shadow: inset 3px 0 0 rgba(88, 166, 255, 0.72);
+    padding-left: 1rem;
   }
   .model:last-of-type,
   .model-card:last-of-type {
@@ -248,6 +259,11 @@
   html[data-theme="light"] .section-label { color: #8c959f; border-color: #d0d7de; }
   html[data-theme="light"] .model,
   html[data-theme="light"] .model-card { border-color: #d0d7de; }
+  html[data-theme="light"] .model.is-held,
+  html[data-theme="light"] .model-card.is-held {
+    border-color: #0969da;
+    box-shadow: inset 3px 0 0 rgba(9, 105, 218, 0.62);
+  }
   html[data-theme="light"] .model:last-of-type,
   html[data-theme="light"] .model-card:last-of-type { border-color: #d0d7de; }
   html[data-theme="light"] .model-name a,
@@ -296,6 +312,10 @@
     <input class="catalog-search" id="model-search" type="search" placeholder="Filter by title, mechanism, description, or related entry" autocomplete="off">
     <div class="catalog-count" id="model-count">Loading…</div>
     <button class="random-model" id="random-model" type="button">random visible</button>
+  </div>
+  <div class="catalog-actions">
+    <button class="random-model" id="copy-view" type="button">copy view</button>
+    <button class="random-model" id="reset-view" type="button">reset</button>
   </div>
   <div class="category-filters" id="category-filters" aria-label="Simulation categories"></div>
 </div>
@@ -1540,9 +1560,13 @@
   var footerTotal = document.getElementById('footer-total');
   var noResults = document.getElementById('no-results');
   var randomButton = document.getElementById('random-model');
+  var copyButton = document.getElementById('copy-view');
+  var resetButton = document.getElementById('reset-view');
   var params = new URLSearchParams(window.location.search);
   var activeCategory = 'all';
   var visibleModels = [];
+  var heldModelId = '';
+  var shouldFocusHeld = false;
 
   function text(el) {
     return (el.textContent || '').replace(/\s+/g, ' ').trim();
@@ -1582,6 +1606,16 @@
     var section = nearestSection(model);
     var category = section ? text(section) : 'Later additions';
     model.dataset.category = slug(category);
+    var baseId = model.id || slug(modelTitle(model)) || 'model';
+    var modelId = baseId;
+    var duplicate = 2;
+    while (models.some(function (other) { return other !== model && other.dataset.model === modelId; })) {
+      modelId = baseId + '-' + duplicate;
+      duplicate += 1;
+    }
+    model.dataset.model = modelId;
+    if (!model.id) model.id = 'model-' + modelId;
+    model.setAttribute('tabindex', '-1');
     model.dataset.searchText = text(model).toLowerCase();
   });
 
@@ -1602,6 +1636,10 @@
   if (params.get('q')) {
     search.value = params.get('q');
   }
+  if (params.get('model') && models.some(function (model) { return model.dataset.model === params.get('model'); })) {
+    heldModelId = params.get('model');
+    shouldFocusHeld = true;
+  }
 
   function modelTitle(model) {
     var title = model.querySelector('.model-name a, .model-title a');
@@ -1613,6 +1651,7 @@
     var query = (search.value || '').trim();
     if (activeCategory !== 'all') next.set('category', activeCategory);
     if (query) next.set('q', query);
+    if (heldModelId) next.set('model', heldModelId);
     var suffix = next.toString();
     var target = window.location.pathname + (suffix ? '?' + suffix : '');
     window.history.replaceState(null, '', target);
@@ -1621,17 +1660,22 @@
   function applyFilter() {
     var query = (search.value || '').trim().toLowerCase();
     var visible = 0;
+    var heldOutsideFilter = false;
     visibleModels = [];
 
     models.forEach(function (model) {
       var categoryMatch = activeCategory === 'all' || model.dataset.category === activeCategory;
       var textMatch = !query || model.dataset.searchText.indexOf(query) !== -1;
-      var show = categoryMatch && textMatch;
+      var matchesFilter = categoryMatch && textMatch;
+      var isHeld = heldModelId && model.dataset.model === heldModelId;
+      var show = matchesFilter || isHeld;
       model.classList.toggle('hidden', !show);
-      if (show) {
+      model.classList.toggle('is-held', Boolean(isHeld));
+      if (matchesFilter) {
         visible += 1;
         visibleModels.push(model);
       }
+      if (isHeld && !matchesFilter) heldOutsideFilter = true;
     });
 
     sections.forEach(function (section) {
@@ -1642,10 +1686,20 @@
       section.classList.toggle('hidden', !hasVisibleModel);
     });
 
-    count.textContent = visible + ' of ' + models.length + ' visible';
+    count.textContent = visible + ' of ' + models.length + ' visible' + (heldOutsideFilter ? ' · held model kept in view' : '');
     noResults.classList.toggle('hidden', visible !== 0);
     randomButton.disabled = visible === 0;
     randomButton.textContent = visible === 0 ? 'no visible models' : 'random visible';
+    if (shouldFocusHeld && heldModelId) {
+      shouldFocusHeld = false;
+      window.requestAnimationFrame(function () {
+        var held = models.find(function (model) { return model.dataset.model === heldModelId; });
+        if (held) {
+          held.scrollIntoView({ block: 'start' });
+          held.focus({ preventScroll: true });
+        }
+      });
+    }
   }
 
   search.addEventListener('input', function () {
@@ -1655,12 +1709,52 @@
   randomButton.addEventListener('click', function () {
     if (!visibleModels.length) return;
     var pick = visibleModels[Math.floor(Math.random() * visibleModels.length)];
-    pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    heldModelId = pick.dataset.model;
+    shouldFocusHeld = true;
+    updateUrl();
+    applyFilter();
     var link = pick.querySelector('.launch-link a, .model-name a, .model-title a');
     randomButton.textContent = link ? modelTitle(pick) : 'random visible';
     window.setTimeout(function () {
       if (visibleModels.length) randomButton.textContent = 'random visible';
     }, 2200);
+  });
+  copyButton.addEventListener('click', function () {
+    var button = this;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href).then(function () {
+        button.textContent = 'copied';
+        window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+      }, function () {
+        button.textContent = 'copy unavailable';
+        window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+      });
+    } else {
+      button.textContent = 'copy unavailable';
+      window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+    }
+  });
+  resetButton.addEventListener('click', function () {
+    activeCategory = 'all';
+    heldModelId = '';
+    search.value = '';
+    Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
+      btn.classList.toggle('active', btn.dataset.category === activeCategory);
+    });
+    updateUrl();
+    applyFilter();
+    search.focus();
+  });
+  window.addEventListener('popstate', function () {
+    params = new URLSearchParams(window.location.search);
+    activeCategory = params.get('category') && (params.get('category') === 'all' || categoryCounts[params.get('category')]) ? params.get('category') : 'all';
+    search.value = params.get('q') || '';
+    heldModelId = params.get('model') && models.some(function (model) { return model.dataset.model === params.get('model'); }) ? params.get('model') : '';
+    shouldFocusHeld = Boolean(heldModelId);
+    Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
+      btn.classList.toggle('active', btn.dataset.category === activeCategory);
+    });
+    applyFilter();
   });
   Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
     btn.classList.toggle('active', btn.dataset.category === activeCategory);
