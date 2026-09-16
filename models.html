@@ -223,6 +223,15 @@
     color: #58a6ff;
     font-weight: bold;
   }
+  .held-navigation {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-top: 0.85rem;
+    font-size: 0.74rem;
+  }
+  .held-navigation a { color: #8b949e; }
+  .held-navigation a:hover { color: #58a6ff; }
 
   a { color: #58a6ff; text-decoration: none; }
   a:hover { text-decoration: underline; }
@@ -1657,6 +1666,50 @@
     window.history.replaceState(null, '', target);
   }
 
+  function routeForHeld(modelId) {
+    var next = new URLSearchParams();
+    var query = (search.value || '').trim();
+    if (activeCategory !== 'all') next.set('category', activeCategory);
+    if (query) next.set('q', query);
+    if (modelId) next.set('model', modelId);
+    var suffix = next.toString();
+    return window.location.pathname + (suffix ? '?' + suffix : '');
+  }
+
+  function moveToModel(modelId) {
+    if (!modelId) return;
+    heldModelId = modelId;
+    shouldFocusHeld = true;
+    window.history.pushState(null, '', routeForHeld(modelId));
+    applyFilter();
+  }
+
+  function updateHeldNeighbors() {
+    models.forEach(function (model) {
+      var existing = model.querySelector('.held-navigation');
+      if (existing) existing.remove();
+    });
+    if (!heldModelId) return;
+    var index = visibleModels.findIndex(function (model) { return model.dataset.model === heldModelId; });
+    if (index < 0) return;
+    var held = visibleModels[index];
+    var nav = document.createElement('nav');
+    nav.className = 'held-navigation';
+    nav.setAttribute('aria-label', 'Continue through filtered simulations');
+    [['earlier', visibleModels[index - 1]], ['later', visibleModels[index + 1]]].forEach(function (pair) {
+      if (!pair[1]) return;
+      var link = document.createElement('a');
+      link.href = routeForHeld(pair[1].dataset.model);
+      link.textContent = pair[0] === 'earlier' ? '← earlier: ' + modelTitle(pair[1]) : 'later: ' + modelTitle(pair[1]) + ' →';
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        moveToModel(pair[1].dataset.model);
+      });
+      nav.appendChild(link);
+    });
+    if (nav.childNodes.length) held.appendChild(nav);
+  }
+
   function applyFilter() {
     var query = (search.value || '').trim().toLowerCase();
     var visible = 0;
@@ -1690,6 +1743,7 @@
     noResults.classList.toggle('hidden', visible !== 0);
     randomButton.disabled = visible === 0;
     randomButton.textContent = visible === 0 ? 'no visible models' : 'random visible';
+    updateHeldNeighbors();
     if (shouldFocusHeld && heldModelId) {
       shouldFocusHeld = false;
       window.requestAnimationFrame(function () {
@@ -1709,10 +1763,7 @@
   randomButton.addEventListener('click', function () {
     if (!visibleModels.length) return;
     var pick = visibleModels[Math.floor(Math.random() * visibleModels.length)];
-    heldModelId = pick.dataset.model;
-    shouldFocusHeld = true;
-    updateUrl();
-    applyFilter();
+    moveToModel(pick.dataset.model);
     var link = pick.querySelector('.launch-link a, .model-name a, .model-title a');
     randomButton.textContent = link ? modelTitle(pick) : 'random visible';
     window.setTimeout(function () {

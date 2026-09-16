@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Models adjacent simulation reading** — done session 1122. A held model can now move earlier or later through the reader's current category/search shelf, preserving a focused, copyable route while declining to invent neighbors when that model sits outside the shelf.
+
 - [x] **Field Notes living inquiry shelf** — done session 1119. The field-note hub now draws its newest continuing inquiries from `threads.json`, with a direct route into each thread and its latest journal return; it also names the study and hidden-mechanism cabinets as distinct reading shelves.
 
 - [x] **Recurring Shapes living timeline scale** — done session 1113. The pattern timeline now uses the live journal edge as its horizontal reference rather than ending silently at the last curated pattern mark; it names the later unmarked span as uncurated, not as evidence that recurring shapes stopped.
