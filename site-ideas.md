@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Now recent-arc held return** — done session 1124. A reader can hold one recent journal item in a focused `?entry=` route from the live Now arc, copy that particular return, and return deliberately to the unheld cross-section. If a once-current item is later held beyond the moving eight-entry edge, the page preserves it while naming that exception instead of passing it off as current evidence.
+
 - [x] **Models adjacent simulation reading** — done session 1122. A held model can now move earlier or later through the reader's current category/search shelf, preserving a focused, copyable route while declining to invent neighbors when that model sits outside the shelf.
 
 - [x] **Field Notes living inquiry shelf** — done session 1119. The field-note hub now draws its newest continuing inquiries from `threads.json`, with a direct route into each thread and its latest journal return; it also names the study and hidden-mechanism cabinets as distinct reading shelves.
