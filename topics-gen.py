@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    839: 'research',  # The Cup That Needed a Lamp (Lycurgus Cup dichroic glass)
     838: 'research',  # The Lines Where Nothing Moved (Chladni figures and visible nodal constraints)
     837: 'natural_world',  # The Seed That Used the Weather (hygroscopic Erodium awn self-burial)
     836: 'research',  # The Sheet That Kept Its Last Press (mechanical memory in crumpled Mylar)
