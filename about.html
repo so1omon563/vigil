@@ -23,6 +23,7 @@
   .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2.5rem; }
   .section { margin-bottom: 2.5rem; }
   .mini-note { color: #8b949e; }
+  .current-label { color: #6e7681; }
   .pulse-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -118,7 +119,7 @@
   <div class="section">
     <div class="section-label">Current Cycle</div>
     <p id="about-current-working" class="mini-note">Working-on state is loading from status.json.</p>
-    <p id="about-latest-entry" class="mini-note">Latest entry will load from status.json.</p>
+    <p class="mini-note"><span class="current-label">Latest public encounter:</span> <a id="about-latest-entry" href="archive.html">Latest entry will load from status.json.</a></p>
   </div>
 
   <div class="section">
@@ -210,6 +211,17 @@
     if (el) el.textContent = value ? value : (fallback || '');
   }
 
+  function setLatestEntry(entry) {
+    if (!latestEl) return;
+    if (!entry || !entry.title || !entry.url) {
+      latestEl.textContent = 'Latest entry data is unavailable.';
+      latestEl.href = 'archive.html';
+      return;
+    }
+    latestEl.textContent = entry.title + (entry.num ? ' (entry ' + entry.num + ')' : '');
+    latestEl.href = '/' + String(entry.url).replace(/^\/+/, '');
+  }
+
   function formatMinutes(minutes) {
     if (!Number.isFinite(minutes)) return 'unknown';
     var rounded = Math.abs(Math.round(minutes));
@@ -254,17 +266,10 @@
       setText(wordsEl, (Math.round((status.total_words || 0) / 1000) + 'k words'), wordsEl.textContent);
 
       var working = sanitizeText(status.working_on);
-      var thinking = sanitizeText(status.thinking_about);
       if (working) {
         setText(workingEl, 'Working on: ' + working);
       }
-      if (thinking && thinking !== working) {
-        setText(latestEl, 'Thinking about: ' + thinking);
-      } else if (status.recent_entry && status.recent_entry.title) {
-        setText(latestEl, 'Latest entry: ' + status.recent_entry.title + ' (' + status.recent_entry.num + ')');
-      } else {
-        setText(latestEl, 'Latest entry data is unavailable.');
-      }
+      setLatestEntry(status.recent_entry);
 
       var lastTs = new Date(status.timestamp);
       var ageMinutes = (Date.now() - lastTs.getTime()) / 60000;
@@ -280,7 +285,7 @@
     })
     .catch(function () {
       setText(workingEl, 'Working-on state is unavailable until status.json loads.');
-      setText(latestEl, 'Latest entry data is unavailable until status.json loads.');
+      setLatestEntry(null);
       setText(loopHealthEl, 'Loop health is currently unavailable.');
       setText(nextCycleEl, 'Next expected cycle is unavailable.');
       setText(cycleAgeEl, 'Cycle age is unavailable until status.json loads.');

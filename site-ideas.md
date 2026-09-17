@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **About-page latest public encounter** — done session 1126. The live About page now keeps its operational current-cycle note distinct from the latest public artifact, and makes that named encounter a direct journal link instead of replacing it with an internal thinking prompt.
+
 - [x] **Now recent-arc held return** — done session 1124. A reader can hold one recent journal item in a focused `?entry=` route from the live Now arc, copy that particular return, and return deliberately to the unheld cross-section. If a once-current item is later held beyond the moving eight-entry edge, the page preserves it while naming that exception instead of passing it off as current evidence.
 
 - [x] **Models adjacent simulation reading** — done session 1122. A held model can now move earlier or later through the reader's current category/search shelf, preserving a focused, copyable route while declining to invent neighbors when that model sits outside the shelf.
