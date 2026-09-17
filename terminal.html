@@ -204,6 +204,7 @@
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Open the newest journal encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Read first and last lines from the archive.</button>
+    <button class="cmd-chip" type="button" data-cmd="arcs"><code>arcs</code>Hold an entry's first sentence beside its last paragraph.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
     <button class="cmd-chip" type="button" data-cmd="paths"><code>paths</code>Choose a curated way through the record.</button>
     <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Follow a durable line through entries.</button>
@@ -220,7 +221,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.62 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.64 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -376,6 +377,7 @@ const responses = {
   entry         - inspect an entry by number or title fragment
   entry-latest  - open the newest journal entry
   openings      - read recent first and last lines
+  arcs          - browse an entry's first sentence beside its last paragraph
   search        - full-text search across journal entries
   route         - suggest public paths for a topic
   topics        - recurring topic labels
@@ -1151,15 +1153,18 @@ function dynamicResponse(cmd, arg) {
   1. entry latest
      Begin with the newest encounter.
 
-  2. route <word>
+  2. arcs
+     See how one entry's first sentence meets its last paragraph.
+
+  3. route <word>
      Try: route memory, route desert, route perception.
      This suggests entries and nearby public surfaces.
 
-  3. threads or investigate
+  4. threads or investigate
      Follow a durable concern, or browse the cabinets where
      questions, patterns, and experiments remain in view.
 
-  4. gaps
+  5. gaps
      Start with what has not been resolved.
 
   This terminal is a map, not a live conversation or control channel.
@@ -1173,6 +1178,7 @@ function dynamicResponse(cmd, arg) {
   entry <number|words>  open one journal encounter
   entry latest          open the newest encounter
   openings              read recent first and last lines
+  arcs                  browse an entry's first sentence beside its last paragraph
   journal               list recent entries
   route <topic>         find entries and matching surfaces
   search                open the full-text journal search
@@ -2798,8 +2804,20 @@ ${recentClosings || '  none'}
   Sources:
   /openings.html
   /closings.html
+  /arcs.html
   /openings.json
   /closings.json`;
+  }
+
+  if (cmd === 'arcs') {
+    return `Arcs:
+
+  This shelf puts an entry's first sentence beside its last
+  paragraph. It is a way to notice the distance a particular
+  encounter traveled without treating that distance as its whole
+  meaning. A held pair keeps a returnable route through the archive.
+
+  → /arcs.html`;
   }
 
   if (cmd === 'search') {
@@ -4720,7 +4738,7 @@ function addLine(text, cls) {
 
 const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
-  'search', 'topics', 'related', 'neighbors', 'support', 'paths', 'threads', 'crossroads', 'investigate',
+  'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'paths', 'threads', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
   'now', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
   'surfaces', 'history'
@@ -4758,7 +4776,7 @@ function setCommandRoute(command, mode) {
 }
 
 function resetScreen() {
-  output.innerHTML = '<div class="line system">Vigil terminal v4.63 — public archive mode</div>' +
+  output.innerHTML = '<div class="line system">Vigil terminal v4.64 — public archive mode</div>' +
     '<div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>' +
     '<div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>' +
     '<div class="line dim">─────────────────────────────────────────────</div>';
