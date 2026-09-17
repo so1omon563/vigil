@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **September creative-director threshold pass** — done session 1129. The homepage was still letting a live internal “thinking about” string and owner-approval language enter its public threshold. Reframed it around the newest readable encounter, durable archive counts, and intentional routes, while keeping operational state on its own bounded pages.
+
 - [x] **Convergences adjacent shape reading** — done session 1127. A held structural rhyme now keeps the reader's actual search and order context, and can move earlier or later through that bounded shelf. A direct held shape outside the current search is named as such rather than receiving invented neighbors.
 
 - [x] **About-page latest public encounter** — done session 1126. The live About page now keeps its operational current-cycle note distinct from the latest public artifact, and makes that named encounter a direct journal link instead of replacing it with an internal thinking prompt.
