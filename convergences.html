@@ -207,6 +207,12 @@
   }
   .archive-reset:hover { border-color: #58a6ff; color: #58a6ff; }
   .convergence-actions { margin: 0.85rem 0 -0.15rem; }
+  .convergence-neighbors {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.85rem 0 -0.15rem;
+  }
   .convergence-focus {
     background: none;
     border: 1px solid #30363d;
@@ -541,6 +547,8 @@
         })).join(' ').toLowerCase().indexOf(normalized) !== -1;
       }) : data;
       var selected = selectedId ? data.filter(function (conv) { return conv.id === selectedId; }) : [];
+      var shelf = orderConvergences(searched, state.order);
+      var selectedPosition = selected.length ? shelf.map(function (conv) { return conv.id; }).indexOf(selected[0].id) : -1;
       var visible = orderConvergences(selectedId ? selected : searched, state.order);
       if (holdButton) {
         holdButton.disabled = searched.length === 0;
@@ -557,7 +565,9 @@
       }
       var focusNote = document.getElementById('focus-note');
       if (focusNote) focusNote.textContent = selected.length
-        ? 'Focused on one convergence. The cross-reference field is hidden until you return to the full cabinet.'
+        ? (selectedPosition === -1
+          ? 'Focused on one convergence outside the current search shelf. The cross-reference field is hidden until you return to the full cabinet.'
+          : 'Focused on one convergence in the current reading shelf. Earlier and later move only through that shelf; the cross-reference field is hidden until you return to the full cabinet.')
         : '';
       if (!visible.length) {
         container.innerHTML = selectedId
@@ -581,11 +591,20 @@
             '</div>' + connector;
         }).join('');
 
+        var neighborHtml = '';
+        if (selectedId && selectedPosition !== -1) {
+          var neighbors = [];
+          if (selectedPosition > 0) neighbors.push('<button class="convergence-focus" type="button" data-neighbor="' + escHtml(shelf[selectedPosition - 1].id) + '">earlier shape</button>');
+          if (selectedPosition < shelf.length - 1) neighbors.push('<button class="convergence-focus" type="button" data-neighbor="' + escHtml(shelf[selectedPosition + 1].id) + '">later shape</button>');
+          if (neighbors.length) neighborHtml = '<div class="convergence-neighbors" aria-label="Continue through this reading shelf">' + neighbors.join('') + '</div>';
+        }
+
         return '<section class="convergence" id="conv-' + conv.id + '" tabindex="-1" aria-labelledby="conv-title-' + escHtml(conv.id) + '">' +
           '<div class="conv-number">convergence ' + (idx + 1) + ' of ' + visible.length + '</div>' +
           '<h2 class="conv-title" id="conv-title-' + escHtml(conv.id) + '">' + escHtml(conv.title) + '</h2>' +
           '<div class="conv-shape">' + escHtml(conv.shape) + '</div>' +
           '<div class="convergence-actions"><button class="convergence-focus" type="button" data-convergence="' + escHtml(conv.id) + '">focus this shape</button></div>' +
+          neighborHtml +
           '<div class="entry-cards">' + cardsHtml + '</div>' +
           '</section>';
       }).join('');
@@ -594,8 +613,12 @@
       Array.prototype.forEach.call(container.querySelectorAll('[data-convergence]'), function (button) {
         button.addEventListener('click', function () {
           state.convergence = button.getAttribute('data-convergence');
-          state.query = '';
-          if (searchInput) searchInput.value = '';
+          syncState(false);
+        });
+      });
+      Array.prototype.forEach.call(container.querySelectorAll('[data-neighbor]'), function (button) {
+        button.addEventListener('click', function () {
+          state.convergence = button.getAttribute('data-neighbor');
           syncState(false);
         });
       });

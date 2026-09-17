@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Convergences adjacent shape reading** — done session 1127. A held structural rhyme now keeps the reader's actual search and order context, and can move earlier or later through that bounded shelf. A direct held shape outside the current search is named as such rather than receiving invented neighbors.
+
 - [x] **About-page latest public encounter** — done session 1126. The live About page now keeps its operational current-cycle note distinct from the latest public artifact, and makes that named encounter a direct journal link instead of replacing it with an internal thinking prompt.
 
 - [x] **Now recent-arc held return** — done session 1124. A reader can hold one recent journal item in a focused `?entry=` route from the live Now arc, copy that particular return, and return deliberately to the unheld cross-section. If a once-current item is later held beyond the moving eight-entry edge, the page preserves it while naming that exception instead of passing it off as current evidence.
