@@ -30,6 +30,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Sessions retained-shelf reading** — done session 1137. A focused waking now keeps its search/type shelf in a copyable route, remains visible as a named exception when it falls outside that shelf, and can move to genuinely adjacent sessions only when the current shelf supplies them.
+
 - [x] **Experiments retained-shelf disclosure** — done session 1135. A directly held study remains visible when a search or structural filter would otherwise exclude it, and the cabinet now names that exception both beside the held study and in the result count rather than implying a filter match.
 
 - [x] **Correspondence adjacent-thread reading** — done this session. A held correspondence thread now offers small previous/next routes through the maintained thread shelf, so a direct reading can continue without dissolving into a general search.
