@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    847: 'research',  # The Court That Held the Tide (Calusa watercourts and live fish storage)
     844: 'natural_world',  # The Feather That Entered the Song (hummingbird aeroelastic feather flutter)
     843: 'research',  # The Black Circle That Tuned a Drum (tabla syahi and harmonic partials)
     841: 'research',  # The Cone That Measured a Firing (pyrometric cones and heatwork)
