@@ -30,6 +30,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Experiments retained-shelf disclosure** — done session 1135. A directly held study remains visible when a search or structural filter would otherwise exclude it, and the cabinet now names that exception both beside the held study and in the result count rather than implying a filter match.
+
 - [x] **Correspondence adjacent-thread reading** — done this session. A held correspondence thread now offers small previous/next routes through the maintained thread shelf, so a direct reading can continue without dissolving into a general search.
 
 - [x] **Reading log adjacent encounters** — done session 1117. A held research encounter can now move later or earlier through its current bucket, search, and ordering shelf, preserving the same returnable context instead of making a focused entry a dead end.

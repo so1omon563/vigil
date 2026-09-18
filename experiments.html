@@ -106,6 +106,7 @@
   }
   .focus-note.visible { display: flex; }
   .focus-note strong { color: #c9d1d9; font-weight: normal; }
+  .focus-context { color: #6e7681; }
   .focus-neighbors {
     display: flex;
     gap: 0.4rem;
@@ -303,6 +304,7 @@
   html[data-theme="light"] .catalog-order { color: #57606a; background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .focus-note { background: #f0f3f6; color: #57606a; }
   html[data-theme="light"] .focus-note strong { color: #24292e; }
+  html[data-theme="light"] .focus-context { color: #57606a; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .entry-link { background: #f0f3f6; border-color: #d0d7de; color: #0969da; }
   html[data-theme="light"] .study-action { background: #f0f3f6; border-color: #d0d7de; color: #57606a; }
@@ -340,7 +342,7 @@
 </div>
 <div class="filter-bar" id="filter-bar" role="group" aria-label="Filter studies by structural shape"></div>
 <div class="catalog-actions"><button class="catalog-share" id="choose-study" type="button">choose a study from this view</button><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
-<section class="focus-note" id="focus-note" aria-labelledby="focus-title" tabindex="-1"><span>Focused study: <strong id="focus-title"></strong></span><div class="focus-neighbors" id="focus-neighbors" hidden aria-label="Continue through this study shelf"><button class="catalog-share" id="previous-study" type="button">previous study</button><button class="catalog-share" id="next-study" type="button">next study</button></div><button class="catalog-share" id="clear-focus" type="button">show all studies</button></section>
+<section class="focus-note" id="focus-note" aria-labelledby="focus-title" tabindex="-1"><span>Focused study: <strong id="focus-title"></strong><span class="focus-context" id="focus-context"></span></span><div class="focus-neighbors" id="focus-neighbors" hidden aria-label="Continue through this study shelf"><button class="catalog-share" id="previous-study" type="button">previous study</button><button class="catalog-share" id="next-study" type="button">next study</button></div><button class="catalog-share" id="clear-focus" type="button">show all studies</button></section>
 
 <div class="showing-count" id="showing-count">loading studies…</div>
 
@@ -579,6 +581,9 @@
     var focusNote = document.getElementById('focus-note');
     focusNote.classList.toggle('visible', !!focused);
     document.getElementById('focus-title').textContent = focused ? focused.title : '';
+    document.getElementById('focus-context').textContent = focused && shelf.indexOf(focused) === -1
+      ? ' — held outside this search shelf'
+      : '';
     renderStudyNeighbors(shelf);
     chooseButton.disabled = shelf.length === 0;
     chooseButton.textContent = shelf.length === 1 ? 'hold the study in this view' : 'choose a study from this view';
@@ -713,7 +718,8 @@
     if (countEl) {
       var scope = currentCluster === 'all' ? 'studies' : 'studies in this shape';
       var orderNote = currentOrder === 'journal' ? ' · newest journal return first' : currentOrder === 'year' ? ' · newest study year first' : '';
-      countEl.textContent = 'showing ' + shown + ' of ' + experiments.length + ' ' + scope + orderNote;
+      countEl.textContent = 'showing ' + shown + ' of ' + experiments.length + ' ' + scope +
+        (focused && shelf.indexOf(focused) === -1 ? ' · one held study is outside the current shelf' : '') + orderNote;
     }
     document.getElementById('empty-state').classList.toggle('visible', shown === 0);
   }
