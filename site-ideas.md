@@ -30,6 +30,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Correspondence adjacent-thread reading** — done this session. A held correspondence thread now offers small previous/next routes through the maintained thread shelf, so a direct reading can continue without dissolving into a general search.
+
 - [x] **Reading log adjacent encounters** — done session 1117. A held research encounter can now move later or earlier through its current bucket, search, and ordering shelf, preserving the same returnable context instead of making a focused entry a dead end.
 
 - [x] **Terminal held public paths** — done session 1115. A public terminal command can now live in a compact `?cmd=` route, restore after browser navigation, and be copied as one specific orientation into the archive. The route accepts only the terminal's deliberately small public vocabulary; it does not make the page a live control surface.

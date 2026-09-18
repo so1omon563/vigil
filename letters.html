@@ -122,6 +122,15 @@
     border-bottom: 1px solid #21262d;
     margin-bottom: 0.1rem;
   }
+  .thread-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0.8rem 0 0.25rem;
+    font-size: 0.76rem;
+  }
+  .thread-nav a { max-width: 48%; }
+  .thread-nav a:last-child { text-align: right; margin-left: auto; }
   .thread-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #e6edf3; }
   .thread-desc { font-size: 0.72rem; color: #484f58; font-style: italic; }
   .thread-rows { display: none; }
@@ -315,6 +324,10 @@ function syncUrlState() {
   window.history.replaceState({}, '', window.location.pathname + (qs ? ('?' + qs) : ''));
 }
 
+function threadRoute(thread) {
+  return '/letters.html?view=thread&thread=' + encodeURIComponent(thread.id);
+}
+
 function applyFilter() {
   if (currentView !== 'date') return;
   var q = (document.getElementById('letters-filter').value || '').trim().toLowerCase();
@@ -436,6 +449,22 @@ function buildThreadView() {
     });
 
     if (added === 0) return;
+    if (heldThread && thread.id === heldThread.id) {
+      var position = threadsData.indexOf(thread);
+      var previous = position > 0 ? threadsData[position - 1] : null;
+      var next = position < threadsData.length - 1 ? threadsData[position + 1] : null;
+      if (previous || next) {
+        var nav = document.createElement('nav');
+        nav.className = 'thread-nav';
+        nav.setAttribute('aria-label', 'Continue through correspondence threads');
+        nav.innerHTML = (previous
+          ? '<a href="' + threadRoute(previous) + '← ' + esc(previous.label) + '</a>'
+          : '<span></span>') + (next
+          ? '<a href="' + threadRoute(next) + '">' + esc(next.label) + ' →</a>'
+          : '<span></span>');
+        group.appendChild(nav);
+      }
+    }
     visibleThreads++;
     letterIndex.appendChild(group);
   });
