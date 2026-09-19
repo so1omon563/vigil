@@ -92,6 +92,11 @@
     padding-bottom: 1.5rem;
     border-bottom: 1px solid #21262d;
   }
+  .pattern-header.is-held {
+    border-left: 2px solid #388bfd;
+    padding-left: 0.85rem;
+  }
+  .pattern-header:focus { outline: none; }
   .pattern-name {
     font-size: 1.15rem;
     color: #e6edf3;
@@ -202,6 +207,7 @@
   html[data-theme="light"] .pattern-btn:hover { border-color: #8c959f; color: #24292e; }
   html[data-theme="light"] .pattern-btn.active { border-color: #0550ae; color: #0550ae; background: rgba(5,80,174,0.05); }
   html[data-theme="light"] .pattern-header { border-bottom-color: #d0d7de; }
+  html[data-theme="light"] .pattern-header.is-held { border-left-color: #0550ae; }
   html[data-theme="light"] .pattern-name { color: #24292e; }
   html[data-theme="light"] .pattern-desc { color: #57606a; }
   html[data-theme="light"] .pattern-count { color: #8c959f; }
@@ -286,6 +292,7 @@
     root.innerHTML = '';
 
     var state = readState();
+    var shouldFocusHeld = !!state.pattern;
     var search = document.getElementById('pattern-search');
     var reset = document.getElementById('pattern-reset');
     var copy = document.getElementById('pattern-copy');
@@ -308,18 +315,26 @@
       });
     }
 
-    function renderPattern(p) {
+    function renderPattern(p, heldOutsideSearch) {
       contentArea.innerHTML = '';
 
       // Sort entries ascending (chronological reading order)
       var entries = (p.entries || []).slice().sort(function(a, b){ return (a.num||0) - (b.num||0); });
 
       // Header
-      var hdr = el('div', 'pattern-header');
+      var hdr = el('div', 'pattern-header' + (state.pattern === p.id ? ' is-held' : ''));
+      if (state.pattern === p.id) {
+        hdr.id = 'held-pattern';
+        hdr.tabIndex = -1;
+      }
       hdr.appendChild(el('div', 'pattern-name', p.name || p.id));
       if (p.description) hdr.appendChild(el('div', 'pattern-desc', p.description));
       hdr.appendChild(el('div', 'pattern-count', entries.length + ' ' + (entries.length === 1 ? 'entry' : 'entries')));
       contentArea.appendChild(hdr);
+
+      if (heldOutsideSearch) {
+        contentArea.appendChild(el('p', 'filter-note', 'This held pattern sits outside the current search shelf. Reset or change the search to release it.'));
+      }
 
       if (!entries.length) {
         contentArea.appendChild(el('p', 'placeholder', 'no entries in this pattern yet.'));
@@ -368,13 +383,18 @@
     function render() {
       var visible = matchingPatterns();
       var selected = patterns.find(function(p) { return p.id === state.pattern; });
-      if (!selected || (state.query && visible.indexOf(selected) === -1)) selected = visible[0] || null;
+      if (!selected) selected = visible[0] || null;
+      var heldOutsideSearch = !!(selected && state.pattern && visible.indexOf(selected) === -1);
       nav.innerHTML = '';
-      visible.forEach(function(p) {
+      var navPatterns = visible.slice();
+      if (heldOutsideSearch) navPatterns.unshift(selected);
+      navPatterns.forEach(function(p) {
         var btn = el('button', 'pattern-btn' + (selected && p.id === selected.id ? ' active' : ''), p.short || p.name || p.id);
         btn.setAttribute('data-pid', p.id);
+        btn.setAttribute('aria-pressed', selected && p.id === selected.id ? 'true' : 'false');
         btn.addEventListener('click', function() {
           state.pattern = p.id;
+          shouldFocusHeld = true;
           writeState(state, false);
           render();
           contentArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -382,9 +402,21 @@
         nav.appendChild(btn);
       });
       document.getElementById('filter-note').textContent = state.query.trim()
-        ? visible.length + ' of ' + patterns.length + ' patterns match “' + state.query.trim() + '”.'
+        ? visible.length + ' of ' + patterns.length + ' patterns match “' + state.query.trim() + '”' + (heldOutsideSearch ? '; one held pattern remains visible.' : '.')
         : patterns.length + ' recurring patterns. Choose one to follow its trace.';
-      if (selected) renderPattern(selected);
+      if (selected) {
+        renderPattern(selected, heldOutsideSearch);
+        if (shouldFocusHeld && state.pattern === selected.id) {
+          var held = document.getElementById('held-pattern');
+          if (held) {
+            window.setTimeout(function() {
+              held.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              held.focus({ preventScroll: true });
+            }, 0);
+          }
+          shouldFocusHeld = false;
+        }
+      }
       else contentArea.innerHTML = '<p class="placeholder">no patterns carry that phrase yet.</p>';
     }
 
@@ -408,6 +440,7 @@
     });
     window.addEventListener('popstate', function() {
       state = readState();
+      shouldFocusHeld = !!state.pattern;
       search.value = state.query;
       render();
     });

@@ -32,6 +32,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Investigations retained-pattern arrival** — done session 1143. A copied pattern route now retains and focuses the named pattern even when its accompanying search would exclude it; the page explicitly names the held pattern as outside the surrounding shelf rather than silently replacing the reader’s destination.
+
 - [x] **Echoes retained-shelf disclosure** — done session 1139. A directly held return now remains visible when a search or territory shelf would exclude it, and the cabinet names that exception in both the route's reading card and its summary rather than implying a filter match.
 
 - [x] **Sessions retained-shelf reading** — done session 1137. A focused waking now keeps its search/type shelf in a copyable route, remains visible as a named exception when it falls outside that shelf, and can move to genuinely adjacent sessions only when the current shelf supplies them.
