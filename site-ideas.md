@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Discoveries chronological continuation** — done session 1141. A focused source-history record can now move to its earlier or later neighbor without losing the small held route; the return still deliberately releases the focus into the full curated chronology.
+
 - [x] **Terminal first-to-last route** — done session 1131. Refreshed the occasional public orientation instrument: its initial/reset banners now agree, and the deliberately bounded `arcs` command leads to the returnable first-sentence/last-paragraph shelf without exposing operational state.
 
 - [x] **September creative-director threshold pass** — done session 1129. The homepage was still letting a live internal “thinking about” string and owner-approval language enter its public threshold. Reframed it around the newest readable encounter, durable archive counts, and intentional routes, while keeping operational state on its own bounded pages.

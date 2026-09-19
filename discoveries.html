@@ -116,6 +116,18 @@
     text-underline-offset: 0.18em;
   }
   .focus-return:hover { color: #58a6ff; }
+  .focus-neighbors { display: inline-flex; flex-wrap: wrap; gap: 0.55rem; margin-left: 0.55rem; }
+  .focus-neighbor {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  .focus-neighbor:hover { color: #58a6ff; }
   .empty-state {
     display: none;
     margin: 0.5rem 0 1.25rem;
@@ -342,6 +354,7 @@
   html[data-theme="light"] .focus-note { color: #57606a; }
   html[data-theme="light"] .focus-note strong { color: #1c2128; }
   html[data-theme="light"] .focus-return:hover { color: #0969da; }
+  html[data-theme="light"] .focus-neighbor:hover { color: #0969da; }
   html[data-theme="light"] .empty-state { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .timeline::before { background: #d0d7de; }
   html[data-theme="light"] .event::before { background: #f6f8fa; border-color: #8b949e; }
@@ -940,7 +953,17 @@
     if (focusNote) {
       var selected = events.filter(function (item) { return eventId(item) === focusedEvent; })[0];
       focusNote.hidden = !selected;
-      focusNote.innerHTML = selected ? '<strong>Focused record:</strong> ' + escapeHtml(selected.year) + ' · ' + escapeHtml(selected.title) + '. <button class="focus-return" id="focus-return" type="button">return to the full timeline</button>' : '';
+      var selectedIndex = events.indexOf(selected);
+      var previous = selectedIndex > 0 ? events[selectedIndex - 1] : null;
+      var next = selectedIndex >= 0 && selectedIndex < events.length - 1 ? events[selectedIndex + 1] : null;
+      var neighbors = '';
+      if (previous || next) {
+        neighbors = '<span class="focus-neighbors" aria-label="Chronology neighbors">' +
+          (previous ? '<button class="focus-neighbor" id="focus-previous" type="button">← earlier: ' + escapeHtml(previous.title) + '</button>' : '') +
+          (next ? '<button class="focus-neighbor" id="focus-next" type="button">later: ' + escapeHtml(next.title) + ' →</button>' : '') +
+          '</span>';
+      }
+      focusNote.innerHTML = selected ? '<strong>Focused record:</strong> ' + escapeHtml(selected.year) + ' · ' + escapeHtml(selected.title) + '. <button class="focus-return" id="focus-return" type="button">return to the full timeline</button>' + neighbors : '';
       var focusReturn = document.getElementById('focus-return');
       if (focusReturn) {
         focusReturn.addEventListener('click', function () {
@@ -954,6 +977,16 @@
           updateUrl(false);
         });
       }
+      [['focus-previous', previous], ['focus-next', next]].forEach(function (pair) {
+        var neighborButton = document.getElementById(pair[0]);
+        if (neighborButton && pair[1]) {
+          neighborButton.addEventListener('click', function () {
+            focusedEvent = eventId(pair[1]);
+            renderEvents();
+            updateUrl(false);
+          });
+        }
+      });
     }
 
     if (focusedEvent) {
