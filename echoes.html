@@ -117,6 +117,7 @@
     background: rgba(31, 48, 64, 0.35);
   }
   .entry-item.held:focus { outline: 2px solid #58a6ff; outline-offset: 3px; }
+  .entry-item.held-outside { border-style: dashed; }
   .entry-num {
     font-size: 0.7rem;
     color: #30363d;
@@ -139,6 +140,7 @@
     color: #484f58;
     line-height: 1.6;
   }
+  .held-outside-note { font-size: 0.7rem; color: #8b949e; margin-top: 0.35rem; }
   .entry-hold {
     margin-top: 0.5rem;
     padding: 0;
@@ -229,6 +231,7 @@
   html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
   html[data-theme="light"] .entry-item.held { border-color: #0969da; background: #ddf4ff; }
   html[data-theme="light"] .entry-item.held:focus { outline-color: #0969da; }
+  html[data-theme="light"] .held-outside-note { color: #57606a; }
   html[data-theme="light"] .entry-title a { color: #24292e; }
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
   html[data-theme="light"] .filter-btn { background: #f0f3f6; border-color: #d0d7de; color: #656d76; }
@@ -318,15 +321,21 @@
     });
   }
 
-  function visibleClusters(clusters, journalByNum, currentFilter, query, focus) {
+  function clusterHasEntry(cluster, entryNum) {
+    return (cluster.entries || []).some(function(entryRef) { return String(entryRef.num) === String(entryNum); });
+  }
+
+  function visibleClusters(clusters, journalByNum, currentFilter, query, focus, held) {
     return clusters.filter(function(cluster) {
-      return (!focus && (currentFilter === 'all' || cluster.id === currentFilter) || focus === cluster.id) &&
-        matchingEntries(cluster, journalByNum, query).length > 0;
+      const inShelf = !focus && (currentFilter === 'all' || cluster.id === currentFilter);
+      const heldHere = held && clusterHasEntry(cluster, held);
+      return (focus === cluster.id || (!focus && inShelf) || heldHere) &&
+        (matchingEntries(cluster, journalByNum, query).length > 0 || heldHere);
     });
   }
 
-  function orderedClusters(clusters, journalByNum, currentFilter, query, focus, order) {
-    const visible = visibleClusters(clusters, journalByNum, currentFilter, query, focus);
+  function orderedClusters(clusters, journalByNum, currentFilter, query, focus, held, order) {
+    const visible = visibleClusters(clusters, journalByNum, currentFilter, query, focus, held);
     if (order !== 'recent') return visible;
     return visible.slice().sort(function(a, b) {
       const newest = function(cluster) {
@@ -352,14 +361,20 @@
       });
     });
 
-    const visible = visibleClusters(clusters, journalByNum, currentFilter, query, focus);
+    const visible = visibleClusters(clusters, journalByNum, currentFilter, query, focus, held);
     const visibleEntries = visible.reduce(function(sum, cluster) {
       return sum + matchingEntries(cluster, journalByNum, query).length;
     }, 0);
     const focusCluster = focus && clusters.find(function(cluster) { return cluster.id === focus; });
     const heldEntry = held && journalByNum[String(held)];
+    const heldOutside = held && visible.some(function(cluster) {
+      return clusterHasEntry(cluster, held) && matchingEntries(cluster, journalByNum, query).every(function(entryRef) {
+        return String(entryRef.num) !== String(held);
+      });
+    });
     const latest = heldEntry
-      ? 'Held return: entry ' + held + ', ' + (heldEntry.title || 'journal encounter')
+      ? 'Held return: entry ' + held + ', ' + (heldEntry.title || 'journal encounter') +
+        (heldOutside ? ' (outside the current shelf)' : '')
       : focusCluster
       ? 'Held territory: ' + (focusCluster.title || focusCluster.label || focusCluster.id) + ', ' + visibleEntries + ' entry appearances'
       : (clusters.length
@@ -378,9 +393,9 @@
     footer.innerHTML = note + ' See also: <a href="/patterns.html">patterns</a> (structural shapes), <a href="/crossroads.html">crossroads</a> (thread intersections), <a href="/graph.html">graph</a> (related entries).';
   }
 
-  function renderRecentReturns(clusters, journalByNum, currentFilter, query, focus) {
+  function renderRecentReturns(clusters, journalByNum, currentFilter, query, focus, held) {
     const byEntry = {};
-    visibleClusters(clusters, journalByNum, currentFilter, query, focus).forEach(function(cluster) {
+    visibleClusters(clusters, journalByNum, currentFilter, query, focus, held).forEach(function(cluster) {
       matchingEntries(cluster, journalByNum, query).forEach(function(entryRef) {
         const key = String(entryRef.num);
         if (!byEntry[key] || Number(entryRef.num) > Number(byEntry[key].entry.num)) {
@@ -441,8 +456,10 @@
       fragment.appendChild(heldNote);
     }
 
-    orderedClusters(clusters, journalByNum, currentFilter, query, focus, order).forEach(function(cluster, index) {
+    orderedClusters(clusters, journalByNum, currentFilter, query, focus, held, order).forEach(function(cluster, index) {
       const matching = matchingEntries(cluster, journalByNum, query);
+      const heldRef = (cluster.entries || []).find(function(entryRef) { return String(entryRef.num) === String(held); });
+      const heldOutside = heldRef && !matching.some(function(entryRef) { return String(entryRef.num) === String(held); });
 
       const wrap = document.createElement('div');
       wrap.className = 'cluster';
@@ -470,17 +487,18 @@
       const listWrap = document.createElement('div');
       listWrap.className = 'entry-list';
 
-      const entries = matching.map(function(entryRef) {
+      const entries = (heldOutside ? matching.concat([heldRef]) : matching).map(function(entryRef) {
         return {
           num: entryRef.num,
           angle: entryRef.angle || '',
-          title: (journalByNum[String(entryRef.num)] && journalByNum[String(entryRef.num)].title) || ('entry ' + entryRef.num)
+          title: (journalByNum[String(entryRef.num)] && journalByNum[String(entryRef.num)].title) || ('entry ' + entryRef.num),
+          outside: heldOutside && String(entryRef.num) === String(held)
         };
       });
 
       entries.forEach(function(entry) {
         const item = document.createElement('div');
-        item.className = 'entry-item' + (String(entry.num) === String(held) ? ' held' : '');
+        item.className = 'entry-item' + (String(entry.num) === String(held) ? ' held' : '') + (entry.outside ? ' held-outside' : '');
         if (String(entry.num) === String(held)) {
           item.tabIndex = -1;
           item.setAttribute('data-held-return', String(entry.num));
@@ -491,6 +509,7 @@
           '<div class="entry-content">' +
           '  <div class="entry-title"><a href="/journal/entry-' + entry.num + '.html">' + escapeHtml(entry.title) + '</a></div>' +
           '  <div class="entry-angle">' + escapeHtml(entry.angle) + '</div>' +
+          (entry.outside ? '<div class="held-outside-note">Held return outside the current search or territory shelf.</div>' : '') +
           '  <button class="entry-hold" type="button" data-entry="' + entry.num + '">hold this return</button>' +
           '</div>';
         listWrap.appendChild(item);
@@ -618,7 +637,7 @@
       renderButtons(clusters, currentFilter);
       renderClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld, currentOrder);
       renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
-      renderRecentReturns(clusters, journalByNum, currentFilter, currentQuery, currentFocus);
+      renderRecentReturns(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
       resetButton.textContent = currentFocus || currentHeld ? 'return to cabinet' : 'reset';
       arriveAtHeldReturn(currentHeld);
       if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus, currentHeld, currentOrder);
@@ -662,7 +681,7 @@
     meetButton.addEventListener('click', function() {
       const seen = {};
       const visible = [];
-      visibleClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus).forEach(function(cluster) {
+      visibleClusters(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld).forEach(function(cluster) {
         matchingEntries(cluster, journalByNum, currentQuery).forEach(function(entryRef) {
           const key = String(entryRef.num);
           if (!seen[key]) { seen[key] = true; visible.push(key); }
