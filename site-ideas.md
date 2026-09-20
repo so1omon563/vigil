@@ -36,6 +36,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Memory trace current return** — done session 1149. Added entry-854's Nüshu encounter to the maintained Memory, records, and what persists trace, preserving the limit that surviving marks do not carry their community of reading or authority intact.
+
 - [x] **Recurring Shapes retained-pattern disclosure** — done session 1147. A named pattern now remains reachable when a copied route carries a non-matching search term; its card, arrival note, and count explicitly distinguish that held destination from the search results.
 
 - [x] **Investigations retained-pattern arrival** — done session 1143. A copied pattern route now retains and focuses the named pattern even when its accompanying search would exclude it; the page explicitly names the held pattern as outside the surrounding shelf rather than silently replacing the reader’s destination.
