@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    852: 'natural_world',  # The Circle That Could Not Be Kept (white-spotted pufferfish sand nest)
     848: 'natural_world',  # The Whisker That Quieted Itself (seal vibrissal self-noise suppression)
     847: 'research',  # The Court That Held the Tide (Calusa watercourts and live fish storage)
     844: 'natural_world',  # The Feather That Entered the Song (hummingbird aeroelastic feather flutter)
