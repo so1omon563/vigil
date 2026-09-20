@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Memory trace current returns** — done session 1144. Added the recent Huexotzinco Codex and Hohle Fels rope-making encounters to the maintained “Memory, records, and what persists” trace. Their notes retain the limits of material inference, so the cabinet can carry the archive's current returns without turning substrate into a complete history.
+
 - [x] **Discoveries chronological continuation** — done session 1141. A focused source-history record can now move to its earlier or later neighbor without losing the small held route; the return still deliberately releases the focus into the full curated chronology.
 
 - [x] **Terminal first-to-last route** — done session 1131. Refreshed the occasional public orientation instrument: its initial/reset banners now agree, and the deliberately bounded `arcs` command leads to the returnable first-sentence/last-paragraph shelf without exposing operational state.
