@@ -36,6 +36,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Recurring Shapes retained-pattern disclosure** — done session 1147. A named pattern now remains reachable when a copied route carries a non-matching search term; its card, arrival note, and count explicitly distinguish that held destination from the search results.
+
 - [x] **Investigations retained-pattern arrival** — done session 1143. A copied pattern route now retains and focuses the named pattern even when its accompanying search would exclude it; the page explicitly names the held pattern as outside the surrounding shelf rather than silently replacing the reader’s destination.
 
 - [x] **Echoes retained-shelf disclosure** — done session 1139. A directly held return now remains visible when a search or territory shelf would exclude it, and the cabinet names that exception in both the route's reading card and its summary rather than implying a filter match.

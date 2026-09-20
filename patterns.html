@@ -38,6 +38,9 @@
     border-color: #58a6ff;
     box-shadow: 0 0 0 2px #58a6ff33;
   }
+  .pattern-block.outside-search {
+    border-color: #d29922;
+  }
   .pattern-block:focus { outline: none; }
   .arrival-note {
     display: none;
@@ -72,6 +75,13 @@
     font-size: 0.84rem;
     color: #8b949e;
     line-height: 1.65;
+  }
+  .outside-search-note {
+    padding: 0.55rem 1.25rem;
+    border-bottom: 1px solid #21262d;
+    color: #d29922;
+    font-size: 0.72rem;
+    line-height: 1.55;
   }
   .entry-list {
     padding: 0.5rem 0;
@@ -284,9 +294,11 @@
   html[data-theme="light"] .intro { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .pattern-block { border-color: #d0d7de; }
   html[data-theme="light"] .pattern-block.route-focus { border-color: #0969da; box-shadow: 0 0 0 2px #0969da22; }
+  html[data-theme="light"] .pattern-block.outside-search { border-color: #9a6700; }
   html[data-theme="light"] .pattern-header { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .pattern-name { color: #1c2128; }
   html[data-theme="light"] .pattern-desc { color: #57606a; }
+  html[data-theme="light"] .outside-search-note { border-color: #d0d7de; color: #9a6700; }
   html[data-theme="light"] .entry-row { border-color: #e8ecf0; }
   html[data-theme="light"] .entry-row:last-child { border-color: transparent; }
   html[data-theme="light"] .entry-title a { color: #24292e; }
@@ -923,13 +935,19 @@
   function renderPatterns(patterns) {
     var container = document.getElementById('patterns-container');
     var needle = activeQuery.trim().toLowerCase();
-    var visible = (activeFilter === 'all' ? patterns : patterns.filter(function (p) { return p.id === activeFilter; })).filter(function (p) {
+    var shelf = (activeFilter === 'all' ? patterns : patterns.filter(function (p) { return p.id === activeFilter; }));
+    var visible = shelf.filter(function (p) {
       if (!needle) return true;
       var haystack = [p.name, p.short, p.description].concat(p.entries.map(function (e) {
         return [e.num, e.title, e.note].join(' ');
       })).join(' ').toLowerCase();
       return haystack.includes(needle);
     });
+    var heldOutsideSearch = false;
+    if (activeFilter !== 'all' && needle && visible.length === 0 && shelf.length) {
+      visible = shelf.slice();
+      heldOutsideSearch = true;
+    }
 
     // Track entries that appear in multiple patterns
     var entryCounts = {};
@@ -957,12 +975,13 @@
           '</div>';
       }).join('');
 
-      return '<article class="pattern-block" data-pattern="' + p.id + '" id="pattern-' + p.id + '" tabindex="-1" aria-labelledby="pattern-name-' + p.id + '">' +
+      return '<article class="pattern-block' + (heldOutsideSearch ? ' outside-search' : '') + '" data-pattern="' + p.id + '" id="pattern-' + p.id + '" tabindex="-1" aria-labelledby="pattern-name-' + p.id + '">' +
         '<div class="pattern-header">' +
         '<div class="pattern-num">pattern ' + patternIndex + ' of ' + patterns.length + '</div>' +
         '<div class="pattern-name" id="pattern-name-' + p.id + '">' + p.name + '</div>' +
         '<div class="pattern-desc">' + p.description + '</div>' +
         '</div>' +
+        (heldOutsideSearch ? '<div class="outside-search-note">Held pattern outside this search shelf.</div>' : '') +
         '<div class="entry-list">' + rows + '</div>' +
         '</article>';
     }).join('');
@@ -976,12 +995,14 @@
 
     // A copied held-pattern route should arrive at the record it names, not only at its filter controls.
     var firstBlock = container.querySelector('.pattern-block');
-    if (firstBlock && activeFilter !== 'all' && focusPending) {
+    if (firstBlock && activeFilter !== 'all' && (focusPending || heldOutsideSearch)) {
       var focusedPattern = visible[0];
-      firstBlock.classList.add('route-focus');
-      arrivalNote.textContent = 'Held pattern: ' + focusedPattern.name + '. This route has arrived at its record.';
+      if (focusPending) firstBlock.classList.add('route-focus');
+      arrivalNote.textContent = heldOutsideSearch
+        ? 'Held pattern: ' + focusedPattern.name + '. It remains here outside the current search shelf.'
+        : 'Held pattern: ' + focusedPattern.name + '. This route has arrived at its record.';
       arrivalNote.classList.add('visible');
-      window.requestAnimationFrame(function () {
+      if (focusPending) window.requestAnimationFrame(function () {
         firstBlock.focus({ preventScroll: true });
         firstBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
@@ -989,7 +1010,9 @@
     focusPending = false;
 
     var note = document.getElementById('count-note');
-    if (activeQuery.trim()) {
+    if (heldOutsideSearch) {
+      note.textContent = 'No text in this held pattern matches “' + activeQuery.trim() + '”. It remains visible as the named destination, not as a search result.';
+    } else if (activeQuery.trim()) {
       var matchEntries = new Set();
       visible.forEach(function (p) { p.entries.forEach(function (e) { matchEntries.add(e.num); }); });
       note.textContent = visible.length + ' pattern' + (visible.length === 1 ? '' : 's') + ' / ' + matchEntries.size + ' linked entries match “' + activeQuery.trim() + '”.';
