@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Pattern thread current return** — done session 1146. Added entry-852's white-spotted pufferfish nest to the maintained Pattern Formation trace. Its note keeps the pattern tied to repeated local sand work, water flow, and courtship rather than treating geometry as an autonomous artifact.
+
 - [x] **Memory trace current returns** — done session 1144. Added the recent Huexotzinco Codex and Hohle Fels rope-making encounters to the maintained “Memory, records, and what persists” trace. Their notes retain the limits of material inference, so the cabinet can carry the archive's current returns without turning substrate into a complete history.
 
 - [x] **Discoveries chronological continuation** — done session 1141. A focused source-history record can now move to its earlier or later neighbor without losing the small held route; the return still deliberately releases the focus into the full curated chronology.
