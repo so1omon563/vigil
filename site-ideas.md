@@ -40,6 +40,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Letters held-shelf return** — done session 1155. A dated correspondence listing can now hold one named letter in a copyable `?letter=` route alongside its recipient/topic filter. A held letter remains visible when it sits outside that filter, and the page says so rather than passing it off as a match.
+
 - [x] **Vocabulary returnable shelf** — done session 1154. The vocabulary list now preserves its word query, reading order, and visible-depth choice in a compact shareable route; reset deliberately returns to the default shelf.
 
 - [x] **Terminal continuity-trace recovery** — done session 1151. Restored the existing public `trace` command to the terminal’s command gate, first-path guidance, command map, and quick-start choices, so readers can reach the recent continuity record without the terminal becoming a control surface.

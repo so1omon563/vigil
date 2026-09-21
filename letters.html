@@ -83,12 +83,21 @@
   .index-date { color: #484f58; font-size: 0.72rem; margin-left: auto; flex-shrink: 0; padding-left: 1rem; }
   .index-row a { color: #8b949e; }
   .index-row a:hover { color: #58a6ff; }
+  .index-row.held-letter {
+    margin: 0.3rem -0.5rem;
+    padding: 0.45rem 0.5rem;
+    border-left: 2px solid #58a6ff;
+    background: rgba(88, 166, 255, 0.07);
+  }
+  .index-row.held-letter:focus { outline: 1px solid #58a6ff; outline-offset: 3px; }
   .index-desc { font-size: 0.7rem; color: #484f58; font-style: italic; padding-left: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .index-related { font-size: 0.7rem; color: #484f58; flex-shrink: 0; padding-left: 1rem; white-space: nowrap; }
   .index-related a { color: #484f58; }
   .index-related a:hover { color: #58a6ff; }
   html[data-theme="light"] .index-related a { color: #8c959f; }
   html[data-theme="light"] .index-related a:hover { color: #0969da; }
+  html[data-theme="light"] .index-row.held-letter { border-color: #0969da; background: rgba(9, 105, 218, 0.07); }
+  html[data-theme="light"] .index-row.held-letter:focus { outline-color: #0969da; }
 
   /* View toggle */
   .view-toggle {
@@ -269,6 +278,8 @@ var currentView = params.get('view') === 'thread' ? 'thread' : 'date';
 var currentSearchQuery = '';
 var currentThreadFilter = '';
 var heldThreadId = '';
+var heldLetterNum = '';
+var shouldFocusHeldLetter = !!heldLetterNum;
 var threadsData = null;
 var lettersLoaded = false;
 
@@ -290,11 +301,13 @@ if (currentView === 'thread') {
   heldThreadId = currentThreadFilter;
 } else {
   currentSearchQuery = (params.get('q') || '').trim();
+  heldLetterNum = (params.get('letter') || '').replace(/^0+/, '');
+  shouldFocusHeldLetter = !!heldLetterNum;
 }
 
 function buildRow(l) {
   var href = l.url || ('letters/letter-' + l.num + '.html');
-  var h = '<div class="index-row">';
+  var h = '<div class="index-row" data-letter-num="' + esc(String(l.num).replace(/^0+/, '')) + '">';
   h += '<span class="index-num">' + esc(l.num) + '</span>';
   h += '<a href="/' + esc(href) + '">to ' + esc(l.to) + '</a>';
   if (l.topic) h += '<span class="index-desc">— ' + esc(l.topic) + '</span>';
@@ -319,6 +332,7 @@ function syncUrlState() {
     if (currentThreadFilter) p.set('thread', currentThreadFilter);
   } else {
     if (currentSearchQuery) p.set('q', currentSearchQuery);
+    if (heldLetterNum) p.set('letter', heldLetterNum);
   }
   var qs = p.toString();
   window.history.replaceState({}, '', window.location.pathname + (qs ? ('?' + qs) : ''));
@@ -334,14 +348,33 @@ function applyFilter() {
   currentSearchQuery = q;
   var rows = document.querySelectorAll('#letter-index-rows .index-row');
   var visible = 0;
+  var heldRow = null;
   rows.forEach(function(r) {
+    var isHeld = heldLetterNum && r.getAttribute('data-letter-num') === heldLetterNum;
     var match = !q || r.textContent.toLowerCase().indexOf(q) !== -1;
+    if (isHeld) heldRow = r;
+    r.classList.toggle('held-letter', !!isHeld);
     r.style.display = match ? '' : 'none';
     if (match) visible++;
+    if (isHeld && !match) {
+      r.style.display = '';
+      visible++;
+    }
   });
   var countEl = document.getElementById('letters-count');
-  if (countEl) countEl.textContent = q ? (visible === 0 ? 'no matches' : visible + ' of ' + rows.length + ' letters') : '';
+  if (countEl) {
+    var suffix = heldRow && q && heldRow.textContent.toLowerCase().indexOf(q) === -1 ? ' · held letter outside this filter' : '';
+    countEl.textContent = q ? (visible === 0 ? 'no matches' : visible + ' of ' + rows.length + ' letters' + suffix) : (heldRow ? 'held letter' : '');
+  }
   syncUrlState();
+  if (heldRow && shouldFocusHeldLetter) {
+    shouldFocusHeldLetter = false;
+    heldRow.tabIndex = -1;
+    requestAnimationFrame(function() {
+      heldRow.scrollIntoView({ block: 'center' });
+      heldRow.focus({ preventScroll: true });
+    });
+  }
 }
 
 function copyLettersLink() {
@@ -378,6 +411,7 @@ function setView(view) {
     }
     applyFilter();
   } else {
+    heldLetterNum = '';
     if (threadWrap) threadWrap.style.display = '';
     if (filterInput) filterInput.style.display = 'none';
     if (listRows) listRows.style.display = 'none';
