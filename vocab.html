@@ -188,13 +188,14 @@
   }
   .controls {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
     gap: 0.6rem;
     align-items: center;
     margin: -0.5rem 0 1.25rem;
   }
   .controls input,
-  .controls select {
+  .controls select,
+  .controls button {
     width: 100%;
     min-height: 36px;
     border: 1px solid #30363d;
@@ -206,6 +207,9 @@
     padding: 0.35rem 0.5rem;
   }
   .controls select { width: auto; }
+  .controls button { cursor: pointer; white-space: nowrap; }
+  .controls button:hover,
+  .controls button:focus { border-color: #58a6ff; color: #58a6ff; outline: none; }
   .result-line {
     font-size: 0.76rem;
     color: #484f58;
@@ -245,7 +249,8 @@
   html[data-theme="light"] .bar-count { color: #57606a; }
   html[data-theme="light"] .coverage { color: #8c959f; }
   html[data-theme="light"] .controls input,
-  html[data-theme="light"] .controls select { background: #ffffff; border-color: #d0d7de; color: #24292e; }
+  html[data-theme="light"] .controls select,
+  html[data-theme="light"] .controls button { background: #ffffff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .result-line { color: #57606a; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .note { border-color: #d0d7de; }
@@ -310,6 +315,8 @@
     <option value="160">160</option>
     <option value="all">all</option>
   </select>
+  <button id="word-reset" type="button">reset</button>
+  <button id="word-copy" type="button">copy this view</button>
 </div>
 <div class="result-line" id="result-line">Loading...</div>
 <div id="bar-list">Loading...</div>
@@ -410,7 +417,30 @@
       var filterEl = document.getElementById('word-filter');
       var sortEl = document.getElementById('word-sort');
       var limitEl = document.getElementById('word-limit');
+      var resetEl = document.getElementById('word-reset');
+      var copyEl = document.getElementById('word-copy');
       var resultEl = document.getElementById('result-line');
+
+      function restoreView() {
+        var params = new URLSearchParams(window.location.search);
+        var sort = params.get('sort');
+        var limit = params.get('limit');
+        var hasOption = function(select, value) {
+          return Array.prototype.some.call(select.options, function(option) { return option.value === value; });
+        };
+        filterEl.value = params.get('q') || '';
+        sortEl.value = hasOption(sortEl, sort) ? sort : 'count';
+        limitEl.value = hasOption(limitEl, limit) ? limit : '80';
+      }
+
+      function writeView(replace) {
+        var url = new URL(window.location.href);
+        var query = filterEl.value.trim();
+        if (query) url.searchParams.set('q', query); else url.searchParams.delete('q');
+        if (sortEl.value === 'count') url.searchParams.delete('sort'); else url.searchParams.set('sort', sortEl.value);
+        if (limitEl.value === '80') url.searchParams.delete('limit'); else url.searchParams.set('limit', limitEl.value);
+        window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+      }
 
       function renderWordList() {
         var query = filterEl.value.trim().toLowerCase();
@@ -465,9 +495,27 @@
         });
       }
 
-      filterEl.addEventListener('input', renderWordList);
-      sortEl.addEventListener('change', renderWordList);
-      limitEl.addEventListener('change', renderWordList);
+      filterEl.addEventListener('input', function() { writeView(true); renderWordList(); });
+      sortEl.addEventListener('change', function() { writeView(false); renderWordList(); });
+      limitEl.addEventListener('change', function() { writeView(false); renderWordList(); });
+      resetEl.addEventListener('click', function() {
+        filterEl.value = '';
+        sortEl.value = 'count';
+        limitEl.value = '80';
+        writeView(false);
+        renderWordList();
+      });
+      copyEl.addEventListener('click', function() {
+        var original = copyEl.textContent;
+        var done = function() {
+          copyEl.textContent = 'copied';
+          window.setTimeout(function() { copyEl.textContent = original; }, 1300);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href).then(done, function() { copyEl.textContent = 'copy unavailable'; });
+        else copyEl.textContent = 'copy unavailable';
+      });
+      window.addEventListener('popstate', function() { restoreView(); renderWordList(); });
+      restoreView();
       renderWordList();
 
       // Footer
