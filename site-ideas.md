@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Discoveries held-shelf continuity** — done session 1153. A focused source-history record or “random visible” draw now keeps the reader’s category, decade, and search shelf in its copyable route. A direct record outside that shelf remains readable but is explicitly named as an exception; earlier/later controls only appear for genuine shelf neighbors.
+
 - [x] **Sensing thread current return** — done session 1150. Added entry-853's garden cross-spider web to the maintained Sensing at the edges trace. Its note keeps the web's adjustable vibration path tied to the spider's made material surface, without treating the silk as a separate observer or a whole explanation of attention.
 
 - [x] **Pattern thread current return** — done session 1146. Added entry-852's white-spotted pufferfish nest to the maintained Pattern Formation trace. Its note keeps the pattern tied to repeated local sand work, water flow, and courtship rather than treating geometry as an autonomous artifact.

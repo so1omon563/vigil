@@ -771,11 +771,17 @@
     return haystack.indexOf(activeQuery.toLowerCase()) !== -1;
   }
 
+  function shelfItems() {
+    return events.filter(function (item) {
+      return (activeCategory === 'all' || item.cat === activeCategory) &&
+        (!activeDecade || item.decade === activeDecade) && matchesQuery(item);
+    });
+  }
+
   function visibleItems() {
     return events.filter(function (item) {
       if (focusedEvent) return eventId(item) === focusedEvent;
-      return (activeCategory === 'all' || item.cat === activeCategory) &&
-        (!activeDecade || item.decade === activeDecade) && matchesQuery(item);
+      return shelfItems().indexOf(item) !== -1;
     });
   }
 
@@ -953,9 +959,11 @@
     if (focusNote) {
       var selected = events.filter(function (item) { return eventId(item) === focusedEvent; })[0];
       focusNote.hidden = !selected;
-      var selectedIndex = events.indexOf(selected);
-      var previous = selectedIndex > 0 ? events[selectedIndex - 1] : null;
-      var next = selectedIndex >= 0 && selectedIndex < events.length - 1 ? events[selectedIndex + 1] : null;
+      var shelf = shelfItems();
+      var selectedIndex = shelf.indexOf(selected);
+      var previous = selectedIndex > 0 ? shelf[selectedIndex - 1] : null;
+      var next = selectedIndex >= 0 && selectedIndex < shelf.length - 1 ? shelf[selectedIndex + 1] : null;
+      var outsideShelf = selectedIndex === -1;
       var neighbors = '';
       if (previous || next) {
         neighbors = '<span class="focus-neighbors" aria-label="Chronology neighbors">' +
@@ -963,16 +971,13 @@
           (next ? '<button class="focus-neighbor" id="focus-next" type="button">later: ' + escapeHtml(next.title) + ' →</button>' : '') +
           '</span>';
       }
-      focusNote.innerHTML = selected ? '<strong>Focused record:</strong> ' + escapeHtml(selected.year) + ' · ' + escapeHtml(selected.title) + '. <button class="focus-return" id="focus-return" type="button">return to the full timeline</button>' + neighbors : '';
+      focusNote.innerHTML = selected ? '<strong>Focused record:</strong> ' + escapeHtml(selected.year) + ' · ' + escapeHtml(selected.title) + '.' +
+        (outsideShelf ? ' This held record sits outside the current category, time slice, or search.' : '') +
+        ' <button class="focus-return" id="focus-return" type="button">return to this slice</button>' + neighbors : '';
       var focusReturn = document.getElementById('focus-return');
       if (focusReturn) {
         focusReturn.addEventListener('click', function () {
-          activeCategory = 'all';
-          activeQuery = '';
-          activeDecade = '';
           focusedEvent = '';
-          if (searchInput) searchInput.value = '';
-          renderControls();
           renderEvents();
           updateUrl(false);
         });
@@ -1002,11 +1007,6 @@
     Array.prototype.forEach.call(timeline.querySelectorAll('.event-focus'), function (button) {
       button.addEventListener('click', function () {
         focusedEvent = button.getAttribute('data-event') || '';
-        activeCategory = 'all';
-        activeQuery = '';
-        activeDecade = '';
-        if (searchInput) searchInput.value = '';
-        renderControls();
         renderEvents();
         updateUrl(false);
       });
@@ -1048,15 +1048,10 @@
 
   if (randomVisible) {
     randomVisible.addEventListener('click', function () {
-      var choices = visibleItems();
+      var choices = shelfItems();
       if (!choices.length) return;
       var selected = choices[Math.floor(Math.random() * choices.length)];
       focusedEvent = eventId(selected);
-      activeCategory = 'all';
-      activeQuery = '';
-      activeDecade = '';
-      if (searchInput) searchInput.value = '';
-      renderControls();
       renderEvents();
       updateUrl(false);
     });
