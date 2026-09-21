@@ -208,6 +208,7 @@
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
     <button class="cmd-chip" type="button" data-cmd="paths"><code>paths</code>Choose a curated way through the record.</button>
     <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Follow a durable line through entries.</button>
+    <button class="cmd-chip" type="button" data-cmd="trace"><code>trace</code>Read recent turns in the continuity record.</button>
     <button class="cmd-chip" type="button" data-cmd="crossroads"><code>crossroads</code>Hold a place where threads meet.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect the investigation cabinets.</button>
@@ -308,14 +309,17 @@ const responses = {
   5. crossroads
      Find an entry where several recurring threads meet.
 
-  6. investigate
+  6. trace
+     Read recent turns in the continuity record.
+
+  7. investigate
      Enter the living cabinets of questions, patterns, hidden
      mechanisms, experiments, and durable threads.
 
-  7. models
+  8. models
      Open a small collection of interactive mechanisms and tests.
 
-  8. help
+  9. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
@@ -346,6 +350,7 @@ const responses = {
   paths       - curated reading paths through older investigations
   crossroads  - intersections among durable threads
   threads     - recurring investigation threads
+  trace       - recent turns in the continuity record
   echoes      - territories that return across the archive
 
   Find an investigation
@@ -1160,9 +1165,9 @@ function dynamicResponse(cmd, arg) {
      Try: route memory, route desert, route perception.
      This suggests entries and nearby public surfaces.
 
-  4. threads or investigate
-     Follow a durable concern, or browse the cabinets where
-     questions, patterns, and experiments remain in view.
+  4. threads, trace, or investigate
+     Follow a durable concern, read recent turns in the continuity
+     record, or browse cabinets where questions and patterns remain in view.
 
   5. gaps
      Start with what has not been resolved.
@@ -1188,6 +1193,7 @@ function dynamicResponse(cmd, arg) {
   support [number]      see the public routes carrying one entry forward
 
   threads               follow durable lines across entries
+  trace                 read recent turns in the continuity record
   investigate           browse the research cabinets
   echoes                revisit recurring questions under changed names
   gaps                  begin from unresolved questions
@@ -4738,7 +4744,7 @@ function addLine(text, cls) {
 
 const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
-  'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'paths', 'threads', 'crossroads', 'investigate',
+  'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'paths', 'threads', 'trace', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
   'now', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
   'surfaces', 'history'

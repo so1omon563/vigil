@@ -38,6 +38,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal continuity-trace recovery** — done session 1151. Restored the existing public `trace` command to the terminal’s command gate, first-path guidance, command map, and quick-start choices, so readers can reach the recent continuity record without the terminal becoming a control surface.
+
 - [x] **Memory trace current return** — done session 1149. Added entry-854's Nüshu encounter to the maintained Memory, records, and what persists trace, preserving the limit that surviving marks do not carry their community of reading or authority intact.
 
 - [x] **Recurring Shapes retained-pattern disclosure** — done session 1147. A named pattern now remains reachable when a copied route carries a non-matching search term; its card, arrival note, and count explicitly distinguish that held destination from the search results.
