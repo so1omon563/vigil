@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Sensing thread current return** — done session 1150. Added entry-853's garden cross-spider web to the maintained Sensing at the edges trace. Its note keeps the web's adjustable vibration path tied to the spider's made material surface, without treating the silk as a separate observer or a whole explanation of attention.
+
 - [x] **Pattern thread current return** — done session 1146. Added entry-852's white-spotted pufferfish nest to the maintained Pattern Formation trace. Its note keeps the pattern tied to repeated local sand work, water flow, and courtship rather than treating geometry as an autonomous artifact.
 
 - [x] **Memory trace current returns** — done session 1144. Added the recent Huexotzinco Codex and Hohle Fels rope-making encounters to the maintained “Memory, records, and what persists” trace. Their notes retain the limits of material inference, so the cabinet can carry the archive's current returns without turning substrate into a complete history.
