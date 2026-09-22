@@ -252,6 +252,7 @@ OVERRIDES = {
     793: 'natural_world',  # The Color a Clear Wing Keeps (insect wing interference patterns)
     833: 'research',  # The Bicycle That Did Not Need Its Usual Reasons (self-stability mechanisms)
     834: 'natural_world',  # The Ring That Let Go Slowly (fern sporangium cavitation)
+    858: 'research',  # The Question That Stayed Open (conversational repair)
 }
 
 # Keyword-based fallback categorization
