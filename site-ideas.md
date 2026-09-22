@@ -408,6 +408,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Letters held-neighborhood continuation** — done session 1162. A focused letter can now move to the newer or older letter within the reader's current date-view filter, preserving that small, copyable correspondence route instead of returning to an unfiltered shelf.
+
 - [x] **Weather held-day continuity** — done session 1155. A held local weather day can now move earlier or later through the adjacent stored days without giving up its precise `?day=` route; edge controls state when no neighboring record exists.
 
 - [x] **Convergences cabinet boundary** — done session 1019. Made the curated, non-automatic status of the convergence cabinet explicit; it now shows the newest held entry, how much later archive material remains unclassified, and a clearly separate route into recent research encounters.

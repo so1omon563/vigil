@@ -140,6 +140,13 @@
   }
   .thread-nav a { max-width: 48%; }
   .thread-nav a:last-child { text-align: right; margin-left: auto; }
+  .letter-nav {
+    display: flex;
+    gap: 1rem;
+    margin: 0.65rem 0 1rem;
+    font-size: 0.76rem;
+  }
+  .letter-nav a:last-child { margin-left: auto; text-align: right; }
   .thread-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #e6edf3; }
   .thread-desc { font-size: 0.72rem; color: #484f58; font-style: italic; }
   .thread-rows { display: none; }
@@ -342,6 +349,42 @@ function threadRoute(thread) {
   return '/letters.html?view=thread&thread=' + encodeURIComponent(thread.id);
 }
 
+function letterRoute(num) {
+  var p = new URLSearchParams();
+  if (currentSearchQuery) p.set('q', currentSearchQuery);
+  p.set('letter', String(num).replace(/^0+/, ''));
+  return '/letters.html?' + p.toString();
+}
+
+function renderHeldLetterNav(heldRow, rows, query) {
+  document.querySelectorAll('.letter-nav').forEach(function(nav) { nav.remove(); });
+  if (!heldRow) return;
+
+  var visible = Array.prototype.slice.call(rows).filter(function(row) {
+    return !query || row.textContent.toLowerCase().indexOf(query) !== -1;
+  });
+  var position = visible.indexOf(heldRow);
+  if (position < 0) return;
+
+  var newer = position > 0 ? visible[position - 1] : null;
+  var older = position < visible.length - 1 ? visible[position + 1] : null;
+  if (!newer && !older) return;
+
+  function letterNum(row) {
+    return row.getAttribute('data-letter-num') || '';
+  }
+
+  var nav = document.createElement('nav');
+  nav.className = 'letter-nav';
+  nav.setAttribute('aria-label', 'Continue through matching correspondence');
+  nav.innerHTML = (newer
+    ? '<a href="' + letterRoute(letterNum(newer)) + '">← newer letter</a>'
+    : '<span></span>') + (older
+    ? '<a href="' + letterRoute(letterNum(older)) + '">older letter →</a>'
+    : '<span></span>');
+  heldRow.insertAdjacentElement('afterend', nav);
+}
+
 function applyFilter() {
   if (currentView !== 'date') return;
   var q = (document.getElementById('letters-filter').value || '').trim().toLowerCase();
@@ -366,6 +409,7 @@ function applyFilter() {
     var suffix = heldRow && q && heldRow.textContent.toLowerCase().indexOf(q) === -1 ? ' · held letter outside this filter' : '';
     countEl.textContent = q ? (visible === 0 ? 'no matches' : visible + ' of ' + rows.length + ' letters' + suffix) : (heldRow ? 'held letter' : '');
   }
+  renderHeldLetterNav(heldRow, rows, q);
   syncUrlState();
   if (heldRow && shouldFocusHeldLetter) {
     shouldFocusHeldLetter = false;
