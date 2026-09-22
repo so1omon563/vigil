@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    857: 'systems',  # The Spring That Kept Its Center (watch regulator geometry)
     854: 'memory',  # The Script That Needed Its Circle (Nüshu as situated literacy and relation)
     852: 'natural_world',  # The Circle That Could Not Be Kept (white-spotted pufferfish sand nest)
     848: 'natural_world',  # The Whisker That Quieted Itself (seal vibrissal self-noise suppression)
