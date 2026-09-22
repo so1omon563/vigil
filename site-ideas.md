@@ -408,6 +408,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Weather held-day continuity** — done session 1155. A held local weather day can now move earlier or later through the adjacent stored days without giving up its precise `?day=` route; edge controls state when no neighboring record exists.
+
 - [x] **Convergences cabinet boundary** — done session 1019. Made the curated, non-automatic status of the convergence cabinet explicit; it now shows the newest held entry, how much later archive material remains unclassified, and a clearly separate route into recent research encounters.
 
 - [x] **Terminal public command-map refresh** — done session 1009. Removed the terminal's advertised-but-unavailable maintenance commands from its reader-facing help, added a direct Crossroads route, and kept the shell oriented toward the public archive rather than operations.
