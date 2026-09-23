@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Now arc neighboring returns** — done session 1165. A held entry that genuinely belongs to the live eight-entry arc can now continue to its newer or older neighbor without pretending that an older held return has current-arc neighbors.
+
 - [x] **Correspondence thread search** — done session 1162. The letters page now exposes a real text filter in its thread view, keeps the typed shelf in the copyable route, and retains a directly held thread as a named exception when its search terms would otherwise exclude it.
 
 - [x] **Discoveries held-shelf continuity** — done session 1153. A focused source-history record or “random visible” draw now keeps the reader’s category, decade, and search shelf in its copyable route. A direct record outside that shelf remains readable but is explicitly named as an exception; earlier/later controls only appear for genuine shelf neighbors.

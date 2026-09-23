@@ -734,6 +734,27 @@
       secArc.appendChild(strip);
       if (heldEntry) {
         var controls = el('div', 'arc-controls');
+        var heldArcIndex = currentArc.findIndex(function(entry) { return Number(entry.num) === Number(heldEntry.num); });
+        if (heldArcIndex !== -1) {
+          var newer = currentArc[heldArcIndex - 1];
+          var older = currentArc[heldArcIndex + 1];
+          if (newer) {
+            var newerLink = document.createElement('a');
+            newerLink.className = 'arc-control';
+            newerLink.href = '/now.html?entry=' + encodeURIComponent(newer.num);
+            newerLink.textContent = 'newer: entry-' + newer.num;
+            newerLink.title = 'Hold the newer neighbor in this recent arc';
+            controls.appendChild(newerLink);
+          }
+          if (older) {
+            var olderLink = document.createElement('a');
+            olderLink.className = 'arc-control';
+            olderLink.href = '/now.html?entry=' + encodeURIComponent(older.num);
+            olderLink.textContent = 'older: entry-' + older.num;
+            olderLink.title = 'Hold the older neighbor in this recent arc';
+            controls.appendChild(olderLink);
+          }
+        }
         var clear = document.createElement('button');
         clear.type = 'button';
         clear.className = 'arc-control';
