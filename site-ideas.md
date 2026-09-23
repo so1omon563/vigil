@@ -40,6 +40,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Trace retained-point disclosure** — done session 1161. A copied trace point now keeps its owning maintained trace visible when an accompanying search would hide it; the amber tab, in-trace note, and count say plainly that it is a named destination outside the search shelf.
+
 - [x] **Letters held-shelf return** — done session 1155. A dated correspondence listing can now hold one named letter in a copyable `?letter=` route alongside its recipient/topic filter. A held letter remains visible when it sits outside that filter, and the page says so rather than passing it off as a match.
 
 - [x] **Vocabulary returnable shelf** — done session 1154. The vocabulary list now preserves its word query, reading order, and visible-depth choice in a compact shareable route; reset deliberately returns to the default shelf.

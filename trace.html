@@ -99,9 +99,17 @@
   }
   .thread-tab:hover { border-color: #58a6ff; color: #58a6ff; }
   .thread-tab.active { border-color: #58a6ff; color: #e6edf3; background: #161b22; }
+  .thread-tab.held-outside { border-style: dashed; color: #d29922; }
 
   .thread { display: none; }
   .thread.visible { display: block; }
+  .thread.route-outside-search .thread-header::after {
+    content: "Named trace retained outside this search shelf.";
+    display: block;
+    color: #8b949e;
+    font-size: 0.72rem;
+    margin-top: 0.65rem;
+  }
 
   .thread-header { margin-bottom: 2rem; }
   .thread-name { font-size: 1.1rem; font-weight: bold; color: #e6edf3; margin-bottom: 0.4rem; }
@@ -305,6 +313,7 @@
   html[data-theme="light"] .node-hold:hover { color: #0969da; }
   html[data-theme="light"] .entry-node.held .node-dot { border-color: #9a6700; background: #f6f8fa; }
   html[data-theme="light"] .entry-node.held .node-content { outline-color: #9a6700; }
+  html[data-theme="light"] .thread-tab.held-outside { color: #9a6700; }
   html[data-theme="light"] .entry-node-final .node-source { border-color: #1a7f37; color: #57606a; }
   html[data-theme="light"] .entry-node-final .node-title a { color: #1a7f37; }
   html[data-theme="light"] .entry-node-final .node-title a:hover { color: #238636; }
@@ -527,7 +536,24 @@
 
   function showThread(threads, targetId, query, order, tabs, content, historyMode, entryNum) {
     var needle = String(query || '').trim().toLowerCase();
-    var visible = orderedThreads(threads.filter(function(thread) { return thread.searchText.indexOf(needle) !== -1; }), order);
+    var matched = orderedThreads(threads.filter(function(thread) { return thread.searchText.indexOf(needle) !== -1; }), order);
+    var visible = matched.slice();
+    // A copied point is a named destination. Keep its owning trace available even
+    // when the surrounding search shelf would otherwise hide it.
+    var requested = threads.filter(function(thread) { return thread.id === targetId; })[0];
+    var pointOwner = entryNum ? threads.filter(function(thread) {
+      return thread.entries.some(function(entry) { return String(entry.num) === String(entryNum); });
+    }).filter(function(thread) {
+      return !requested || requested.id === thread.id;
+    })[0] : null;
+    if (!pointOwner && entryNum) {
+      pointOwner = threads.filter(function(thread) {
+        return thread.entries.some(function(entry) { return String(entry.num) === String(entryNum); });
+      })[0];
+    }
+    var retained = pointOwner || requested;
+    var retainedOutsideSearch = !!(retained && matched.indexOf(retained) === -1);
+    if (retainedOutsideSearch) visible.unshift(retained);
     tabs.innerHTML = '';
     content.innerHTML = '';
 
@@ -541,8 +567,11 @@
       btn.setAttribute('aria-controls', thread.id);
       btn.setAttribute('aria-selected', 'false');
       btn.tabIndex = -1;
+      if (retainedOutsideSearch && thread.id === retained.id) btn.classList.add('held-outside');
       btn.textContent = thread.title;
       tabs.appendChild(btn);
+      if (retainedOutsideSearch && thread.id === retained.id) thread.section.classList.add('route-outside-search');
+      else thread.section.classList.remove('route-outside-search');
       content.appendChild(thread.section);
     });
 
@@ -590,7 +619,13 @@
     }
 
     var note = document.getElementById('thread-filter-note');
-    if (note) note.textContent = visible.length ? visible.length + ' of ' + threads.length + ' traces visible' : 'No traces match this filter.';
+    if (note) {
+      if (retainedOutsideSearch) {
+        note.textContent = matched.length + ' of ' + threads.length + ' traces match this filter; one named trace remains visible outside it.';
+      } else {
+        note.textContent = visible.length ? visible.length + ' of ' + threads.length + ' traces visible' : 'No traces match this filter.';
+      }
+    }
 
     var random = document.getElementById('thread-random');
     if (random) {
