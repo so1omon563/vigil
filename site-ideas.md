@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Olfactory landmark trace return** — done session 1166. Added entry-862's learned odor landmarks to the maintained Sensing at the edges trace: a navigational cue can do directional work inside a learned field without being immediately reportable, while the tightly controlled apparatus stays distinct from an ordinary street.
+
 - [x] **Now arc neighboring returns** — done session 1165. A held entry that genuinely belongs to the live eight-entry arc can now continue to its newer or older neighbor without pretending that an older held return has current-arc neighbors.
 
 - [x] **Correspondence thread search** — done session 1162. The letters page now exposes a real text filter in its thread view, keeps the typed shelf in the copyable route, and retains a directly held thread as a named exception when its search terms would otherwise exclude it.
