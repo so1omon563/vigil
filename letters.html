@@ -282,11 +282,11 @@
 var MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var params = new URLSearchParams(window.location.search);
 var currentView = params.get('view') === 'thread' ? 'thread' : 'date';
-var currentSearchQuery = '';
-var currentThreadFilter = '';
+var currentSearchQuery = (params.get('q') || '').trim();
 var heldThreadId = '';
 var heldLetterNum = '';
 var shouldFocusHeldLetter = !!heldLetterNum;
+var shouldFocusHeldThread = false;
 var threadsData = null;
 var lettersLoaded = false;
 
@@ -304,10 +304,9 @@ function normalizeThreadToken(value) {
 }
 
 if (currentView === 'thread') {
-  currentThreadFilter = normalizeThreadToken(params.get('thread'));
-  heldThreadId = currentThreadFilter;
+  heldThreadId = normalizeThreadToken(params.get('thread'));
+  shouldFocusHeldThread = !!heldThreadId;
 } else {
-  currentSearchQuery = (params.get('q') || '').trim();
   heldLetterNum = (params.get('letter') || '').replace(/^0+/, '');
   shouldFocusHeldLetter = !!heldLetterNum;
 }
@@ -334,11 +333,11 @@ function buildRow(l) {
 
 function syncUrlState() {
   var p = new URLSearchParams();
+  if (currentSearchQuery) p.set('q', currentSearchQuery);
   if (currentView === 'thread') {
     p.set('view', 'thread');
-    if (currentThreadFilter) p.set('thread', currentThreadFilter);
+    if (heldThreadId) p.set('thread', heldThreadId);
   } else {
-    if (currentSearchQuery) p.set('q', currentSearchQuery);
     if (heldLetterNum) p.set('letter', heldLetterNum);
   }
   var qs = p.toString();
@@ -346,7 +345,11 @@ function syncUrlState() {
 }
 
 function threadRoute(thread) {
-  return '/letters.html?view=thread&thread=' + encodeURIComponent(thread.id);
+  var p = new URLSearchParams();
+  p.set('view', 'thread');
+  if (currentSearchQuery) p.set('q', currentSearchQuery);
+  p.set('thread', thread.id);
+  return '/letters.html?' + p.toString();
 }
 
 function letterRoute(num) {
@@ -421,6 +424,12 @@ function applyFilter() {
   }
 }
 
+function applySearch() {
+  currentSearchQuery = (document.getElementById('letters-filter').value || '').trim();
+  if (currentView === 'thread') buildThreadView();
+  else applyFilter();
+}
+
 function copyLettersLink() {
   var btn = document.getElementById('copy-letters-link');
   if (!btn || !navigator.clipboard) return;
@@ -442,11 +451,13 @@ function setView(view) {
   var filterInput = document.getElementById('letters-filter');
   var listRows = document.getElementById('letter-index-rows');
   if (view === 'date') {
-    currentThreadFilter = '';
     heldThreadId = '';
     if (listRows) listRows.style.display = '';
     if (threadWrap) threadWrap.style.display = '';
-    if (filterInput) filterInput.style.display = '';
+    if (filterInput) {
+      filterInput.style.display = '';
+      filterInput.placeholder = 'Filter by recipient or topic…';
+    }
     document.querySelector('.letter-index').querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
     document.querySelector('.letter-index').querySelectorAll('.thread-empty').forEach(function(n) { n.remove(); });
     indexLabel.textContent = 'Contents';
@@ -457,7 +468,11 @@ function setView(view) {
   } else {
     heldLetterNum = '';
     if (threadWrap) threadWrap.style.display = '';
-    if (filterInput) filterInput.style.display = 'none';
+    if (filterInput) {
+      filterInput.style.display = '';
+      filterInput.placeholder = 'Filter threads by subject or description…';
+      filterInput.value = currentSearchQuery;
+    }
     if (listRows) listRows.style.display = 'none';
     indexLabel.textContent = 'By thread';
     if (!threadsData) {
@@ -479,7 +494,7 @@ function setView(view) {
 function buildThreadView() {
   var letterIndex = document.querySelector('.letter-index');
   var indexLabel = document.getElementById('index-label');
-  var query = normalizeThreadToken(currentThreadFilter);
+  var query = normalizeThreadToken(currentSearchQuery);
   var visibleThreads = 0;
   var visibleLetters = 0;
   document.getElementById('letter-index-rows').style.display = 'none';
@@ -496,19 +511,20 @@ function buildThreadView() {
 
   var heldThread = threadsData.filter(function(thread) { return thread.id === heldThreadId; })[0] || null;
   if (heldThread) {
-    query = '';
-    indexLabel.textContent = 'Correspondence thread: ' + heldThread.label;
+    indexLabel.textContent = 'Correspondence thread: ' + heldThread.label + (query ? ' · searching “' + query + '”' : '');
   }
 
   threadsData.forEach(function(thread) {
     var label = normalizeThreadToken(thread.label);
     var desc = normalizeThreadToken(thread.desc);
-    if (query && label.indexOf(query) === -1 && desc.indexOf(query) === -1) return;
+    var isHeld = heldThread && thread.id === heldThread.id;
+    var matches = !query || label.indexOf(query) !== -1 || desc.indexOf(query) !== -1;
+    if (!matches && !isHeld) return;
 
     var group = document.createElement('div');
     group.className = 'thread-group';
     group.id = 'letter-thread-' + thread.id;
-    if (heldThread && thread.id === heldThread.id) {
+    if (isHeld) {
       group.tabIndex = -1;
       group.setAttribute('aria-label', 'Held correspondence thread: ' + thread.label);
     }
@@ -549,7 +565,8 @@ function buildThreadView() {
 
   var countEl = document.getElementById('letters-count');
   if (countEl) {
-    countEl.textContent = visibleThreads === 0 ? 'no thread matches' : (visibleThreads + ' thread' + (visibleThreads === 1 ? '' : 's') + ' · ' + visibleLetters + ' letters shown');
+    var heldOutside = heldThread && query && normalizeThreadToken(heldThread.label).indexOf(query) === -1 && normalizeThreadToken(heldThread.desc).indexOf(query) === -1;
+    countEl.textContent = visibleThreads === 0 ? 'no thread matches' : (visibleThreads + ' thread' + (visibleThreads === 1 ? '' : 's') + ' · ' + visibleLetters + ' letters shown' + (heldOutside ? ' · held thread outside this filter' : ''));
   }
 
   if (visibleThreads === 0) {
@@ -559,7 +576,8 @@ function buildThreadView() {
     letterIndex.appendChild(msg);
   }
 
-  if (heldThread) {
+  if (heldThread && shouldFocusHeldThread) {
+    shouldFocusHeldThread = false;
     var heldGroup = document.getElementById('letter-thread-' + heldThread.id);
     if (heldGroup) {
       requestAnimationFrame(function() {
@@ -583,7 +601,7 @@ fetch('/letters-index.json')
     var filterInput = document.getElementById('letters-filter');
     if (filterInput) {
       filterInput.value = currentSearchQuery;
-      filterInput.addEventListener('input', applyFilter);
+      filterInput.addEventListener('input', applySearch);
     }
 
     if (currentView === 'thread') {
