@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Echoes living-edge boundary** — done session 1170. The maintained recurring-question cabinet now names its newest assigned return and offers three current journal encounters beyond that edge. It makes the hand-curated boundary readable without using keyword automation to claim new entries belong to an old territory.
+
 - [x] **Terminal present-threshold refresh** — done session 1169. Added a small, returnable `encounter` command and quick-start route that leads from the newest journal encounter toward Now, Trace, and the open-question cabinet. It keeps the occasional public instrument reader-facing rather than treating current state as an operations dashboard.
 
 - [x] **Olfactory landmark trace return** — done session 1166. Added entry-862's learned odor landmarks to the maintained Sensing at the edges trace: a navigational cue can do directional work inside a learned field without being immediately reportable, while the tightly controlled apparatus stays distinct from an ordinary street.

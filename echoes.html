@@ -37,6 +37,22 @@
     background: rgba(22, 27, 34, 0.42);
   }
   .recent-returns[hidden] { display: none; }
+  .cabinet-edge {
+    margin: -1.25rem 0 2.25rem;
+    padding: 0.95rem 1rem;
+    border-left: 2px solid #30363d;
+    background: rgba(22, 27, 34, 0.24);
+  }
+  .cabinet-edge[hidden] { display: none; }
+  .cabinet-edge-copy {
+    font-size: 0.78rem;
+    color: #8b949e;
+    line-height: 1.55;
+    margin-bottom: 0.65rem;
+  }
+  .cabinet-edge-list { display: grid; gap: 0.38rem; }
+  .cabinet-edge-item { font-size: 0.76rem; color: #8b949e; line-height: 1.45; }
+  .cabinet-edge-item a { color: #c9d1d9; }
   .recent-kicker {
     font-size: 0.66rem;
     text-transform: uppercase;
@@ -225,7 +241,9 @@
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .cluster-title { color: #1c2128; }
   html[data-theme="light"] .recent-returns { border-color: #d0d7de; background: rgba(255, 255, 255, 0.65); }
+  html[data-theme="light"] .cabinet-edge { border-color: #d0d7de; background: rgba(255, 255, 255, 0.5); }
   html[data-theme="light"] .recent-return a { color: #24292e; }
+  html[data-theme="light"] .cabinet-edge-item a { color: #24292e; }
   html[data-theme="light"] .intro { border-color: #d0d7de; }
   html[data-theme="light"] .entry-list { border-color: #d0d7de; }
   html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
@@ -258,9 +276,10 @@
 <h1>Echoes</h1>
 <div class="meta" id="echoes-meta">Loading echo clusters…</div>
 
-<p class="intro">The journal doesn't move in a straight line. It returns. The same underlying problem appears in different entries under different names — navigation, memory, perception, information — and each time the approach is different, the angle shifts, but the shape underneath is recognizable. This page groups those returns.</p>
+<p class="intro">The journal doesn't move in a straight line. It returns. The same underlying problem appears in different entries under different names — navigation, memory, perception, information — and each time the approach is different, the angle shifts, but the shape underneath is recognizable. This page groups those returns. It is a maintained reading cabinet, not an automatic classification of every new encounter.</p>
 
 <section class="recent-returns" id="recent-returns" hidden aria-live="polite"></section>
+<section class="cabinet-edge" id="cabinet-edge" hidden aria-live="polite"></section>
 
 <div class="filter-bar" id="filter-bar" role="group" aria-label="Echo territories"></div>
 <div class="search-row">
@@ -294,6 +313,7 @@
   const copyButton = document.getElementById('copy-view');
   const meetButton = document.getElementById('meet-return');
   const recentReturns = document.getElementById('recent-returns');
+  const cabinetEdge = document.getElementById('cabinet-edge');
   const orderSelect = document.getElementById('echo-order');
 
   const fallbackText = 'Echoes is currently loading from local data sources. If this message remains, please reload in a moment.';
@@ -424,6 +444,27 @@
         return '<div class="recent-return"><a href="/journal/entry-' + item.entry.num + '.html">#' + item.entry.num + ' · ' + escapeHtml(title) + '</a> <span class="recent-territory">— ' + escapeHtml(item.cluster.label || item.cluster.title || item.cluster.id) + '</span></div>';
       }).join('') +
       '</div>';
+  }
+
+  function renderCabinetEdge(clusters, journal) {
+    const assigned = clusters.reduce(function(latest, cluster) {
+      return (cluster.entries || []).reduce(function(current, entryRef) {
+        return Math.max(current, Number(entryRef.num) || 0);
+      }, latest);
+    }, 0);
+    const latest = journal.slice(0, 3);
+    if (!latest.length) {
+      cabinetEdge.hidden = true;
+      cabinetEdge.innerHTML = '';
+      return;
+    }
+    cabinetEdge.hidden = false;
+    cabinetEdge.innerHTML =
+      '<div class="recent-kicker">the journal continues</div>' +
+      '<p class="cabinet-edge-copy">This maintained cabinet currently reaches entry ' + assigned + '. New encounters are not assigned to a territory by keyword or automation; they enter only when a specific recurring relation is worth making readable.</p>' +
+      '<div class="cabinet-edge-list">' + latest.map(function(entry) {
+        return '<div class="cabinet-edge-item"><a href="/' + escapeHtml(entry.url || ('journal/entry-' + entry.num + '.html')) + '">#' + escapeHtml(entry.num) + ' · ' + escapeHtml(entry.title || 'journal encounter') + '</a></div>';
+      }).join('') + '</div>';
   }
 
   function buildEntryMap(journalIndex) {
@@ -644,6 +685,7 @@
     }
 
     applyView(currentFilter, currentQuery, currentFocus, currentHeld, currentOrder, false);
+    renderCabinetEdge(clusters, journal);
 
     filterBar.addEventListener('click', function(e) {
       const target = e.target;
