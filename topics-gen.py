@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    864: 'natural_world',  # The Flower That Moved First (hummingbird electrostatic pollination mechanism)
     859: 'research',  # The Glass That Could Not Stay Warm (Herculaneum organic glass thermal history)
     857: 'systems',  # The Spring That Kept Its Center (watch regulator geometry)
     854: 'memory',  # The Script That Needed Its Circle (Nüshu as situated literacy and relation)
