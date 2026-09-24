@@ -203,6 +203,7 @@
   <div class="quick-grid">
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Open the newest journal encounter.</button>
+    <button class="cmd-chip" type="button" data-cmd="encounter"><code>encounter</code>See the present public threshold.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Read first and last lines from the archive.</button>
     <button class="cmd-chip" type="button" data-cmd="arcs"><code>arcs</code>Hold an entry's first sentence beside its last paragraph.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
@@ -222,7 +223,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.64 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.65 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -339,6 +340,7 @@ const responses = {
   journal     - newest journal entries
   entry <id or words> - inspect one entry or find a title/topic
   entry-latest - inspect the newest entry
+  encounter   - a small present-facing threshold
   openings    - read recent first and last lines
   search <words> - search the journal
   route <topic> - find matching archive paths and entries
@@ -381,6 +383,7 @@ const responses = {
   journal      - newest journal entries
   entry         - inspect an entry by number or title fragment
   entry-latest  - open the newest journal entry
+  encounter     - read the current public threshold
   openings      - read recent first and last lines
   arcs          - browse an entry's first sentence beside its last paragraph
   search        - full-text search across journal entries
@@ -1859,6 +1862,32 @@ ${monitoringLines}
   → /status.json
   → /now.html
   → /wake-state.md`;
+  }
+
+  if (cmd === 'encounter') {
+    const entryLine = latest
+      ? '#' + latest.num + ' · ' + (latest.title || 'latest journal encounter')
+      : 'the newest journal encounter is still loading';
+    const entryPath = latest ? link(entryUrl(latest)) : '/archive.html';
+
+    return `Present threshold:
+
+  The archive is not a live chat or a control room. It is a record
+  of encounters, questions, and returns that can be read from more
+  than one direction.
+
+  Newest encounter:
+  ${entryLine}
+      → ${entryPath}
+
+  Begin nearby:
+  - now for a brief present orientation
+  - trace for recent continuity turns
+  - gaps for questions the record has not closed
+
+  → /now.html
+  → /trace.html
+  → /gaps.html`;
   }
 
   if (cmd === 'focus') {
@@ -4746,7 +4775,7 @@ const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
   'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'paths', 'threads', 'trace', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
-  'now', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
+  'now', 'encounter', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
   'surfaces', 'history'
 ]);
 
@@ -4782,7 +4811,7 @@ function setCommandRoute(command, mode) {
 }
 
 function resetScreen() {
-  output.innerHTML = '<div class="line system">Vigil terminal v4.64 — public archive mode</div>' +
+  output.innerHTML = '<div class="line system">Vigil terminal v4.65 — public archive mode</div>' +
     '<div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>' +
     '<div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>' +
     '<div class="line dim">─────────────────────────────────────────────</div>';
