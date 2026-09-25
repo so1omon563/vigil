@@ -151,6 +151,20 @@
   .thread-end a { color: #8b949e; }
   .thread-end a:hover { color: #58a6ff; }
 
+  .point-navigation {
+    align-items: center;
+    border-left: 2px solid #d29922;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.8rem;
+    margin: 0 0 1.6rem;
+    padding: 0.55rem 0 0.55rem 0.8rem;
+  }
+  .point-navigation-label { color: #8b949e; font-size: 0.72rem; }
+  .point-navigation a { color: #c9d1d9; font-size: 0.75rem; }
+  .point-navigation a:hover { color: #58a6ff; }
+  .point-navigation .point-edge { color: #484f58; font-size: 0.72rem; }
+
   .thread-missing { color: #8b949e; font-size: 0.85rem; }
 
   .entry-node {
@@ -298,6 +312,9 @@
   html[data-theme="light"] .trace-order { color: #57606a; }
   html[data-theme="light"] .trace-order select { background: #fff; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .thread-name { color: #1c2128; }
+  html[data-theme="light"] .point-navigation { border-color: #bf8700; }
+  html[data-theme="light"] .point-navigation a { color: #24292e; }
+  html[data-theme="light"] .point-navigation .point-edge { color: #57606a; }
   html[data-theme="light"] .thread-desc { color: #57606a; }
   html[data-theme="light"] .thread-end { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread-end a { color: #57606a; }
@@ -519,6 +536,31 @@
     });
   }
 
+  function pointNavigationMarkup(thread, entryNum, query, order) {
+    if (!thread || !entryNum) return '';
+    var items = thread.entries.slice().sort(function(a, b) {
+      return (Number(a.num) || 0) - (Number(b.num) || 0);
+    });
+    var currentIndex = items.map(function(item) { return String(item.num); }).indexOf(String(entryNum));
+    if (currentIndex === -1) return '';
+
+    var previous = items[currentIndex - 1];
+    var next = items[currentIndex + 1];
+    var html = '<nav class="point-navigation" aria-label="Adjacent points in this trace">' +
+      '<span class="point-navigation-label">this point in the maintained trace</span>';
+    if (previous) {
+      html += '<a href="' + holdUrl(thread.id, previous.num, query, order) + '">← entry-' + escapeHtml(previous.num) + '</a>';
+    } else {
+      html += '<span class="point-edge">beginning of this trace</span>';
+    }
+    if (next) {
+      html += '<a href="' + holdUrl(thread.id, next.num, query, order) + '">entry-' + escapeHtml(next.num) + ' →</a>';
+    } else {
+      html += '<span class="point-edge">latest curated return</span>';
+    }
+    return html + '</nav>';
+  }
+
   function orderedThreads(threads, order) {
     var copy = threads.slice();
     function bounds(thread) {
@@ -605,12 +647,18 @@
     }
 
     content.querySelectorAll('.entry-node.held').forEach(function(node) { node.classList.remove('held'); });
+    content.querySelectorAll('.point-navigation').forEach(function(node) { node.remove(); });
     if (entryNum && selectedThread) {
       var held = Array.prototype.filter.call(selectedThread.querySelectorAll('.entry-node'), function(node) {
         return node.id === 'trace-entry-' + String(entryNum);
       })[0];
       if (held) {
         held.classList.add('held');
+        var selectedData = threads.filter(function(thread) { return thread.id === selectedThread.id; })[0];
+        var pointNavigation = pointNavigationMarkup(selectedData, entryNum, needle, order);
+        if (pointNavigation) {
+          selectedThread.insertAdjacentHTML('afterbegin', pointNavigation);
+        }
         setTimeout(function() {
           held.focus({ preventScroll: true });
           held.scrollIntoView({ block: 'center', behavior: 'smooth' });

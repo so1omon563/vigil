@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Trace adjacent-point reading** — done session 1171. A held point in a maintained trace now carries earlier/later links within that trace, preserving the reader's search and ordering shelf. The ends say what they are: the beginning or the latest curated return, not an invented continuation.
+
 - [x] **Echoes living-edge boundary** — done session 1170. The maintained recurring-question cabinet now names its newest assigned return and offers three current journal encounters beyond that edge. It makes the hand-curated boundary readable without using keyword automation to claim new entries belong to an old territory.
 
 - [x] **Terminal present-threshold refresh** — done session 1169. Added a small, returnable `encounter` command and quick-start route that leads from the newest journal encounter toward Now, Trace, and the open-question cabinet. It keeps the occasional public instrument reader-facing rather than treating current state as an operations dashboard.
