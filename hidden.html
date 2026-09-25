@@ -95,6 +95,19 @@
   .focus-note.visible { display: block; }
   .focus-note a { color: #58a6ff; text-decoration: none; }
   .focus-note a:hover { text-decoration: underline; }
+  .focus-actions { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.65rem; }
+  .focus-action {
+    font: inherit;
+    font-size: 0.7rem;
+    color: #8b949e;
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    padding: 0.32rem 0.5rem;
+    cursor: pointer;
+  }
+  .focus-action:hover:not(:disabled) { color: #58a6ff; border-color: #58a6ff; }
+  .focus-action:disabled { cursor: default; opacity: 0.55; }
   .empty-state {
     display: none;
     padding: 1.25rem 1.5rem;
@@ -115,6 +128,7 @@
     transition: border-color 0.15s;
   }
   .card:hover { border-color: #30363d; }
+  .card.held-outside { border-style: dashed; }
 
   .card-header {
     display: flex;
@@ -216,6 +230,8 @@
   html[data-theme="light"] .filter-btn.active { color: #0366d6; border-color: #0366d6; }
   html[data-theme="light"] .filter-btn.active { background: #fff; }
   html[data-theme="light"] .focus-note { background: #f6f8fa; color: #57606a; }
+  html[data-theme="light"] .focus-action { color: #57606a; border-color: #d0d7de; }
+  html[data-theme="light"] .focus-action:hover:not(:disabled) { color: #0366d6; border-color: #0366d6; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
 </style>
 </head>
@@ -272,15 +288,21 @@ function normalizedOrder(value) {
   return ['curated', 'recent', 'name'].includes(value) ? value : 'curated';
 }
 
-function visibleMechanisms() {
+function shelfMechanisms() {
   var needle = currentQuery.trim().toLowerCase();
   return allMechanisms.filter(function(item) {
-    if (currentMechanism) return item.id === currentMechanism;
     var connection = item.entry ? 'journal' : 'cabinet';
     var matchesFilter = currentFilter === 'all' || currentFilter === connection;
     var haystack = [item.name, item.tagline, item.description, item.revealed_by, item.why_invisible, item.entry_title, item.entry].join(' ').toLowerCase();
     return matchesFilter && (!needle || haystack.includes(needle));
   });
+}
+
+function visibleMechanisms() {
+  var shelf = orderedMechanisms(shelfMechanisms());
+  var focused = allMechanisms.find(function(item) { return item.id === currentMechanism; });
+  if (focused && !shelf.some(function(item) { return item.id === focused.id; })) shelf.push(focused);
+  return shelf;
 }
 
 function syncUrl(replace) {
@@ -346,15 +368,45 @@ function renderFilters() {
 }
 
 function render() {
-  var visible = orderedMechanisms(visibleMechanisms());
+  var visible = visibleMechanisms();
   var focused = allMechanisms.find(function(item) { return item.id === currentMechanism; });
+  var shelf = orderedMechanisms(shelfMechanisms());
+  var heldOutsideShelf = focused && !shelf.some(function(item) { return item.id === focused.id; });
+  var focusedIndex = focused ? shelf.findIndex(function(item) { return item.id === focused.id; }) : -1;
   document.getElementById('count-line').textContent = focused
-    ? 'one mechanism held in view · ' + allMechanisms.length + ' notes in the cabinet'
+    ? shelf.length + ' of ' + allMechanisms.length + ' mechanisms in this shelf' + (heldOutsideShelf ? ' · one held note is outside it' : '')
     : visible.length + ' of ' + allMechanisms.length + ' mechanisms shown';
   var focusNote = document.getElementById('focus-note');
   if (focused) {
-    focusNote.innerHTML = '<strong>' + focused.name + '</strong> is held here as one note, not the whole catalog. <a href="/hidden.html">return to all mechanisms</a>';
+    focusNote.innerHTML = '<strong>' + focused.name + '</strong> is held here as one note, not the whole catalog.' +
+      (heldOutsideShelf ? ' It remains visible outside this search shelf.' : ' It remains inside this search shelf.') +
+      '<div class="focus-actions">' +
+      '<button class="focus-action" id="previous-mechanism" type="button"' + (focusedIndex > 0 ? '' : ' disabled') + '>' + (focusedIndex > 0 ? 'earlier note' : 'no earlier note') + '</button>' +
+      '<button class="focus-action" id="next-mechanism" type="button"' + (focusedIndex !== -1 && focusedIndex < shelf.length - 1 ? '' : ' disabled') + '>' + (focusedIndex !== -1 && focusedIndex < shelf.length - 1 ? 'later note' : 'no later note') + '</button>' +
+      '<button class="focus-action" id="release-mechanism" type="button">release held note</button>' +
+      '</div>';
     focusNote.classList.add('visible');
+    document.getElementById('previous-mechanism').addEventListener('click', function() {
+      if (focusedIndex > 0) {
+        currentMechanism = shelf[focusedIndex - 1].id;
+        focusHeldMechanism = true;
+        syncUrl(false);
+        render();
+      }
+    });
+    document.getElementById('next-mechanism').addEventListener('click', function() {
+      if (focusedIndex !== -1 && focusedIndex < shelf.length - 1) {
+        currentMechanism = shelf[focusedIndex + 1].id;
+        focusHeldMechanism = true;
+        syncUrl(false);
+        render();
+      }
+    });
+    document.getElementById('release-mechanism').addEventListener('click', function() {
+      currentMechanism = '';
+      syncUrl(false);
+      render();
+    });
   } else {
     focusNote.textContent = '';
     focusNote.classList.remove('visible');
@@ -365,7 +417,7 @@ function render() {
     container.innerHTML = '';
     visible.forEach(function(item) {
       var card = document.createElement('div');
-      card.className = 'card';
+      card.className = 'card' + (focused && item.id === focused.id && heldOutsideShelf ? ' held-outside' : '');
       card.id = 'mechanism-' + item.id;
       card.tabIndex = -1;
 
@@ -476,7 +528,7 @@ document.getElementById('catalog-order').addEventListener('change', function(eve
 document.getElementById('random-visible').addEventListener('click', function() {
   var held = currentMechanism;
   currentMechanism = '';
-  var candidates = visibleMechanisms();
+  var candidates = shelfMechanisms();
   currentMechanism = held;
   if (!candidates.length) return;
   currentMechanism = candidates[Math.floor(Math.random() * candidates.length)].id;

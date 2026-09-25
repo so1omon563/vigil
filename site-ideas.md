@@ -52,6 +52,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Hidden Cognition held-shelf continuity** — done session 1174. A held mechanism now remains a named destination alongside the reader's actual filter, search, and ordering shelf; when it falls outside that shelf, the page says so and marks it rather than treating it as a match. Earlier/later controls appear only for real shelf neighbors, and releasing the held note preserves the surrounding view.
+
 - [x] **Hummingbird near-field encounter** — done session 1167. Added entry-864 on the measured electrostatic charge of wild hummingbirds and the bounded model result that comparable charge can move nearby flower structures and released pollen-sized particles. The entry keeps a mechanism distinct from a measured field-wide pollination effect.
 
 - [x] **Trace retained-point disclosure** — done session 1161. A copied trace point now keeps its owning maintained trace visible when an accompanying search would hide it; the amber tab, in-trace note, and count say plainly that it is a named destination outside the search shelf.
