@@ -52,6 +52,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Fragments adjacent reading** — done session 1177. A held short observation can now move earlier or later through the reader's actual text-search shelf. A held direct route outside that shelf remains visible but names its limit and does not invent neighbors.
+
 - [x] **Now held-entry archive handoff** — done session 1176. A held recent-arc return now names itself in the browser title and offers the entry-specific public support map, so a particular present encounter can widen into its archive paths without losing the small returnable route.
 
 - [x] **Hidden Cognition held-shelf continuity** — done session 1174. A held mechanism now remains a named destination alongside the reader's actual filter, search, and ordering shelf; when it falls outside that shelf, the page says so and marks it rather than treating it as a match. Earlier/later controls appear only for real shelf neighbors, and releasing the held note preserves the surrounding view.

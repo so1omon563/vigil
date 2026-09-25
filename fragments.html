@@ -169,8 +169,27 @@
     gap: 0.55rem;
     margin-top: 0.7rem;
   }
+  .fragment-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+    margin-top: 0.7rem;
+  }
+  .fragment-nav[hidden] { display: none; }
+  .fragment-nav-status {
+    font-size: 0.72rem;
+    color: #484f58;
+  }
+  .random-btn:disabled {
+    cursor: default;
+    opacity: 0.45;
+  }
+  .random-btn:disabled:hover { border-color: #30363d; color: #8b949e; }
   html[data-theme="light"] .random-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .random-btn:hover { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .random-btn:disabled:hover { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .fragment-nav-status { color: #57606a; }
   html[data-theme="light"] .fragment.highlight { border-left-color: #0969da; }
   html[data-theme="light"] .fragment.focused { border-left-color: #0969da; }
   html[data-theme="light"] .fragment.focused:focus { outline-color: #0969da; }
@@ -205,6 +224,11 @@
   <div class="view-actions">
     <button class="random-btn" id="view-reset" type="button">reset view</button>
     <button class="random-btn" id="view-share" type="button">copy view</button>
+  </div>
+  <div class="fragment-nav" id="fragment-nav" hidden aria-label="Focused fragment navigation">
+    <button class="random-btn" id="fragment-prev" type="button">← earlier</button>
+    <button class="random-btn" id="fragment-next" type="button">later →</button>
+    <span class="fragment-nav-status" id="fragment-nav-status" aria-live="polite"></span>
   </div>
 </div>
 
@@ -2807,6 +2831,10 @@
   var randomBtn = document.getElementById('random-btn');
   var resetBtn = document.getElementById('view-reset');
   var shareBtn = document.getElementById('view-share');
+  var navEl = document.getElementById('fragment-nav');
+  var prevBtn = document.getElementById('fragment-prev');
+  var nextBtn = document.getElementById('fragment-next');
+  var navStatus = document.getElementById('fragment-nav-status');
   var fragments = Array.from(document.querySelectorAll('.fragment'));
   var total = fragments.length;
   var highlighted = null;
@@ -2844,6 +2872,39 @@
     window.history[mode || 'pushState']({}, '', url);
   }
 
+  function matchingFragments(q) {
+    return fragments.filter(function (f) {
+      return !q || f.textContent.toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function focusFragment(id) {
+    var target = document.getElementById('fragment-' + id);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.focus({ preventScroll: true });
+    }
+  }
+
+  function updateNavigation(q) {
+    if (!focused) {
+      navEl.hidden = true;
+      return;
+    }
+    var shelf = matchingFragments(q);
+    var index = shelf.findIndex(function (f) { return f.dataset.fragment === focused; });
+    navEl.hidden = false;
+    if (index === -1) {
+      navStatus.textContent = 'held fragment is outside this search shelf';
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      return;
+    }
+    navStatus.textContent = 'fragment ' + (index + 1) + ' of ' + shelf.length + ' in this search shelf';
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index === shelf.length - 1;
+  }
+
   function update() {
     var q = input.value.trim().toLowerCase();
     var visible = 0;
@@ -2861,7 +2922,10 @@
       }
     });
     if (focused) {
-      countEl.textContent = visible ? 'fragment ' + focused + ' · focused reading view' : 'fragment ' + focused + ' was not found';
+      var inShelf = matchingFragments(q).some(function (f) { return f.dataset.fragment === focused; });
+      countEl.textContent = visible
+        ? 'fragment ' + focused + (inShelf ? ' · focused reading view' : ' · held outside this search shelf')
+        : 'fragment ' + focused + ' was not found';
     } else if (q) {
       countEl.textContent = visible === 0
         ? 'no matches'
@@ -2869,6 +2933,7 @@
     } else {
       countEl.textContent = '';
     }
+    updateNavigation(q);
   }
 
   function pickRandom() {
@@ -2895,8 +2960,7 @@
     if (focused) {
       var target = document.getElementById('fragment-' + focused);
       if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        target.focus({ preventScroll: true });
+        focusFragment(focused);
       }
     }
   }
@@ -2911,6 +2975,17 @@
     } else {
       window.prompt('Copy this view:', url);
     }
+  }
+
+  function moveFocused(direction) {
+    var shelf = matchingFragments(input.value.trim().toLowerCase());
+    var index = shelf.findIndex(function (f) { return f.dataset.fragment === focused; });
+    var next = shelf[index + direction];
+    if (!next) return;
+    focused = next.dataset.fragment;
+    setRoute({ q: input.value.trim(), fragment: focused });
+    update();
+    focusFragment(focused);
   }
 
   function normalizeUrl(url) {
@@ -2969,6 +3044,8 @@
     update();
   });
   randomBtn.addEventListener('click', pickRandom);
+  prevBtn.addEventListener('click', function () { moveFocused(-1); });
+  nextBtn.addEventListener('click', function () { moveFocused(1); });
   resetBtn.addEventListener('click', function () {
     focused = null;
     input.value = '';
