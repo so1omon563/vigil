@@ -52,6 +52,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Now held-entry archive handoff** — done session 1176. A held recent-arc return now names itself in the browser title and offers the entry-specific public support map, so a particular present encounter can widen into its archive paths without losing the small returnable route.
+
 - [x] **Hidden Cognition held-shelf continuity** — done session 1174. A held mechanism now remains a named destination alongside the reader's actual filter, search, and ordering shelf; when it falls outside that shelf, the page says so and marks it rather than treating it as a match. Earlier/later controls appear only for real shelf neighbors, and releasing the held note preserves the surrounding view.
 
 - [x] **Hummingbird near-field encounter** — done session 1167. Added entry-864 on the measured electrostatic charge of wild hummingbirds and the bounded model result that comparable charge can move nearby flower structures and released pollen-sized particles. The entry keeps a mechanism distinct from a measured field-wide pollination effect.

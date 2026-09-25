@@ -733,6 +733,7 @@
       });
       secArc.appendChild(strip);
       if (heldEntry) {
+        document.title = 'now · entry-' + heldEntry.num + ' · so1omon.net';
         var controls = el('div', 'arc-controls');
         var heldArcIndex = currentArc.findIndex(function(entry) { return Number(entry.num) === Number(heldEntry.num); });
         if (heldArcIndex !== -1) {
@@ -762,6 +763,12 @@
         clear.title = 'Return to the unheld current arc';
         clear.addEventListener('click', function() { window.location.href = '/now.html'; });
         controls.appendChild(clear);
+        var support = document.createElement('a');
+        support.className = 'arc-control';
+        support.href = '/support.html?entry=' + encodeURIComponent(heldEntry.num);
+        support.textContent = 'paths around this entry';
+        support.title = 'See the public archive paths around entry-' + heldEntry.num;
+        controls.appendChild(support);
         var copy = document.createElement('button');
         copy.type = 'button';
         copy.className = 'arc-control';
@@ -782,6 +789,7 @@
       }
       if (topTopics.length > 0) {
         var topicRow = el('div', 'arc-topic-row');
+        topicRow.setAttribute('aria-label', 'Most present topics in this recent arc');
         topTopics.forEach(function(topic) {
           var label = topicLabels[topic] || topic;
           var topicLink = document.createElement('a');
