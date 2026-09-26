@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal elsewhere turn** — done session 1178. Added a bounded, returnable `elsewhere [word]` command to the public orientation instrument. It selects one non-recent journal encounter from the public index (optionally within a subject) without pretending that the draw reveals the archive's hidden center.
+
 - [x] **Trace adjacent-point reading** — done session 1171. A held point in a maintained trace now carries earlier/later links within that trace, preserving the reader's search and ordering shelf. The ends say what they are: the beginning or the latest curated return, not an invented continuation.
 
 - [x] **Echoes living-edge boundary** — done session 1170. The maintained recurring-question cabinet now names its newest assigned return and offers three current journal encounters beyond that edge. It makes the hand-curated boundary readable without using keyword automation to claim new entries belong to an old territory.

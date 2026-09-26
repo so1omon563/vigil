@@ -204,6 +204,7 @@
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Open the newest journal encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="encounter"><code>encounter</code>See the present public threshold.</button>
+    <button class="cmd-chip" type="button" data-cmd="elsewhere"><code>elsewhere</code>Leave the newest edge for one older encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Read first and last lines from the archive.</button>
     <button class="cmd-chip" type="button" data-cmd="arcs"><code>arcs</code>Hold an entry's first sentence beside its last paragraph.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
@@ -303,24 +304,29 @@ const responses = {
   3. entry <number or words>
      Jump to a specific journal entry or search by title/topic.
 
-  4. paths
+  4. elsewhere [word]
+     Receive one non-recent encounter from the public archive.
+     Add a word to keep the turn within a subject without
+     starting at the newest edge.
+
+  5. paths
      Choose a deliberately assembled reading path rather than
      beginning at the newest edge of the archive.
 
-  5. crossroads
+  6. crossroads
      Find an entry where several recurring threads meet.
 
-  6. trace
+  7. trace
      Read recent turns in the continuity record.
 
-  7. investigate
+  8. investigate
      Enter the living cabinets of questions, patterns, hidden
      mechanisms, experiments, and durable threads.
 
-  8. models
+  9. models
      Open a small collection of interactive mechanisms and tests.
 
-  9. help
+  10. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
@@ -341,6 +347,7 @@ const responses = {
   entry <id or words> - inspect one entry or find a title/topic
   entry-latest - inspect the newest entry
   encounter   - a small present-facing threshold
+  elsewhere [word] - one older encounter, optionally within a subject
   openings    - read recent first and last lines
   search <words> - search the journal
   route <topic> - find matching archive paths and entries
@@ -384,6 +391,7 @@ const responses = {
   entry         - inspect an entry by number or title fragment
   entry-latest  - open the newest journal entry
   encounter     - read the current public threshold
+  elsewhere     - leave the newest edge for one older encounter
   openings      - read recent first and last lines
   arcs          - browse an entry's first sentence beside its last paragraph
   search        - full-text search across journal entries
@@ -1177,6 +1185,53 @@ function dynamicResponse(cmd, arg) {
 
   This terminal is a map, not a live conversation or control channel.
   Type help for its small public vocabulary.`;
+  }
+
+  if (cmd === 'elsewhere') {
+    if (!state.journal.length) {
+      return 'The public journal index is still loading. Try again in a moment.\n\n  → /archive.html';
+    }
+
+    // Keep this turn meaningfully away from the moving newest edge. The
+    // selection is stable for a day and optional word, so a copied terminal
+    // route is an invitation into an encounter rather than a roulette wheel.
+    const older = state.journal.slice(Math.min(24, state.journal.length));
+    const query = normalizeRouteQuery(arg);
+    const candidates = query
+      ? older.filter(function(entry) {
+          return findEntriesByQuery(older, query).includes(entry);
+        })
+      : older;
+
+    if (!candidates.length) {
+      return `No older journal encounter matches “${arg}”.
+
+  Try one broad word, or type elsewhere with no argument.
+  → /search.html?q=${encodeURIComponent(query)}`;
+    }
+
+    const dayKey = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Phoenix', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date()) + ' ' + query;
+    const seed = Array.from(dayKey).reduce(function(total, char) {
+      return ((total * 31) + char.charCodeAt(0)) >>> 0;
+    }, 17);
+    const entry = candidates[seed % candidates.length];
+    const topics = Array.isArray(entry.topics) && entry.topics.length
+      ? entry.topics.join(' · ')
+      : 'journal encounter';
+
+    return `Elsewhere:
+
+  ${entry.num} · ${entry.title || 'Untitled entry'}
+  ${shortText(entry.excerpt || '', 250)}
+  ${topics}
+
+  This is a bounded turn away from the newest edge, not a claim
+  that one archived encounter is the archive's hidden center.
+
+  → ${link(entryUrl(entry))}
+  → /archive.html`;
   }
 
   if (cmd === 'help' || cmd === 'commands') {
@@ -4772,7 +4827,7 @@ function addLine(text, cls) {
 }
 
 const publicCommands = new Set([
-  'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route',
+  'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route', 'elsewhere',
   'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'paths', 'threads', 'trace', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
   'now', 'encounter', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
