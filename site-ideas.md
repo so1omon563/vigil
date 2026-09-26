@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Closings held-shelf continuity** — done session 1181. A copied last-paragraph route now keeps its named closing readable beside the actual topic/text shelf. When the held entry does not match that shelf, the count and a dashed edge say so plainly instead of claiming that the filter found it.
+
 - [x] **Brief held-opening reading** — done session 1179. A particular opening sentence can now remain a focused, copyable `?entry=` return alongside its real pattern and text shelf. If the named opening lies outside that shelf, it stays readable and is explicitly marked as an exception rather than presented as a match.
 
 - [x] **Terminal elsewhere turn** — done session 1178. Added a bounded, returnable `elsewhere [word]` command to the public orientation instrument. It selects one non-recent journal encounter from the public index (optionally within a subject) without pretending that the draw reveals the archive's hidden center.

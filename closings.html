@@ -184,6 +184,8 @@
   }
   .entry-item.highlighted .closing-line { color: #e6edf3; }
   .entry-item.highlighted .entry-num { color: #58a6ff; }
+  .entry-item.highlighted:focus { outline: 1px solid #58a6ff; outline-offset: 4px; }
+  .entry-item.held-outside { border-left: 2px dashed #58a6ff; padding-left: 0.65rem; margin-left: -0.65rem; }
 
   .loading { font-size: 0.85rem; color: #484f58; padding: 2rem 0; }
   .empty { font-size: 0.85rem; color: #484f58; padding: 1.5rem 0; }
@@ -213,6 +215,8 @@
   html[data-theme="light"] .entry-item.highlighted { background: #f6f8fa; }
   html[data-theme="light"] .entry-item.highlighted .closing-line { color: #24292e; }
   html[data-theme="light"] .entry-item.highlighted .entry-num { color: #0969da; }
+  html[data-theme="light"] .entry-item.highlighted:focus { outline-color: #0969da; }
+  html[data-theme="light"] .entry-item.held-outside { border-left-color: #0969da; }
   html[data-theme="light"] .topic-btn { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] .topic-btn:hover { border-color: #8c959f; color: #57606a; }
   html[data-theme="light"] .topic-btn.active { border-color: #0969da; color: #0969da; background: #0969da0d; }
@@ -249,7 +253,7 @@
   <button class="btn" id="sort-length">longest first</button>
 </div>
 
-<div class="count-bar" id="count-bar">&nbsp;</div>
+<div class="count-bar" id="count-bar" aria-live="polite">&nbsp;</div>
 
 <ul class="entry-list" id="entry-list">
   <li class="loading">loading…</li>
@@ -263,6 +267,8 @@
   var filterText = '';
   var activeTopic = '';
   var highlightedNum = -1;
+  var heldOutsideFilter = false;
+  var matchedCount = 0;
 
   function readState() {
     var params = new URLSearchParams(window.location.search);
@@ -340,6 +346,13 @@
       }
       return true;
     });
+    matchedCount = filtered.length;
+    heldOutsideFilter = false;
+    var held = allEntries.find(function(e) { return e.num === highlightedNum; });
+    if (held && !filtered.some(function(e) { return e.num === held.num; })) {
+      filtered.push(held);
+      heldOutsideFilter = true;
+    }
     filtered = sortEntries(filtered);
   }
 
@@ -391,12 +404,12 @@
 
     var q = filterText.toLowerCase().trim();
 
-    var count = filtered.length === allEntries.length
+    var count = matchedCount === allEntries.length
       ? '<span>' + allEntries.length + '</span> entries'
-      : '<span>' + filtered.length + '</span> of ' + allEntries.length + ' entries';
+      : '<span>' + matchedCount + '</span> of ' + allEntries.length + ' entries';
     var held = allEntries.find(function(e) { return e.num === highlightedNum; });
     countBar.innerHTML = held
-      ? count + ' <span>· holding entry-' + String(held.num).padStart(3, '0') + '</span>'
+      ? count + ' <span>· holding entry-' + String(held.num).padStart(3, '0') + (heldOutsideFilter ? ' outside this shelf' : '') + '</span>'
       : count;
 
     var parts = [];
@@ -404,12 +417,14 @@
       var e = filtered[i];
       var numStr = String(e.num).padStart(3, '0');
       var isHighlighted = (e.num === highlightedNum);
+      var isOutside = isHighlighted && heldOutsideFilter;
       var dateStr = e.date ? '<span class="entry-date">' + fmtDate(e.date) + '</span>' : '';
       var topicTags = (e.topics && e.topics.length)
         ? e.topics.map(function(t) { return '<span class="topic-tag">' + esc(t) + '</span>'; }).join('')
         : '';
       parts.push(
-        '<li class="entry-item' + (isHighlighted ? ' highlighted' : '') + '" data-num="' + e.num + '">' +
+        '<li class="entry-item' + (isHighlighted ? ' highlighted' : '') + (isOutside ? ' held-outside' : '') + '" data-num="' + e.num + '"' +
+        (isHighlighted ? ' id="held-closing-entry" tabindex="-1" aria-label="Held closing: entry-' + numStr + (isOutside ? ', outside this shelf' : '') + '"' : '') + '>' +
         '<a href="' + entryUrl(e.url) + '">' +
         '<div class="entry-num">entry-' + numStr + '</div>' +
         '<div class="closing-line">' + highlightQuery(e.closing || '', q) + '</div>' +
@@ -421,9 +436,8 @@
   }
 
   function landOnHighlighted() {
-    var el = document.querySelector('.entry-item.highlighted');
+    var el = document.getElementById('held-closing-entry');
     if (!el) return;
-    el.setAttribute('tabindex', '-1');
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.focus({ preventScroll: true });
   }
@@ -446,7 +460,7 @@
     sortMode = mode;
     highlightedNum = -1;
     syncControls();
-    filtered = sortEntries(filtered);
+    applyFilter();
     render();
     writeState();
   }
