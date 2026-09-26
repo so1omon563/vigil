@@ -146,6 +146,16 @@
     color: #8b949e;
     line-height: 1.55;
   }
+  .entry-hold {
+    display: inline-block;
+    margin-top: 0.3rem;
+    font-size: 0.68rem;
+    color: #484f58;
+    text-decoration: none;
+  }
+  .entry-hold:hover, .entry-hold:focus { color: #58a6ff; text-decoration: underline; }
+  .entry-item.held { border-left: 2px solid #58a6ff; padding-left: 0.6rem; margin-left: -0.6rem; }
+  .entry-item.held:focus { outline: 1px solid #58a6ff; outline-offset: 0.35rem; }
   .pattern-badges {
     display: flex;
     gap: 0.3rem;
@@ -219,6 +229,10 @@
   html[data-theme="light"] .entry-title a { color: #1c2128; }
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
   html[data-theme="light"] .entry-opening { color: #57606a; }
+  html[data-theme="light"] .entry-hold { color: #57606a; }
+  html[data-theme="light"] .entry-hold:hover, html[data-theme="light"] .entry-hold:focus { color: #0969da; }
+  html[data-theme="light"] .entry-item.held { border-left-color: #0969da; }
+  html[data-theme="light"] .entry-item.held:focus { outline-color: #0969da; }
   html[data-theme="light"] .legend { border-color: #d0d7de; }
   html[data-theme="light"] .legend-desc { color: #57606a; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
@@ -267,6 +281,8 @@
   var allEntries = [];
   var activePattern = '';
   var searchTerm = '';
+  var heldEntryNum = null;
+  var arrivalPending = false;
 
   // Pattern color map
   var COLORS = {
@@ -298,7 +314,12 @@
 
   function readView() {
     var params = new URLSearchParams(window.location.search);
-    return { pattern: params.get('pattern') || '', query: params.get('q') || '' };
+    var rawEntry = params.get('entry') || '';
+    return {
+      pattern: params.get('pattern') || '',
+      query: params.get('q') || '',
+      entry: /^\d+$/.test(rawEntry) ? Number(rawEntry) : null
+    };
   }
 
   function writeView(mode) {
@@ -307,6 +328,8 @@
     else url.searchParams.delete('pattern');
     if (searchTerm) url.searchParams.set('q', searchTerm);
     else url.searchParams.delete('q');
+    if (heldEntryNum) url.searchParams.set('entry', heldEntryNum);
+    else url.searchParams.delete('entry');
     window.history[mode === 'push' ? 'pushState' : 'replaceState']({}, '', url.pathname + url.search + url.hash);
   }
 
@@ -329,6 +352,7 @@
     document.getElementById('reset-view').addEventListener('click', function () {
       activePattern = '';
       searchTerm = '';
+      heldEntryNum = null;
       document.getElementById('search').value = '';
       writeView('push');
       syncView();
@@ -384,6 +408,7 @@
             (e.topic ? '<div class="entry-topic">' + escHtml(e.topic) + '</div>' : '') +
           '</div>' +
           '<div class="entry-opening">' + escHtml(e.opening || '') + '</div>' +
+          '<a class="entry-hold" href="#" data-hold="' + e.num + '">hold this opening</a>' +
           (badges ? '<div class="pattern-badges">' + badges + '</div>' : '') +
         '</div>' +
         '</li>';
@@ -397,6 +422,12 @@
         setPattern(activePattern === pid ? '' : pid, 'push');
       });
     });
+    list.querySelectorAll('.entry-hold').forEach(function (link) {
+      link.addEventListener('click', function (evt) {
+        evt.preventDefault();
+        setHeldEntry(Number(link.getAttribute('data-hold')), 'push');
+      });
+    });
 
     applyFilters();
   }
@@ -404,6 +435,13 @@
   function setPattern(pid, mode) {
     activePattern = pid;
     writeView(mode || 'replace');
+    syncView();
+  }
+
+  function setHeldEntry(num, mode) {
+    heldEntryNum = allEntries.some(function (entry) { return Number(entry.num) === Number(num); }) ? Number(num) : null;
+    arrivalPending = Boolean(heldEntryNum);
+    writeView(mode || 'push');
     syncView();
   }
 
@@ -418,16 +456,40 @@
   function applyFilters() {
     var items = document.querySelectorAll('#entry-list .entry-item[data-num]');
     var visible = 0;
+    var heldOutside = false;
     items.forEach(function (item) {
       var patternOk = !activePattern || (' ' + (item.getAttribute('data-patterns') || '') + ' ').indexOf(' ' + activePattern + ' ') !== -1;
       var searchOk = !searchTerm || (item.getAttribute('data-text') || '').indexOf(searchTerm) !== -1;
-      var show = patternOk && searchOk;
+      var isHeld = heldEntryNum && Number(item.getAttribute('data-num')) === heldEntryNum;
+      var matchesShelf = patternOk && searchOk;
+      var show = matchesShelf || isHeld;
       item.classList.toggle('hidden', !show);
-      if (show) visible++;
+      item.classList.toggle('held', Boolean(isHeld));
+      if (isHeld) {
+        item.id = 'held-brief-entry';
+        item.setAttribute('tabindex', '-1');
+        item.setAttribute('aria-label', 'Held opening: entry-' + heldEntryNum);
+        if (!matchesShelf) heldOutside = true;
+      } else {
+        item.removeAttribute('id');
+        item.removeAttribute('tabindex');
+        item.removeAttribute('aria-label');
+      }
+      if (matchesShelf) visible++;
     });
     var display = document.getElementById('count-display');
     if (display) {
-      display.textContent = visible + ' of ' + items.length;
+      display.textContent = visible + ' of ' + items.length + (heldEntryNum ? (heldOutside ? ' · holding entry-' + heldEntryNum + ' outside this shelf' : ' · holding entry-' + heldEntryNum) : '');
+    }
+    if (arrivalPending && heldEntryNum) {
+      arrivalPending = false;
+      window.setTimeout(function () {
+        var target = document.getElementById('held-brief-entry');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.focus({ preventScroll: true });
+        }
+      }, 0);
     }
   }
 
@@ -466,6 +528,8 @@
     var initial = readView();
     activePattern = PATTERNS.some(function (p) { return p.id === initial.pattern; }) ? initial.pattern : '';
     searchTerm = initial.query.trim().toLowerCase();
+    heldEntryNum = allEntries.some(function (entry) { return Number(entry.num) === initial.entry; }) ? initial.entry : null;
+    arrivalPending = Boolean(heldEntryNum);
     searchEl.value = initial.query;
     document.getElementById('brief-intro').textContent = allEntries.length + ' entries. Each is shown with its opening sentence and topic. Colored badges mark the recurring structural patterns that the archive has named. Search and pattern views can be returned to or shared.';
     renderPatternControls(PATTERNS);
@@ -476,6 +540,8 @@
       var view = readView();
       activePattern = PATTERNS.some(function (p) { return p.id === view.pattern; }) ? view.pattern : '';
       searchTerm = view.query.trim().toLowerCase();
+      heldEntryNum = allEntries.some(function (entry) { return Number(entry.num) === view.entry; }) ? view.entry : null;
+      arrivalPending = Boolean(heldEntryNum);
       searchEl.value = view.query;
       syncView();
     });

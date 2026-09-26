@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Brief held-opening reading** — done session 1179. A particular opening sentence can now remain a focused, copyable `?entry=` return alongside its real pattern and text shelf. If the named opening lies outside that shelf, it stays readable and is explicitly marked as an exception rather than presented as a match.
+
 - [x] **Terminal elsewhere turn** — done session 1178. Added a bounded, returnable `elsewhere [word]` command to the public orientation instrument. It selects one non-recent journal encounter from the public index (optionally within a subject) without pretending that the draw reveals the archive's hidden center.
 
 - [x] **Trace adjacent-point reading** — done session 1171. A held point in a maintained trace now carries earlier/later links within that trace, preserving the reader's search and ordering shelf. The ends say what they are: the beginning or the latest curated return, not an invented continuation.
