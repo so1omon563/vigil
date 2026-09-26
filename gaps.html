@@ -103,6 +103,7 @@
   .gap-card:hover { border-color: #30363d; border-left-color: #30363d; }
   .gap-card.hidden { display: none; }
   .gap-card.focused { border-color: #58a6ff; box-shadow: 0 0 0 1px #58a6ff33; }
+  .gap-card.held-outside { border-style: dashed; }
 
   .gap-card[data-type="missing_mechanism"] { border-left-color: #388bfd; }
   .gap-card[data-type="contested_account"] { border-left-color: #bc8cff; }
@@ -268,7 +269,7 @@
   <span class="count-note" id="count-note"></span>
 </div>
 
-<p class="focus-note" id="focus-note" aria-live="polite">One named uncertainty is in view.<span class="focus-navigation" id="focus-navigation"></span><button class="gap-action" id="show-all" type="button">return to all questions</button></p>
+<p class="focus-note" id="focus-note" aria-live="polite"><span id="focus-copy">One named uncertainty is in view.</span><span class="focus-navigation" id="focus-navigation"></span><button class="gap-action" id="show-all" type="button">return to this shelf</button></p>
 <div id="gaps-container"></div>
 <div class="empty-state" id="empty-state">No open questions match this view. Try a different term or reset the filters.</div>
 
@@ -356,11 +357,13 @@ function render() {
   container.innerHTML = '';
   const filtered = filteredGaps();
   const focusedGap = validGapId(currentGapId) ? allGaps.find(g => g.id === currentGapId) : null;
+  const focusIsInShelf = !!focusedGap && filtered.some(g => g.id === focusedGap.id);
   const visibleGaps = focusedGap ? [focusedGap] : filtered;
   const ordered = [...visibleGaps].sort((a, b) => Number(b.entry) - Number(a.entry));
   ordered.forEach(g => {
     const card = document.createElement('div');
-    card.className = 'gap-card' + (focusedGap ? ' focused' : '');
+    card.className = 'gap-card' + (focusedGap && g.id === focusedGap.id ? ' focused' : '') +
+      (focusedGap && g.id === focusedGap.id && !focusIsInShelf ? ' held-outside' : '');
     card.dataset.type = g.type;
     card.id = `gap-card-${g.id}`;
     card.tabIndex = -1;
@@ -383,9 +386,15 @@ function render() {
   });
   document.getElementById('empty-state').classList.toggle('visible', filtered.length === 0 && !focusedGap);
   document.getElementById('focus-note').classList.toggle('visible', !!focusedGap);
-  renderFocusNavigation(focusedGap);
+  const focusCopy = document.getElementById('focus-copy');
+  if (focusCopy) {
+    focusCopy.textContent = focusedGap && !focusIsInShelf
+      ? 'This named uncertainty sits outside the current type or search shelf.'
+      : 'One named uncertainty is in view.';
+  }
+  renderFocusNavigation(focusedGap, filtered);
   renderFilters();
-  updateCount(focusedGap);
+  updateCount(focusedGap, focusIsInShelf);
   if (focusedGap && landOnFocusedGap) {
     landOnFocusedGap = false;
     window.requestAnimationFrame(() => {
@@ -397,11 +406,11 @@ function render() {
   }
 }
 
-function renderFocusNavigation(focusedGap) {
+function renderFocusNavigation(focusedGap, shelf) {
   const navigation = document.getElementById('focus-navigation');
   navigation.innerHTML = '';
-  if (!focusedGap) return;
-  const ordered = [...allGaps].sort((a, b) => Number(b.entry) - Number(a.entry));
+  if (!focusedGap || !shelf.some(g => g.id === focusedGap.id)) return;
+  const ordered = [...shelf].sort((a, b) => Number(b.entry) - Number(a.entry));
   const index = ordered.findIndex(g => g.id === focusedGap.id);
   const choices = [
     { label: 'newer question', gap: ordered[index - 1] },
@@ -426,11 +435,13 @@ function renderFocusNavigation(focusedGap) {
   });
 }
 
-function updateCount(focusedGap) {
+function updateCount(focusedGap, focusIsInShelf) {
   const total = allGaps.length;
   const visible = filteredGaps().length;
   document.getElementById('count-note').textContent =
-    focusedGap ? `1 focused question · ${total} in the cabinet` :
+    focusedGap ? (focusIsInShelf
+      ? `1 held question · ${visible} in this shelf`
+      : `1 held question outside this shelf · ${visible} shown`) :
       (currentFilter === 'all' && !currentQuery.trim()) ? `${total} open questions` : `${visible} of ${total} shown`;
   document.getElementById('gap-meta').textContent =
     `${total} unresolved questions across ${new Set(allGaps.map(g => g.entry)).size} journal entries`;

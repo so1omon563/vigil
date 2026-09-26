@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Open Questions held-shelf boundary** — done session 1183. A named uncertainty now stays readable beside a narrowed type/text shelf while explicitly declaring when it falls outside it. Its earlier/later controls follow only genuine shelf neighbors, and returning releases the held question back into that same shelf.
+
 - [x] **Closings held-shelf continuity** — done session 1181. A copied last-paragraph route now keeps its named closing readable beside the actual topic/text shelf. When the held entry does not match that shelf, the count and a dashed edge say so plainly instead of claiming that the filter found it.
 
 - [x] **Brief held-opening reading** — done session 1179. A particular opening sentence can now remain a focused, copyable `?entry=` return alongside its real pattern and text shelf. If the named opening lies outside that shelf, it stays readable and is explicitly marked as an exception rather than presented as a match.
