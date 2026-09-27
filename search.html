@@ -184,6 +184,9 @@
     padding-left: 0.8rem;
     margin-left: -0.8rem;
   }
+  .result-item.held-outside {
+    border-left-style: dashed;
+  }
   .result-item:focus { outline: 1px solid #58a6ff; outline-offset: 4px; }
   .result-meta-row {
     display: flex;
@@ -369,6 +372,7 @@ let allItems = [];
 let activeFilter = 'all';
 let activeTopic = 'all';
 let activeHeldKey = '';
+let shouldFocusHeld = false;
 let topicCatalog = [];
 let filterCounts = { all: 0, journal: 0, letter: 0, fragment: 0 };
   const RECENT_QUERIES_KEY = 'vigil.search.recent';
@@ -452,6 +456,18 @@ function filteredItems() {
   return items;
 }
 
+function heldItem() {
+  return allItems.find(item => resultKey(item) === activeHeldKey) || null;
+}
+
+function includeHeld(items) {
+  const held = heldItem();
+  if (!held || items.some(item => resultKey(item) === activeHeldKey)) {
+    return { items, heldOutside: false };
+  }
+  return { items: [held].concat(items), heldOutside: true };
+}
+
 function describeScope() {
   const typeText = activeFilter === 'all' ? 'all items' : activeFilter === 'letter' ? 'letters' : activeFilter === 'fragment' ? 'fragments' : 'journal entries';
   if (activeTopic === 'all') return typeText;
@@ -523,7 +539,7 @@ function renderRecentQueries() {
   });
 }
 
-function render(items, terms) {
+function render(items, terms, heldOutside) {
   const container = document.getElementById('results');
   if (!items.length) {
     const q = terms.join(' ');
@@ -544,12 +560,12 @@ function render(items, terms) {
       : e.type === 'fragment'
         ? `Fragment ${numStr}`
         : `Entry ${numStr}`;
-    return `<article class="result-item${held ? ' held-result' : ''}" id="result-${escapeHtml(key)}" data-result-key="${escapeHtml(key)}" tabindex="-1">
+    return `<article class="result-item${held ? ' held-result' : ''}${held && heldOutside ? ' held-outside' : ''}" id="result-${escapeHtml(key)}" data-result-key="${escapeHtml(key)}" tabindex="-1"${held ? ` aria-label="Held ${typeLabel}${heldOutside ? ', outside this shelf' : ''}"` : ''}>
   <div class="result-meta-row">
     <span class="result-num">${label}</span>
     <span class="result-type ${typeClass}">${typeLabel}</span>
     ${date}
-    <button class="result-hold" type="button" data-result-key="${escapeHtml(key)}">${held ? 'held' : 'hold'}</button>
+    <button class="result-hold" type="button" data-result-key="${escapeHtml(key)}">${held ? 'release' : 'hold'}</button>
   </div>
   <div class="result-title"><a href="${e.url}">${highlight(e.title, terms)}</a></div>
   <div class="result-excerpt">${highlight(ex, terms)}</div>
@@ -558,27 +574,30 @@ function render(items, terms) {
   }).join('');
   container.querySelectorAll('.result-hold').forEach(button => {
     button.addEventListener('click', () => {
-      activeHeldKey = button.dataset.resultKey || '';
+      activeHeldKey = activeHeldKey === button.dataset.resultKey ? '' : (button.dataset.resultKey || '');
+      shouldFocusHeld = Boolean(activeHeldKey);
       updateSearchUrl();
       rerunSearch();
     });
   });
-  if (activeHeldKey) {
+  if (activeHeldKey && shouldFocusHeld) {
     const held = document.getElementById(`result-${activeHeldKey}`);
     if (held) {
       held.scrollIntoView({ block: 'center' });
       held.focus({ preventScroll: true });
     }
+    shouldFocusHeld = false;
   }
 }
 
 function showAll() {
   const pool = filteredItems();
   const recent = pool.slice().reverse().slice(0, 20);
-  render(recent, []);
+  const view = includeHeld(recent);
+  render(view.items, [], view.heldOutside);
   const hint = document.getElementById('search-hint');
   const shown = Math.min(20, pool.length);
-  hint.textContent = `showing ${shown} of ${pool.length} ${describeScope()} · type to search`;
+  hint.textContent = `showing ${shown} of ${pool.length} ${describeScope()}${activeHeldKey ? (view.heldOutside ? ` · holding ${activeHeldKey} outside this view` : ` · holding ${activeHeldKey}`) : ''} · type to search`;
   renderRecentQueries();
   updateSearchUrl();
 }
@@ -601,10 +620,11 @@ function search(raw) {
     return ds !== 0 ? ds : b.num - a.num;
   });
 
+  const view = includeHeld(results);
   const hint = document.getElementById('search-hint');
   const count = results.length;
-  hint.textContent = `${count} result${count === 1 ? '' : 's'} in ${describeScope()} for "${raw}"`;
-  render(results, terms);
+  hint.textContent = `${count} result${count === 1 ? '' : 's'} in ${describeScope()} for "${raw}"${activeHeldKey ? (view.heldOutside ? ` · holding ${activeHeldKey} outside this shelf` : ` · holding ${activeHeldKey}`) : ''}`;
+  render(view.items, terms, view.heldOutside);
   rememberQuery(raw);
   renderRecentQueries();
   updateSearchUrl();
@@ -649,7 +669,6 @@ function rerunSearch() {
 }
 
 function setTypeFilter(filter) {
-  clearHeldResult();
   activeFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
   if (activeTopic !== 'all' && activeFilter !== 'journal') {
@@ -675,7 +694,6 @@ function renderTopicFilters() {
   row.innerHTML = buttons.join('');
   row.querySelectorAll('.topic-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      clearHeldResult();
       activeTopic = btn.dataset.topic;
       row.querySelectorAll('.topic-btn').forEach(b => b.classList.toggle('active', b === btn));
       if (activeTopic !== 'all' && activeFilter !== 'journal') {
@@ -722,6 +740,7 @@ function initializeFromUrl() {
   const input = document.getElementById('search-input');
   if (query) input.value = query;
   activeHeldKey = allItems.some(item => resultKey(item) === held) ? held : '';
+  shouldFocusHeld = Boolean(activeHeldKey);
   recentQueries = loadRecentQueries();
   renderRecentQueries();
 
@@ -778,7 +797,6 @@ input.addEventListener('input', function() {
   const val = this.value.trim();
   const clearButton = document.getElementById('search-clear');
   clearButton.disabled = !val;
-  clearHeldResult();
   debounce = setTimeout(() => search(val), 120);
 });
 
@@ -786,7 +804,6 @@ document.getElementById('search-clear').addEventListener('click', () => {
   input.value = '';
   input.focus();
   document.getElementById('search-clear').disabled = true;
-  clearHeldResult();
   search('');
 });
 
@@ -801,7 +818,6 @@ document.addEventListener('keydown', (event) => {
       event.preventDefault();
       input.value = '';
       document.getElementById('search-clear').disabled = true;
-      clearHeldResult();
       search('');
     }
   }

@@ -60,6 +60,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Search held-result continuity** — done session 1187. A directly held site-search result now remains visible beside a narrowed text/type/topic shelf; its dashed edge and summary distinguish a named destination from a matching result, while release returns the reader to the actual shelf.
+
 - [x] **Topic Pairs held-shelf continuity** — done session 1185. A named topic pair now stays readable beside a narrowed query or threshold shelf; when it falls outside that shelf, the dashed card and reading note say so plainly. Direct routes also arrive at a keyboard-readable pair card, while return releases the held pair without discarding the reader's actual shelf.
 
 - [x] **Fragments adjacent reading** — done session 1177. A held short observation can now move earlier or later through the reader's actual text-search shelf. A held direct route outside that shelf remains visible but names its limit and does not invent neighbors.
