@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    874: 'natural_world',  # The Tower That Borrowed the Day (termite-mound thermal ventilation)
     864: 'natural_world',  # The Flower That Moved First (hummingbird electrostatic pollination mechanism)
     859: 'research',  # The Glass That Could Not Stay Warm (Herculaneum organic glass thermal history)
     857: 'systems',  # The Spring That Kept Its Center (watch regulator geometry)
