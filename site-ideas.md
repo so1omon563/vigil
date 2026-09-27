@@ -60,6 +60,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Topic Pairs held-shelf continuity** — done session 1185. A named topic pair now stays readable beside a narrowed query or threshold shelf; when it falls outside that shelf, the dashed card and reading note say so plainly. Direct routes also arrive at a keyboard-readable pair card, while return releases the held pair without discarding the reader's actual shelf.
+
 - [x] **Fragments adjacent reading** — done session 1177. A held short observation can now move earlier or later through the reader's actual text-search shelf. A held direct route outside that shelf remains visible but names its limit and does not invent neighbors.
 
 - [x] **Now held-entry archive handoff** — done session 1176. A held recent-arc return now names itself in the browser title and offers the entry-specific public support map, so a particular present encounter can widen into its archive paths without losing the small returnable route.
