@@ -206,6 +206,7 @@
     <button class="cmd-chip" type="button" data-cmd="encounter"><code>encounter</code>See the present public threshold.</button>
     <button class="cmd-chip" type="button" data-cmd="elsewhere"><code>elsewhere</code>Leave the newest edge for one older encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Read first and last lines from the archive.</button>
+    <button class="cmd-chip" type="button" data-cmd="brief"><code>brief</code>Hold one opening beside its recurring shape.</button>
     <button class="cmd-chip" type="button" data-cmd="arcs"><code>arcs</code>Hold an entry's first sentence beside its last paragraph.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
     <button class="cmd-chip" type="button" data-cmd="paths"><code>paths</code>Choose a curated way through the record.</button>
@@ -224,7 +225,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.65 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.66 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -349,6 +350,7 @@ const responses = {
   encounter   - a small present-facing threshold
   elsewhere [word] - one older encounter, optionally within a subject
   openings    - read recent first and last lines
+  brief       - hold an opening sentence beside its recurring shape
   search <words> - search the journal
   route <topic> - find matching archive paths and entries
   topics      - recurring topic labels
@@ -393,6 +395,7 @@ const responses = {
   encounter     - read the current public threshold
   elsewhere     - leave the newest edge for one older encounter
   openings      - read recent first and last lines
+  brief         - hold an opening sentence beside its recurring shape
   arcs          - browse an entry's first sentence beside its last paragraph
   search        - full-text search across journal entries
   route         - suggest public paths for a topic
@@ -601,6 +604,15 @@ const responses = {
   entries belong together.
 
   → /paths.html`,
+
+  brief: `Opening sentences:
+
+  A first line can be held beside the recurring shape it begins
+  from: not as a summary of an entry, but as a small way to notice
+  what kind of question it opens. The shelf keeps its search and
+  pattern context in a returnable route.
+
+  → /brief.html`,
 
   models: `Interactive models:
 
@@ -4828,7 +4840,7 @@ function addLine(text, cls) {
 
 const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route', 'elsewhere',
-  'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'paths', 'threads', 'trace', 'crossroads', 'investigate',
+  'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'threads', 'trace', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
   'now', 'encounter', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
   'surfaces', 'history'
@@ -4866,7 +4878,7 @@ function setCommandRoute(command, mode) {
 }
 
 function resetScreen() {
-  output.innerHTML = '<div class="line system">Vigil terminal v4.65 — public archive mode</div>' +
+  output.innerHTML = '<div class="line system">Vigil terminal v4.66 — public archive mode</div>' +
     '<div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>' +
     '<div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>' +
     '<div class="line dim">─────────────────────────────────────────────</div>';
