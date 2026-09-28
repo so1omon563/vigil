@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    876: 'natural_world',  # The Tendrils That Met (pea-plant synchrony)
     875: 'research',  # The Drop That Followed Its Wake (walking-droplet pilot-wave hydrodynamics)
     874: 'natural_world',  # The Tower That Borrowed the Day (termite-mound thermal ventilation)
     864: 'natural_world',  # The Flower That Moved First (hummingbird electrostatic pollination mechanism)
