@@ -142,6 +142,11 @@
     transition: opacity 0.12s, transform 0.12s, outline-color 0.12s;
   }
   .cell.visible { opacity: 0.95; }
+  .cell.held-outside {
+    opacity: 0.78;
+    outline: 1px dashed #58a6ff;
+    outline-offset: 1px;
+  }
   .cell:hover,
   .cell.active {
     outline: 2px solid #e6edf3;
@@ -170,6 +175,14 @@
   .inspect-empty {
     color: #484f58;
     font-size: 0.84rem;
+  }
+  .held-note {
+    border-left: 2px solid #58a6ff;
+    color: #8b949e;
+    font-size: 0.76rem;
+    line-height: 1.5;
+    margin: 0 0 0.9rem;
+    padding: 0.15rem 0 0.15rem 0.65rem;
   }
   .entry-num {
     color: #484f58;
@@ -278,6 +291,8 @@
   html[data-theme="light"] footer { color: #6e7781; }
   html[data-theme="light"] .cell:hover,
   html[data-theme="light"] .cell.active { outline-color: #24292e; }
+  html[data-theme="light"] .cell.held-outside { outline-color: #0969da; }
+  html[data-theme="light"] .held-note { color: #57606a; }
 
   @media (max-width: 780px) {
     body { padding-left: 1.2rem; padding-right: 1.2rem; }
@@ -477,17 +492,30 @@
       cell.classList.add('active');
       cell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }
+    renderInspect(entry, !matches(entry));
+    if (updateUrl) setUrl(entry, false);
+  }
+
+  function renderInspect(entry, outsideShelf) {
     inspect.innerHTML =
       '<div class="entry-num">entry ' + entry.num + '</div>' +
       '<div class="entry-title">' + escapeHtml(entry.title) + '</div>' +
       '<div class="entry-date">' + escapeHtml(entry.date || '') + '</div>' +
+      (outsideShelf ? '<p class="held-note">This held entry is outside the current filter. It remains here as the named destination, not as a matching square.</p>' : '') +
       '<p class="entry-excerpt">' + escapeHtml(entry.excerpt || '') + '</p>' +
       '<div class="tags">' + (entry.topics || []).map(function (topic) {
         return '<span class="tag">' + escapeHtml(topic) + '</span>';
       }).join('') + '</div>' +
       '<a class="open-link" href="' + entryUrl(entry) + '">open entry</a>' +
-      renderRelated(entry);
-    if (updateUrl) setUrl(entry, false);
+      renderRelated(entry) +
+      (outsideShelf ? '<button class="view-action" id="release-entry" type="button">return to filtered atlas</button>' : '');
+    var release = document.getElementById('release-entry');
+    if (release) {
+      release.addEventListener('click', function () {
+        selected = null;
+        applyFilters();
+      });
+    }
   }
 
   function applyFilters(options) {
@@ -497,7 +525,10 @@
     entries.forEach(function (entry) {
       var cell = cells.get(entry.num);
       var ok = matches(entry);
-      if (cell) cell.classList.toggle('visible', ok);
+      if (cell) {
+        cell.classList.toggle('visible', ok);
+        cell.classList.toggle('held-outside', !!selected && selected.num === entry.num && !ok);
+      }
       if (ok) {
         visible += 1;
         if (!newestVisible || entry.num > newestVisible.num) newestVisible = entry;
@@ -506,9 +537,12 @@
     summary.innerHTML =
       '<span><strong>' + visible + '</strong> visible</span>' +
       '<span><strong>' + entries.length + '</strong> total entries</span>' +
-      '<span><strong>' + Math.max(topicSelect.options.length - 1, 0) + '</strong> topic filters</span>';
+      '<span><strong>' + Math.max(topicSelect.options.length - 1, 0) + '</strong> topic filters</span>' +
+      (selected && !matches(selected) ? '<span><strong>1</strong> held outside this shelf</span>' : '');
     if (selected && !matches(selected)) {
-      inspect.innerHTML = '<p class="inspect-empty">The selected entry is outside the current filter.</p>';
+      renderInspect(selected, true);
+    } else if (selected) {
+      renderInspect(selected, false);
     } else if (!selected && newestVisible) {
       inspect.innerHTML = '<p class="inspect-empty">Select a square to inspect an entry. The newest visible one is <a href="' + entryUrl(newestVisible) + '">entry ' + newestVisible.num + '</a>.</p>';
     } else if (!visible) {
