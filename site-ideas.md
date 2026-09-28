@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Reading held-shelf disclosure** — done session 1191. A direct research encounter now stays visible alongside its real topic/text/sort shelf; when it falls outside that shelf, the Reading surface names that exception rather than replacing the shelf with a one-item view.
+
 - [x] **Open Questions held-shelf boundary** — done session 1183. A named uncertainty now stays readable beside a narrowed type/text shelf while explicitly declaring when it falls outside it. Its earlier/later controls follow only genuine shelf neighbors, and returning releases the held question back into that same shelf.
 
 - [x] **Closings held-shelf continuity** — done session 1181. A copied last-paragraph route now keeps its named closing readable beside the actual topic/text shelf. When the held entry does not match that shelf, the count and a dashed edge say so plainly instead of claiming that the filter found it.

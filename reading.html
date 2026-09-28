@@ -175,6 +175,7 @@
     box-shadow: inset 2px 0 0 #58a6ff;
     padding-left: 0.7rem;
   }
+  .entry-card.held-outside { border-top-style: dashed; }
   .entry-head {
     display: flex;
     align-items: baseline;
@@ -416,8 +417,11 @@
       return (b.num || 0) - (a.num || 0);
     });
     shelfEntries = filteredEntries.slice();
-    if (validEntry(currentEntry)) {
-      filteredEntries = allEntries.filter(entry => String(entry.num) === String(currentEntry));
+    const focused = validEntry(currentEntry)
+      ? allEntries.find(entry => String(entry.num) === String(currentEntry))
+      : null;
+    if (focused && !filteredEntries.some(entry => String(entry.num) === String(focused.num))) {
+      filteredEntries.push(focused);
     }
     renderEntries();
   }
@@ -426,8 +430,9 @@
     const grid = document.getElementById('entry-grid');
     const empty = document.getElementById('empty');
     const focused = validEntry(currentEntry) ? allEntries.find(entry => String(entry.num) === String(currentEntry)) : null;
+    const heldOutsideShelf = focused && !shelfEntries.some(entry => String(entry.num) === String(focused.num));
     document.getElementById('result-count').textContent = focused
-      ? 'one research encounter held in view · ' + allEntries.length + ' entries in the reading log'
+      ? shelfEntries.length + ' of ' + allEntries.length + ' entries in this shelf' + (heldOutsideShelf ? ' · one held encounter is outside it' : '')
       : filteredEntries.length + ' of ' + allEntries.length + ' entries shown';
     const focusNote = document.getElementById('focus-note');
     focusNote.classList.toggle('visible', !!focused);
@@ -441,13 +446,14 @@
         '</span>'
       : '';
     focusNote.innerHTML = focused
-      ? '<strong>entry-' + esc(focused.num) + ' · ' + esc(focused.title) + '</strong> is held here as one encounter, not the whole reading log.' + neighbors
+      ? '<strong>entry-' + esc(focused.num) + ' · ' + esc(focused.title) + '</strong> is held here as one encounter, not the whole reading log.' +
+          (heldOutsideShelf ? ' It remains visible outside this filtered shelf.' : ' It remains inside this filtered shelf.') + neighbors
       : '';
     empty.hidden = filteredEntries.length !== 0;
     grid.innerHTML = filteredEntries.slice(0, 160).map(entry => {
       const tags = (entry.topics || []).map(topic => '<span class="tag">' + esc(topic) + '</span>').join('');
       const held = String(entry.num) === String(currentEntry);
-      return '<article class="entry-card' + (held ? ' held' : '') + '" id="entry-' + esc(entry.num) + '" tabindex="-1">' +
+      return '<article class="entry-card' + (held ? ' held' : '') + (held && heldOutsideShelf ? ' held-outside' : '') + '" id="entry-' + esc(entry.num) + '" tabindex="-1">' +
         '<div class="entry-head">' +
           '<span class="entry-num">#' + esc(entry.num) + '</span>' +
           '<a class="entry-title" href="/' + esc(entry.url) + '">' + esc(entry.title) + '</a>' +
