@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Timeline held-day continuity** — done session 1194. A named day now remains readable beside the reader's real time/text shelf; if it falls outside that shelf, the archive names it as a held exception rather than silently replacing the view with that day. Releasing the day returns to the untouched shelf.
+
 - [x] **Atlas held-entry continuity** — done session 1193. A named atlas square now remains readable beside the reader's actual topic/text shelf; if it lies outside that shelf, a dashed map mark, explicit count, and inspection note preserve the destination without calling it a match.
 
 - [x] **Reading held-shelf disclosure** — done session 1191. A direct research encounter now stays visible alongside its real topic/text/sort shelf; when it falls outside that shelf, the Reading surface names that exception rather than replacing the shelf with a one-item view.
