@@ -107,6 +107,23 @@
     box-shadow: inset 3px 0 0 rgba(88, 166, 255, 0.72);
     padding-left: 0.85rem;
   }
+  .thread.outside-search { border-top-style: dashed; }
+  .held-note {
+    color: #d29922;
+    font-size: 0.74rem;
+    line-height: 1.55;
+    margin-top: 0.65rem;
+  }
+  .thread-return {
+    font: inherit;
+    font-size: inherit;
+    color: #58a6ff;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
   .thread:first-of-type { border-top: none; padding-top: 0; }
   .thread-header { margin-bottom: 1.25rem; }
   .thread-title {
@@ -188,6 +205,8 @@
   html[data-theme="light"] .intro { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread { border-color: #d0d7de; }
   html[data-theme="light"] .thread.is-held { border-color: #0969da; box-shadow: inset 3px 0 0 rgba(9, 105, 218, 0.62); }
+  html[data-theme="light"] .held-note { color: #9a6700; }
+  html[data-theme="light"] .thread-return { color: #0969da; }
   html[data-theme="light"] .thread-title { color: #1c2128; }
   html[data-theme="light"] .thread-desc { color: #57606a; }
   html[data-theme="light"] .entry-item { border-color: #e8ecf0; }
@@ -374,6 +393,14 @@
         window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
       }
     });
+    document.getElementById('threads-container').addEventListener('click', function (event) {
+      if (!event.target.closest('.thread-return')) return;
+      state.threadId = '';
+      state.scrollToFocusedThread = false;
+      focus.value = '';
+      writeView();
+      render();
+    });
     window.addEventListener('popstate', function () {
       restoreView();
       state.scrollToFocusedThread = Boolean(state.threadId);
@@ -399,8 +426,22 @@
     var q = state.query;
     var visible = visibleThreads();
 
+    var heldOutsideSearch = false;
     if (state.threadId) {
-      visible = visible.filter(function (item) { return item.thread.id === state.threadId; });
+      var held = visible.filter(function (item) { return item.thread.id === state.threadId; });
+      if (!held.length) {
+        var namedThread = state.threads.find(function (thread) { return thread.id === state.threadId; });
+        if (namedThread) {
+          held = [{
+            thread: namedThread,
+            entries: scopedEntries(namedThread.entries.slice()),
+            allThreadMatch: false,
+            heldOutsideSearch: true
+          }];
+          heldOutsideSearch = true;
+        }
+      }
+      visible = held;
     }
 
     visible.sort(function (a, b) {
@@ -413,7 +454,10 @@
     visible.forEach(function (item) {
       item.entries.forEach(function (entry) { visibleEntryNums[entryNum(entry)] = true; });
     });
-    filterMeta.textContent = visible.length + (state.threadId ? ' focused thread' : ' threads') + ' · ' + Object.keys(visibleEntryNums).length + (state.scope === 'recent' ? ' recent-edge entries' : ' matching entries');
+    var entryLabel = heldOutsideSearch
+      ? ' held destination entries'
+      : (state.scope === 'recent' ? ' recent-edge entries' : ' matching entries');
+    filterMeta.textContent = visible.length + (state.threadId ? ' focused thread' : ' threads') + ' · ' + Object.keys(visibleEntryNums).length + entryLabel + (heldOutsideSearch ? ' · named destination outside this search' : '');
 
     indexEl.innerHTML = visible.map(function (item) {
       return '<a' + (item.thread.id === state.threadId ? ' class="active" aria-current="true"' : '') + ' href="' + escAttr(threadHref(item.thread.id)) + '">' +
@@ -427,7 +471,7 @@
     }
 
     container.innerHTML = visible.map(function (item) {
-      return renderThread(item.thread, item.entries, q);
+      return renderThread(item.thread, item.entries, q, item.heldOutsideSearch);
     }).join('') + renderCrossReferences(visible, q);
 
     if (state.scrollToFocusedThread && state.threadId) {
@@ -490,7 +534,7 @@
     return url.pathname + url.search + '#thread-' + id;
   }
 
-  function renderThread(thread, entries, q) {
+  function renderThread(thread, entries, q, heldOutsideSearch) {
     var entriesHtml = entries.map(function (entry) {
       var n = entryNum(entry);
       var journal = state.journalByNum[n] || {};
@@ -510,11 +554,15 @@
     }).join('');
 
     var range = threadRange(thread, entries);
-    return '<article class="thread' + (thread.id === state.threadId ? ' is-held' : '') + '" id="thread-' + escAttr(thread.id) + '" tabindex="-1" aria-label="Thread: ' + escAttr(thread.title) + '">' +
+    var heldNote = heldOutsideSearch
+      ? '<div class="held-note">This named thread is held outside the matching search shelf. Its entries are here as a destination, not as a search result. <button class="thread-return" type="button">Return to matching threads</button></div>'
+      : '';
+    return '<article class="thread' + (thread.id === state.threadId ? ' is-held' : '') + (heldOutsideSearch ? ' outside-search' : '') + '" id="thread-' + escAttr(thread.id) + '" tabindex="-1" aria-label="Thread: ' + escAttr(thread.title) + '">' +
       '<div class="thread-header">' +
         '<div class="thread-title">' + highlight(thread.title, q) + '</div>' +
         '<div class="thread-desc">' + highlight(thread.description, q) + '</div>' +
         '<div class="thread-range">' + range + '</div>' +
+        heldNote +
       '</div>' +
       '<div class="entry-list">' + entriesHtml + '</div>' +
     '</article>';
