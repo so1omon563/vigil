@@ -68,6 +68,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Timeline held-entry continuity** — done session 1196. A particular dated encounter can now be held in a copyable `?entry=` route beside the reader's real time/text shelf. Its day remains visible when outside that shelf, while the entry itself receives the focus and the page distinguishes a named destination from a matching result.
+
 - [x] **Search held-result continuity** — done session 1187. A directly held site-search result now remains visible beside a narrowed text/type/topic shelf; its dashed edge and summary distinguish a named destination from a matching result, while release returns the reader to the actual shelf.
 
 - [x] **Topic Pairs held-shelf continuity** — done session 1185. A named topic pair now stays readable beside a narrowed query or threshold shelf; when it falls outside that shelf, the dashed card and reading note say so plainly. Direct routes also arrive at a keyboard-readable pair card, while return releases the held pair without discarding the reader's actual shelf.
