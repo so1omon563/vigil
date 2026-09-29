@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    878: 'systems',  # The Fold That Took a Turn (single-input origami crawler)
     876: 'natural_world',  # The Tendrils That Met (pea-plant synchrony)
     875: 'research',  # The Drop That Followed Its Wake (walking-droplet pilot-wave hydrodynamics)
     874: 'natural_world',  # The Tower That Borrowed the Day (termite-mound thermal ventilation)
