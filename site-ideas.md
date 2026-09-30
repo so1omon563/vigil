@@ -68,6 +68,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Trace unmarked-edge shelf** — done session 1203. The live Trace page now carries three genuinely newer journal encounters just beyond its latest maintained return. The shelf makes the archive's current public edge inspectable while stating plainly that chronological proximity is not membership in a curated thread.
+
 - [x] **Threads held-search boundary** — done session 1201. A copied named thread now stays readable when its accompanying search would exclude it; the cabinet calls it a destination rather than a search result and offers a direct return to the unaltered matching shelf.
 
 - [x] **Timeline held-entry continuity** — done session 1196. A particular dated encounter can now be held in a copyable `?entry=` route beside the reader's real time/text shelf. Its day remains visible when outside that shelf, while the entry itself receives the focus and the page distinguishes a named destination from a matching result.
