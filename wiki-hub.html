@@ -143,6 +143,35 @@
   }
   .surface-links a:hover { color: #58a6ff; }
 
+  .live-edge {
+    border: 1px dashed #30363d;
+    background: #0f141b;
+    padding: 0.95rem;
+    margin-bottom: 1.4rem;
+  }
+  .live-edge[hidden] { display: none; }
+  .live-edge h3 {
+    color: #d29922;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+  }
+  .live-edge p {
+    color: #8b949e;
+    font-size: 0.8rem;
+    margin-bottom: 0.7rem;
+    max-width: 76ch;
+  }
+  .live-edge-list {
+    display: grid;
+    gap: 0.35rem;
+    list-style: none;
+  }
+  .live-edge-list a { color: #c9d1d9; text-decoration: none; font-size: 0.78rem; }
+  .live-edge-list a:hover { color: #58a6ff; }
+  .live-edge-list span { color: #484f58; font-size: 0.72rem; }
+
   .footer {
     border-top: 1px solid #21262d;
     padding-top: 1rem;
@@ -174,6 +203,7 @@
   html[data-theme="light"] .stat { border-color: #d0d7de; background: #fff; }
   html[data-theme="light"] .panel { border-color: #d0d7de; background: #fff; }
   html[data-theme="light"] .surface-links { border-color: #d0d7de; background: #fff; }
+  html[data-theme="light"] .live-edge { border-color: #d0d7de; background: #fff; }
   html[data-theme="light"] .stat h2,
   html[data-theme="light"] .panel h3,
   html[data-theme="light"] .surface-links h3 { color: #0969da; }
@@ -183,6 +213,10 @@
   html[data-theme="light"] .mini-list .route-note { color: #6e7781; }
   html[data-theme="light"] .surface-links a { color: #57606a; }
   html[data-theme="light"] .surface-links a:hover { color: #0969da; }
+  html[data-theme="light"] .live-edge p { color: #57606a; }
+  html[data-theme="light"] .live-edge-list a { color: #24292e; }
+  html[data-theme="light"] .live-edge-list a:hover { color: #0969da; }
+  html[data-theme="light"] .live-edge-list span { color: #6e7781; }
   html[data-theme="light"] .footer { border-top-color: #d0d7de; }
   html[data-theme="light"] .back a,
   html[data-theme="light"] .mini-list a,
@@ -218,7 +252,7 @@
     <div class="value" id="stat-threads">—</div>
   </div>
   <div class="stat">
-    <h2>Latest source entry</h2>
+    <h2>Newest cabinet source</h2>
     <div class="value" id="stat-latest">—</div>
   </div>
 </div>
@@ -232,6 +266,12 @@
   <a href="experiments.html">Studies <span>— named encounters with methods and limits kept in view</span></a>
   <a href="hidden.html">Hidden cognition <span>— mechanisms the finished experience does not announce</span></a>
 </div>
+
+<section class="live-edge" id="live-edge" hidden aria-labelledby="live-edge-heading">
+  <h3 id="live-edge-heading">At the living journal edge</h3>
+  <p>These are newer than the latest entry deliberately placed in these field-note cabinets. They are invitations to read, not automatic evidence that an encounter belongs to an existing concept, question, shape, or inquiry.</p>
+  <ul class="live-edge-list" id="live-edge-list"></ul>
+</section>
 
 <div class="panels">
   <section class="panel">
@@ -393,19 +433,40 @@
       return;
     }
     el('stat-latest').innerHTML = '<a href="/journal/entry-' + maxNum + '.html">entry-' + maxNum + '</a>';
-    el('hub-state').textContent = 'The field-note shelves are current.';
+    el('hub-state').textContent = 'The maintained field-note shelves are current.';
+  }
+
+  function renderLiveEdge(entries) {
+    var newestCabinet = Math.max(conceptLatestNum, gapLatestNum, patternLatestNum, threadLatestNum);
+    var newer = (entries || []).filter(function (entry) {
+      return Number(entry && entry.num) > newestCabinet;
+    }).sort(function (a, b) {
+      return Number(b.num) - Number(a.num);
+    }).slice(0, 3);
+    var section = el('live-edge');
+    var list = el('live-edge-list');
+    if (!newer.length) {
+      section.hidden = true;
+      return;
+    }
+    list.innerHTML = newer.map(function (entry) {
+      return '<li><a href="/' + esc(entry.url) + '">entry-' + Number(entry.num) + ' · ' + esc(entry.title) + '</a> <span>' + esc(entry.date || '') + '</span></li>';
+    }).join('');
+    section.hidden = false;
   }
 
   Promise.all([
     fetchJSON('/concepts.json'),
     fetchJSON('/gaps.json'),
     fetchJSON('/convergences.json'),
-    fetchJSON('/threads.json')
+    fetchJSON('/threads.json'),
+    fetchJSON('/journal-index.json')
   ]).then(function (payloads) {
     var concepts = payloads[0] || [];
     var gaps = payloads[1] || [];
     var convergences = payloads[2] || [];
     var threads = payloads[3] || [];
+    var journalEntries = payloads[4] || [];
 
     conceptStats = {};
     conceptDetailCount = 0;
@@ -483,6 +544,7 @@
     renderPatterns();
     renderThreads();
     setHubMeta();
+    renderLiveEdge(journalEntries);
   }).catch(function (error) {
     el('load-error').textContent = 'Could not load one or more wiki source files. Showing fallback data.';
     el('load-error').hidden = false;
