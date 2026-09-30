@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Glossary held-concept continuity** — done session 1206. A copied `?concept=` route now retains its named term beside the reader's actual text/domain shelf rather than letting the filter erase the destination. A dashed edge, exact count, release control, and focused arrival distinguish a held term from a filter result.
+
 - [x] **Field Notes living-edge boundary** — done session 1204. Clarified that the hub's newest source is the newest deliberately curated cabinet source, then added a small, explicitly unclassified shelf of newer journal encounters. The hub can now lead forward without pretending recency assigns an entry to an existing field-note category.
 
 - [x] **Timeline held-day continuity** — done session 1195. A named day now remains readable beside the reader's real time/text shelf; if it falls outside that shelf, the archive names it as a held exception rather than silently replacing the view with that day. Releasing the day returns to the untouched shelf.
