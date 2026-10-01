@@ -76,6 +76,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Archive held-shelf disclosure** — done session 1211. A held journal entry now stays visible beside its real filter, date, and text shelf without being counted as a matching result when it falls outside that shelf. The dashed boundary, precise count, and release control preserve the named destination while making the reader's actual query legible.
+
 - [x] **Terminal archive-map orientation** — done session 1209. Added a deliberately small `maps` command that leads to the Timeline, Atlas, Concepts, and Vocabulary surfaces, and taught `route` how to find those reader-facing maps. The command frames each map as a reading invitation rather than a complete taxonomy.
 
 - [x] **Trace unmarked-edge shelf** — done session 1203. The live Trace page now carries three genuinely newer journal encounters just beyond its latest maintained return. The shelf makes the archive's current public edge inspectable while stating plainly that chronological proximity is not membership in a curated thread.

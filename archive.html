@@ -91,6 +91,10 @@
     margin-left: -0.75rem;
     margin-right: -0.75rem;
   }
+  .entry.focused.outside-shelf {
+    border-top-style: dashed;
+    border-bottom-style: dashed;
+  }
   .entry:focus { outline: none; }
 
   /* Featured entries look different */
@@ -169,6 +173,7 @@
     <option value="all">All months</option>
   </select>
   <button class="archive-select archive-action" id="archive-reset" type="button">reset</button>
+  <button class="archive-select archive-action" id="archive-release" type="button" hidden>release held</button>
   <button class="archive-select archive-action" id="archive-copy" type="button">copy view</button>
 </div>
 <div class="archive-count" id="archive-count"></div>
@@ -239,8 +244,7 @@
     return { year: words[2], month: monthNumbers[words[1]] || '' };
   }
 
-  function entryMatches(el) {
-    if (focusedEntry && el.dataset.entry === focusedEntry) return true;
+  function shelfMatches(el) {
     var show = true;
     if (currentFilter === 'featured') show = el.classList.contains('featured');
     else if (currentFilter === 'recent') show = el.dataset.recent === '1';
@@ -248,6 +252,10 @@
     if (show && currentMonth !== 'all') show = el.dataset.month === currentMonth;
     if (show && currentSearch) show = el.dataset.search.indexOf(currentSearch) !== -1;
     return show;
+  }
+
+  function entryMatches(el) {
+    return (focusedEntry && el.dataset.entry === focusedEntry) || shelfMatches(el);
   }
 
   function updateMonthOptions() {
@@ -279,19 +287,28 @@
     if (filter) currentFilter = filter;
     var entries = document.querySelectorAll('#archive-list .entry');
     var visible = 0;
+    var shelfVisible = 0;
+    var heldOutsideShelf = false;
     entries.forEach(function(el) {
+      var inShelf = shelfMatches(el);
       var show = entryMatches(el);
       el.classList.toggle('hidden', !show);
       el.classList.toggle('focused', focusedEntry && el.dataset.entry === focusedEntry);
+      el.classList.toggle('outside-shelf', focusedEntry && el.dataset.entry === focusedEntry && !inShelf);
       if (show) visible += 1;
+      if (inShelf) shelfVisible += 1;
+      if (focusedEntry && el.dataset.entry === focusedEntry && !inShelf) heldOutsideShelf = true;
     });
     document.querySelectorAll('.filter-btn').forEach(function(btn) {
       btn.classList.toggle('active', btn.dataset.filter === currentFilter);
     });
     var count = document.getElementById('archive-count');
     if (count) {
-      var heldNote = focusedEntry ? ' · holding entry ' + focusedEntry : '';
-      count.textContent = visible + ' shown' + (currentSearch ? ' matching “' + currentSearch + '”' : '') + heldNote;
+      var heldNote = focusedEntry
+        ? ' · holding entry ' + focusedEntry + (heldOutsideShelf ? ' outside this shelf' : ' in this shelf')
+        : '';
+      count.textContent = (heldOutsideShelf ? shelfVisible + ' in shelf · ' + visible + ' shown' : visible + ' shown') +
+        (currentSearch ? ' matching “' + currentSearch + '”' : '') + heldNote;
     }
     var searchInput = document.getElementById('archive-search');
     if (searchInput) searchInput.value = currentSearch;
@@ -299,6 +316,8 @@
     if (yearSelect) yearSelect.value = currentYear;
     var monthSelect = document.getElementById('archive-month');
     if (monthSelect) monthSelect.value = currentMonth;
+    var release = document.getElementById('archive-release');
+    if (release) release.hidden = !focusedEntry;
     document.querySelectorAll('.entry-hold').forEach(function(link) {
       var url = new URL(window.location.href);
       url.searchParams.set('entry', link.dataset.entry);
@@ -415,6 +434,11 @@
   document.getElementById('archive-reset').addEventListener('click', function() {
     currentFilter = 'all'; currentSearch = ''; currentYear = 'all'; currentMonth = 'all'; focusedEntry = '';
     updateMonthOptions(); writeUrl(false); applyFilter();
+  });
+  document.getElementById('archive-release').addEventListener('click', function() {
+    focusedEntry = '';
+    writeUrl(false);
+    applyFilter();
   });
   document.getElementById('archive-copy').addEventListener('click', function() {
     var button = this;
