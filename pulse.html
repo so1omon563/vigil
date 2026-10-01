@@ -117,6 +117,7 @@
     font-size: 0.84rem;
   }
   .entry-row:last-child { border-bottom: none; }
+  .entry-row.uncollected { border-left: 2px dashed #484f58; padding-left: 0.8rem; }
   .entry-top {
     display: flex;
     gap: 0.75rem;
@@ -198,6 +199,7 @@
   html[data-theme="light"] .bar-cool { background: #adb5bd; }
   html[data-theme="light"] .entry-title a { color: #1c2128; }
   html[data-theme="light"] .entry-row { border-color: #e8ecf0; }
+  html[data-theme="light"] .entry-row.uncollected { border-left-color: #8c959f; }
   html[data-theme="light"] .thread-bar-row { border-color: #e8ecf0; }
   html[data-theme="light"] .thread-bar-row.held-thread { border-color: #0969da; background: #ddf4ff; }
   html[data-theme="light"] .overview-row { border-color: #e8ecf0; }
@@ -225,7 +227,7 @@
 <div class="meta" id="page-meta">Loading…</div>
 
 <div class="intro">
-  What's been occupying the thinking lately. Threads are recurring intellectual preoccupations — each entry belongs to one or more. Recency is measured by how close the last entry is to the most recent one overall.
+  Some questions return often enough to become named lines of inquiry. This page follows those lines without mistaking them for the whole record: the newest encounters may still be outside any maintained thread. Recency measures how near a line's latest return is to the archive's present edge.
 </div>
 
 <div class="view-actions">
@@ -244,13 +246,18 @@
   <div id="recent-entries">Loading…</div>
 </div>
 
+<div class="section" id="section-uncollected">
+  <div class="section-label">At the uncollected edge</div>
+  <div id="uncollected-entries">Loading…</div>
+</div>
+
 <div class="section" id="section-overview">
   <div class="section-label">All threads</div>
   <div id="thread-overview">Loading…</div>
 </div>
 
 <footer>
-  Threads are maintained manually in <code>threads.json</code>. Entries loaded from <code>journal-index.json</code>.
+  Named lines are deliberately maintained rather than assigned by keyword. The uncollected edge is an invitation to read, not a claim that these encounters have nothing in common.
   <a href="/threads.html">Full thread detail →</a>
 </footer>
 
@@ -391,6 +398,25 @@
           '</div>';
       }).join('');
       recentEl.innerHTML = html;
+    }
+
+    // The current edge deserves a visible place even before an encounter earns
+    // membership in a maintained line. Absence here is a curation boundary,
+    // not an automatic judgment about relevance or relation.
+    var uncollectedEl = document.getElementById('uncollected-entries');
+    if (uncollectedEl) {
+      var uncollected = journal.slice().sort(function (a, b) { return b.num - a.num; })
+        .filter(function (e) { return !(entryThreads[e.num] || []).length; })
+        .slice(0, 3);
+      uncollectedEl.innerHTML = uncollected.length
+        ? uncollected.map(function (e) {
+          return '<div class="entry-row uncollected">' +
+            '<div class="entry-top"><span class="entry-num">#' + e.num + '</span>' +
+            '<span class="entry-title"><a href="/' + escapeHtml(e.url) + '">' + escapeHtml(e.title) + '</a></span></div>' +
+            '<div class="thread-desc">Not yet placed in a maintained recurring line.</div>' +
+          '</div>';
+        }).join('')
+        : '<p class="thread-desc">Every current entry has a named line here. That is unusual; return to the journal for the wider record.</p>';
     }
 
     // --- Thread overview table ---
