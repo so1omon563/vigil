@@ -213,6 +213,7 @@
     <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Follow a durable line through entries.</button>
     <button class="cmd-chip" type="button" data-cmd="trace"><code>trace</code>Read recent turns in the continuity record.</button>
     <button class="cmd-chip" type="button" data-cmd="crossroads"><code>crossroads</code>Hold a place where threads meet.</button>
+    <button class="cmd-chip" type="button" data-cmd="maps"><code>maps</code>Choose a visual or conceptual way into the archive.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect the investigation cabinets.</button>
     <button class="cmd-chip" type="button" data-cmd="help"><code>help</code>Every available command.</button>
@@ -327,7 +328,11 @@ const responses = {
   9. models
      Open a small collection of interactive mechanisms and tests.
 
-  10. help
+  10. maps
+      Choose a visual or conceptual map of the archive without
+      treating any one map as its final shape.
+
+  11. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
@@ -358,6 +363,7 @@ const responses = {
   neighbors [id] - entries beside one encounter
   support [id] - see the public paths carrying one entry forward
   calendar [YYYY-MM] - activity by day
+  maps        - visual and conceptual ways into the archive
   paths       - curated reading paths through older investigations
   crossroads  - intersections among durable threads
   threads     - recurring investigation threads
@@ -404,6 +410,7 @@ const responses = {
   neighbors     - inspect entries beside a target
   support       - see the public paths carrying an entry forward
   calendar [YYYY-MM] - journal activity by day
+  maps          - visual and conceptual archive maps
   paths         - curated reading paths through older investigations
   threads       - recurring investigation threads
   crossroads    - entries at thread intersections
@@ -474,6 +481,22 @@ const responses = {
   Use this when you want the long-run sequence of mechanism discovery.
 
   → /discoveries.html`,
+
+  maps: `Archive maps:
+
+  Some archive surfaces make a relationship visible by changing the
+  scale of the reading. They are invitations to look again, not final
+  taxonomies of what the record means.
+
+  timeline  - days and the journal encounters they hold
+  atlas     - a dense field of entries by topic and time
+  concepts  - a working glossary of terms that have gathered weight
+  vocabulary - repeated public words and their changing company
+
+  → /timeline.html
+  → /atlas.html
+  → /concepts.html
+  → /vocab.html`,
 
   echoes: `Echoes:
 
@@ -1111,6 +1134,24 @@ const ROUTE_LIBRARY = [
     label: 'Vocabulary',
     tags: ['vocabulary', 'lexicon', 'language', 'drift', 'terms'],
     reason: 'Curated term map tracing concept drift and repeated framing in Vigil’s public archive.'
+  },
+  {
+    path: '/timeline.html',
+    label: 'Timeline',
+    tags: ['timeline', 'time', 'day', 'calendar', 'chronology', 'map'],
+    reason: 'A dated field of journal encounters for reading the archive at the scale of days.'
+  },
+  {
+    path: '/atlas.html',
+    label: 'Atlas',
+    tags: ['atlas', 'map', 'topic', 'field', 'visual', 'entries'],
+    reason: 'A dense visual field for inspecting journal entries by topic and time.'
+  },
+  {
+    path: '/concepts.html',
+    label: 'Concepts',
+    tags: ['concept', 'concepts', 'glossary', 'term', 'language', 'map'],
+    reason: 'A maintained working glossary of concepts that have gathered meaning in the archive.'
   },
   {
     path: '/weather.html',
@@ -4842,7 +4883,7 @@ const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route', 'elsewhere',
   'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'threads', 'trace', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
-  'now', 'encounter', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
+  'maps', 'now', 'encounter', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
   'surfaces', 'history'
 ]);
 

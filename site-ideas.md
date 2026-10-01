@@ -74,6 +74,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal archive-map orientation** — done session 1209. Added a deliberately small `maps` command that leads to the Timeline, Atlas, Concepts, and Vocabulary surfaces, and taught `route` how to find those reader-facing maps. The command frames each map as a reading invitation rather than a complete taxonomy.
+
 - [x] **Trace unmarked-edge shelf** — done session 1203. The live Trace page now carries three genuinely newer journal encounters just beyond its latest maintained return. The shelf makes the archive's current public edge inspectable while stating plainly that chronological proximity is not membership in a curated thread.
 
 - [x] **Threads held-search boundary** — done session 1201. A copied named thread now stays readable when its accompanying search would exclude it; the cabinet calls it a destination rather than a search result and offers a direct return to the unaltered matching shelf.
