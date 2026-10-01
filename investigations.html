@@ -51,6 +51,7 @@
   }
   .pattern-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
   .pattern-btn.active { border-color: #58a6ff; background: #0d2240; color: #e6edf3; }
+  .pattern-btn.is-held { border-style: dashed; }
   .pattern-btn .btn-count { color: #484f58; font-size: 0.7rem; margin-left: 0.4rem; }
   .pattern-btn.active .btn-count { color: #58a6ff; }
 
@@ -73,6 +74,14 @@
   }
   .pattern-meta { font-size: 0.74rem; color: #484f58; }
   .pattern-meta span { margin-right: 1.2rem; }
+  .held-note { font-size: 0.76rem; color: #8b949e; border-left: 2px dashed #58a6ff; padding-left: 0.7rem; margin: 0.8rem 0 0; line-height: 1.6; }
+
+  .living-edge { margin: 0.2rem 0 2rem; padding: 0.9rem 1rem; border: 1px solid #21262d; border-left: 2px solid #9e6a03; border-radius: 3px; }
+  .living-edge[hidden] { display: none; }
+  .living-edge-label { color: #d29922; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .living-edge-copy { color: #8b949e; font-size: 0.76rem; line-height: 1.6; margin: 0.45rem 0 0.55rem; }
+  .living-edge-list { display: grid; gap: 0.3rem; }
+  .living-edge-item { font-size: 0.76rem; color: #8b949e; }
 
   /* Entry list */
   .entry-list { }
@@ -123,12 +132,17 @@
   html[data-theme="light"] .pattern-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .pattern-btn:hover { border-color: #0969da; color: #24292e; }
   html[data-theme="light"] .pattern-btn.active { background: #ddf4ff; border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] .pattern-btn.is-held { border-color: #0969da; }
   html[data-theme="light"] .pattern-btn .btn-count { color: #8c959f; }
   html[data-theme="light"] .pattern-btn.active .btn-count { color: #0969da; }
   html[data-theme="light"] .pattern-header { border-bottom-color: #d0d7de; }
   html[data-theme="light"] .pattern-name { color: #24292e; }
   html[data-theme="light"] .pattern-description { color: #57606a; }
   html[data-theme="light"] .pattern-meta { color: #8c959f; }
+  html[data-theme="light"] .held-note { color: #57606a; border-left-color: #0969da; }
+  html[data-theme="light"] .living-edge { border-color: #d0d7de; border-left-color: #9a6700; }
+  html[data-theme="light"] .living-edge-label { color: #9a6700; }
+  html[data-theme="light"] .living-edge-copy, html[data-theme="light"] .living-edge-item { color: #57606a; }
   html[data-theme="light"] .entry-item { border-bottom-color: #f6f8fa; }
   html[data-theme="light"] .entry-item:first-child { border-top-color: #f6f8fa; }
   html[data-theme="light"] .entry-num { color: #8c959f; }
@@ -157,6 +171,12 @@
 <div class="pattern-nav" id="pattern-nav">
   <span style="font-size:0.8rem;color:#484f58;">loading…</span>
 </div>
+
+<aside class="living-edge" id="living-edge" hidden aria-live="polite">
+  <div class="living-edge-label">At the unassigned edge</div>
+  <p class="living-edge-copy" id="living-edge-copy"></p>
+  <div class="living-edge-list" id="living-edge-list"></div>
+</aside>
 
 <div id="pattern-view"></div>
 
@@ -223,7 +243,7 @@
     });
   }
 
-  function renderPattern(pat) {
+  function renderPattern(pat, heldOutside) {
     var entryMap = buildEntryMap(journal);
     var view = document.getElementById('pattern-view');
     view.innerHTML = '';
@@ -231,7 +251,11 @@
 
     // Header
     var hdr = document.createElement('div');
-    hdr.className = 'pattern-header';
+    hdr.className = 'pattern-header' + (heldOutside ? ' is-held' : '');
+    if (heldOutside) {
+      hdr.id = 'held-pattern';
+      hdr.tabIndex = -1;
+    }
 
     var nameEl = document.createElement('div');
     nameEl.className = 'pattern-name';
@@ -260,6 +284,12 @@
       '<span>' + nums.length + ' ' + (nums.length === 1 ? 'entry' : 'entries') + '</span>' +
       (dateRange ? '<span>' + dateRange + '</span>' : '');
     hdr.appendChild(metaEl);
+    if (heldOutside) {
+      var heldNote = document.createElement('p');
+      heldNote.className = 'held-note';
+      heldNote.textContent = 'This named reading path is held beside the current search shelf. It is a destination, not one of the matching paths.';
+      hdr.appendChild(heldNote);
+    }
     view.appendChild(hdr);
 
     // Entry list
@@ -345,37 +375,75 @@
     view.appendChild(list);
   }
 
-  function selectPattern(id, routeMode) {
+  function isHeldOutside(pat) {
+    return !!(pat && currentQuery.trim() && matchingPatterns().indexOf(pat) === -1);
+  }
+
+  function selectPattern(id, routeMode, focusHeld) {
     activeId = id;
-
-    // Update button states
-    document.querySelectorAll('.pattern-btn').forEach(function(btn) {
-      btn.classList.toggle('active', btn.dataset.id === id);
-    });
-
     var pat = patterns.find(function(p) { return p.id === id; });
-    if (pat) renderPattern(pat);
+    var heldOutside = isHeldOutside(pat);
+    buildNav(pat);
+    if (pat) renderPattern(pat, heldOutside);
 
     setRoute(id, routeMode || 'pushState');
     var visibleCount = matchingPatterns().length;
-    document.getElementById('route-status').textContent = currentQuery.trim()
+    document.getElementById('route-status').textContent = heldOutside
+      ? 'holding one named path outside ' + visibleCount + ' matching paths · ' + (pat ? (pat.entries || []).length : 0) + ' linked entries'
+      : currentQuery.trim()
       ? 'holding one of ' + visibleCount + ' matching paths · ' + (pat ? (pat.entries || []).length : 0) + ' linked entries'
       : 'holding one reading path · ' + (pat ? (pat.entries || []).length : 0) + ' linked entries';
+    if (focusHeld && heldOutside) {
+      var held = document.getElementById('held-pattern');
+      if (held) window.setTimeout(function() { held.scrollIntoView({ behavior: 'smooth', block: 'start' }); held.focus({ preventScroll: true }); }, 0);
+    }
   }
 
-  function buildNav() {
+  function buildNav(selected) {
     var nav = document.getElementById('pattern-nav');
     nav.innerHTML = '';
-    matchingPatterns().forEach(function(pat) {
+    var visible = matchingPatterns();
+    var navPatterns = visible.slice();
+    if (selected && visible.indexOf(selected) === -1) navPatterns.unshift(selected);
+    navPatterns.forEach(function(pat) {
       var count = (pat.entries || []).map(entryNumber).filter(Boolean).length;
       var btn = document.createElement('button');
-      btn.className = 'pattern-btn';
+      var heldOutside = selected && pat.id === selected.id && visible.indexOf(pat) === -1;
+      btn.className = 'pattern-btn' + (selected && pat.id === selected.id ? ' active' : '') + (heldOutside ? ' is-held' : '');
       btn.dataset.id = pat.id;
+      btn.setAttribute('aria-pressed', selected && pat.id === selected.id ? 'true' : 'false');
       btn.innerHTML = pat.name + '<span class="btn-count">' + count + '</span>';
       btn.addEventListener('click', function() { selectPattern(pat.id); });
       nav.appendChild(btn);
     });
     if (!nav.children.length) nav.textContent = 'No reading path carries that phrase yet.';
+  }
+
+  function renderLivingEdge() {
+    var edge = document.getElementById('living-edge');
+    var copy = document.getElementById('living-edge-copy');
+    var list = document.getElementById('living-edge-list');
+    var latestCurated = patterns.reduce(function(max, pat) {
+      return (pat.entries || []).reduce(function(innerMax, item) {
+        return Math.max(innerMax, entryNumber(item) || 0);
+      }, max);
+    }, 0);
+    var newer = journal.filter(function(entry) {
+      return Number(entry.num) > latestCurated;
+    }).slice(0, 3);
+    if (!latestCurated || !newer.length) return;
+    copy.textContent = 'This cabinet currently reaches entry-' + latestCurated + '. These newer encounters are offered as a public edge to inspect, not as automatic members of a recurring shape.';
+    list.innerHTML = '';
+    newer.forEach(function(entry) {
+      var item = document.createElement('div');
+      item.className = 'living-edge-item';
+      var link = document.createElement('a');
+      link.href = entry.url ? (entry.url.startsWith('/') ? entry.url : '/' + entry.url) : '/archive.html';
+      link.textContent = 'entry-' + String(entry.num).padStart(3, '0') + ': ' + (entry.title || 'journal encounter');
+      item.appendChild(link);
+      list.appendChild(item);
+    });
+    edge.hidden = false;
   }
 
   function init() {
@@ -386,15 +454,12 @@
     var visible = matchingPatterns();
     var hashId = state.id;
     var defaultPat = null;
-    if (hashId) {
-      defaultPat = visible.find(function(p) { return p.id === hashId; });
-    }
+    if (hashId) defaultPat = patterns.find(function(p) { return p.id === hashId; });
     if (!defaultPat) {
       // Default to gap-without-signal if it exists, else first
       defaultPat = visible.find(function(p) { return p.id === 'gap-without-signal'; }) || visible[0];
     }
-    buildNav();
-    if (defaultPat) selectPattern(defaultPat.id, 'replaceState');
+    if (defaultPat) selectPattern(defaultPat.id, 'replaceState', !!hashId);
     else document.getElementById('pattern-view').innerHTML = '<div class="empty">No reading path carries that phrase yet. Try a different term or reset the path.</div>';
   }
 
@@ -411,6 +476,7 @@
     }
 
     document.getElementById('investigation-intro').textContent = patterns.length + ' recurring shapes found across the journal. Each is a reading path through entries that belong together; the cabinet grows when a later encounter genuinely earns a place in it.';
+    renderLivingEdge();
     init();
 
     window.addEventListener('popstate', function() {
@@ -420,8 +486,7 @@
     document.getElementById('route-search').addEventListener('input', function(event) {
       currentQuery = event.target.value;
       var visible = matchingPatterns();
-      var next = visible.find(function(p) { return p.id === activeId; }) || visible[0];
-      buildNav();
+      var next = patterns.find(function(p) { return p.id === activeId; }) || visible[0];
       if (next) selectPattern(next.id, 'replaceState');
       else {
         activeId = null;
@@ -434,7 +499,6 @@
     document.getElementById('reset-route').addEventListener('click', function() {
       currentQuery = '';
       document.getElementById('route-search').value = '';
-      buildNav();
       var pat = patterns.find(function(p) { return p.id === 'gap-without-signal'; }) || patterns[0];
       if (pat) selectPattern(pat.id, 'pushState');
     });
