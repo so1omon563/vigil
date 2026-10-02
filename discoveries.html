@@ -68,6 +68,44 @@
     cursor: pointer;
   }
   .view-action:hover { color: #8b949e; border-color: #484f58; }
+  .chronology-overview {
+    margin: 0 0 1.35rem;
+    padding: 0.9rem 1rem 0.85rem;
+    border: 1px solid #21262d;
+    border-radius: 4px;
+  }
+  .chronology-overview-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: baseline;
+    margin-bottom: 0.7rem;
+  }
+  .chronology-overview h2 { color: #e6edf3; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .chronology-overview-note { color: #8b949e; font-size: 0.72rem; }
+  .chronology-strip {
+    position: relative;
+    height: 1.6rem;
+    border-bottom: 1px solid #30363d;
+  }
+  .chronology-mark {
+    position: absolute;
+    bottom: -0.32rem;
+    width: 0.65rem;
+    height: 0.65rem;
+    margin-left: -0.33rem;
+    border: 1px solid #484f58;
+    border-radius: 50%;
+    background: #0d1117;
+    cursor: pointer;
+  }
+  .chronology-mark:hover, .chronology-mark:focus { border-color: #e6edf3; outline: none; transform: scale(1.25); }
+  .chronology-mark[data-cat="biology"] { border-color: #3fb950; background: #0d2818; }
+  .chronology-mark[data-cat="neuroscience"] { border-color: #58a6ff; background: #0c1e35; }
+  .chronology-mark[data-cat="physics"] { border-color: #e3b341; background: #2d2108; }
+  .chronology-mark[data-cat="linguistics"] { border-color: #bc8cff; background: #1c1030; }
+  .chronology-mark.held { outline: 1px dashed #8b949e; outline-offset: 3px; }
+  .chronology-axis { display: flex; justify-content: space-between; margin-top: 0.55rem; color: #484f58; font-size: 0.66rem; letter-spacing: 0.06em; }
   .search-row { margin: 0 0 0.8rem; }
   .decade-row {
     display: flex;
@@ -348,6 +386,17 @@
   html[data-theme="light"] .filter-btn.active[data-cat="linguistics"] { border-color: #8250df; color: #8250df; }
   html[data-theme="light"] .view-action { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .view-action:hover { color: #24292e; border-color: #8b949e; }
+  html[data-theme="light"] .chronology-overview { border-color: #d0d7de; }
+  html[data-theme="light"] .chronology-overview h2 { color: #1c2128; }
+  html[data-theme="light"] .chronology-overview-note { color: #57606a; }
+  html[data-theme="light"] .chronology-strip { border-color: #d0d7de; }
+  html[data-theme="light"] .chronology-mark { background: #f6f8fa; border-color: #8b949e; }
+  html[data-theme="light"] .chronology-mark[data-cat="biology"] { border-color: #1a7f37; background: #dafbe1; }
+  html[data-theme="light"] .chronology-mark[data-cat="neuroscience"] { border-color: #0969da; background: #ddf4ff; }
+  html[data-theme="light"] .chronology-mark[data-cat="physics"] { border-color: #9a6700; background: #fff8c5; }
+  html[data-theme="light"] .chronology-mark[data-cat="linguistics"] { border-color: #8250df; background: #fbefff; }
+  html[data-theme="light"] .chronology-mark:hover, html[data-theme="light"] .chronology-mark:focus { border-color: #24292e; }
+  html[data-theme="light"] .chronology-axis { color: #57606a; }
   html[data-theme="light"] .search-input { color: #24292e; background: #f6f8fa; border-color: #d0d7de; }
   html[data-theme="light"] .decade-row { color: #57606a; }
   html[data-theme="light"] .decade-select { color: #24292e; background: #f6f8fa; border-color: #d0d7de; }
@@ -429,6 +478,15 @@
   <button class="view-action" id="reset-view" type="button">reset</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
+
+<section class="chronology-overview" aria-labelledby="chronology-overview-title">
+  <div class="chronology-overview-head">
+    <h2 id="chronology-overview-title">The shape of this slice</h2>
+    <span class="chronology-overview-note" id="chronology-overview-note">Loading source dates.</span>
+  </div>
+  <div class="chronology-strip" id="chronology-strip" aria-label="Source-date overview; each mark opens a discovery record"></div>
+  <div class="chronology-axis" aria-hidden="true"><span id="chronology-start"></span><span id="chronology-end"></span></div>
+</section>
 
 <p class="focus-note" id="focus-note" hidden></p>
 <p class="empty-state" id="empty-state" hidden>No discovery records match this slice. Try a different term or reset the timeline.</p>
@@ -669,6 +727,10 @@
   var categories = [];
   var recentReadingList = document.getElementById('recent-reading-list');
   var recentReadingMeta = document.getElementById('recent-reading-meta');
+  var chronologyStrip = document.getElementById('chronology-strip');
+  var chronologyOverviewNote = document.getElementById('chronology-overview-note');
+  var chronologyStart = document.getElementById('chronology-start');
+  var chronologyEnd = document.getElementById('chronology-end');
 
   function titleCase(value) {
     return String(value || '').replace(/\b\w/g, function (char) { return char.toUpperCase(); });
@@ -852,6 +914,52 @@
     return Math.min.apply(Math, years) + '–' + Math.max.apply(Math, years);
   }
 
+  function eventYear(item) {
+    var match = safeText(item && item.year).match(/\d{4}/);
+    return match ? Number(match[0]) : null;
+  }
+
+  function renderChronologyOverview() {
+    if (!chronologyStrip) return;
+    chronologyStrip.innerHTML = '';
+    var slice = shelfItems();
+    var held = events.filter(function (item) { return eventId(item) === focusedEvent; })[0];
+    if (held && slice.indexOf(held) === -1) slice = slice.concat([held]);
+    var dated = slice.filter(function (item) { return eventYear(item) !== null; });
+    var allDated = events.filter(function (item) { return eventYear(item) !== null; });
+    var years = allDated.map(eventYear);
+    var start = years.length ? Math.min.apply(Math, years) : null;
+    var end = years.length ? Math.max.apply(Math, years) : null;
+
+    if (chronologyStart) chronologyStart.textContent = start || '';
+    if (chronologyEnd) chronologyEnd.textContent = end || '';
+    if (chronologyOverviewNote) {
+      chronologyOverviewNote.textContent = dated.length
+        ? dated.length + (dated.length === 1 ? ' record in view' : ' records in view') + ' across ' + start + '–' + end
+        : 'No dated records in this slice.';
+    }
+    if (!dated.length || start === null || end === null) return;
+
+    dated.forEach(function (item) {
+      var year = eventYear(item);
+      var mark = document.createElement('button');
+      var id = eventId(item);
+      var position = end === start ? 50 : ((year - start) / (end - start)) * 100;
+      mark.type = 'button';
+      mark.className = 'chronology-mark' + (id === focusedEvent ? ' held' : '');
+      mark.setAttribute('data-cat', item.cat || '');
+      mark.style.left = position + '%';
+      mark.setAttribute('aria-label', year + ': ' + safeText(item.title) + '. Open record.');
+      mark.title = year + ' · ' + safeText(item.title);
+      mark.addEventListener('click', function () {
+        focusedEvent = id;
+        renderEvents();
+        updateUrl(false);
+      });
+      chronologyStrip.appendChild(mark);
+    });
+  }
+
   function renderEvents() {
     timeline.innerHTML = '';
     if (emptyState) {
@@ -872,6 +980,7 @@
 
     var grouped = {};
     var visible = visibleItems();
+    renderChronologyOverview();
     for (var i = 0; i < visible.length; i++) {
       var item = visible[i];
 

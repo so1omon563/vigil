@@ -78,6 +78,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Discoveries chronology overview** — done session 1217. The held source-history timeline now has a compact, filter-aware source-date strip. Each category-colored mark is keyboard reachable and opens its named record; a directly held record remains visibly marked even outside the reader's slice, so the overview names a destination rather than inventing a match.
+
 - [x] **Weather held-day arrival** — done session 1215. A copied `?day=` weather record now visibly marks its high/low bar in the living chart, exposes the held day to assistive technology, and moves direct or history-navigation arrivals to the actual small-record reading. Releasing it restores the unheld live chart.
 
 - [x] **Investigations held-path and living-edge repair** — done session 1213. A copied recurring-shape path now remains legible beside a search that excludes it, with a dashed, named-destination boundary rather than a false match. The older maintained cabinet also now exposes three later journal encounters as an explicitly unassigned reading edge.
