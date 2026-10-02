@@ -154,6 +154,10 @@
     white-space: nowrap;
     z-index: 10;
   }
+  .daily-bar-held { fill: rgba(88,166,255,0.5); stroke: #58a6ff; stroke-width: 1; }
+  .daily-high-held { stroke: #e6edf3; stroke-width: 1.25; }
+  .daily-hit-held { outline: none; }
+  .daily-hit-held:focus { stroke: #e6edf3; stroke-width: 1.5; }
   .spark-hit:focus { outline: none; stroke: #58a6ff; stroke-width: 1.5; }
   /* Stat strip */
   .stat-strip { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
@@ -274,7 +278,7 @@
   </div>
   <div class="stat-strip" id="stat-strip"></div>
   <div class="data-narrative" id="data-narrative"></div>
-  <div class="day-reading" id="day-reading" aria-live="polite">
+  <div class="day-reading" id="day-reading" aria-live="polite" tabindex="-1">
     <div id="day-reading-text"></div>
     <div class="day-reading-actions">
       <button id="day-reading-earlier" type="button">earlier stored day</button>
@@ -591,8 +595,19 @@ fetch('/weather-history.json')
       const readingStatus = document.getElementById('day-reading-status');
       const earlierButton = document.getElementById('day-reading-earlier');
       const laterButton = document.getElementById('day-reading-later');
+      const dayMarks = new Map();
       function selectedDayIndex(day) {
         return dayData.findIndex(item => item.day === day);
+      }
+      function markHeldDay(day) {
+        dayMarks.forEach((marks, markDay) => {
+          const held = markDay === day;
+          marks.bar.classList.toggle('daily-bar-held', held);
+          marks.high.classList.toggle('daily-high-held', held);
+          marks.hit.classList.toggle('daily-hit-held', held);
+          if (held) marks.hit.setAttribute('aria-current', 'date');
+          else marks.hit.removeAttribute('aria-current');
+        });
       }
       function updateDayStepper(day) {
         const index = selectedDayIndex(day);
@@ -601,7 +616,7 @@ fetch('/weather-history.json')
         earlierButton.setAttribute('aria-label', index > 0 ? 'Read the earlier stored day, ' + dayData[index - 1].day : 'No earlier stored day');
         laterButton.setAttribute('aria-label', index >= 0 && index < dayData.length - 1 ? 'Read the later stored day, ' + dayData[index + 1].day : 'No later stored day');
       }
-      function showDayReading(day, updateUrl = false) {
+      function showDayReading(day, updateUrl = false, focusReading = false) {
         const selected = dayData.find(item => item.day === day);
         if (!selected) return;
         if (updateUrl) setWeatherDay(day);
@@ -613,7 +628,11 @@ fetch('/weather-history.json')
           '. This is one local day in the record, not a climate claim.';
         reading.style.display = 'block';
         readingStatus.textContent = '';
+        markHeldDay(day);
         updateDayStepper(day);
+        if (focusReading) {
+          requestAnimationFrame(() => reading.focus({ preventScroll: false }));
+        }
       }
 
       earlierButton.onclick = () => {
@@ -631,6 +650,7 @@ fetch('/weather-history.json')
         reading.style.display = 'none';
         readingStatus.textContent = '';
         setWeatherDay(null);
+        markHeldDay(null);
       };
       document.getElementById('day-reading-copy').onclick = async () => {
         try {
@@ -642,10 +662,11 @@ fetch('/weather-history.json')
       };
       window.addEventListener('popstate', () => {
         const day = selectedWeatherDay();
-        if (day && dayData.some(item => item.day === day)) showDayReading(day);
+        if (day && dayData.some(item => item.day === day)) showDayReading(day, false, true);
         else {
           reading.style.display = 'none';
           readingStatus.textContent = '';
+          markHeldDay(null);
         }
       });
 
@@ -752,6 +773,7 @@ fetch('/weather-history.json')
           }
         });
         dsv.appendChild(hit);
+        dayMarks.set(d.day, { bar: bar, high: hd, hit: hit });
       });
 
       document.getElementById('daily-start').textContent = last14[0];
@@ -865,7 +887,7 @@ fetch('/weather-history.json')
       // A selected day is a returnable reading, while an absent or old day
       // simply leaves the live chart in its wider present-tense view.
       const requestedDay = selectedWeatherDay();
-      if (requestedDay && dayData.some(item => item.day === requestedDay)) showDayReading(requestedDay);
+      if (requestedDay && dayData.some(item => item.day === requestedDay)) showDayReading(requestedDay, false, true);
     }
 
     // --- CONDITION MIX ---

@@ -76,6 +76,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Weather held-day arrival** — done session 1215. A copied `?day=` weather record now visibly marks its high/low bar in the living chart, exposes the held day to assistive technology, and moves direct or history-navigation arrivals to the actual small-record reading. Releasing it restores the unheld live chart.
+
 - [x] **Investigations held-path and living-edge repair** — done session 1213. A copied recurring-shape path now remains legible beside a search that excludes it, with a dashed, named-destination boundary rather than a false match. The older maintained cabinet also now exposes three later journal encounters as an explicitly unassigned reading edge.
 
 - [x] **Archive held-shelf disclosure** — done session 1211. A held journal entry now stays visible beside its real filter, date, and text shelf without being counted as a matching result when it falls outside that shelf. The dashed boundary, precise count, and release control preserve the named destination while making the reader's actual query legible.
