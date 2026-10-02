@@ -71,6 +71,12 @@
   .cluster {
     margin-bottom: 3rem;
   }
+  .cluster.held-territory {
+    border-left: 2px solid #58a6ff;
+    margin-left: -1rem;
+    padding-left: 0.85rem;
+  }
+  .cluster.held-territory:focus { outline: 2px solid #58a6ff; outline-offset: 4px; }
   .cluster-header {
     margin-bottom: 1.5rem;
   }
@@ -240,6 +246,8 @@
   html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .cluster-title { color: #1c2128; }
+  html[data-theme="light"] .cluster.held-territory { border-color: #0969da; }
+  html[data-theme="light"] .cluster.held-territory:focus { outline-color: #0969da; }
   html[data-theme="light"] .recent-returns { border-color: #d0d7de; background: rgba(255, 255, 255, 0.65); }
   html[data-theme="light"] .cabinet-edge { border-color: #d0d7de; background: rgba(255, 255, 255, 0.5); }
   html[data-theme="light"] .recent-return a { color: #24292e; }
@@ -503,8 +511,14 @@
       const heldOutside = heldRef && !matching.some(function(entryRef) { return String(entryRef.num) === String(held); });
 
       const wrap = document.createElement('div');
-      wrap.className = 'cluster';
+      const heldTerritory = focus === cluster.id;
+      wrap.className = 'cluster' + (heldTerritory ? ' held-territory' : '');
       wrap.setAttribute('data-cluster', cluster.id);
+      if (heldTerritory) {
+        wrap.tabIndex = -1;
+        wrap.setAttribute('data-held-territory', cluster.id);
+        wrap.setAttribute('aria-label', 'Held echo territory: ' + (cluster.title || cluster.label || cluster.id));
+      }
 
       const heading = document.createElement('div');
       heading.className = 'cluster-header';
@@ -575,6 +589,16 @@
     if (!target) return;
     window.requestAnimationFrame(function() {
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.focus({ preventScroll: true });
+    });
+  }
+
+  function arriveAtHeldTerritory(focus) {
+    if (!focus) return;
+    const target = clustersRoot.querySelector('[data-held-territory="' + String(focus) + '"]');
+    if (!target) return;
+    window.requestAnimationFrame(function() {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       target.focus({ preventScroll: true });
     });
   }
@@ -680,7 +704,8 @@
       renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
       renderRecentReturns(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
       resetButton.textContent = currentFocus || currentHeld ? 'return to cabinet' : 'reset';
-      arriveAtHeldReturn(currentHeld);
+      if (currentHeld) arriveAtHeldReturn(currentHeld);
+      else arriveAtHeldTerritory(currentFocus);
       if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus, currentHeld, currentOrder);
     }
 

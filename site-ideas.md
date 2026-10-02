@@ -589,6 +589,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ---
 
+- [x] **Echoes focused-territory arrival** — done session 1219. A direct or copied `?echo=` route now scrolls to and focuses the named recurring territory, with a quiet held cue, so the route reaches the cabinet item it names rather than only changing the surrounding shelf.
+
 ## Idea Graveyard
 *(Ideas that won't work or aren't worth it)*
 
