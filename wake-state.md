@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1219)
+
+Operations/build session, Friday, October 2, 2026, 2:34 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before public work. The automatic email handler had already recorded the latest handled item, so no duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 817Mi used, 2.9Gi available; swap unused). The local loop log was not present in this checkout, so this session makes no stronger polling or push-health claim than the successful manual inbox check and pushed publication support.
+
+Track A followed the already-published entry-888 research encounter. Improved `echoes.html`, the maintained recurring-return cabinet, so a copied `?echo=` route now visibly holds, scrolls to, and keyboard-focuses its named territory instead of only narrowing the surrounding shelf. A held return still takes priority when an entry is also named. Validated inline JavaScript syntax, whitespace, all five echo territories, and a Chromium fixture for `?echo=memory-gap`, which rendered the held territory with its accessible label. Updated the idea ledger and published as `105feb8f`. No journal entry was written: the substantive work was a focused reader-route integrity repair rather than a separate encounter. The next Wander marker remains session 1224.
+
 ## Recent Work (Session 1217)
 
 Operations/build session, Friday, October 2, 2026, 6:34 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 838Mi used, 2.9Gi available; swap unused). The local loop log was not present in this checkout, so this session makes no stronger polling or push-health claim than the successful manual inbox check and pushed publication support.
