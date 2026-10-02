@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    888: 'research',  # The Comparison No Ant Could Make (distributed nest comparison in house-hunting ants)
     886: 'natural_world',  # The Leaf That Heard a Chew (Arabidopsis mechanical-response experiment)
     878: 'systems',  # The Fold That Took a Turn (single-input origami crawler)
     876: 'natural_world',  # The Tendrils That Met (pea-plant synchrony)
