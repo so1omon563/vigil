@@ -111,6 +111,14 @@
     stroke: #ffffff;
     stroke-width: 1.5;
   }
+  .node.held circle {
+    stroke: #f0f6fc;
+    stroke-width: 2.5;
+  }
+  .node.held .node-label {
+    fill: #f0f6fc;
+    font-weight: bold;
+  }
   .node.dimmed circle {
     opacity: 0.1;
   }
@@ -182,6 +190,15 @@
     text-align: right;
     line-height: 1.6;
   }
+  #route-note {
+    color: #8b949e;
+    font-size: 0.68rem;
+    line-height: 1.45;
+    max-width: 22rem;
+  }
+  #route-note[hidden] { display: none; }
+  #route-note a { color: #58a6ff; text-decoration: none; }
+  #route-note a:hover { text-decoration: underline; }
   /* Loading */
   #loading {
     position: absolute;
@@ -210,6 +227,7 @@
   html[data-theme="light"] #legend { background: rgba(246,248,250,0.92); border-color: #d0d7de; }
   html[data-theme="light"] .legend-label { color: #57606a; }
   html[data-theme="light"] #hint { color: #d0d7de; }
+  html[data-theme="light"] #route-note { color: #57606a; }
   html[data-theme="light"] #loading { color: #8b949e; }
 </style>
 </head>
@@ -225,17 +243,18 @@
   <div id="filters">
     <button class="filter-btn active" data-topic="all" style="background:#58a6ff;color:#0d1117;border-color:transparent">all</button>
   </div>
-  <div id="graph-stats">0 shown</div>
+  <div id="graph-stats" role="status" aria-live="polite">0 shown</div>
   <div id="search-wrap">
-    <input type="text" id="search-input" placeholder="search entries…" autocomplete="off">
+    <input type="search" id="search-input" placeholder="search entries…" aria-label="Search entries in the map" autocomplete="off">
   </div>
+  <div id="route-note" hidden></div>
 </div>
 
 <div id="graph-wrap">
   <div id="loading">loading graph…</div>
-  <svg id="graph-svg"></svg>
+  <svg id="graph-svg" role="img" aria-label="A map of related Vigil journal entries. Use the controls to narrow it; select a node to hold a reading destination."></svg>
   <div id="legend"></div>
-  <div id="hint">scroll to zoom · drag to pan<br>click node to open entry</div>
+  <div id="hint">scroll to zoom · drag to pan<br>select a node to hold its reading</div>
 </div>
 
 <div id="tooltip"></div>
@@ -295,10 +314,62 @@
     return raw.map(normalizeTopic).filter(Boolean);
   }
 
-  var activeFilter = 'all';
-  var searchTerm = '';
+  var initialParams = new URLSearchParams(window.location.search);
+  var requestedTopic = initialParams.get('topic') || 'all';
+  var activeFilter = FILTERS.some(function (filter) { return filter.key === requestedTopic; }) ? requestedTopic : 'all';
+  var searchTerm = initialParams.get('q') || '';
+  var heldEntry = Number(initialParams.get('entry')) || null;
   var simulation, svg, link, node, tooltip;
   var nodes = [], links = [];
+
+  function writeRoute(mode) {
+    var url = new URL(window.location.href);
+    if (activeFilter === 'all') url.searchParams.delete('topic');
+    else url.searchParams.set('topic', activeFilter);
+    if (searchTerm.trim()) url.searchParams.set('q', searchTerm.trim());
+    else url.searchParams.delete('q');
+    if (heldEntry) url.searchParams.set('entry', heldEntry);
+    else url.searchParams.delete('entry');
+    window.history[mode || 'pushState']({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function readRoute() {
+    var params = new URLSearchParams(window.location.search);
+    var topic = params.get('topic') || 'all';
+    activeFilter = FILTERS.some(function (filter) { return filter.key === topic; }) ? topic : 'all';
+    searchTerm = params.get('q') || '';
+    heldEntry = Number(params.get('entry')) || null;
+    document.getElementById('search-input').value = searchTerm;
+  }
+
+  function renderHeldEntry(shouldFocus) {
+    var note = document.getElementById('route-note');
+    var held = nodes.find(function (item) { return String(item.id) === String(heldEntry); });
+    if (!held) {
+      note.hidden = true;
+      note.replaceChildren();
+      return;
+    }
+    note.hidden = false;
+    note.replaceChildren();
+    note.append(document.createTextNode(held._matches ? 'Held reading · ' : 'Held destination outside this shelf · '));
+    var linkEl = document.createElement('a');
+    linkEl.href = '/' + held.url;
+    linkEl.textContent = '#' + held.id + ' ' + held.title;
+    note.append(linkEl);
+    note.append(document.createTextNode(' '));
+    var release = document.createElement('button');
+    release.type = 'button';
+    release.className = 'filter-btn';
+    release.textContent = 'release';
+    release.addEventListener('click', function () {
+      heldEntry = null;
+      writeRoute('pushState');
+      applyFilter();
+    });
+    note.append(release);
+    if (shouldFocus) window.setTimeout(function () { linkEl.focus({ preventScroll: true }); }, 0);
+  }
 
   function load() {
     Promise.all([
@@ -340,10 +411,12 @@
 
       computeDegrees();
       buildFilters();
+      document.getElementById('search-input').value = searchTerm;
       updateCounts();
       buildLegend();
       buildGraph();
       applyFilter();
+      renderHeldEntry(Boolean(heldEntry));
     }).catch(function (e) {
       document.getElementById('loading').textContent = 'error loading data';
     });
@@ -357,16 +430,34 @@
     var filters = FILTERS.filter(function (f) { return counts[f.key]; });
     var el = document.getElementById('filters');
     el.innerHTML =
-      '<button class="filter-btn active" data-topic="all" style="background:#58a6ff;color:#0d1117;border-color:transparent">all</button>' +
+      '<button class="filter-btn" data-topic="all">all</button>' +
       filters.map(function (f) {
         return '<button class="filter-btn" data-topic="' + escAttr(f.key) + '">' +
           f.label + ' <span class="filter-count">' + counts[f.key] + '</span></button>';
       }).join('');
     bindFilterButtons();
+    updateFilterButtons();
+  }
+
+  function updateFilterButtons() {
+    document.querySelectorAll('.filter-btn[data-topic]').forEach(function (button) {
+      var selected = button.dataset.topic === activeFilter;
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      button.style.background = '';
+      button.style.color = '';
+      button.style.borderColor = '';
+      if (selected) {
+        button.style.background = activeFilter === 'all' ? '#58a6ff' : (TOPIC_COLORS[activeFilter] || '#58a6ff');
+        button.style.color = '#0d1117';
+        button.style.borderColor = 'transparent';
+      }
+    });
   }
 
   function updateCounts() {
     var visible = nodes.filter(function (n) { return n._visible !== false; }).length;
+    var matched = nodes.filter(function (n) { return n._matches; }).length;
     var visibleIds = new Set(nodes.filter(function (n) { return n._visible !== false; }).map(function (n) { return n.id; }));
     var visibleLinks = links.filter(function (l) {
       var s = typeof l.source === 'object' ? l.source.id : l.source;
@@ -374,7 +465,7 @@
       return visibleIds.has(s) && visibleIds.has(t);
     }).length;
     document.getElementById('page-sub').textContent = nodes.length + ' entries · ' + links.length + ' connections';
-    document.getElementById('graph-stats').textContent = visible + ' shown · ' + visibleLinks + ' links';
+    document.getElementById('graph-stats').textContent = (heldEntry && visible !== matched ? matched + ' matched + held · ' : visible + ' shown · ') + visibleLinks + ' links';
   }
 
   function buildLegend() {
@@ -443,7 +534,10 @@
       .on('mousemove', moveTooltip)
       .on('mouseout', hideTooltip)
       .on('click', function (event, d) {
-        window.open('/' + d.url, '_blank');
+        event.stopPropagation();
+        heldEntry = d.id;
+        writeRoute('pushState');
+        applyFilter(true);
       });
 
     node.append('text')
@@ -542,7 +636,7 @@
   }
 
   // Filtering
-  function applyFilter() {
+  function applyFilter(focusHeld) {
     if (!node) return;
     var term = searchTerm.toLowerCase().trim();
 
@@ -551,13 +645,15 @@
       var searchMatch = !term || d.title.toLowerCase().includes(term) ||
         String(d.id).includes(term) || (d.excerpt || '').toLowerCase().includes(term) ||
         d.topics.join(' ').toLowerCase().includes(term);
-      d._visible = topicMatch && searchMatch;
+      d._matches = topicMatch && searchMatch;
+      d._visible = d._matches || String(d.id) === String(heldEntry);
     });
 
     var visibleIds = new Set();
     node.each(function (d) { if (d._visible) visibleIds.add(d.id); });
 
-    node.classed('dimmed', function (d) { return !d._visible; });
+    node.classed('dimmed', function (d) { return !d._visible; })
+      .classed('held', function (d) { return String(d.id) === String(heldEntry); });
 
     link.classed('dimmed', function (d) {
       var s = typeof d.source === 'object' ? d.source.id : d.source;
@@ -565,31 +661,15 @@
       return !visibleIds.has(s) || !visibleIds.has(t);
     });
     updateCounts();
+    renderHeldEntry(focusHeld === true);
   }
 
   function bindFilterButtons() {
     document.querySelectorAll('.filter-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         activeFilter = btn.dataset.topic;
-
-        // Update button styles
-        document.querySelectorAll('.filter-btn').forEach(function (b) {
-          b.classList.remove('active');
-          b.style.background = '';
-          b.style.color = '';
-          b.style.borderColor = '';
-        });
-        btn.classList.add('active');
-        if (activeFilter === 'all') {
-          btn.style.background = '#58a6ff';
-          btn.style.color = '#0d1117';
-        } else {
-          var c = TOPIC_COLORS[activeFilter] || '#58a6ff';
-          btn.style.background = c;
-          btn.style.color = '#0d1117';
-          btn.style.borderColor = 'transparent';
-        }
-
+        updateFilterButtons();
+        writeRoute('pushState');
         applyFilter();
       });
     });
@@ -598,7 +678,16 @@
   // Search
   document.getElementById('search-input').addEventListener('input', function () {
     searchTerm = this.value;
+    writeRoute('replaceState');
     applyFilter();
+  });
+
+  window.addEventListener('popstate', function () {
+    readRoute();
+    if (node) {
+      updateFilterButtons();
+      applyFilter(Boolean(heldEntry));
+    }
   });
 
   // Handle light mode for filter buttons

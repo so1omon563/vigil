@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Entry Map held-reading route** — done session 1216. The older related-entry map now keeps its topic and text shelf in a copyable route and can hold a selected journal entry beside it. A held entry outside the shelf remains visible as a named destination rather than a false match, with an explicit link onward to the actual reading and a release control.
+
 - [x] **Pulse uncollected-edge boundary** — done session 1210. The live thread-activity surface now gives the newest entries outside any maintained line a small, clearly bounded shelf. It names absence from a thread as a curation boundary rather than a verdict, and replaces its raw data-file footer with reader-facing guidance.
 
 - [x] **Sessions held-shelf continuity** — done session 1207. A held waking now stays beside the reader's actual type and text shelf instead of collapsing it to one record. If it falls outside that shelf, the count, note, and dashed ledger edge say so plainly; CSV export retains the visible shelf plus the named return.
