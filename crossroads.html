@@ -49,6 +49,11 @@
     border-left: 2px solid #58a6ff;
     padding-left: 1rem;
   }
+  .entry-item.outside-shelf {
+    border-left-style: dashed;
+    border-top-style: dashed;
+    margin-bottom: 1rem;
+  }
   .entry-item:last-child { border-bottom: 1px solid #21262d; }
   .entry-header { margin-bottom: 0.75rem; }
   .entry-num { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #484f58; margin-bottom: 0.2rem; }
@@ -84,6 +89,18 @@
     color: #e3b341;
     border: 1px solid #bb8009;
     padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+  .held-badge {
+    display: inline-block;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #58a6ff;
+    border: 1px dashed #58a6ff;
+    padding: 0.12rem 0.35rem;
     border-radius: 2px;
     margin-left: 0.5rem;
     vertical-align: middle;
@@ -166,6 +183,7 @@
   html[data-theme="light"] .section-label { color: #0969da; border-color: #d0d7de; }
   html[data-theme="light"] .entry-item { border-color: #d0d7de; }
   html[data-theme="light"] .entry-item.held { border-left-color: #0969da; }
+  html[data-theme="light"] .held-badge { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .entry-title a { color: #24292f; }
   html[data-theme="light"] .entry-title a:hover { color: #0969da; }
   html[data-theme="light"] .entry-num { color: #57606a; }
@@ -484,16 +502,21 @@ function renderEntries(entries, updateCount = true) {
     }
   }
   const focusNote = document.getElementById('focus-note');
-  const held = entries.filter(function (entry) { return String(entry.num) === heldEntry; });
-  if (heldEntry && !held.length) {
-    heldEntry = '';
-    setUrl(activeFilter, true);
-  }
-  const visible = heldEntry ? held : entries;
+  const held = allEntries.find(function (entry) { return String(entry.num) === heldEntry; });
+  const heldInShelf = held && entries.some(function (entry) { return String(entry.num) === heldEntry; });
+  // A direct crossing is a destination, not evidence that it matches the current thread shelf.
+  // Keep the actual matching list present and give an excluded held entry a visible boundary.
+  const visible = held && !heldInShelf ? [held].concat(entries) : entries;
   focusNote.hidden = !heldEntry;
-  focusNote.textContent = heldEntry
-    ? 'holding entry ' + heldEntry + ' inside this intersection view · use reset to return to the full lattice'
+  focusNote.textContent = heldEntry && !heldInShelf
+    ? 'holding entry ' + heldEntry + ' beside this filtered lattice · it is a named destination, not one of the matching crossings below'
+    : heldEntry
+    ? 'holding entry ' + heldEntry + ' inside this intersection view · the matching lattice remains available below'
     : '';
+  if (held && !heldInShelf) {
+    const note = document.getElementById('count-note');
+    note.textContent += ' · plus held entry ' + heldEntry + ' outside this shelf';
+  }
   document.getElementById('hold-crossing').textContent = heldEntry ? 'another crossing' : 'hold one';
   const list = document.getElementById('entry-list');
   list.innerHTML = '';
@@ -502,6 +525,7 @@ function renderEntries(entries, updateCount = true) {
     div.className = 'entry-item';
     if (String(e.num) === heldEntry) {
       div.classList.add('held');
+      if (!heldInShelf) div.classList.add('outside-shelf');
       div.id = 'held-entry-' + e.num;
       div.tabIndex = -1;
     }
@@ -510,7 +534,7 @@ function renderEntries(entries, updateCount = true) {
       <div class="entry-header">
         <div class="entry-num">entry ${e.num}</div>
         <h2 class="entry-title">
-          <a href="/${e.url || ('journal/entry-' + e.num + '.html')}">${e.title || ('Entry ' + e.num)}</a>${isTriple ? '<span class="triple-badge">' + e.threads.length + ' threads</span>' : ''}
+          <a href="/${e.url || ('journal/entry-' + e.num + '.html')}">${e.title || ('Entry ' + e.num)}</a>${isTriple ? '<span class="triple-badge">' + e.threads.length + ' threads</span>' : ''}${String(e.num) === heldEntry && !heldInShelf ? '<span class="held-badge">held outside shelf</span>' : ''}
         </h2>
       </div>
       <div class="entry-threads">${e.threads.map(t => `<span class="thread-tag ${THREAD_CLASS[t.id] || ''}" title="${t.title}">${shortLabel(t.id)}</span>`).join('')}</div>
@@ -545,7 +569,7 @@ document.getElementById('hold-crossing').addEventListener('click', function() {
   if (!pick) return;
   heldEntry = String(pick.num);
   applyFilter(activeFilter, false);
-  const target = document.querySelector('.entry-item');
+  const target = document.getElementById('held-entry-' + heldEntry);
   if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 document.getElementById('reset-view').addEventListener('click', function() { heldEntry = ''; applyFilter('all', false); });

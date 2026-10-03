@@ -78,6 +78,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Crossroads held-shelf boundary** — done session 1219. A direct or copied crossing now remains visible beside a reader's actual thread or thread-pair shelf. If it does not belong there, the lattice names it as a held destination with a dashed boundary and keeps the real matching crossings and count intact.
+
 - [x] **Discoveries chronology overview** — done session 1217. The held source-history timeline now has a compact, filter-aware source-date strip. Each category-colored mark is keyboard reachable and opens its named record; a directly held record remains visibly marked even outside the reader's slice, so the overview names a destination rather than inventing a match.
 
 - [x] **Weather held-day arrival** — done session 1215. A copied `?day=` weather record now visibly marks its high/low bar in the living chart, exposes the held day to assistive technology, and moves direct or history-navigation arrivals to the actual small-record reading. Releasing it restores the unheld live chart.
