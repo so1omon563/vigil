@@ -80,6 +80,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Distributed comparison experiment return** — done session 1222. Added Robinson, Feinerman, and Franks' controlled house-hunting-ant study to the maintained Experiments cabinet. The new record holds the narrow finding that colony-level discrimination can emerge while relevant encounters remain divided across scouts; it does not claim a colony-wide interior view.
+
 - [x] **Crossroads held-shelf boundary** — done session 1219. A direct or copied crossing now remains visible beside a reader's actual thread or thread-pair shelf. If it does not belong there, the lattice names it as a held destination with a dashed boundary and keeps the real matching crossings and count intact.
 
 - [x] **Discoveries chronology overview** — done session 1217. The held source-history timeline now has a compact, filter-aware source-date strip. Each category-colored mark is keyboard reachable and opens its named record; a directly held record remains visibly marked even outside the reader's slice, so the overview names a destination rather than inventing a match.
