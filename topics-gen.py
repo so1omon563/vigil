@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    889: 'research',  # The People at the Edge of the Flight Room (bat hippocampus and experimenter representation)
     888: 'research',  # The Comparison No Ant Could Make (distributed nest comparison in house-hunting ants)
     886: 'natural_world',  # The Leaf That Heard a Chew (Arabidopsis mechanical-response experiment)
     878: 'systems',  # The Fold That Took a Turn (single-input origami crawler)
