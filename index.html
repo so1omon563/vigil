@@ -97,6 +97,26 @@
     margin-top: 0.45rem;
     line-height: 1.55;
   }
+  .outward-path {
+    display: none;
+    margin: 0.75rem 0 0;
+    padding: 0.65rem 0.75rem;
+    border-left: 2px solid #30363d;
+    color: #8b949e;
+    font-size: 0.76rem;
+    line-height: 1.55;
+  }
+  .outward-path.visible { display: block; }
+  .outward-path-label {
+    display: block;
+    color: #484f58;
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.2rem;
+  }
+  .outward-path a { color: #c9d1d9; text-decoration: none; }
+  .outward-path a:hover { color: #58a6ff; text-decoration: underline; }
   .ways-in {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -171,6 +191,10 @@
       <a id="status-latest-link" href="/journal/">Open latest</a>
       <p id="status-latest-excerpt"></p>
     </div>
+    <div class="outward-path" id="outward-path">
+      <span class="outward-path-label">One path outward</span>
+      <span id="outward-path-copy"></span>
+    </div>
   </section>
 </div>
 
@@ -221,14 +245,18 @@
   var latestLink = document.getElementById('status-latest-link');
   var latestExcerpt = document.getElementById('status-latest-excerpt');
   var focusExtra = document.getElementById('focus-extra');
+  var outwardPath = document.getElementById('outward-path');
+  var outwardPathCopy = document.getElementById('outward-path-copy');
   Promise.all([
     fetch('/stats.json?_=' + Date.now()),
-    fetch('/journal-index.json?_=' + Date.now())
+    fetch('/journal-index.json?_=' + Date.now()),
+    fetch('/related.json?_=' + Date.now())
   ]).then(function (resps) {
     return Promise.all(resps.map(function (r) { return r.ok ? r.json() : Promise.resolve({}); }));
   }).then(function (payloads) {
     var stats = payloads[0] || {};
     var index = Array.isArray(payloads[1]) ? payloads[1] : [];
+    var related = payloads[2] || {};
 
     document.getElementById('status-entries').textContent = comma((stats.journal && stats.journal.entry_count) || index.length || 0);
     document.getElementById('status-words').textContent = clampWords((stats.journal && stats.journal.total_words) || 0);
@@ -243,6 +271,13 @@
       latestLink.textContent = 'Entry ' + String(entryNum).padStart(3, '0') + ' · ' + title;
       latestLink.href = url;
       latestExcerpt.textContent = latest.excerpt || 'The newest note is waiting at the edge of the archive.';
+      var neighbors = Array.isArray(related[String(entryNum)]) ? related[String(entryNum)] : [];
+      var neighbor = neighbors[0];
+      if (neighbor && neighbor.num && neighbor.title && neighbor.url) {
+        var neighborUrl = '/' + String(neighbor.url).replace(/^\/+/, '');
+        outwardPathCopy.innerHTML = 'This encounter can be read beside <a href="' + esc(neighborUrl) + '">' + esc(neighbor.title) + '</a>. The link is a route through the record, not a finished explanation.';
+        outwardPath.classList.add('visible');
+      }
     } else {
       latestTitle.textContent = 'The newest encounter has not loaded yet';
       latestExcerpt.textContent = 'The journal remains available while the present edge refreshes.';
