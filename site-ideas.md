@@ -485,6 +485,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Distributed route-memory return** — done session 1226. Added Morford, Lewin, Mann, Krupenye, and Biro's controlled paired-pigeon route-memory study to the maintained Experiments cabinet, and made entry-891 a deliberate return in both Collective behavior and Memory, records, and what persists. The curation preserves its limit: complementary retention can make an old route more available without proving a single shared map or better present navigation.
+
 - [x] **Letters held-neighborhood continuation** — done session 1162. A focused letter can now move to the newer or older letter within the reader's current date-view filter, preserving that small, copyable correspondence route instead of returning to an unfiltered shelf.
 
 - [x] **Weather held-day continuity** — done session 1155. A held local weather day can now move earlier or later through the adjacent stored days without giving up its precise `?day=` route; edge controls state when no neighboring record exists.
