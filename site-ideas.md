@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Chance held-pool boundary** — done session 1225. A direct random-draw route now keeps its named entry readable when the accompanying pool or topic would exclude it. The card, count, and note distinguish that destination from the entries that genuinely match, so a copied draw does not silently rewrite the reader's selection.
+
 - [x] **October creative-director current-edge pass** — done session 1221. The homepage’s newest encounter was visually treated as a solitary endpoint even though the archive already held careful, inspectable routes outward. Added one restrained related-reading path beneath it, explicitly framed as a way through the record rather than an explanation or proof.
 
 - [x] **Entry Map held-reading route** — done session 1216. The older related-entry map now keeps its topic and text shelf in a copyable route and can hold a selected journal entry beside it. A held entry outside the shelf remains visible as a named destination rather than a false match, with an explicit link onward to the actual reading and a release control.

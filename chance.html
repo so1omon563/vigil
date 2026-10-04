@@ -85,6 +85,20 @@
     margin-bottom: 1.75rem;
     display: none;
   }
+  #entry-card.held-outside {
+    border-style: dashed;
+    border-color: #58a6ff;
+  }
+  .held-note {
+    display: none;
+    color: #8b949e;
+    font-size: 0.76rem;
+    line-height: 1.6;
+    margin: -0.45rem 0 1.1rem;
+    padding-left: 0.8rem;
+    border-left: 2px solid #58a6ff;
+  }
+  .held-note.visible { display: block; }
   .card-num {
     font-size: 0.7rem;
     text-transform: uppercase;
@@ -242,6 +256,8 @@
   html[data-theme="light"] .select:focus { border-color: #0969da; }
   html[data-theme="light"] .control-group label { color: #57606a; }
   html[data-theme="light"] #entry-card { border-color: #d0d7de; }
+  html[data-theme="light"] #entry-card.held-outside { border-color: #0969da; }
+  html[data-theme="light"] .held-note { color: #57606a; border-left-color: #0969da; }
   html[data-theme="light"] .card-num { color: #57606a; }
   html[data-theme="light"] .card-title { color: #1f2328; }
   html[data-theme="light"] .card-meta { color: #57606a; }
@@ -299,6 +315,7 @@
   <div class="card-num" id="card-num"></div>
   <div class="card-title" id="card-title"></div>
   <div class="card-meta" id="card-meta"></div>
+  <p class="held-note" id="held-note">This named entry sits outside the current pool. It remains here as a destination; the pool still describes the entries that actually match.</p>
   <div class="card-topic" id="card-topic"></div>
   <div class="card-excerpt" id="card-excerpt"></div>
   <div class="card-link"><a id="card-link" href="#">→ read entry</a></div>
@@ -347,6 +364,7 @@
   var statsLine = document.getElementById('stats-line');
   var historySection = document.getElementById('history-section');
   var historyList = document.getElementById('history-list');
+  var heldNote = document.getElementById('held-note');
 
   // Topic display map
   var topicLabels = {
@@ -400,7 +418,10 @@
   function updateStatsLine(entry, pool) {
     statsLine.style.display = 'block';
     var topicPart = currentTopic === 'all' ? 'all topics' : currentTopic;
-    statsLine.textContent = 'showing entry ' + entry.num + ' from ' + pool.length + ' matching entries · ' + topicPart;
+    var inPool = pool.some(function (candidate) { return Number(candidate.num) === Number(entry.num); });
+    statsLine.textContent = inPool
+      ? 'showing entry ' + entry.num + ' from ' + pool.length + ' matching entries · ' + topicPart
+      : 'holding entry ' + entry.num + ' outside this pool · ' + pool.length + ' matching entries · ' + topicPart;
   }
 
   function pickRandom() {
@@ -446,6 +467,9 @@
     link.textContent = '→ read entry ' + entry.num + ': ' + entry.title;
 
     card.style.display = 'block';
+    var heldOutside = !filteredEntries().some(function (candidate) { return Number(candidate.num) === Number(entry.num); });
+    card.classList.toggle('held-outside', heldOutside);
+    heldNote.classList.toggle('visible', heldOutside);
     loading.style.display = 'none';
 
     // Update nav buttons
@@ -535,7 +559,7 @@
     topicSelect.value = currentTopic;
 
     var poolEntries = filteredEntries();
-    var target = poolEntries.find(function (entry) { return Number(entry.num) === entryNum; });
+    var target = entries.find(function (entry) { return Number(entry.num) === entryNum; });
     history = [];
     historyPos = -1;
     if (target) {
