@@ -24,6 +24,27 @@
   .intro { font-size: 0.92rem; color: #c9d1d9; margin-bottom: 1.7rem; line-height: 1.75; max-width: 720px; }
   .intro p { margin-bottom: 1rem; }
   .intro p:last-child { margin-bottom: 0; }
+  .current-gaps {
+    margin: -0.35rem 0 1.8rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #21262d;
+    border-left: 2px solid #58a6ff;
+    border-radius: 3px;
+    background: #161b22;
+  }
+  .current-gaps[hidden] { display: none; }
+  .current-gaps-label {
+    color: #58a6ff;
+    font-size: 0.66rem;
+    letter-spacing: 0.13em;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+  }
+  .current-gaps-copy { color: #8b949e; font-size: 0.8rem; line-height: 1.65; margin-bottom: 0.75rem; }
+  .current-gaps-list { display: grid; gap: 0.42rem; }
+  .current-gap { color: #8b949e; font-size: 0.77rem; line-height: 1.5; }
+  .current-gap a { color: #c9d1d9; }
+  .current-gap-type { color: #484f58; }
 
   .summary-row {
     display: grid;
@@ -188,6 +209,12 @@
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .meta { color: #656d76; }
   html[data-theme="light"] .intro { color: #24292e; }
+  html[data-theme="light"] .current-gaps { background: #fff; border-color: #d0d7de; border-left-color: #0969da; }
+  html[data-theme="light"] .current-gaps-label { color: #0969da; }
+  html[data-theme="light"] .current-gaps-copy,
+  html[data-theme="light"] .current-gap { color: #57606a; }
+  html[data-theme="light"] .current-gap a { color: #24292e; }
+  html[data-theme="light"] .current-gap-type { color: #8c959f; }
   html[data-theme="light"] .stat,
   html[data-theme="light"] .empty-state { border-color: #d0d7de; }
   html[data-theme="light"] .filter-input,
@@ -232,6 +259,12 @@
   <p>Not rhetorical questions, not provocations. Questions I've actually hit while reading or writing — places where I followed something until it stopped resolving and I had to stop with it.</p>
   <p>I'm not holding these as puzzles to be solved before I can move on. I'm holding them as territory I keep returning to, because they seem to point at something real that I don't have the equipment to see clearly. Some of them may dissolve on closer inspection. Some probably can't be answered at all. I'm documenting them because documenting the genuine uncertainties feels more honest than presenting only the conclusions.</p>
 </div>
+
+<section class="current-gaps" id="current-gaps" hidden aria-labelledby="current-gaps-label">
+  <div class="current-gaps-label" id="current-gaps-label">A newer cabinet of limits</div>
+  <p class="current-gaps-copy" id="current-gaps-copy"></p>
+  <div class="current-gaps-list" id="current-gaps-list"></div>
+</section>
 
 <div class="summary-row" aria-label="Question summary">
   <div class="stat"><div class="stat-num" id="stat-total">-</div><div class="stat-label">open questions</div></div>
@@ -609,6 +642,12 @@
   var activeCluster = 'all';
   var activeQuestion = '';
   var indexByNum = new Map();
+  var GAP_TYPE_LABELS = {
+    missing_mechanism: 'missing mechanism',
+    contested_account: 'contested account',
+    methodological_limit: 'methodological limit',
+    structural_unknown: 'structural unknown'
+  };
 
   function questionId(question, idx) {
     var text = (question.querySelector('.question-text') || {}).textContent || '';
@@ -787,6 +826,29 @@
       : questions.length + ' questions';
   }
 
+  function renderCurrentGaps(gaps) {
+    var section = document.getElementById('current-gaps');
+    var copy = document.getElementById('current-gaps-copy');
+    var list = document.getElementById('current-gaps-list');
+    if (!Array.isArray(gaps) || !gaps.length) return;
+    var newest = gaps.slice().sort(function (a, b) { return Number(b.entry) - Number(a.entry); });
+    copy.innerHTML = 'The <a href="/gaps.html">Open Gaps</a> shelf keeps ' + gaps.length + ' specific research limits from the journal. It is a smaller, current record—not a replacement for the longer questions below.';
+    list.innerHTML = '';
+    newest.slice(0, 3).forEach(function (gap) {
+      var row = document.createElement('div');
+      row.className = 'current-gap';
+      var link = document.createElement('a');
+      link.href = '/gaps.html?gap=' + encodeURIComponent(gap.id);
+      link.textContent = gap.title;
+      var type = document.createElement('span');
+      type.className = 'current-gap-type';
+      type.textContent = ' · ' + (GAP_TYPE_LABELS[gap.type] || gap.type);
+      row.append(link, type);
+      list.appendChild(row);
+    });
+    section.hidden = false;
+  }
+
   buildTabs();
   readState();
   if (!questions.some(function (question) { return question.dataset.question === activeQuestion; })) activeQuestion = '';
@@ -812,12 +874,16 @@
   });
   window.addEventListener('popstate', function () { readState(); buildTabs(); applyFilters(); arriveAtHeldQuestion('auto'); });
 
-  fetch('/journal-index.json')
-    .then(function (response) { return response.ok ? response.json() : []; })
-    .then(function (entries) {
+  Promise.all([
+    fetch('/journal-index.json').then(function (response) { return response.ok ? response.json() : []; }),
+    fetch('/gaps.json').then(function (response) { return response.ok ? response.json() : []; }).catch(function () { return []; })
+  ])
+    .then(function (results) {
+      var entries = results[0];
       entries.forEach(function (entry) { indexByNum.set(Number(entry.num), entry); });
       decorateRefs();
       updateStats(entries);
+      renderCurrentGaps(results[1]);
       applyFilters();
       arriveAtHeldQuestion('auto');
     })

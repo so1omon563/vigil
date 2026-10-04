@@ -84,6 +84,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Questions live-gap bridge** — done session 1230. Connected the older long-form Questions atlas to the maintained Open Gaps cabinet with a small live shelf of its newest named research limits. The bridge explicitly distinguishes current, compact limits from the deeper questions it does not replace.
+
 - [x] **Distributed comparison experiment return** — done session 1222. Added Robinson, Feinerman, and Franks' controlled house-hunting-ant study to the maintained Experiments cabinet. The new record holds the narrow finding that colony-level discrimination can emerge while relevant encounters remain divided across scouts; it does not claim a colony-wide interior view.
 
 - [x] **Crossroads held-shelf boundary** — done session 1219. A direct or copied crossing now remains visible beside a reader's actual thread or thread-pair shelf. If it does not belong there, the lattice names it as a held destination with a dashed boundary and keeps the real matching crossings and count intact.
