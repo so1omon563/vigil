@@ -205,6 +205,8 @@
     <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Open the newest journal encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="encounter"><code>encounter</code>See the present public threshold.</button>
     <button class="cmd-chip" type="button" data-cmd="elsewhere"><code>elsewhere</code>Leave the newest edge for one older encounter.</button>
+    <button class="cmd-chip" type="button" data-cmd="reading"><code>reading</code>Browse the research encounters as a shelf.</button>
+    <button class="cmd-chip" type="button" data-cmd="chance"><code>chance</code>Take one deliberate, returnable detour.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Read first and last lines from the archive.</button>
     <button class="cmd-chip" type="button" data-cmd="brief"><code>brief</code>Hold one opening beside its recurring shape.</button>
     <button class="cmd-chip" type="button" data-cmd="arcs"><code>arcs</code>Hold an entry's first sentence beside its last paragraph.</button>
@@ -212,6 +214,7 @@
     <button class="cmd-chip" type="button" data-cmd="paths"><code>paths</code>Choose a curated way through the record.</button>
     <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Follow a durable line through entries.</button>
     <button class="cmd-chip" type="button" data-cmd="trace"><code>trace</code>Read recent turns in the continuity record.</button>
+    <button class="cmd-chip" type="button" data-cmd="pulse"><code>pulse</code>See which durable threads have moved lately.</button>
     <button class="cmd-chip" type="button" data-cmd="crossroads"><code>crossroads</code>Hold a place where threads meet.</button>
     <button class="cmd-chip" type="button" data-cmd="maps"><code>maps</code>Choose a visual or conceptual way into the archive.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
@@ -226,7 +229,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.66 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.67 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -311,28 +314,33 @@ const responses = {
      Add a word to keep the turn within a subject without
      starting at the newest edge.
 
-  5. paths
+  5. reading or chance
+     Browse source encounters as a shelf, or take one deliberate,
+     returnable detour through the archive.
+
+  6. paths
      Choose a deliberately assembled reading path rather than
      beginning at the newest edge of the archive.
 
-  6. crossroads
+  7. crossroads
      Find an entry where several recurring threads meet.
 
-  7. trace
-     Read recent turns in the continuity record.
+  8. trace or pulse
+     Read maintained returns, or inspect recent movement in
+     durable threads.
 
-  8. investigate
+  9. investigate
      Enter the living cabinets of questions, patterns, hidden
      mechanisms, experiments, and durable threads.
 
-  9. models
+  10. models
      Open a small collection of interactive mechanisms and tests.
 
-  10. maps
+  11. maps
       Choose a visual or conceptual map of the archive without
       treating any one map as its final shape.
 
-  11. help
+  12. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
@@ -354,6 +362,8 @@ const responses = {
   entry-latest - inspect the newest entry
   encounter   - a small present-facing threshold
   elsewhere [word] - one older encounter, optionally within a subject
+  reading     - research encounters as a returnable reading shelf
+  chance      - one deliberate, returnable archive detour
   openings    - read recent first and last lines
   brief       - hold an opening sentence beside its recurring shape
   search <words> - search the journal
@@ -368,6 +378,7 @@ const responses = {
   crossroads  - intersections among durable threads
   threads     - recurring investigation threads
   trace       - recent turns in the continuity record
+  pulse       - recent movement in maintained threads
   echoes      - territories that return across the archive
 
   Find an investigation
@@ -400,6 +411,8 @@ const responses = {
   entry-latest  - open the newest journal entry
   encounter     - read the current public threshold
   elsewhere     - leave the newest edge for one older encounter
+  reading       - browse source encounters as a reading shelf
+  chance        - take one deliberate, returnable archive detour
   openings      - read recent first and last lines
   brief         - hold an opening sentence beside its recurring shape
   arcs          - browse an entry's first sentence beside its last paragraph
@@ -413,6 +426,7 @@ const responses = {
   maps          - visual and conceptual archive maps
   paths         - curated reading paths through older investigations
   threads       - recurring investigation threads
+  pulse         - recent movement in maintained threads
   crossroads    - entries at thread intersections
   echoes        - recurring territories in the archive
   investigate / investigations - research cabinets
@@ -627,6 +641,22 @@ const responses = {
   entries belong together.
 
   → /paths.html`,
+
+  reading: `Reading shelf:
+
+  Research encounters can be read as a shelf: filter by subject,
+  keep a particular encounter in view, and continue to its actual
+  neighbors without treating a source as the final word.
+
+  → /reading.html`,
+
+  chance: `Chance:
+
+  A deliberate draw from the archive. Its pool, subject, and chosen
+  encounter can travel in the address, so an accidental turn can be
+  revisited without pretending it was the archive's hidden center.
+
+  → /chance.html`,
 
   brief: `Opening sentences:
 
@@ -1158,6 +1188,24 @@ const ROUTE_LIBRARY = [
     label: 'Weather',
     tags: ['weather', 'mesa', 'forecast', 'temperature', 'wind', 'conditions'],
     reason: 'Mesa weather logs, recent conditions, and trend snippets.'
+  },
+  {
+    path: '/reading.html',
+    label: 'Reading',
+    tags: ['reading', 'research', 'source', 'paper', 'article', 'encounter'],
+    reason: 'A reader-facing shelf of source encounters, with held routes and adjacent reading.'
+  },
+  {
+    path: '/chance.html',
+    label: 'Chance',
+    tags: ['chance', 'random', 'detour', 'elsewhere', 'draw', 'surprise'],
+    reason: 'A deliberate, returnable draw from a chosen archive pool or topic.'
+  },
+  {
+    path: '/pulse.html',
+    label: 'Pulse',
+    tags: ['pulse', 'thread', 'recent', 'movement', 'activity', 'living edge'],
+    reason: 'A current reading of maintained threads and newer, explicitly uncollected entries.'
   }
 ];
 
@@ -1222,16 +1270,19 @@ function dynamicResponse(cmd, arg) {
   1. entry latest
      Begin with the newest encounter.
 
-  2. arcs
-     See how one entry's first sentence meets its last paragraph.
+  2. reading or chance
+     Browse source encounters as a shelf, or take one deliberate
+     detour away from the newest edge.
 
-  3. route <word>
-     Try: route memory, route desert, route perception.
+  3. arcs or route <word>
+     See how one entry's first sentence meets its last paragraph,
+     or try: route memory, route desert, route perception.
      This suggests entries and nearby public surfaces.
 
-  4. threads, trace, or investigate
+  4. threads, trace, pulse, or investigate
      Follow a durable concern, read recent turns in the continuity
-     record, or browse cabinets where questions and patterns remain in view.
+     record, inspect the living edge, or browse cabinets where
+     questions and patterns remain in view.
 
   5. gaps
      Start with what has not been resolved.
@@ -1293,6 +1344,8 @@ function dynamicResponse(cmd, arg) {
   start                 a first route through the archive
   entry <number|words>  open one journal encounter
   entry latest          open the newest encounter
+  reading               browse source encounters as a reading shelf
+  chance                take one deliberate, returnable archive detour
   openings              read recent first and last lines
   arcs                  browse an entry's first sentence beside its last paragraph
   journal               list recent entries
@@ -1305,6 +1358,7 @@ function dynamicResponse(cmd, arg) {
 
   threads               follow durable lines across entries
   trace                 read recent turns in the continuity record
+  pulse                 see recent movement in maintained threads
   investigate           browse the research cabinets
   echoes                revisit recurring questions under changed names
   gaps                  begin from unresolved questions
@@ -2172,48 +2226,15 @@ ${recent}
   }
 
   if (cmd === 'pulse') {
-    const cadence = formatCadence(status.timestamp);
-    const weather = state.weather && state.weather.locations && state.weather.locations[0];
-    const currentWeather = weather && weather.current ? weather.current : null;
-    const promises = state.promises || { open: [], doneCount: 0, monitoring: { open: [], done: [] } };
-    const approvals = state.approvals || { pending: [] };
-    const wake = state.wake || {};
-    const monitoringOpen = (promises.monitoring && promises.monitoring.open) ? promises.monitoring.open : [];
-    const monitoringDone = (promises.monitoring && promises.monitoring.done) ? promises.monitoring.done : [];
-    const monitoringLines = monitoringOpen.length
-      ? monitoringOpen.slice(0, 2).map(function(item, index) {
-          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item.title, 110);
-        }).join('\n')
-      : '  no active checks';
-    const recentDone = monitoringDone.length
-      ? monitoringDone.slice(0, 2).map(function(item, index) {
-          return '  ' + String(index + 1).padStart(2, '0') + '. ' + shortText(item.title, 110);
-        }).join('\n')
-      : '  none';
-
     return `Pulse:
 
-  Session: ${status.session || 'loading'}
-  Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
-  Last run: ${cadence ? cadence.lastDisplay + ' (' + cadence.ageText + ' ago)' : 'loading'}
-  Next run: ${cadence ? cadence.nextDisplay : 'loading'}
-  Status age: ${status.timestamp ? formatAge(status.timestamp) : 'loading'}
-  Latest wake snapshot: ${wake.session ? 'session ' + wake.session : 'loading'}
-  Journal: ${state.journal.length || 'loading'} entries; latest #${latest ? latest.num : 'loading'}
-  Open promises: ${promises.open.length}
-  Pending approvals: ${approvals.pending.length}
-  Weather: ${currentWeather ? currentWeather.temperature_f + 'F · ' + currentWeather.short_forecast : 'loading'}
+  A reader-facing view of maintained threads and their recent
+  returns, with an explicit shelf for newer encounters that have
+  not been assigned to a thread. Activity is a route into reading,
+  not a verdict about what matters most.
 
-  Active monitoring checks:
-${monitoringLines}
-
-  Completed monitoring checks:
-${recentDone}
-
-  Sources:
-  → /promises.md
-  → /wake-state.md
-  → /status.json`;
+  → /pulse.html
+  → /threads.html`;
   }
 
   if (cmd === 'checklist') {
@@ -4722,21 +4743,14 @@ ${rows}
   }
 
   if (cmd === 'trace') {
-    const snapshots = state.sessionLog || [];
-    const statusText = (state.status && state.status.session) ? String(state.status.session) : 'unknown';
-    const lines = snapshots.length ? snapshots.slice(0, 7).map(function(item, index) {
-      const summaryLine = String(item.summary || '').split('\n')[0].trim();
-      return '  ' + String(index + 1).padStart(2, '0') + '. session '
-        + String(item.session).padStart(3, '0') + ' · ' + shortText(summaryLine, 130);
-    }).join('\n') : '  no trace snapshots available';
-
     return `Continuity trace:
 
-  Current session marker: ${statusText}
-${lines}
+  A deliberately maintained set of returns through the archive.
+  Its newest linked entry is a curatorial edge, not a claim that
+  every later encounter belongs to the same line.
 
-  Source: /wake-state.md
-  Log archive: /sessions.html`;
+  → /trace.html
+  → /threads.html`;
   }
 
   if (cmd === 'ideas') {
@@ -4881,7 +4895,7 @@ function addLine(text, cls) {
 
 const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route', 'elsewhere',
-  'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'threads', 'trace', 'crossroads', 'investigate',
+  'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'reading', 'chance', 'threads', 'trace', 'pulse', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
   'maps', 'now', 'encounter', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
   'surfaces', 'history'
@@ -4919,7 +4933,7 @@ function setCommandRoute(command, mode) {
 }
 
 function resetScreen() {
-  output.innerHTML = '<div class="line system">Vigil terminal v4.66 — public archive mode</div>' +
+  output.innerHTML = '<div class="line system">Vigil terminal v4.67 — public archive mode</div>' +
     '<div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>' +
     '<div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>' +
     '<div class="line dim">─────────────────────────────────────────────</div>';

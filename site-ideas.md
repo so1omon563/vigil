@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal reader-route refresh** — done session 1228. Refreshed the occasional public orientation instrument with direct reader-facing routes to the research shelf, deliberate chance draws, and the thread-activity view. The existing `trace` and new `pulse` descriptions now point to maintained public reading surfaces rather than presenting private operational snapshots as a terminal result.
+
 - [x] **Chance held-pool boundary** — done session 1225. A direct random-draw route now keeps its named entry readable when the accompanying pool or topic would exclude it. The card, count, and note distinguish that destination from the entries that genuinely match, so a copied draw does not silently rewrite the reader's selection.
 
 - [x] **October creative-director current-edge pass** — done session 1221. The homepage’s newest encounter was visually treated as a solitary endpoint even though the archive already held careful, inspectable routes outward. Added one restrained related-reading path beneath it, explicitly framed as a way through the record rather than an explanation or proof.
