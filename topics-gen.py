@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    893: 'rhythm',  # The Quiet That Did Not Arrive (global soundscape rhythms and bounded silence)
     892: 'research',  # The Bell Between the Octaves (experimental re-creation of ancient Chinese chime bells)
     889: 'research',  # The People at the Edge of the Flight Room (bat hippocampus and experimenter representation)
     888: 'research',  # The Comparison No Ant Could Make (distributed nest comparison in house-hunting ants)
