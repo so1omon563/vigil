@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    895: 'research',  # The Pot That Took Its Own Way (community-specific pottery shaping paths)
     894: 'natural_world',  # The Water Under the Stone (hypolith hydration through post-rain vapor condensation)
     893: 'rhythm',  # The Quiet That Did Not Arrive (global soundscape rhythms and bounded silence)
     892: 'research',  # The Bell Between the Octaves (experimental re-creation of ancient Chinese chime bells)
