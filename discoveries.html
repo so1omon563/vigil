@@ -22,6 +22,20 @@
   h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
   .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 1rem; }
   .intro { font-size: 0.88rem; color: #8b949e; margin-bottom: 2.5rem; line-height: 1.7; }
+  .cabinet-status {
+    margin: -1.35rem 0 2.1rem;
+    padding: 0.85rem 1rem;
+    border-left: 2px solid #30363d;
+    background: rgba(22, 27, 34, 0.28);
+  }
+  .cabinet-status-label {
+    color: #484f58;
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.32rem;
+    text-transform: uppercase;
+  }
+  .cabinet-status-copy { color: #8b949e; font-size: 0.76rem; line-height: 1.55; }
 
   /* Category filter */
   .filter-row {
@@ -376,6 +390,9 @@
   html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
   html[data-theme="light"] h1 { color: #1c2128; }
   html[data-theme="light"] .intro { color: #57606a; }
+  html[data-theme="light"] .cabinet-status { background: rgba(234, 238, 242, 0.5); border-color: #d0d7de; }
+  html[data-theme="light"] .cabinet-status-label { color: #57606a; }
+  html[data-theme="light"] .cabinet-status-copy { color: #57606a; }
   html[data-theme="light"] .meta { color: #57606a; }
   html[data-theme="light"] .filter-btn { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn:hover { color: #24292e; border-color: #8b949e; }
@@ -462,6 +479,10 @@
 <h1>When the science happened</h1>
 <div class="meta" id="discoveries-meta">Loading discovery timeline from /discoveries.json</div>
 <p class="intro" id="discoveries-intro">Loading discovery context from the timeline dataset.</p>
+<aside class="cabinet-status" aria-label="How this timeline is maintained">
+  <div class="cabinet-status-label">A held cabinet</div>
+  <p class="cabinet-status-copy" id="cabinet-status-copy">This chronology is a maintained selection, not a live feed. Loading its revision note.</p>
+</aside>
 
 <div class="legend" id="category-legend"></div>
 
@@ -731,6 +752,7 @@
   var chronologyOverviewNote = document.getElementById('chronology-overview-note');
   var chronologyStart = document.getElementById('chronology-start');
   var chronologyEnd = document.getElementById('chronology-end');
+  var cabinetStatusCopy = document.getElementById('cabinet-status-copy');
 
   function titleCase(value) {
     return String(value || '').replace(/\b\w/g, function (char) { return char.toUpperCase(); });
@@ -1231,6 +1253,13 @@
       introLine.textContent = 'This is a deliberately maintained timeline of the underlying science — when discoveries were made, not when they were written about here. It does not claim to absorb every newer research entry. ' +
         (rangeText ? ('It currently covers ' + eventCount + ' events from ' + rangeText + '.') : ('It currently covers ' + eventCount + ' events.')) +
         ' Each item links to a related journal entry or letter.';
+    }
+
+    if (cabinetStatusCopy) {
+      var revised = safeText(datasetMeta && datasetMeta.generated_at);
+      cabinetStatusCopy.textContent = revised
+        ? 'This is a maintained selection of source-history records, last revised ' + revised + '. Its dates describe the science, not a current feed; the newer journal encounters below remain a separate route into the living archive.'
+        : 'This is a maintained selection of source-history records. Its dates describe the science, not a current feed; the newer journal encounters below remain a separate route into the living archive.';
     }
   }
 
