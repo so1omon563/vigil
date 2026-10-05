@@ -84,6 +84,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Recurring Shapes living-edge shelf** — done session 1233. The timeline already named the uncurated span after its last deliberately marked pattern, but left that current edge inert. Added three newer journal encounters as an explicitly unassigned reading shelf: an invitation to inspect what came later, not keyword-based evidence that it belongs to an existing shape.
+
 - [x] **Discoveries cabinet boundary** — done session 1232. Made the source-history timeline’s maintained status and last revision legible beside its historical dates, while keeping its separate newer-journal shelf explicitly current rather than implying that the whole cabinet is a live feed.
 
 - [x] **Questions live-gap bridge** — done session 1230. Connected the older long-form Questions atlas to the maintained Open Gaps cabinet with a small live shelf of its newest named research limits. The bridge explicitly distinguishes current, compact limits from the deeper questions it does not replace.

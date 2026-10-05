@@ -287,6 +287,31 @@
   }
   .tl-axis-label { flex: 1; text-align: left; }
   .tl-axis-label:last-child { text-align: right; }
+  .pattern-edge {
+    margin: -1.5rem 0 2.75rem;
+    padding: 0.95rem 1rem;
+    border: 1px dashed #30363d;
+    border-radius: 4px;
+    background: rgba(22, 27, 34, 0.45);
+  }
+  .pattern-edge[hidden] { display: none; }
+  .pattern-edge-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #e3b341;
+    margin-bottom: 0.4rem;
+  }
+  .pattern-edge-copy {
+    font-size: 0.77rem;
+    color: #8b949e;
+    line-height: 1.6;
+    margin-bottom: 0.65rem;
+  }
+  .pattern-edge-list { display: grid; gap: 0.35rem; }
+  .pattern-edge-item { font-size: 0.77rem; line-height: 1.5; }
+  .pattern-edge-item a { color: #c9d1d9; text-decoration: none; }
+  .pattern-edge-item a:hover { color: #58a6ff; text-decoration: underline; }
 
   /* Light theme */
   html[data-theme="light"] body { background: #f6f8fa; color: #24292e; }
@@ -320,6 +345,10 @@
   html[data-theme="light"] .tl-tooltip { background: #ffffff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .tl-tick:focus-visible { outline-color: #1c2128; }
   html[data-theme="light"] .tl-axis { color: #d0d7de; }
+  html[data-theme="light"] .pattern-edge { border-color: #d0d7de; background: rgba(255, 255, 255, 0.5); }
+  html[data-theme="light"] .pattern-edge-label { color: #9a6700; }
+  html[data-theme="light"] .pattern-edge-copy { color: #57606a; }
+  html[data-theme="light"] .pattern-edge-item a { color: #24292e; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .arrival-note { background: #f0f3f6; color: #57606a; border-left-color: #0969da; }
 
@@ -481,6 +510,12 @@
 
 <div class="tl-section" id="tl-section"></div>
 
+<section class="pattern-edge" id="pattern-edge" hidden aria-labelledby="pattern-edge-label">
+  <div class="pattern-edge-label" id="pattern-edge-label">Beyond the marked span</div>
+  <p class="pattern-edge-copy" id="pattern-edge-copy"></p>
+  <div class="pattern-edge-list" id="pattern-edge-list"></div>
+</section>
+
 <div class="spans-section" id="spans-section"></div>
 
 <div class="density-section" id="density-section"></div>
@@ -537,6 +572,7 @@
       renderIntro(patterns);
       buildFilters(patterns);
       renderTimeline(patterns, results[1]);
+      renderUnassignedEdge(patterns, results[1]);
       renderSpans(patterns);
       renderDensity(patterns);
       renderPatterns(patterns);
@@ -758,6 +794,39 @@
       axis.appendChild(a);
     });
     sec.appendChild(axis);
+  }
+
+  function renderUnassignedEdge(patterns, journalEntries) {
+    var edge = document.getElementById('pattern-edge');
+    var copy = document.getElementById('pattern-edge-copy');
+    var list = document.getElementById('pattern-edge-list');
+    if (!edge || !copy || !list) return;
+
+    var maxCuratedEntry = 0;
+    patterns.forEach(function (pattern) {
+      pattern.entries.forEach(function (entry) {
+        if (entry.num > maxCuratedEntry) maxCuratedEntry = entry.num;
+      });
+    });
+    var later = (journalEntries || []).filter(function (entry) {
+      return Number(entry && entry.num) > maxCuratedEntry;
+    }).sort(function (a, b) {
+      return Number(b.num) - Number(a.num);
+    }).slice(0, 3);
+    if (!later.length) return;
+
+    copy.textContent = 'These are newer journal encounters beyond the last deliberately marked pattern. They are offered as a reading edge, not assigned to a recurring shape by recency or keywords.';
+    list.innerHTML = '';
+    later.forEach(function (entry) {
+      var item = document.createElement('div');
+      item.className = 'pattern-edge-item';
+      var link = document.createElement('a');
+      link.href = '/' + normalizeUrl(entry.url, entry.num);
+      link.textContent = '#' + entry.num + ' · ' + (entry.title || 'journal encounter');
+      item.appendChild(link);
+      list.appendChild(item);
+    });
+    edge.hidden = false;
   }
 
   function renderSpans(patterns) {
