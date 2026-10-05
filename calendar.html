@@ -161,6 +161,9 @@
     cursor: default;
     transition: opacity 0.1s;
     position: relative;
+    border: 0;
+    padding: 0;
+    font: inherit;
   }
   .day-cell.has-entries {
     cursor: pointer;
@@ -172,6 +175,10 @@
   .day-cell.selected {
     outline: 2px solid #58a6ff;
     outline-offset: 1px;
+  }
+  .day-cell.has-entries:focus-visible {
+    outline: 2px solid #f0b429;
+    outline-offset: 2px;
   }
   /* Count-based colors */
   .count-0 { background: #161b22; }
@@ -208,6 +215,7 @@
     display: none;
   }
   .day-detail.visible { display: block; }
+  .day-detail:focus { outline: 1px solid #58a6ff; outline-offset: 3px; }
   .detail-date {
     font-size: 0.72rem;
     text-transform: uppercase;
@@ -344,7 +352,7 @@
 
 <div class="intro">
   <p>Each cell is one day. Color depth is number of journal entries written that day. The page now reads the live journal index, so the shape changes as the archive grows.</p>
-  <p>Filter by topic to see when a subject was active. Click any active day to see which entries were written then.</p>
+  <p>Filter by topic to see when a subject was active. Select any active day to see which entries were written then; active days are available by keyboard as well.</p>
 </div>
 
 <div class="controls">
@@ -395,7 +403,7 @@
   </div>
 </div>
 
-<div class="day-detail" id="day-detail">
+<div class="day-detail" id="day-detail" tabindex="-1">
   <div class="detail-date" id="detail-date"></div>
   <div id="detail-entries"></div>
 </div>
@@ -506,6 +514,11 @@ function groupByDay(list) {
     days[iso].entries.sort(function(a, b) { return a.num - b.num; });
   });
   return days;
+}
+
+function dayLabel(iso, count) {
+  var d = isoToDate(iso);
+  return DAY_NAMES[d.getDay()] + ', ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ': ' + count + ' entr' + (count === 1 ? 'y' : 'ies') + '. Select to read.';
 }
 
 function render(topic, wantedDay) {
@@ -620,7 +633,7 @@ function render(topic, wantedDay) {
 
       week.forEach(function(day) {
         var iso = dateToIso(day);
-        var cell = document.createElement('div');
+        var cell = document.createElement(dayData ? 'button' : 'div');
         cell.className = 'day-cell';
         cell.dataset.iso = iso;
 
@@ -643,6 +656,12 @@ function render(topic, wantedDay) {
         }
 
         cell.title = '';
+
+        if (dayData) {
+          cell.type = 'button';
+          cell.setAttribute('aria-label', dayLabel(iso, count));
+          cell.setAttribute('aria-pressed', 'false');
+        }
 
         cell.addEventListener('mousemove', function(e) {
           var d = isoToDate(iso);
@@ -673,13 +692,16 @@ function render(topic, wantedDay) {
             if (selectedIso === iso) {
               selectedIso = null;
               document.querySelectorAll('.day-cell.selected').forEach(function(c) { c.classList.remove('selected'); });
+              document.querySelectorAll('.day-cell.has-entries[aria-pressed="true"]').forEach(function(c) { c.setAttribute('aria-pressed', 'false'); });
               document.getElementById('day-detail').classList.remove('visible');
               writeState({ topic: topic, day: '' });
               return;
             }
             selectedIso = iso;
             document.querySelectorAll('.day-cell.selected').forEach(function(c) { c.classList.remove('selected'); });
+            document.querySelectorAll('.day-cell.has-entries[aria-pressed="true"]').forEach(function(c) { c.setAttribute('aria-pressed', 'false'); });
             cell.classList.add('selected');
+            cell.setAttribute('aria-pressed', 'true');
 
             var d = isoToDate(iso);
             var panel = document.getElementById('day-detail');
@@ -696,6 +718,9 @@ function render(topic, wantedDay) {
             panel.classList.add('visible');
             panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             writeState({ topic: topic, day: iso }, restoreSelection === iso ? 'replaceState' : undefined);
+            if (restoreSelection === iso) {
+              window.setTimeout(function() { panel.focus({ preventScroll: true }); }, 0);
+            }
           });
         }
 

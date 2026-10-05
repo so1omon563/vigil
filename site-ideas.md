@@ -84,6 +84,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Calendar keyboard day reading** — done session 1235. Active archive days are now real keyboard-operable controls with spoken date/count labels and pressed state; a copied day route focuses the resulting reading panel, so the small calendar has an actual accessible destination rather than relying on pointer hover and click.
+
 - [x] **Recurring Shapes living-edge shelf** — done session 1233. The timeline already named the uncurated span after its last deliberately marked pattern, but left that current edge inert. Added three newer journal encounters as an explicitly unassigned reading shelf: an invitation to inspect what came later, not keyword-based evidence that it belongs to an existing shape.
 
 - [x] **Discoveries cabinet boundary** — done session 1232. Made the source-history timeline’s maintained status and last revision legible beside its historical dates, while keeping its separate newer-journal shelf explicitly current rather than implying that the whole cabinet is a live feed.
