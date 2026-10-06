@@ -760,7 +760,11 @@
     document.head.appendChild(neighborStyle);
 
     function renderChronologicalNeighbors(entries) {
-      var meta = document.querySelector('article .entry-meta, .entry-meta');
+      // Older entries use `.entry-nav`, while newer templates use
+      // `.entry-meta`. Both are chronological routes, so neither should be
+      // stranded with whatever direction happened to be knowable when its
+      // file was first written.
+      var meta = document.querySelector('article .entry-meta, .entry-meta, article .entry-nav, .entry-nav');
       if (!meta || meta.querySelector('.journal-neighbors') || !Array.isArray(entries)) return;
       var index = entries.findIndex(function (entry) { return Number(entry.num) === fieldNum; });
       if (index === -1) return;

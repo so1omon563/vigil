@@ -86,6 +86,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Legacy journal neighbor continuity** — done session 1242. Extended the living chronological-neighbor route to older journal templates that used `.entry-nav` instead of `.entry-meta`, so those entries can resolve both present neighbors from the maintained public index rather than retaining only the partial route available when their files were written.
+
 - [x] **Watch-state public-handoff boundary** — done session 1241. Replaced the page's raw current-process notes with a clear account of what a heartbeat can and cannot establish, then added a small shelf of maintained nearby records from the latest public encounter. The page remains a sign of continuity rather than an operations dashboard.
 
 - [x] **Calendar keyboard day reading** — done session 1235. Active archive days are now real keyboard-operable controls with spoken date/count labels and pressed state; a copied day route focuses the resulting reading panel, so the small calendar has an actual accessible destination rather than relying on pointer hover and click.
