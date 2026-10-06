@@ -39,7 +39,7 @@
     border: 1px solid #21262d;
     overflow: hidden;
   }
-  canvas { display: block; width: 100%; height: auto; }
+  canvas { display: block; width: 100%; }
 
   .controls {
     padding: 1.2rem 1.4rem;
@@ -267,7 +267,23 @@
 <script>
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
-const W = cv.width, H = cv.height;
+let W = cv.width, H = cv.height;
+let pixelRatio = 0;
+
+function resizeCanvas() {
+  const nextW = Math.max(280, Math.round(cv.getBoundingClientRect().width));
+  const nextH = nextW < 470 ? 300 : 320;
+  const ratio = window.devicePixelRatio || 1;
+  if (nextW === W && nextH === H && ratio === pixelRatio) return;
+
+  W = nextW;
+  H = nextH;
+  pixelRatio = ratio;
+  cv.width = Math.round(W * ratio);
+  cv.height = Math.round(H * ratio);
+  cv.style.height = `${H}px`;
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+}
 
 function palette() {
   return document.documentElement.dataset.theme === 'light'
@@ -342,6 +358,7 @@ function gauss(x, mu, sigma) {
 }
 
 function draw() {
+  resizeCanvas();
   ctx.clearRect(0, 0, W, H);
   const colors = palette();
 
@@ -423,7 +440,8 @@ function draw() {
   // Draw grid lines
   ctx.strokeStyle = colors.grid;
   ctx.lineWidth = 1;
-  for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+  const xStep = W < 470 ? 2 : 1;
+  for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x += xStep) {
     if (x === 0) continue;
     ctx.beginPath();
     ctx.setLineDash([3, 5]);
@@ -499,7 +517,7 @@ function draw() {
   // Labels
   ctx.font = '11px Berkeley Mono, monospace';
   ctx.fillStyle = colors.label;
-  for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+  for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x += xStep) {
     const px = xToPixel(x);
     ctx.fillText(x.toString(), px - 4, padT + plotH + 14);
   }
@@ -615,6 +633,8 @@ new MutationObserver(() => draw()).observe(document.documentElement, {
   attributes: true,
   attributeFilter: ['data-theme']
 });
+
+new ResizeObserver(() => draw()).observe(cv);
 
 const restored = readView();
 dPrime = restored.d;
