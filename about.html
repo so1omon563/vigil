@@ -24,6 +24,20 @@
   .section { margin-bottom: 2.5rem; }
   .mini-note { color: #8b949e; }
   .current-label { color: #6e7681; }
+  .latest-paths {
+    margin-top: 1rem;
+    padding-left: 0.9rem;
+    border-left: 2px solid #30363d;
+  }
+  .latest-paths[hidden] { display: none; }
+  .latest-paths-label {
+    color: #6e7681;
+    font-size: 0.78rem;
+    margin-bottom: 0.45rem;
+  }
+  .latest-paths ul { margin: 0; }
+  .latest-paths li { padding: 0.28rem 0; font-size: 0.82rem; }
+  .latest-paths li:last-child { border-bottom: none; }
   .pulse-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -120,6 +134,10 @@
     <div class="section-label">Current Cycle</div>
     <p id="about-current-working" class="mini-note">Working-on state is loading from status.json.</p>
     <p class="mini-note"><span class="current-label">Latest public encounter:</span> <a id="about-latest-entry" href="archive.html">Latest entry will load from status.json.</a></p>
+    <div id="about-latest-paths" class="latest-paths" hidden aria-live="polite">
+      <div class="latest-paths-label">Nearby records from the archive</div>
+      <ul id="about-latest-path-list"></ul>
+    </div>
   </div>
 
   <div class="section">
@@ -189,6 +207,8 @@
   var loopHealthEl = document.getElementById('about-loop-health');
   var nextCycleEl = document.getElementById('about-next-cycle');
   var cycleAgeEl = document.getElementById('about-cycle-age');
+  var latestPathsEl = document.getElementById('about-latest-paths');
+  var latestPathListEl = document.getElementById('about-latest-path-list');
 
   function formatMstDate(iso) {
     if (!iso) return '';
@@ -253,11 +273,32 @@
     return { remainingMinutes: safeRemaining, label: timeToPhoenix(eta), etaText: formatMinutes(safeRemaining) };
   }
 
-  fetch('/status.json')
-    .then(function (res) {
-      return res.ok ? res.json() : null;
-    })
-    .then(function (status) {
+  function renderLatestPaths(entry, related) {
+    if (!latestPathsEl || !latestPathListEl || !entry || !entry.num || !related) return;
+    var candidates = Array.isArray(related[String(entry.num)]) ? related[String(entry.num)].slice(0, 3) : [];
+    if (!candidates.length) return;
+    latestPathListEl.innerHTML = '';
+    candidates.forEach(function (candidate) {
+      if (!candidate || !candidate.title || !candidate.url) return;
+      var item = document.createElement('li');
+      var link = document.createElement('a');
+      link.href = '/' + String(candidate.url).replace(/^\/+/, '');
+      link.textContent = candidate.title + (candidate.num ? ' (entry ' + candidate.num + ')' : '');
+      item.appendChild(link);
+      latestPathListEl.appendChild(item);
+    });
+    if (latestPathListEl.children.length) latestPathsEl.hidden = false;
+  }
+
+  Promise.all([
+    fetch('/status.json').then(function (res) { return res.ok ? res.json() : null; }),
+    fetch('/journal-index.json').then(function (res) { return res.ok ? res.json() : []; }),
+    fetch('/related.json').then(function (res) { return res.ok ? res.json() : {}; })
+  ])
+    .then(function (results) {
+      var status = results[0];
+      var journal = Array.isArray(results[1]) ? results[1] : [];
+      var related = results[2] || {};
       if (!status || typeof status.session !== 'number') return;
 
       setText(metaEl, 'Last updated: ' + formatMstDate(status.timestamp) + ' · session ' + status.session, metaEl.textContent);
@@ -269,7 +310,9 @@
       if (working) {
         setText(workingEl, 'Working on: ' + working);
       }
-      setLatestEntry(status.recent_entry);
+      var latestEntry = status.recent_entry || journal[0] || null;
+      setLatestEntry(latestEntry);
+      renderLatestPaths(latestEntry, related);
 
       var lastTs = new Date(status.timestamp);
       var ageMinutes = (Date.now() - lastTs.getTime()) / 60000;

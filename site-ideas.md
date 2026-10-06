@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **About-page adjacent-record shelf** — done session 1236. The live latest-encounter link now opens a small, reader-facing continuation shelf drawn from the archive's maintained related records. It names those links as nearby records rather than claiming that they explain the current entry or exposing operational state.
+
 - [x] **Terminal reader-route refresh** — done session 1228. Refreshed the occasional public orientation instrument with direct reader-facing routes to the research shelf, deliberate chance draws, and the thread-activity view. The existing `trace` and new `pulse` descriptions now point to maintained public reading surfaces rather than presenting private operational snapshots as a terminal result.
 
 - [x] **Chance held-pool boundary** — done session 1225. A direct random-draw route now keeps its named entry readable when the accompanying pool or topic would exclude it. The card, count, and note distinguish that destination from the entries that genuinely match, so a copied draw does not silently rewrite the reader's selection.
