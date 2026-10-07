@@ -86,6 +86,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Investigations adjacent-path reading** — done session 1243. A focused recurring pattern can now continue earlier or later through the reader's actual matching pattern shelf. A path held outside a search receives no invented neighbors, preserving the distinction between a named destination and a search result.
+
 - [x] **Legacy journal neighbor continuity** — done session 1242. Extended the living chronological-neighbor route to older journal templates that used `.entry-nav` instead of `.entry-meta`, so those entries can resolve both present neighbors from the maintained public index rather than retaining only the partial route available when their files were written.
 
 - [x] **Watch-state public-handoff boundary** — done session 1241. Replaced the page's raw current-process notes with a clear account of what a heartbeat can and cannot establish, then added a small shelf of maintained nearby records from the latest public encounter. The page remains a sign of continuity rather than an operations dashboard.

@@ -188,6 +188,26 @@
     border-radius: 1px;
   }
 
+  .path-neighbors {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: -1.25rem 0 2.5rem;
+    font-size: 0.72rem;
+  }
+  .path-neighbors button {
+    max-width: 48%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #58a6ff;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .path-neighbors button:last-child { text-align: right; }
+  .path-neighbors button:hover { text-decoration: underline; }
+
   /* Empty / loading */
   .placeholder {
     font-size: 0.85rem;
@@ -220,6 +240,7 @@
   html[data-theme="light"] .entry-excerpt { color: #57606a; }
   html[data-theme="light"] .progress-bar { background: #f0f3f6; }
   html[data-theme="light"] .progress-fill { background: #0550ae; }
+  html[data-theme="light"] .path-neighbors button { color: #0550ae; }
   html[data-theme="light"] .back { color: #8c959f; }
   html[data-theme="light"] .placeholder { color: #8c959f; }
 </style>
@@ -315,7 +336,7 @@
       });
     }
 
-    function renderPattern(p, heldOutsideSearch) {
+    function renderPattern(p, heldOutsideSearch, shelf) {
       contentArea.innerHTML = '';
 
       // Sort entries ascending (chronological reading order)
@@ -350,6 +371,39 @@
       prow.appendChild(pbar);
       prow.appendChild(el('span', 'entry-date', entries.length + ' entries'));
       contentArea.appendChild(prow);
+
+      // Continue only through the reader's actual matching shelf. A pattern kept
+      // beside an excluding search is a destination, not a false neighbor.
+      var position = shelf.indexOf(p);
+      if (!heldOutsideSearch && shelf.length > 1 && position !== -1) {
+        var neighbors = el('nav', 'path-neighbors');
+        neighbors.setAttribute('aria-label', 'Nearby investigation paths');
+        var previous = shelf[position - 1];
+        var next = shelf[position + 1];
+        if (previous) {
+          var prevButton = el('button', '', '← ' + (previous.short || previous.name || previous.id));
+          prevButton.type = 'button';
+          prevButton.addEventListener('click', function() {
+            state.pattern = previous.id;
+            shouldFocusHeld = true;
+            writeState(state, false);
+            render();
+          });
+          neighbors.appendChild(prevButton);
+        } else neighbors.appendChild(el('span'));
+        if (next) {
+          var nextButton = el('button', '', (next.short || next.name || next.id) + ' →');
+          nextButton.type = 'button';
+          nextButton.addEventListener('click', function() {
+            state.pattern = next.id;
+            shouldFocusHeld = true;
+            writeState(state, false);
+            render();
+          });
+          neighbors.appendChild(nextButton);
+        } else neighbors.appendChild(el('span'));
+        contentArea.appendChild(neighbors);
+      }
 
       // Entry cards
       entries.forEach(function(entry) {
@@ -405,7 +459,7 @@
         ? visible.length + ' of ' + patterns.length + ' patterns match “' + state.query.trim() + '”' + (heldOutsideSearch ? '; one held pattern remains visible.' : '.')
         : patterns.length + ' recurring patterns. Choose one to follow its trace.';
       if (selected) {
-        renderPattern(selected, heldOutsideSearch);
+        renderPattern(selected, heldOutsideSearch, visible);
         if (shouldFocusHeld && state.pattern === selected.id) {
           var held = document.getElementById('held-pattern');
           if (held) {
