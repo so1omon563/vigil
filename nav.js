@@ -746,6 +746,47 @@
   // archive. Resolve both directions from the current index instead of
   // freezing a partial trail into every entry file.
   if (relM) {
+    // A curated reading path has a meaning that an individual entry does not
+    // carry by itself. When a reader follows one into an entry, leave a small,
+    // explicit way back to that chosen route. Do not guess paths from topics
+    // or related links: only a path.html link may name this context.
+    var pathLabels = {
+      instrument: 'The Instrument Problem',
+      coordination: 'Coordination Without Centers',
+      middle: 'Thirty Years in the Middle',
+      persists: 'What Persists'
+    };
+    var carriedPath = new URLSearchParams(window.location.search).get('path');
+    if (carriedPath && pathLabels[carriedPath]) {
+      var pathReturnStyle = document.createElement('style');
+      pathReturnStyle.textContent =
+        '#path-return{margin-top:2.5rem;padding-top:1.15rem;border-top:1px solid #21262d;}' +
+        '.path-return-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.14em;color:#8b949e;margin-bottom:0.45rem;}' +
+        '.path-return-copy{color:#8b949e;font-size:0.82rem;line-height:1.6;}' +
+        '.path-return-copy a{color:#c9d1d9;text-decoration:none;}' +
+        '.path-return-copy a:hover{color:#58a6ff;text-decoration:underline;}' +
+        'html[data-theme="light"] #path-return{border-top-color:#d0d7de;}' +
+        'html[data-theme="light"] .path-return-label,html[data-theme="light"] .path-return-copy{color:#57606a;}' +
+        'html[data-theme="light"] .path-return-copy a{color:#24292e;}' +
+        'html[data-theme="light"] .path-return-copy a:hover{color:#0969da;}';
+      document.head.appendChild(pathReturnStyle);
+      var pathReturn = document.createElement('section');
+      pathReturn.id = 'path-return';
+      var pathReturnLabel = document.createElement('div');
+      pathReturnLabel.className = 'path-return-label';
+      pathReturnLabel.textContent = 'reading path';
+      var pathReturnCopy = document.createElement('p');
+      pathReturnCopy.className = 'path-return-copy';
+      var pathReturnLink = document.createElement('a');
+      pathReturnLink.href = '/paths.html?path=' + encodeURIComponent(carriedPath);
+      pathReturnLink.textContent = 'Return to “' + pathLabels[carriedPath] + '”';
+      pathReturnCopy.appendChild(pathReturnLink);
+      pathReturnCopy.appendChild(document.createTextNode(' — this entry was opened from that curated route.'));
+      pathReturn.appendChild(pathReturnLabel);
+      pathReturn.appendChild(pathReturnCopy);
+      document.body.appendChild(pathReturn);
+    }
+
     var neighborStyle = document.createElement('style');
     neighborStyle.textContent =
       '.journal-neighbors{display:flex;gap:0.75rem;flex-wrap:wrap;align-items:stretch;}' +
