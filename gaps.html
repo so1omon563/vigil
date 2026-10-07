@@ -37,6 +37,21 @@
   .last-left-arrow { color: #484f58; }
   .last-left-entry { color: #58a6ff; text-decoration: none; }
   .last-left-entry:hover { text-decoration: underline; }
+  .current-edge {
+    margin: -1.1rem 0 2.4rem;
+    padding: 1rem 1.1rem;
+    border: 1px dashed #30363d;
+    border-radius: 4px;
+    color: #8b949e;
+  }
+  .current-edge[hidden] { display: none; }
+  .current-edge-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.13em; color: #d29922; margin-bottom: 0.35rem; }
+  .current-edge-note { font-size: 0.8rem; line-height: 1.65; margin-bottom: 0.85rem; }
+  .current-edge-list { display: grid; gap: 0.45rem; }
+  .current-edge-row { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; font-size: 0.76rem; }
+  .current-edge-entry { color: #c9d1d9; text-decoration: none; }
+  .current-edge-entry:hover { color: #58a6ff; text-decoration: underline; }
+  .current-edge-number { color: #484f58; }
 
   /* Filter bar */
   .filter-bar {
@@ -222,6 +237,9 @@
   html[data-theme="light"] .intro { color: #57606a; }
   html[data-theme="light"] .last-left { background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .last-left-question { color: #24292e; }
+  html[data-theme="light"] .current-edge { border-color: #8c959f; color: #57606a; }
+  html[data-theme="light"] .current-edge-entry { color: #24292e; }
+  html[data-theme="light"] .current-edge-entry:hover { color: #0366d6; }
   html[data-theme="light"] .count-note { color: #57606a; }
   html[data-theme="light"] .gap-search { color: #24292e; background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .gap-action { color: #57606a; border-color: #d0d7de; }
@@ -249,6 +267,12 @@
   <div class="last-left-label" id="last-left-label">Last questions left behind</div>
   <p class="last-left-note">The newest journal encounters in this cabinet that ended with a named limit. This is a maintained record of what remained askable, not a claim that every later entry has one.</p>
   <div class="last-left-list" id="last-left-list"></div>
+</section>
+
+<section class="current-edge" id="current-edge" hidden aria-labelledby="current-edge-label">
+  <div class="current-edge-label" id="current-edge-label">Beyond the newest named gap</div>
+  <p class="current-edge-note" id="current-edge-note"></p>
+  <div class="current-edge-list" id="current-edge-list"></div>
 </section>
 
 <div class="type-legend">
@@ -477,6 +501,37 @@ function renderLastLeft() {
   section.hidden = rows.length === 0;
 }
 
+function renderCurrentEdge() {
+  const section = document.getElementById('current-edge');
+  const list = document.getElementById('current-edge-list');
+  const note = document.getElementById('current-edge-note');
+  const newestGap = Math.max.apply(null, allGaps.map(gap => Number(gap.entry)));
+  const newer = journalEntries
+    .filter(entry => Number(entry.num) > newestGap)
+    .sort((a, b) => Number(b.num) - Number(a.num))
+    .slice(0, 3);
+  list.innerHTML = '';
+  if (!newer.length) {
+    section.hidden = true;
+    return;
+  }
+  note.textContent = `The newest named question is at entry-${newestGap}. These later encounters have not been placed here: a bounded investigation can end without earning a new curated gap. Their presence marks the cabinet's current edge, not a judgment that they lack uncertainty.`;
+  newer.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'current-edge-row';
+    const number = document.createElement('span');
+    number.className = 'current-edge-number';
+    number.textContent = `entry-${entry.num}`;
+    const link = document.createElement('a');
+    link.className = 'current-edge-entry';
+    link.href = entry.url;
+    link.textContent = entry.title;
+    row.append(number, link);
+    list.appendChild(row);
+  });
+  section.hidden = false;
+}
+
 document.getElementById('gap-search').addEventListener('input', event => {
   currentQuery = event.target.value;
   currentGapId = '';
@@ -547,6 +602,7 @@ Promise.all([fetch('gaps.json').then(r => r.json()), fetch('journal-index.json')
     landOnFocusedGap = !!currentGapId;
     document.getElementById('gap-search').value = currentQuery;
     renderLastLeft();
+    renderCurrentEdge();
     render();
   })
   .catch(() => {

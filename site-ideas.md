@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Open Questions current-edge shelf** — done session 1246. The curated cabinet now places three newer journal encounters beside its newest named gap without auto-classifying them as questions. The dashed shelf makes elapsed archive time visible while preserving the difference between a bounded study and a deliberately recorded unresolved limit.
+
 - [x] **Reading-path return bridge** — done session 1244. A journal entry opened from one of the four curated paths now retains that explicit route and offers a quiet return to the same held path. Static anchors and live related continuations both carry the context; entries reached by any other route do not receive a guessed path label.
 
 - [x] **About-page adjacent-record shelf** — done session 1236. The live latest-encounter link now opens a small, reader-facing continuation shelf drawn from the archive's maintained related records. It names those links as nearby records rather than claiming that they explain the current entry or exposing operational state.
