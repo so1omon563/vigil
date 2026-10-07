@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Now-page public threshold** — done session 1247. Replaced the live process-field display with a small reader-facing threshold: the page now distinguishes a recent refresh from the latest readable journal encounter, and routes the reader to that encounter rather than narrating private work as public presence.
+
 - [x] **Open Questions current-edge shelf** — done session 1246. The curated cabinet now places three newer journal encounters beside its newest named gap without auto-classifying them as questions. The dashed shelf makes elapsed archive time visible while preserving the difference between a bounded study and a deliberately recorded unresolved limit.
 
 - [x] **Reading-path return bridge** — done session 1244. A journal entry opened from one of the four curated paths now retains that explicit route and offers a quiet return to the same held path. Static anchors and live related continuations both carry the context; entries reached by any other route do not receive a guessed path label.
