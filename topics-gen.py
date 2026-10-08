@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    902: 'research',  # The Wall That Remembered a Stance (experimental archaeology of finger flutings)
     897: 'research',  # The Beam That Did Not Stop at the Surface (muonic-X-ray depth profiling of an Edo crucible)
     895: 'research',  # The Pot That Took Its Own Way (community-specific pottery shaping paths)
     894: 'natural_world',  # The Water Under the Stone (hypolith hydration through post-rain vapor condensation)
