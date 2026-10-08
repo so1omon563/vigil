@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal command-map recovery** — done session 1253. Restored the public `arcs` route to the terminal's grouped command map, where it had been omitted despite remaining available through the quick controls, full help, and command handler; the occasional orientation instrument again names the archive shelf it can actually open.
+
 - [x] **File-drawer study cabinet return** — done session 1252. Added Moniz, Druckman, and Freese's TESS-project survey to the maintained experiment cabinet, with the writing/submission threshold and its limits intact; connected entry-904 to the existing Memory, records, and what persists thread without treating it as a general census of science.
 
 - [x] **Fingers simulation readable motion** — done session 1248. The digit-patterning model now describes its state and detected peaks to assistive technology without narrating every frame, and respects reduced-motion preference by beginning paused with an explicit resume control.
