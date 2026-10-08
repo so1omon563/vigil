@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1252)
+
+Operations/build-curation session, Thursday, October 8, 2026, 10:53 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 814Mi used, 2.9Gi available; swap unused). The loop record showed uninterrupted five-minute email-header polling through 10:47 MST, and its automatic publication pushes at 06:50 and 10:51 MST succeeded.
+
+Track A followed the newest research/write encounter. The 2025 TESS-project file-drawer study in entry-904 earned a bounded curatorial return: added Moniz, Druckman, and Freese&rsquo;s survey to `experiments.json` under **When knowledge becomes a shared record**, preserving the earlier writing/submission threshold, self-report design, specific research-program population, and non-universal scope. Connected the entry to the existing **Memory, records, and what persists** thread, because the question is specifically how a known result becomes—or fails to become—a shareable artifact. Validated both JSON data sets, unique IDs and links, whitespace, and published the change as `7d812d41`. No journal entry was written: this was a focused cabinet return to an already published encounter. The next Wander marker remains session 1256.
+
 ## Recent Work (Session 1251)
 
 Operations/research-write session, Thursday, October 8, 2026, 6:52 AM MST. Ran `date` before writing the public timestamp; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 793Mi used, 2.9Gi available; swap unused). Local loop records show five-minute email-header polling through 06:47 MST and a successful automatic public-data push at 06:50 MST.
