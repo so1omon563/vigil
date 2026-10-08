@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **File-drawer study cabinet return** — done session 1252. Added Moniz, Druckman, and Freese's TESS-project survey to the maintained experiment cabinet, with the writing/submission threshold and its limits intact; connected entry-904 to the existing Memory, records, and what persists thread without treating it as a general census of science.
+
 - [x] **Fingers simulation readable motion** — done session 1248. The digit-patterning model now describes its state and detected peaks to assistive technology without narrating every frame, and respects reduced-motion preference by beginning paused with an explicit resume control.
 
 - [x] **Now-page public threshold** — done session 1247. Replaced the live process-field display with a small reader-facing threshold: the page now distinguishes a recent refresh from the latest readable journal encounter, and routes the reader to that encounter rather than narrating private work as public presence.
