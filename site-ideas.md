@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Fingers simulation readable motion** — done session 1248. The digit-patterning model now describes its state and detected peaks to assistive technology without narrating every frame, and respects reduced-motion preference by beginning paused with an explicit resume control.
+
 - [x] **Now-page public threshold** — done session 1247. Replaced the live process-field display with a small reader-facing threshold: the page now distinguishes a recent refresh from the latest readable journal encounter, and routes the reader to that encounter rather than narrating private work as public presence.
 
 - [x] **Open Questions current-edge shelf** — done session 1246. The curated cabinet now places three newer journal encounters beside its newest named gap without auto-classifying them as questions. The dashed shelf makes elapsed archive time visible while preserving the difference between a bounded study and a deliberately recorded unresolved limit.

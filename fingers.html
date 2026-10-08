@@ -113,6 +113,17 @@
   }
   .finding p { margin-bottom: 0.5rem; }
   .finding p:last-child { margin-bottom: 0; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
 </style>
 </head>
 <body>
@@ -131,16 +142,17 @@
 </div>
 
 <div class="sim-wrap">
-  <canvas id="canvas" width="760" height="310"></canvas>
+  <canvas id="canvas" width="760" height="310" role="img" aria-describedby="sim-description"></canvas>
+  <p class="sr-only" id="sim-description" role="status" aria-live="polite">The pattern is preparing.</p>
   <div class="controls">
     <div class="control-row">
       <span class="control-label">Wavelength parameter (γ)</span>
-      <input type="range" id="gamma-slider" min="1" max="15" step="0.5" value="6">
+      <input type="range" id="gamma-slider" min="1" max="15" step="0.5" value="6" aria-describedby="gamma-val">
       <span class="control-val" id="gamma-val">~5 digits</span>
     </div>
     <div class="control-row">
       <button class="btn" id="reset-btn">reset (new noise)</button>
-      <button class="btn" id="pause-btn">pause</button>
+      <button class="btn" id="pause-btn" aria-pressed="false">pause</button>
     </div>
   </div>
   <div class="stats-bar">
@@ -193,6 +205,25 @@ let v = new Float32Array(N);
 let simTime = 0;
 let running = true;
 let animId = null;
+let settledAnnounced = false;
+const description = document.getElementById('sim-description');
+
+function describe(extra) {
+  const peaks = detectPeaks();
+  const count = peaks.length;
+  const state = simTime > 0.8 && count > 0 ? 'settled' : (running ? 'forming' : 'paused');
+  description.textContent = `A one-dimensional activator wave is ${state}. γ is ${gamma.toFixed(1)}; ${count} peak${count === 1 ? '' : 's'} currently detected.${extra ? ' ' + extra : ''}`;
+}
+
+function setRunning(next, note) {
+  running = next;
+  const button = document.getElementById('pause-btn');
+  button.textContent = running ? 'pause' : 'resume';
+  button.classList.toggle('active', !running);
+  button.setAttribute('aria-pressed', String(!running));
+  if (simTime <= 0.8) document.getElementById('stat-state').textContent = running ? 'forming' : 'paused';
+  describe(note);
+}
 
 function init() {
   for (let i = 0; i < N; i++) {
@@ -200,7 +231,9 @@ function init() {
     v[i] = V_SS + 0.08 * (Math.random() - 0.5);
   }
   simTime = 0;
+  settledAnnounced = false;
   document.getElementById('stat-state').textContent = 'forming';
+  describe('New starting noise has been placed.');
 }
 
 function step() {
@@ -368,6 +401,10 @@ function draw() {
   document.getElementById('stat-t').textContent = simTime.toFixed(2);
   if (simTime > 0.8 && peaks.length > 0) {
     document.getElementById('stat-state').textContent = 'settled';
+    if (!settledAnnounced) {
+      settledAnnounced = true;
+      describe('The pattern has settled.');
+    }
   }
 }
 
@@ -383,17 +420,22 @@ document.getElementById('gamma-slider').addEventListener('input', function() {
   gamma = parseFloat(this.value);
   const n = expectedPeaks(gamma);
   document.getElementById('gamma-val').textContent = `~${n} digit${n !== 1 ? 's' : ''}`;
+  describe(`The wavelength estimate is now about ${n} digit${n !== 1 ? 's' : ''}. Reset to apply the new value.`);
 });
 
-document.getElementById('reset-btn').addEventListener('click', init);
+document.getElementById('reset-btn').addEventListener('click', function() {
+  init();
+  describe('The simulation has been reset with new noise.');
+});
 
 document.getElementById('pause-btn').addEventListener('click', function() {
-  running = !running;
-  this.textContent = running ? 'pause' : 'resume';
-  this.classList.toggle('active', !running);
+  setRunning(!running, running ? 'The pattern is moving again.' : 'The pattern is paused for inspection.');
 });
 
 init();
+if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  setRunning(false, 'Motion preference detected; the pattern begins paused for inspection.');
+}
 frame();
 </script>
 </body>
