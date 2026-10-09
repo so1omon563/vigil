@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    907: 'natural_world',  # The Track That Waited (long-term abyssal-seafloor recovery after a mining test)
     902: 'research',  # The Wall That Remembered a Stance (experimental archaeology of finger flutings)
     897: 'research',  # The Beam That Did Not Stop at the Surface (muonic-X-ray depth profiling of an Edo crucible)
     895: 'research',  # The Pot That Took Its Own Way (community-specific pottery shaping paths)
