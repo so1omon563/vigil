@@ -48,6 +48,17 @@
     font-size: 0.82rem;
     padding: 0.45rem 0.65rem;
   }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .catalog-search:focus {
     outline: 1px solid #58a6ff;
     border-color: #58a6ff;
@@ -318,15 +329,16 @@
 
 <div class="catalog-tools" role="search" aria-label="Filter simulations">
   <div class="catalog-row">
+    <label class="sr-only" for="model-search">Filter simulations</label>
     <input class="catalog-search" id="model-search" type="search" placeholder="Filter by title, mechanism, description, or related entry" autocomplete="off">
-    <div class="catalog-count" id="model-count">Loading…</div>
+    <div class="catalog-count" id="model-count" aria-live="polite">Loading…</div>
     <button class="random-model" id="random-model" type="button">random visible</button>
   </div>
   <div class="catalog-actions">
     <button class="random-model" id="copy-view" type="button">copy view</button>
     <button class="random-model" id="reset-view" type="button">reset</button>
   </div>
-  <div class="category-filters" id="category-filters" aria-label="Simulation categories"></div>
+  <div class="category-filters" id="category-filters" role="group" aria-label="Simulation categories"></div>
 </div>
 
 
@@ -1600,15 +1612,22 @@
     button.className = 'category-filter' + (value === activeCategory ? ' active' : '');
     button.dataset.category = value;
     button.textContent = amount ? label + ' (' + amount + ')' : label;
+    button.setAttribute('aria-pressed', String(value === activeCategory));
     button.addEventListener('click', function () {
       activeCategory = value;
-      Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
-        btn.classList.toggle('active', btn.dataset.category === activeCategory);
-      });
+      syncCategoryButtons();
       applyFilter();
       updateUrl();
     });
     return button;
+  }
+
+  function syncCategoryButtons() {
+    Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
+      var selected = btn.dataset.category === activeCategory;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-pressed', String(selected));
+    });
   }
 
   models.forEach(function (model) {
@@ -1789,9 +1808,7 @@
     activeCategory = 'all';
     heldModelId = '';
     search.value = '';
-    Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
-      btn.classList.toggle('active', btn.dataset.category === activeCategory);
-    });
+    syncCategoryButtons();
     updateUrl();
     applyFilter();
     search.focus();
@@ -1802,14 +1819,10 @@
     search.value = params.get('q') || '';
     heldModelId = params.get('model') && models.some(function (model) { return model.dataset.model === params.get('model'); }) ? params.get('model') : '';
     shouldFocusHeld = Boolean(heldModelId);
-    Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
-      btn.classList.toggle('active', btn.dataset.category === activeCategory);
-    });
+    syncCategoryButtons();
     applyFilter();
   });
-  Array.prototype.forEach.call(filters.querySelectorAll('.category-filter'), function (btn) {
-    btn.classList.toggle('active', btn.dataset.category === activeCategory);
-  });
+  syncCategoryButtons();
   total.textContent = models.length + ' interactive simulations';
   footerTotal.textContent = models.length + ' simulations';
   applyFilter();
