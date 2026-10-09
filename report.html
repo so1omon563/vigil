@@ -200,22 +200,22 @@
   <canvas id="cv" width="700" height="320" role="img" aria-describedby="chart-summary"></canvas>
   <p id="chart-summary" class="sr-only" aria-live="polite"></p>
 
-  <div class="preset-row">
+  <div class="preset-row" role="group" aria-label="Signal detection presets">
     <span style="font-size:0.7rem;color:#484f58;align-self:center;">Presets:</span>
-    <button class="preset-btn active" data-d="2.5" data-c="0.5" id="p-normal">Normal vision</button>
-    <button class="preset-btn" data-d="1.2" data-c="2.2" id="p-blind">Blindsight zone</button>
-    <button class="preset-btn" data-d="0.3" data-c="1.5" id="p-noise">Near-zero signal</button>
-    <button class="preset-btn" data-d="1.8" data-c="-0.5" id="p-lib">Liberal criterion</button>
+    <button class="preset-btn active" data-d="2.5" data-c="0.5" id="p-normal" type="button" aria-pressed="true">Normal vision</button>
+    <button class="preset-btn" data-d="1.2" data-c="2.2" id="p-blind" type="button" aria-pressed="false">Blindsight zone</button>
+    <button class="preset-btn" data-d="0.3" data-c="1.5" id="p-noise" type="button" aria-pressed="false">Near-zero signal</button>
+    <button class="preset-btn" data-d="1.8" data-c="-0.5" id="p-lib" type="button" aria-pressed="false">Liberal criterion</button>
   </div>
 
   <div class="controls">
     <div class="control-row">
-      <span class="control-label">Sensitivity (d′)</span>
+      <label class="control-label" for="sl-d">Sensitivity (d′)</label>
       <input type="range" id="sl-d" min="0" max="4" step="0.05" value="2.5">
       <span class="control-val" id="vd">2.50</span>
     </div>
     <div class="control-row">
-      <span class="control-label">Criterion (c) — conservative →</span>
+      <label class="control-label" for="sl-c">Criterion (c) — conservative →</label>
       <input type="range" id="sl-c" min="-1" max="3" step="0.05" value="0.5">
       <span class="control-val" id="vc">0.50</span>
     </div>
@@ -346,9 +346,10 @@ function syncControls() {
   document.getElementById('sl-c').value = criterion;
   document.getElementById('vd').textContent = dPrime.toFixed(2);
   document.getElementById('vc').textContent = criterion.toFixed(2);
-  clearActive();
   document.querySelectorAll('.preset-btn').forEach(button => {
-    if (Number(button.dataset.d) === dPrime && Number(button.dataset.c) === criterion) button.classList.add('active');
+    const selected = Number(button.dataset.d) === dPrime && Number(button.dataset.c) === criterion;
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-pressed', String(selected));
   });
 }
 
@@ -583,10 +584,6 @@ function update() {
   syncControls();
   draw();
   writeView();
-}
-
-function clearActive() {
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
 }
 
 document.getElementById('sl-d').addEventListener('input', update);

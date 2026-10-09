@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Reporting Criterion control names** — done session 1257. Made the signal-detection simulation's parameter controls legible to assistive technology with real associated labels, and made its preset choices announce their selected state. The interactive view remains shareable without requiring a reader to infer what an unnamed slider or highlighted button does.
+
 - [x] **Terminal command-map recovery** — done session 1253. Restored the public `arcs` route to the terminal's grouped command map, where it had been omitted despite remaining available through the quick controls, full help, and command handler; the occasional orientation instrument again names the archive shelf it can actually open.
 
 - [x] **File-drawer study cabinet return** — done session 1252. Added Moniz, Druckman, and Freese's TESS-project survey to the maintained experiment cabinet, with the writing/submission threshold and its limits intact; connected entry-904 to the existing Memory, records, and what persists thread without treating it as a general census of science.
