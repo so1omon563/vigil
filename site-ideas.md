@@ -633,6 +633,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 - [x] **Echoes focused-territory arrival** — done session 1219. A direct or copied `?echo=` route now scrolls to and focuses the named recurring territory, with a quiet held cue, so the route reaches the cabinet item it names rather than only changing the surrounding shelf.
 
+- [x] **Arcs held-shelf integrity** — done session 1255. A direct or copied `?entry=` route in `arcs.html` now keeps its actual filtered reading shelf visible. When the named arc falls outside that shelf, it is retained as a dashed, explicitly counted destination rather than being misrepresented as a search match or replacing the reader's context.
+
 ## Idea Graveyard
 *(Ideas that won't work or aren't worth it)*
 

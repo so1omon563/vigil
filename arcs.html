@@ -77,6 +77,7 @@
     margin-left: -1rem;
     padding-left: calc(1rem - 2px);
   }
+  .arc-item.is-held.held-outside { border-left-style: dashed; }
   .arc-item:last-child { border-bottom: none; }
   .arc-header {
     display: flex;
@@ -245,6 +246,8 @@
   var allArcs = [];
   var newestFirst = true;
   var heldNum = 0;
+  var heldOutsideFilter = false;
+  var matchedCount = 0;
 
   function esc(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -257,25 +260,30 @@
     var held = allArcs.filter(function (a) { return a.num === heldNum; })[0];
     if (heldNote) {
       heldNote.hidden = !held;
-      var heldIndex = allArcs.indexOf(held);
-      var later = heldIndex > 0 ? allArcs[heldIndex - 1] : null;
-      var earlier = heldIndex >= 0 && heldIndex < allArcs.length - 1 ? allArcs[heldIndex + 1] : null;
+      var heldIndex = list.indexOf(held);
+      var later = heldIndex > 0 ? list[heldIndex - 1] : null;
+      var earlier = heldIndex >= 0 && heldIndex < list.length - 1 ? list[heldIndex + 1] : null;
       var neighborControls = (later || earlier)
         ? '<span class="arc-neighbors" aria-label="Adjacent archive pairs">' +
           (later ? '<button class="arc-neighbor" type="button" data-hold="' + later.num + '">later: ' + later.num + '</button>' : '') +
           (earlier ? '<button class="arc-neighbor" type="button" data-hold="' + earlier.num + '">earlier: ' + earlier.num + '</button>' : '') +
           '</span>'
         : '';
-      heldNote.innerHTML = held ? 'Holding <strong>entry ' + held.num + '</strong>: its first sentence and last paragraph.' + neighborControls + ' <button class="arc-focus" type="button" data-clear-held="true">return to shelf</button>' : '';
+      var shelfNote = heldOutsideFilter
+        ? ' It is a named reading destination outside the ' + matchedCount + ' matching ' + (matchedCount === 1 ? 'arc' : 'arcs') + ' below.'
+        : ' It remains in the current shelf.';
+      heldNote.innerHTML = held ? 'Holding <strong>entry ' + held.num + '</strong>: its first sentence and last paragraph.' + shelfNote + neighborControls + ' <button class="arc-focus" type="button" data-clear-held="true">release entry</button>' : '';
     }
     if (!list.length) {
       container.innerHTML = '<div style="color:#484f58;font-size:0.85rem;padding:2rem 0;">No entries match.</div>';
       if (countEl) countEl.textContent = '0 of ' + allArcs.length;
       return;
     }
-    if (countEl) countEl.textContent = list.length + ' of ' + allArcs.length;
+    if (countEl) countEl.textContent = heldOutsideFilter
+      ? list.length + ' shown · ' + matchedCount + ' matching + 1 held destination'
+      : list.length + ' of ' + allArcs.length;
     container.innerHTML = list.map(function (a) {
-      return '<article class="arc-item' + (a.num === heldNum ? ' is-held' : '') + '" data-num="' + a.num + '"' + (a.num === heldNum ? ' tabindex="-1" aria-label="Held entry ' + a.num + ': ' + esc(a.title) + '"' : '') + '>' +
+      return '<article class="arc-item' + (a.num === heldNum ? ' is-held' : '') + (a.num === heldNum && heldOutsideFilter ? ' held-outside' : '') + '" data-num="' + a.num + '"' + (a.num === heldNum ? ' tabindex="-1" aria-label="Held entry ' + a.num + ': ' + esc(a.title) + (heldOutsideFilter ? ', held outside the current matching shelf' : '') + '"' : '') + '>' +
         '<div class="arc-header">' +
           '<span class="arc-num">' + a.num + '</span>' +
           '<span class="arc-title"><a href="/' + esc(a.url) + '">' + esc(a.title) + '</a> <button class="arc-focus" type="button" data-hold="' + a.num + '">hold</button></span>' +
@@ -331,17 +339,22 @@
   function applyFilter(updateHistory, replaceHistory) {
     var q = (document.getElementById('filter-input').value || '').toLowerCase().trim();
     var list = allArcs.slice();
+    heldOutsideFilter = false;
     if (!newestFirst) list = list.slice().reverse();
-    if (q && !heldNum) {
+    if (q) {
       list = list.filter(function (a) {
         return (a.title || '').toLowerCase().indexOf(q) !== -1 ||
                (a.opening || '').toLowerCase().indexOf(q) !== -1 ||
                (a.closing || '').toLowerCase().indexOf(q) !== -1;
       });
     }
+    matchedCount = list.length;
     if (heldNum) {
       var held = allArcs.filter(function (a) { return a.num === heldNum; })[0];
-      if (held) list = [held];
+      if (held && list.indexOf(held) === -1) {
+        heldOutsideFilter = true;
+        list.unshift(held);
+      }
       else heldNum = 0;
     }
     render(list);
