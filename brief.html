@@ -53,6 +53,17 @@
   }
   .search-input:focus { border-color: #58a6ff; }
   .search-input::placeholder { color: #484f58; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .filter-row {
     display: flex;
     gap: 0.4rem;
@@ -163,7 +174,10 @@
     margin-top: 0.25rem;
   }
   .pbadge {
+    appearance: none;
+    background: transparent;
     font-size: 0.6rem;
+    font-family: inherit;
     text-transform: uppercase;
     letter-spacing: 0.07em;
     padding: 0.1rem 0.35rem;
@@ -172,6 +186,8 @@
     cursor: pointer;
     white-space: nowrap;
   }
+  button.pbadge { line-height: inherit; }
+  .pbadge:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
   /* Pattern colors */
   .pbadge[data-pid="structural-blindspot"]        { color: #58a6ff; border-color: #58a6ff33; background: #58a6ff11; }
   .pbadge[data-pid="foreign-foundation"]          { color: #3fb950; border-color: #3fb95033; background: #3fb95011; }
@@ -250,8 +266,9 @@
 
 <div class="controls">
   <div class="search-row">
-    <input class="search-input" type="text" id="search" placeholder="search titles and sentences…" autocomplete="off">
-    <span id="count-display" class="filter-label" style="margin: 0 0 0 0.5rem;"></span>
+    <label class="sr-only" for="search">Search opening sentences</label>
+    <input class="search-input" type="search" id="search" placeholder="search titles and sentences…" autocomplete="off">
+    <span id="count-display" class="filter-label" style="margin: 0 0 0 0.5rem;" aria-live="polite" aria-atomic="true"></span>
   </div>
   <div class="filter-row" id="pattern-filters">
     <span class="filter-label">pattern:</span>
@@ -342,7 +359,7 @@
     row.innerHTML = '<span class="filter-label">pattern:</span>' + buttons.map(function (p) {
       var color = p.id ? (COLORS[p.id] || '#8b949e') : '';
       var style = color ? ' style="color:' + color + ';border-color:' + color + '44"' : '';
-      return '<button class="filter-btn" data-pid="' + p.id + '"' + style + '>' + escHtml(p.label) + '</button>';
+      return '<button class="filter-btn" type="button" data-pid="' + p.id + '" aria-pressed="false"' + style + '>' + escHtml(p.label) + '</button>';
     }).join('') +
       '<button class="view-action" id="reset-view" type="button">reset</button>' +
       '<button class="view-action" id="copy-view" type="button">copy this view</button>';
@@ -373,7 +390,7 @@
       var color = COLORS[p.id] || '#8b949e';
       return '<div class="legend-row">' +
         '<span class="legend-badge">' +
-        '<span class="pbadge" data-pid="' + p.id + '" style="color:' + color + ';border-color:' + color + '44;background:' + color + '11">' + p.short + '</span>' +
+        '<button class="pbadge" type="button" data-pid="' + p.id + '" aria-label="Show ' + escHtml(p.short) + ' openings" style="color:' + color + ';border-color:' + color + '44;background:' + color + '11">' + escHtml(p.short) + '</button>' +
         '</span>' +
         '<span class="legend-desc">' + escHtml(p.description) + '</span>' +
         '</div>';
@@ -397,7 +414,7 @@
     list.innerHTML = entries.map(function (e) {
       var badges = (patternMap[e.num] || []).map(function (p) {
         var color = COLORS[p.id] || '#8b949e';
-        return '<span class="pbadge" data-pid="' + p.id + '" style="color:' + color + ';border-color:' + color + '44;background:' + color + '11">' + escHtml(p.short) + '</span>';
+        return '<button class="pbadge" type="button" data-pid="' + p.id + '" aria-label="Show ' + escHtml(p.short) + ' openings" style="color:' + color + ';border-color:' + color + '44;background:' + color + '11">' + escHtml(p.short) + '</button>';
       }).join('');
       var patternIds = (patternMap[e.num] || []).map(function (p) { return p.id; }).join(' ');
       return '<li class="entry-item" data-num="' + e.num + '" data-patterns="' + patternIds + '" data-text="' + escHtml((e.title + ' ' + (e.opening || '')).toLowerCase()) + '">' +
@@ -448,7 +465,9 @@
   function syncView() {
     // Update filter buttons
     document.querySelectorAll('.filter-btn').forEach(function (btn) {
-      btn.classList.toggle('active', btn.getAttribute('data-pid') === activePattern);
+      var selected = btn.getAttribute('data-pid') === activePattern;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-pressed', String(selected));
     });
     applyFilters();
   }

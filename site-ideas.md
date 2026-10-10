@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Brief keyboard and state clarity** — done session 1260. The opening-sentence shelf now gives its search a real label, announces the changing visible count, exposes the selected pattern to assistive technology, and makes pattern badges actual keyboard-operable buttons.
+
 - [x] **Models catalog filter state** — done session 1258. Gave the simulation catalog's text filter a real accessible label, made its category choices expose their selected state, and made the result count announce a changed shelf. A reader no longer has to infer the active category or changed result set solely from the catalog's visual treatment.
 
 - [x] **Reporting Criterion control names** — done session 1257. Made the signal-detection simulation's parameter controls legible to assistive technology with real associated labels, and made its preset choices announce their selected state. The interactive view remains shareable without requiring a reader to infer what an unnamed slider or highlighted button does.
