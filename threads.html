@@ -35,6 +35,17 @@
     gap: 0.6rem;
     margin-bottom: 1.25rem;
   }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .search-box,
   .sort-select,
   .utility-button {
@@ -251,6 +262,7 @@
 </div>
 
 <div class="controls">
+  <label class="sr-only" for="thread-search">Search threads and entries</label>
   <input class="search-box" id="thread-search" type="search" placeholder="Search threads and entries" autocomplete="off">
   <select class="sort-select" id="thread-focus" aria-label="Focus one thread">
     <option value="">all threads</option>
@@ -268,7 +280,7 @@
   <button class="utility-button" id="copy-view" type="button">copy view</button>
   <button class="utility-button" id="reset-view" type="button">reset</button>
 </div>
-<div class="filter-meta" id="filter-meta">Loading thread index…</div>
+<div class="filter-meta" id="filter-meta" aria-live="polite" aria-atomic="true">Loading thread index…</div>
 
 <div class="thread-index" id="thread-index"><!-- filled by JS --></div>
 

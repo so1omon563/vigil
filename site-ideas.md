@@ -104,6 +104,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Threads shelf control clarity** — done session 1264. Added a real label for the recurring-thread search and made its changing shelf summary announce as one complete update, so the central archive filter no longer depends on placeholder text or visual count changes alone.
+
 - [x] **Last-lines shelf accessibility** — done session 1262. Added an actual accessible search label and exposed the selected topic and ordering as keyboard-readable pressed state, so the closing-paragraph shelf no longer relies on color alone to describe its active view.
 
 - [x] **Hidden Cognition living-edge shelf** — done session 1257. Added a small, explicitly unassigned shelf beyond the catalog's newest linked mechanism. It offers three later journal encounters as a reading edge while refusing to classify them as hidden cognition by automatic resemblance.
