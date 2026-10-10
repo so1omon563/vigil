@@ -59,6 +59,17 @@
   }
   .filter-input:focus { border-color: #58a6ff; }
   .filter-input::placeholder { color: #484f58; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
 
   .btn {
     font-family: inherit;
@@ -236,21 +247,22 @@
 </div>
 
 <div class="controls">
+  <label class="sr-only" for="filter-input">Search closing paragraphs and titles</label>
   <input type="text" class="filter-input" id="filter-input" placeholder="search closing paragraphs and titles…" autocomplete="off" spellcheck="false">
   <button class="btn" id="btn-random" type="button" title="hold a random visible entry">hold one</button>
   <button class="btn" id="btn-reset" style="display:none">reset</button>
   <button class="btn" id="btn-copy">copy view</button>
 </div>
 
-<div class="topic-filter-row" id="topic-filter-row">
-  <button class="topic-btn active" data-topic="">all</button>
+<div class="topic-filter-row" id="topic-filter-row" role="group" aria-label="Filter closing paragraphs by topic">
+  <button class="topic-btn active" data-topic="" type="button" aria-pressed="true">all</button>
 </div>
 
-<div class="sort-row">
+<div class="sort-row" role="group" aria-label="Order closing paragraphs">
   <span class="sort-label">sort</span>
-  <button class="btn active" id="sort-newest">newest first</button>
-  <button class="btn" id="sort-oldest">oldest first</button>
-  <button class="btn" id="sort-length">longest first</button>
+  <button class="btn active" id="sort-newest" type="button" aria-pressed="true">newest first</button>
+  <button class="btn" id="sort-oldest" type="button" aria-pressed="false">oldest first</button>
+  <button class="btn" id="sort-length" type="button" aria-pressed="false">longest first</button>
 </div>
 
 <div class="count-bar" id="count-bar" aria-live="polite">&nbsp;</div>
@@ -294,8 +306,13 @@
     document.getElementById('sort-newest').classList.toggle('active', sortMode === 'newest');
     document.getElementById('sort-oldest').classList.toggle('active', sortMode === 'oldest');
     document.getElementById('sort-length').classList.toggle('active', sortMode === 'length');
+    document.getElementById('sort-newest').setAttribute('aria-pressed', String(sortMode === 'newest'));
+    document.getElementById('sort-oldest').setAttribute('aria-pressed', String(sortMode === 'oldest'));
+    document.getElementById('sort-length').setAttribute('aria-pressed', String(sortMode === 'length'));
     document.querySelectorAll('.topic-btn').forEach(function(btn) {
-      btn.classList.toggle('active', btn.dataset.topic === activeTopic);
+      var selected = btn.dataset.topic === activeTopic;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-pressed', String(selected));
     });
   }
 
@@ -368,6 +385,8 @@
       btn.className = 'topic-btn';
       btn.dataset.topic = t;
       btn.textContent = t;
+      btn.type = 'button';
+      btn.setAttribute('aria-pressed', 'false');
       btn.title = counts[t] + ' entries';
       row.appendChild(btn);
     });
@@ -375,11 +394,17 @@
       btn.addEventListener('click', function() {
         var t = btn.dataset.topic;
         activeTopic = (activeTopic === t) ? '' : t;
-        row.querySelectorAll('.topic-btn').forEach(function(b) { b.classList.remove('active'); });
+        row.querySelectorAll('.topic-btn').forEach(function(b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         if (!activeTopic) {
-          row.querySelector('[data-topic=""]').classList.add('active');
+          var allButton = row.querySelector('[data-topic=""]');
+          allButton.classList.add('active');
+          allButton.setAttribute('aria-pressed', 'true');
         } else {
           btn.classList.add('active');
+          btn.setAttribute('aria-pressed', 'true');
         }
         highlightedNum = -1;
         applyFilter();

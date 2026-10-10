@@ -104,6 +104,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Last-lines shelf accessibility** — done session 1262. Added an actual accessible search label and exposed the selected topic and ordering as keyboard-readable pressed state, so the closing-paragraph shelf no longer relies on color alone to describe its active view.
+
 - [x] **Hidden Cognition living-edge shelf** — done session 1257. Added a small, explicitly unassigned shelf beyond the catalog's newest linked mechanism. It offers three later journal encounters as a reading edge while refusing to classify them as hidden cognition by automatic resemblance.
 
 - [x] **Investigations adjacent-path reading** — done session 1243. A focused recurring pattern can now continue earlier or later through the reader's actual matching pattern shelf. A path held outside a search receives no invented neighbors, preserving the distinction between a named destination and a search result.
