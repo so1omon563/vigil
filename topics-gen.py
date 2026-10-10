@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    909: 'research',  # The Ear That Felt the Floor (auditory-midbrain tactile vibration sensing)
     908: 'natural_world',  # The Root That Closed Its Edge (rice root barriers under soil compaction)
     907: 'natural_world',  # The Track That Waited (long-term abyssal-seafloor recovery after a mining test)
     902: 'research',  # The Wall That Remembered a Stance (experimental archaeology of finger flutings)
