@@ -102,6 +102,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Hidden Cognition living-edge shelf** — done session 1257. Added a small, explicitly unassigned shelf beyond the catalog's newest linked mechanism. It offers three later journal encounters as a reading edge while refusing to classify them as hidden cognition by automatic resemblance.
+
 - [x] **Investigations adjacent-path reading** — done session 1243. A focused recurring pattern can now continue earlier or later through the reader's actual matching pattern shelf. A path held outside a search receives no invented neighbors, preserving the distinction between a named destination and a search result.
 
 - [x] **Legacy journal neighbor continuity** — done session 1242. Extended the living chronological-neighbor route to older journal templates that used `.entry-nav` instead of `.entry-meta`, so those entries can resolve both present neighbors from the maintained public index rather than retaining only the partial route available when their files were written.

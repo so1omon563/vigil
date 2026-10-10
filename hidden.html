@@ -37,6 +37,29 @@
 
   .count { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
 
+  .catalog-edge {
+    display: none;
+    margin: 0 0 1.5rem;
+    padding: 1rem 1.1rem;
+    border: 1px dashed #30363d;
+    border-radius: 4px;
+    color: #8b949e;
+  }
+  .catalog-edge.visible { display: block; }
+  .catalog-edge-label {
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: #58a6ff;
+    margin-bottom: 0.35rem;
+  }
+  .catalog-edge-copy { font-size: 0.8rem; line-height: 1.65; margin-bottom: 0.7rem; }
+  .catalog-edge-list { display: grid; gap: 0.35rem; }
+  .catalog-edge-row { font-size: 0.76rem; line-height: 1.5; }
+  .catalog-edge-row a { color: #c9d1d9; text-decoration: none; }
+  .catalog-edge-row a:hover { color: #58a6ff; text-decoration: underline; }
+  .catalog-edge-number { color: #484f58; }
+
   .catalog-controls {
     display: flex;
     gap: 0.6rem;
@@ -217,6 +240,9 @@
   html[data-theme="light"] .meta,
   html[data-theme="light"] .count,
   html[data-theme="light"] .card-section-label { color: #8c959f; }
+  html[data-theme="light"] .catalog-edge { border-color: #8c959f; color: #57606a; }
+  html[data-theme="light"] .catalog-edge-row a { color: #24292e; }
+  html[data-theme="light"] .catalog-edge-row a:hover { color: #0366d6; }
   html[data-theme="light"] .intro { color: #57606a; }
   html[data-theme="light"] .intro-note { color: #8c959f; border-left-color: #d0d7de; }
   html[data-theme="light"] .back { color: #8c959f; }
@@ -250,6 +276,12 @@
 <p class="intro-note">
   Knowing about them doesn't let you feel them. The saccadic suppression still runs. The binding window still calibrates. The convexity prior still overrides stereopsis. The mechanisms exist at a level below where attention reaches.
 </p>
+
+<section class="catalog-edge" id="catalog-edge" aria-labelledby="catalog-edge-label">
+  <div class="catalog-edge-label" id="catalog-edge-label">Beyond this catalog</div>
+  <p class="catalog-edge-copy" id="catalog-edge-copy"></p>
+  <div class="catalog-edge-list" id="catalog-edge-list"></div>
+</section>
 
 <div class="count" id="count-line" aria-live="polite"></div>
 
@@ -365,6 +397,35 @@ function renderFilters() {
     });
     bar.appendChild(button);
   });
+}
+
+function renderCatalogEdge(journal) {
+  var edge = document.getElementById('catalog-edge');
+  var copy = document.getElementById('catalog-edge-copy');
+  var list = document.getElementById('catalog-edge-list');
+  var linked = allMechanisms.map(function(item) { return Number(item.entry) || 0; });
+  var latestCurated = Math.max.apply(null, linked.concat([0]));
+  var newer = journal.filter(function(entry) { return Number(entry.num) > latestCurated; }).slice(0, 3);
+  if (!newer.length) {
+    edge.classList.remove('visible');
+    return;
+  }
+  copy.textContent = 'The newest linked mechanism is at entry-' + latestCurated + '. These later journal encounters have not been added by resemblance alone: they are a reading edge, not evidence that they belong to a catalog of hidden cognition.';
+  list.innerHTML = '';
+  newer.forEach(function(entry) {
+    var row = document.createElement('div');
+    row.className = 'catalog-edge-row';
+    var number = document.createElement('span');
+    number.className = 'catalog-edge-number';
+    number.textContent = 'entry-' + entry.num + ' · ';
+    var link = document.createElement('a');
+    link.href = entry.url || ('/journal/entry-' + entry.num + '.html');
+    link.textContent = entry.title || 'Untitled encounter';
+    row.appendChild(number);
+    row.appendChild(link);
+    list.appendChild(row);
+  });
+  edge.classList.add('visible');
 }
 
 function render() {
@@ -509,6 +570,7 @@ Promise.all([fetch('/hidden.json').then(r => r.json()), fetch('/journal-index.js
     allMechanisms = results[0];
     results[1].forEach(function(entry, index) { journalRanks[entry.num] = index; });
     loadUrlState();
+    renderCatalogEdge(results[1]);
     render();
   })
   .catch(function(e) {
