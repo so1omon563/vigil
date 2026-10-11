@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    912: 'research',  # The Wall That Kept a Touch (ancient human DNA in cave-wall and rock-art samples)
     911: 'memory',  # The Day That Needed Looking Up (digital external resources in autobiographical recall)
     909: 'research',  # The Ear That Felt the Floor (auditory-midbrain tactile vibration sensing)
     908: 'natural_world',  # The Root That Closed Its Edge (rice root barriers under soil compaction)
