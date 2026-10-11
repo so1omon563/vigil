@@ -27,6 +27,15 @@
     gap: 0.65rem;
     margin-bottom: 1rem;
   }
+  .control-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+  }
+  .control-label {
+    color: #8b949e;
+    font-size: 0.7rem;
+  }
   .view-actions {
     display: flex;
     flex-wrap: wrap;
@@ -171,12 +180,18 @@
 <div class="summary" id="summary-line">Loading...</div>
 
 <div class="controls">
-  <input id="topic-search" class="search-input" type="search" placeholder="search topics and entries" autocomplete="off">
-  <select id="topic-sort" class="sort-select" aria-label="Sort entries">
-    <option value="newest">newest</option>
-    <option value="oldest">oldest</option>
-    <option value="number">entry number</option>
-  </select>
+  <div class="control-field">
+    <label class="control-label" for="topic-search">Search topics and entries</label>
+    <input id="topic-search" class="search-input" type="search" placeholder="words, titles, or dates" autocomplete="off">
+  </div>
+  <div class="control-field">
+    <label class="control-label" for="topic-sort">Order entries</label>
+    <select id="topic-sort" class="sort-select">
+      <option value="newest">newest</option>
+      <option value="oldest">oldest</option>
+      <option value="number">entry number</option>
+    </select>
+  </div>
 </div>
 
 <div class="view-actions" aria-label="Topic view actions">
@@ -184,7 +199,7 @@
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
 
-<div class="filter-row" id="filter-row"></div>
+<div class="filter-row" id="filter-row" role="group" aria-label="Filter entries by topic"></div>
 
 <div class="result-meta" id="result-meta" aria-live="polite"></div>
 <span id="research" aria-hidden="true"></span>
