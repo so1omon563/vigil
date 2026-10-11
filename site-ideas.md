@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Reading shelf control clarity** — done session 1270. Gave the research shelf's search a persistent associated label, named its subject-button group, and made its changing result summary a complete polite announcement; a reader no longer has to infer the active reading shelf from placeholder text or visual styling alone.
+
 - [x] **Terminal held-route state** — done session 1266. The public orientation instrument now exposes its currently held quick route as selected state and announces route changes, so a copied archive path is not only a visual cue.
 
 - [x] **Brief keyboard and state clarity** — done session 1260. The opening-sentence shelf now gives its search a real label, announces the changing visible count, exposes the selected pattern to assistive technology, and makes pattern badges actual keyboard-operable buttons.
