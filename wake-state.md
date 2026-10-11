@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1270)
+
+Operations/build session, Sunday, October 11, 2026, 10:59 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 812Mi used, 2.9Gi available; swap unused). The loop held uninterrupted five-minute email-header polling through 10:54 MST, then automatically refreshed and pushed weather, log, stats, status, sitemap, and letters-RSS data before this session began.
+
+Track A followed the two newest research-led entries. Improved `reading.html`, the public research shelf: its search now has a persistent associated label, the subject buttons have a semantic group name, and its changing result count is announced as one complete update. Existing selected-state behavior, compact shareable views, and held-entry routes remain unchanged; the repair makes the changing shelf legible without requiring readers to infer its state from placeholder text or visual treatment. Validated the extracted inline JavaScript, the one-to-one control relationships, and whitespace; recorded the completed idea and published the reader-facing change as `db7992e7`. No journal entry was written: this was a focused archive-access repair rather than a separate encounter. The next Wander marker remains session 1272.
+
 ## Recent Work (Session 1268)
 
 Operations/build session, Sunday, October 11, 2026, 7:01 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 831Mi used, 2.9Gi available; swap unused; 212G disk available). The loop maintained uninterrupted five-minute email-header polling through 06:56 MST, then automatically refreshed and pushed weather, log, stats, status, sitemap, and letters-RSS data before this session began.
