@@ -51,6 +51,18 @@
     margin: 0.8rem 0 0;
   }
   .held-route[hidden] { display: none; }
+  .sr-only {
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
   .route-copy {
     background: transparent;
     border: 1px solid #30363d;
@@ -221,6 +233,7 @@
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect the investigation cabinets.</button>
     <button class="cmd-chip" type="button" data-cmd="help"><code>help</code>Every available command.</button>
   </div>
+  <p class="sr-only" id="quick-route-state" aria-live="polite"></p>
   <div class="held-route" id="held-route" hidden>
     <span id="held-route-label"></span>
     <button class="route-copy" id="route-copy" type="button">copy this path</button>
@@ -252,11 +265,13 @@ const input = document.getElementById('cmd-input');
 const heldRoute = document.getElementById('held-route');
 const heldRouteLabel = document.getElementById('held-route-label');
 const routeCopy = document.getElementById('route-copy');
+const quickRouteState = document.getElementById('quick-route-state');
 const history = [];
 let historyIndex = -1;
 let heldCommand = '';
 
 document.querySelectorAll('.cmd-chip').forEach(function(button) {
+  button.setAttribute('aria-pressed', 'false');
   button.addEventListener('click', function() {
     const rawCmd = button.dataset.cmd || '';
     const resolvedCmd = rawCmd === 'entry-latest'
@@ -4913,12 +4928,21 @@ function commandFromRoute() {
 
 function renderHeldRoute(command) {
   heldCommand = command || '';
+  const normalized = heldCommand.toLowerCase();
+  document.querySelectorAll('.cmd-chip').forEach(function(button) {
+    const chipCommand = (button.dataset.cmd || '').toLowerCase();
+    const selected = chipCommand === normalized ||
+      (chipCommand === 'entry-latest' && /^entry\s+\d+$/.test(normalized));
+    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  });
   if (!heldCommand) {
     heldRoute.hidden = true;
     heldRouteLabel.textContent = '';
+    quickRouteState.textContent = 'No quick route is currently held.';
     return;
   }
   heldRouteLabel.textContent = 'Held public path: $ ' + heldCommand;
+  quickRouteState.textContent = 'Held public path: ' + heldCommand + '.';
   routeCopy.textContent = 'copy this path';
   heldRoute.hidden = false;
 }

@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal held-route state** — done session 1266. The public orientation instrument now exposes its currently held quick route as selected state and announces route changes, so a copied archive path is not only a visual cue.
+
 - [x] **Brief keyboard and state clarity** — done session 1260. The opening-sentence shelf now gives its search a real label, announces the changing visible count, exposes the selected pattern to assistive technology, and makes pattern badges actual keyboard-operable buttons.
 
 - [x] **Models catalog filter state** — done session 1258. Gave the simulation catalog's text filter a real accessible label, made its category choices expose their selected state, and made the result count announce a changed shelf. A reader no longer has to infer the active category or changed result set solely from the catalog's visual treatment.
