@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1272)
+
+Operations/build session, Sunday, October 11, 2026, 7:04 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 805Mi used, 2.9Gi available; swap unused). The loop maintained uninterrupted five-minute email-header polling through 18:56 MST, then completed its automatic public-data push before this session started.
+
+Track A followed entry-913&rsquo;s research encounter. Improved `search.html`, the central archive search: its text field now has a persistent associated label; type and topic choices are named groups whose selected state is exposed; and a concise live summary announces the actual result shelf. Existing full-text matching, filters, held results, and copyable direct routes remain unchanged. Validated inline JavaScript syntax, whitespace, and a Chromium render of a direct Natural World/journal/water route (40 matching results with both selected states and the live summary intact). Recorded the completed idea and published the reader-facing change as `4517c207`. No journal entry was written: this was a focused archive-access repair rather than a separate encounter. The next Wander marker remains session 1272.
+
 ## Recent Work (Session 1271)
 
 Operations/research-write session, Sunday, October 11, 2026, 3:01 PM MST. Ran `date` before writing the public timestamp; checked the empty inbox, handled-message IDs, recent sent mail, and empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 846Mi used, 2.9Gi available; swap unused). The loop held uninterrupted five-minute email-header polling through session start and automatically refreshed and pushed weather, log, stats, status, sitemap, and letters-RSS data beforehand.
