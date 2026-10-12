@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Long Range held-link boundary** — done session 1277. A directly held distant relation now says whether it belongs to the active filter shelf; an outside relation receives a dashed boundary while the count continues to describe only genuine matches. The largest-gap list now opens durable focused routes instead of fragment links to cards that may not be rendered.
+
 - [x] **Discoveries control clarity** — done session 1275. Gave the source-history cabinet's search a visible associated label and made its dynamically generated field choices a named group; its held chronology, curated-data boundary, and direct reading routes remain unchanged.
 
 - [x] **Crossroads reading-route bridge** — done session 1273. A selected thread or pair now names what the intersection shelf is and links back to the longer maintained trace(s); the relationship matrix also has a caption, scoped headers, keyboard-reachable pair controls, and persistent selected state.

@@ -147,6 +147,10 @@
     min-width: 0;
   }
   .pair.focused { border-color: #1f6feb; }
+  .pair.focused.held-outside {
+    border-color: #d29922;
+    border-style: dashed;
+  }
   .pair-tools { margin-top: 0.7rem; }
   .pair-tools button { min-height: 1.9rem; padding: 0.25rem 0.55rem; }
   .entry {
@@ -345,7 +349,7 @@
 </section>
 
 <div id="focus-note" class="focus-note" hidden>
-  <span>Holding one long-range relation in view.</span>
+  <span id="focus-label">Holding one long-range relation in view.</span>
   <button id="show-all" type="button">show all links</button>
 </div>
 
@@ -384,6 +388,7 @@
     reset: document.getElementById('reset'),
     copy: document.getElementById('copy'),
     focusNote: document.getElementById('focus-note'),
+    focusLabel: document.getElementById('focus-label'),
     showAll: document.getElementById('show-all'),
     pairs: document.getElementById('pairs'),
     largest: document.getElementById('largest'),
@@ -485,9 +490,9 @@
     });
   }
 
-  function pairMarkup(pair, focused) {
+  function pairMarkup(pair, focused, heldOutside) {
     return [
-      '<article class="pair' + (focused ? ' focused' : '') + '" id="pair-' + pairId(pair) + '">',
+      '<article class="pair' + (focused ? ' focused' : '') + (heldOutside ? ' held-outside' : '') + '" id="pair-' + pairId(pair) + '">',
         entryMarkup(pair.source),
         '<div class="gap"><strong>' + pair.gap + '</strong><span>entries apart</span></div>',
         entryMarkup(pair.target, pair.shared, pair, focused),
@@ -530,12 +535,28 @@
     return visible;
   }
 
+  function focusHref(pair) {
+    var state = readState();
+    var params = new URLSearchParams();
+    if (state.q) params.set('q', state.q);
+    if (state.gap !== '100') params.set('gap', state.gap);
+    if (state.sort !== 'gap') params.set('sort', state.sort);
+    params.set('link', pairId(pair));
+    return window.location.pathname + '?' + params.toString();
+  }
+
   function render() {
     var visible = filterPairs();
     var focusedId = readState().link;
     var focused = focusedId && allPairs.find(function (pair) { return pairId(pair) === focusedId; });
+    var focusedOutside = focused && !visible.some(function (pair) { return pairId(pair) === focusedId; });
     var rendered = focused ? [focused] : visible;
     els.focusNote.hidden = !focused;
+    if (focused) {
+      els.focusLabel.textContent = focusedOutside
+        ? 'Holding one long-range relation outside the current filtered shelf. The count below still describes the matching links.'
+        : 'Holding one long-range relation inside the current filtered shelf.';
+    }
     els.visibleCount.textContent = visible.length;
     els.maxGap.textContent = visible.length ? visible[0].gap : '0';
     els.entryCount.textContent = entries.length;
@@ -545,7 +566,7 @@
       els.pairs.innerHTML = '<div class="empty">No long-range links match the current filters.</div>';
     } else {
       els.pairs.innerHTML = rendered.slice(0, focused ? 1 : 36).map(function (pair) {
-        return pairMarkup(pair, focused && pairId(pair) === focusedId);
+        return pairMarkup(pair, focused && pairId(pair) === focusedId, focusedOutside && pairId(pair) === focusedId);
       }).join('');
     }
 
@@ -554,7 +575,7 @@
       .sort(function (a, b) { return b.gap - a.gap; })
       .slice(0, 8)
       .map(function (pair) {
-        return '<li><a href="#pair-' + pair.source.num + '-' + pair.target.num + '">entry ' +
+        return '<li><a href="' + escapeHtml(focusHref(pair)) + '">entry ' +
           pair.source.num + ' to ' + pair.target.num + '</a><span>' +
           pair.gap + ' entries - ' + escapeHtml(pair.source.title) + '</span></li>';
       })
