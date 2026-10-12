@@ -121,6 +121,20 @@
   .chronology-mark.held { outline: 1px dashed #8b949e; outline-offset: 3px; }
   .chronology-axis { display: flex; justify-content: space-between; margin-top: 0.55rem; color: #484f58; font-size: 0.66rem; letter-spacing: 0.06em; }
   .search-row { margin: 0 0 0.8rem; }
+  .control-label {
+    display: block;
+    margin: 0 0 0.42rem;
+    color: #484f58;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .filter-group {
+    margin: 0 0 0.8rem;
+    padding: 0;
+    border: 0;
+  }
+  .filter-group legend { padding: 0; }
   .decade-row {
     display: flex;
     align-items: center;
@@ -486,13 +500,19 @@
 
 <div class="legend" id="category-legend"></div>
 
-<div class="search-row"><input class="search-input" id="discovery-search" type="search" placeholder="search discoveries, mechanisms, or linked entries" autocomplete="off" aria-label="Search discovery records"></div>
+<div class="search-row">
+  <label class="control-label" for="discovery-search">Search this cabinet</label>
+  <input class="search-input" id="discovery-search" type="search" placeholder="discoveries, mechanisms, or linked entries" autocomplete="off">
+</div>
 <label class="decade-row" for="decade-select">time slice
-  <select class="decade-select" id="decade-select" aria-label="Filter discovery timeline by decade">
+  <select class="decade-select" id="decade-select">
     <option value="">all decades</option>
   </select>
 </label>
-<div class="filter-row" id="filter-row" role="group" aria-label="Discovery categories"></div>
+<fieldset class="filter-group">
+  <legend class="control-label">Source field</legend>
+  <div class="filter-row" id="filter-row"></div>
+</fieldset>
 
 <div class="view-actions">
   <button class="view-action" id="random-visible" type="button">random visible</button>

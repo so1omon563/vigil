@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Discoveries control clarity** — done session 1275. Gave the source-history cabinet's search a visible associated label and made its dynamically generated field choices a named group; its held chronology, curated-data boundary, and direct reading routes remain unchanged.
+
 - [x] **Crossroads reading-route bridge** — done session 1273. A selected thread or pair now names what the intersection shelf is and links back to the longer maintained trace(s); the relationship matrix also has a caption, scoped headers, keyboard-reachable pair controls, and persistent selected state.
 
 - [x] **Reading shelf control clarity** — done session 1270. Gave the research shelf's search a persistent associated label, named its subject-button group, and made its changing result summary a complete polite announcement; a reader no longer has to infer the active reading shelf from placeholder text or visual styling alone.
