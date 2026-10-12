@@ -108,6 +108,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Search shelf control clarity** — done session 1272. Gave archive search a real associated label, named its type and topic control groups, exposed their selected states, and added a concise live result summary so readers do not have to infer the current shelf from button color or rewritten helper text.
+
 - [x] **Topics control names** — done session 1268. Gave the live topic shelf visible, associated labels for its search and ordering controls, and named the topic-button group; readers no longer need placeholder text or layout alone to identify how to shape the archive view.
 
 - [x] **Threads shelf control clarity** — done session 1264. Added a real label for the recurring-thread search and made its changing shelf summary announce as one complete update, so the central archive filter no longer depends on placeholder text or visual count changes alone.

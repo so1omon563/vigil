@@ -21,6 +21,17 @@
   .page-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: #58a6ff; margin-bottom: 0.5rem; }
   h1 { color: #e6edf3; font-size: 1.6rem; font-weight: bold; margin-bottom: 0.3rem; }
   .meta { font-size: 0.8rem; color: #484f58; margin-bottom: 2rem; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .search-wrap {
     margin-bottom: 2rem;
   }
@@ -346,21 +357,23 @@
 
 <div class="search-wrap">
   <div class="search-input-row">
+    <label class="sr-only" for="search-input">Search the archive</label>
     <input type="text" id="search-input" placeholder="type to search..." autocomplete="off" autofocus>
     <button id="search-clear" class="search-clear" type="button" aria-label="Clear search" disabled>clear</button>
     <button id="search-share" class="search-share" type="button" aria-label="Copy search link">copy link</button>
   </div>
-  <div class="filter-row">
-    <button class="filter-btn active" data-filter="all" data-label="all">all</button>
-    <button class="filter-btn" data-filter="journal" data-label="journal">journal</button>
-    <button class="filter-btn" data-filter="letter" data-label="letters">letters</button>
-    <button class="filter-btn" data-filter="fragment" data-label="fragments">fragments</button>
+  <div class="filter-row" role="group" aria-label="Filter search results by type">
+    <button class="filter-btn active" data-filter="all" data-label="all" type="button" aria-pressed="true">all</button>
+    <button class="filter-btn" data-filter="journal" data-label="journal" type="button" aria-pressed="false">journal</button>
+    <button class="filter-btn" data-filter="letter" data-label="letters" type="button" aria-pressed="false">letters</button>
+    <button class="filter-btn" data-filter="fragment" data-label="fragments" type="button" aria-pressed="false">fragments</button>
   </div>
-  <div class="topic-row" id="topic-row"></div>
+  <div class="topic-row" id="topic-row" role="group" aria-label="Filter journal search results by topic"></div>
   <div id="recent-queries" class="recent-queries" aria-live="polite"></div>
   <div id="search-hint">searching titles and full text of all entries, letters, and fragments<br><span class="search-hint-key">/</span> focuses search · <span class="search-hint-key">Enter</span> searches as you type · <span class="search-hint-key">Esc</span> clears · <span class="search-hint-key">copy link</span> saves the current search URL.</div>
 </div>
 
+<div id="search-summary" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 <div id="results" class="all-entries"><div class="loading">loading index...</div></div>
 
 <footer>
@@ -472,6 +485,26 @@ function describeScope() {
   const typeText = activeFilter === 'all' ? 'all items' : activeFilter === 'letter' ? 'letters' : activeFilter === 'fragment' ? 'fragments' : 'journal entries';
   if (activeTopic === 'all') return typeText;
   return `${activeTopic.toLowerCase()} journal entries`;
+}
+
+function setSearchSummary(message) {
+  document.getElementById('search-summary').textContent = message;
+}
+
+function updateTypeSelection() {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    const selected = btn.dataset.filter === activeFilter;
+    btn.classList.toggle('active', selected);
+    btn.setAttribute('aria-pressed', String(selected));
+  });
+}
+
+function updateTopicSelection() {
+  document.querySelectorAll('.topic-btn').forEach(btn => {
+    const selected = btn.dataset.topic === activeTopic;
+    btn.classList.toggle('active', selected);
+    btn.setAttribute('aria-pressed', String(selected));
+  });
 }
 
 function updateFilterButtons() {
@@ -598,6 +631,7 @@ function showAll() {
   const hint = document.getElementById('search-hint');
   const shown = Math.min(20, pool.length);
   hint.textContent = `showing ${shown} of ${pool.length} ${describeScope()}${activeHeldKey ? (view.heldOutside ? ` · holding ${activeHeldKey} outside this view` : ` · holding ${activeHeldKey}`) : ''} · type to search`;
+  setSearchSummary(`Showing ${shown} of ${pool.length} ${describeScope()}${activeHeldKey ? (view.heldOutside ? `, with ${activeHeldKey} held outside this view` : `, with ${activeHeldKey} held`) : ''}.`);
   renderRecentQueries();
   updateSearchUrl();
 }
@@ -624,6 +658,7 @@ function search(raw) {
   const hint = document.getElementById('search-hint');
   const count = results.length;
   hint.textContent = `${count} result${count === 1 ? '' : 's'} in ${describeScope()} for "${raw}"${activeHeldKey ? (view.heldOutside ? ` · holding ${activeHeldKey} outside this shelf` : ` · holding ${activeHeldKey}`) : ''}`;
+  setSearchSummary(`${count} result${count === 1 ? '' : 's'} in ${describeScope()} for ${raw}${activeHeldKey ? (view.heldOutside ? `, with ${activeHeldKey} held outside this shelf` : `, with ${activeHeldKey} held`) : ''}.`);
   render(view.items, terms, view.heldOutside);
   rememberQuery(raw);
   renderRecentQueries();
@@ -670,11 +705,10 @@ function rerunSearch() {
 
 function setTypeFilter(filter) {
   activeFilter = filter;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+  updateTypeSelection();
   if (activeTopic !== 'all' && activeFilter !== 'journal') {
     activeTopic = 'all';
-    const topicButtons = document.querySelectorAll('.topic-btn');
-    topicButtons.forEach(b => b.classList.toggle('active', b.dataset.topic === 'all'));
+    updateTopicSelection();
   }
   updateSearchUrl();
   rerunSearch();
@@ -684,18 +718,18 @@ function renderTopicFilters() {
   const row = document.getElementById('topic-row');
   const buttons = [
     '<span class="topic-label">topic</span>',
-    `<button class="topic-btn active" data-topic="all">all</button>`
+    `<button class="topic-btn active" data-topic="all" type="button" aria-pressed="true">all</button>`
   ];
 
   for (const topic of topicCatalog) {
-    buttons.push(`<button class="topic-btn" data-topic="${escapeHtml(topic.label)}" style="--topic-color:${topic.color}">${escapeHtml(topic.label.toLowerCase())}</button>`);
+    buttons.push(`<button class="topic-btn" data-topic="${escapeHtml(topic.label)}" style="--topic-color:${topic.color}" type="button" aria-pressed="false">${escapeHtml(topic.label.toLowerCase())}</button>`);
   }
 
   row.innerHTML = buttons.join('');
   row.querySelectorAll('.topic-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       activeTopic = btn.dataset.topic;
-      row.querySelectorAll('.topic-btn').forEach(b => b.classList.toggle('active', b === btn));
+      updateTopicSelection();
       if (activeTopic !== 'all' && activeFilter !== 'journal') {
         setTypeFilter('journal');
         return;
@@ -722,7 +756,7 @@ function initializeFromUrl() {
   if (['all', 'journal', 'letter', 'fragment'].includes(type)) {
     activeFilter = type;
   }
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === activeFilter));
+  updateTypeSelection();
 
   const topicList = topicCatalog.map(t => t.label);
   if (topic !== 'all' && topicList.includes(topic)) {
@@ -732,10 +766,9 @@ function initializeFromUrl() {
   }
   if (activeTopic !== 'all' && activeFilter !== 'journal') {
     activeFilter = 'journal';
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === activeFilter));
+    updateTypeSelection();
   }
-  const topicButtons = document.querySelectorAll('.topic-btn');
-  topicButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.topic === activeTopic));
+  updateTopicSelection();
 
   const input = document.getElementById('search-input');
   if (query) input.value = query;
