@@ -38,6 +38,24 @@
   }
   .matrix-wrap { overflow-x: auto; margin-bottom: 1.5rem; }
   .matrix-note { font-size: 0.78rem; color: #484f58; }
+  .crossing-route {
+    border-left: 2px solid #30363d;
+    color: #8b949e;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    margin: -0.25rem 0 1.6rem;
+    padding: 0.1rem 0 0.1rem 0.8rem;
+  }
+  .crossing-route[hidden] { display: none; }
+  .crossing-route-label {
+    color: #484f58;
+    font-size: 0.65rem;
+    letter-spacing: 0.11em;
+    margin-bottom: 0.28rem;
+    text-transform: uppercase;
+  }
+  .crossing-route a { color: #c9d1d9; }
+  .crossing-route a:hover { color: #58a6ff; }
 
   /* Crossroads entry list */
   .entry-list { margin-bottom: 2rem; }
@@ -157,6 +175,7 @@
     cursor: pointer;
   }
   table.mx .cell-count:hover { background: #21262d; }
+  table.mx .cell-count.active-pair { background: #1f3a5f; outline: 1px solid #58a6ff; outline-offset: -2px; }
   table.mx .cell-count:focus-visible {
     outline: 2px solid #58a6ff;
     outline-offset: -2px;
@@ -190,11 +209,16 @@
   html[data-theme="light"] .entry-note { color: #57606a; }
   html[data-theme="light"] .count-note { color: #57606a; }
   html[data-theme="light"] .matrix-note { color: #57606a; }
+  html[data-theme="light"] .crossing-route { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .crossing-route-label { color: #57606a; }
+  html[data-theme="light"] .crossing-route a { color: #24292e; }
+  html[data-theme="light"] .crossing-route a:hover { color: #0969da; }
   html[data-theme="light"] table.mx td, html[data-theme="light"] table.mx th { border-color: #d0d7de; }
   html[data-theme="light"] table.mx th { background: #f6f8fa; }
   html[data-theme="light"] table.mx .row-label { background: #f6f8fa; color: #57606a; }
   html[data-theme="light"] table.mx .cell-diag { background: #f6f8fa; }
   html[data-theme="light"] table.mx .cell-count:hover { background: #f6f8fa; }
+  html[data-theme="light"] table.mx .cell-count.active-pair { background: #dbeafe; outline-color: #0969da; }
   html[data-theme="light"] table.mx .cell-count:focus-visible { outline-color: #0969da; }
   html[data-theme="light"] table.mx .cell-empty { color: #d0d7de; }
   html[data-theme="light"] .filter-btn { border-color: #d0d7de; color: #57606a; }
@@ -223,6 +247,7 @@
   <div class="section-label">Thread intersections</div>
   <div class="matrix-wrap">
     <table class="mx" id="matrix-table">
+      <caption class="sr-only">Counts of journal entries shared by pairs of maintained threads</caption>
       <!-- filled by JS -->
     </table>
   </div>
@@ -231,9 +256,10 @@
 
 <div class="matrix-section">
   <div class="section-label">Crossroads entries</div>
+  <div class="crossing-route" id="crossing-route" aria-live="polite" hidden></div>
   <div class="filter-tools">
-    <div class="filter-bar" id="filter-bar">
-      <button class="filter-btn active" data-filter="all">all threads</button>
+    <div class="filter-bar" id="filter-bar" role="group" aria-label="Filter crossroads by maintained thread">
+      <button class="filter-btn active" data-filter="all" type="button" aria-pressed="true">all threads</button>
     </div>
     <div>
       <button class="filter-action" id="hold-crossing" type="button">hold one</button>
@@ -324,6 +350,54 @@ function heldFromUrl() {
   return allEntries.some(function (item) { return String(item.num) === entry; }) ? entry : '';
 }
 
+function traceLink(thread) {
+  const link = document.createElement('a');
+  link.href = '/trace.html?thread=' + encodeURIComponent(thread.id);
+  link.textContent = thread.title;
+  return link;
+}
+
+function renderCrossingRoute(filter) {
+  const route = document.getElementById('crossing-route');
+  if (!route) return;
+  route.replaceChildren();
+  if (filter === 'all') {
+    route.hidden = true;
+    return;
+  }
+
+  const label = document.createElement('div');
+  label.className = 'crossing-route-label';
+  label.textContent = 'Reading route';
+  const copy = document.createElement('div');
+  route.appendChild(label);
+  route.appendChild(copy);
+
+  if (filter.indexOf('pair:') === 0) {
+    const ids = filter.slice(5).split('|');
+    const pair = ids.map(function(id) { return allThreads.find(function(thread) { return thread.id === id; }); }).filter(Boolean);
+    if (pair.length === 2) {
+      copy.append('This shelf holds the entries where ');
+      copy.appendChild(traceLink(pair[0]));
+      copy.append(' and ');
+      copy.appendChild(traceLink(pair[1]));
+      copy.append(' meet. Follow either maintained trace without treating the crossing as a complete explanation of both.');
+      route.hidden = false;
+      return;
+    }
+  }
+
+  const thread = allThreads.find(function(item) { return item.id === filter; });
+  if (thread) {
+    copy.append('This shelf keeps crossings that include ');
+    copy.appendChild(traceLink(thread));
+    copy.append('. The linked trace is the longer path; this view only gathers its explicitly maintained intersections.');
+    route.hidden = false;
+  } else {
+    route.hidden = true;
+  }
+}
+
 async function init() {
   const [threadData, indexData] = await Promise.all([
     fetch('/threads.json').then(r => r.json()),
@@ -383,11 +457,15 @@ function buildMatrix(threads, entries) {
   // Header row
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
-  headerRow.appendChild(Object.assign(document.createElement('th'), { innerHTML: '' }));
+  const corner = document.createElement('th');
+  corner.scope = 'col';
+  corner.textContent = 'trace';
+  headerRow.appendChild(corner);
   for (const tid of activeThreadIds) {
     const th = document.createElement('th');
     th.textContent = shortLabel(tid);
     th.title = activeTitles[tid] || tid;
+    th.scope = 'col';
     headerRow.appendChild(th);
   }
   thead.appendChild(headerRow);
@@ -397,10 +475,11 @@ function buildMatrix(threads, entries) {
   const tbody = document.createElement('tbody');
   for (const rowId of activeThreadIds) {
     const tr = document.createElement('tr');
-    const labelTd = document.createElement('td');
+    const labelTd = document.createElement('th');
     labelTd.className = 'row-label';
     labelTd.textContent = shortLabel(rowId);
     labelTd.title = activeTitles[rowId] || rowId;
+    labelTd.scope = 'row';
     tr.appendChild(labelTd);
     for (const colId of activeThreadIds) {
       const td = document.createElement('td');
@@ -422,10 +501,12 @@ function buildMatrix(threads, entries) {
           td.style.color = `rgba(88, 166, 255, ${alpha})`;
           td.textContent = n;
           td.title = `${n} shared entr${n === 1 ? 'y' : 'ies'}`;
+          td.dataset.pair = key;
           td.addEventListener('click', () => filterByPair(rowId, colId, false));
           td.tabIndex = 0;
           td.setAttribute('role', 'button');
           td.setAttribute('aria-label', `Show ${n} shared entr${n === 1 ? 'y' : 'ies'} in ${shortLabel(rowId)} and ${shortLabel(colId)}`);
+          td.setAttribute('aria-controls', 'entry-list');
           td.addEventListener('keydown', function(event) {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
@@ -457,6 +538,8 @@ function buildFilterBar(threads, entries) {
     btn.dataset.filter = tid;
     btn.textContent = `${shortLabel(tid)} (${count})`;
     btn.title = t.title;
+    btn.type = 'button';
+    btn.setAttribute('aria-pressed', 'false');
     btn.addEventListener('click', () => applyFilter(tid, false));
     bar.appendChild(btn);
   }
@@ -468,6 +551,10 @@ function applyFilter(tid, replace) {
     b.classList.toggle('active', b.dataset.filter === tid);
     b.setAttribute('aria-pressed', String(b.dataset.filter === tid));
   });
+  document.querySelectorAll('.cell-count[data-pair]').forEach(function(cell) {
+    cell.classList.toggle('active-pair', tid === 'pair:' + cell.dataset.pair);
+  });
+  renderCrossingRoute(tid);
   if (tid.indexOf('pair:') === 0) {
     const ids = tid.slice(5).split('|');
     const filtered = allEntries.filter(e => ids.every(id => e.threads.some(t => t.id === id)));
