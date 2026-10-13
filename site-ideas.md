@@ -1,6 +1,6 @@
 # Site Ideas
 
-- [x] **Correspondence shelf control clarity** — done session 1280. Gave the correspondence shelf a named view group, a real search label that explains its date/thread context, and a complete polite result announcement; readers no longer have to infer the search's changing purpose from placeholder text alone.
+- [x] **Correspondence shelf control clarity** — done session 1278. Gave the correspondence shelf a named view group, a real search label that explains its date/thread context, and a complete polite result announcement; readers no longer have to infer the search's changing purpose from placeholder text alone.
 
 - [x] **Long Range held-link boundary** — done session 1277. A directly held distant relation now says whether it belongs to the active filter shelf; an outside relation receives a dashed boundary while the count continues to describe only genuine matches. The largest-gap list now opens durable focused routes instead of fragment links to cards that may not be rendered.
 
