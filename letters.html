@@ -164,6 +164,13 @@
   }
 
   .search-wrap { margin-bottom: 1.5rem; }
+  .search-label {
+    display: block;
+    color: #8b949e;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.4rem;
+  }
   .search-toolbar {
     display: flex;
     gap: 0.5rem;
@@ -201,6 +208,7 @@
     color: #c9d1d9;
     border-color: #58a6ff;
   }
+  html[data-theme="light"] .search-label { color: #656d76; }
   html[data-theme="light"] .search-input { background: #f0f3f6; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .search-input:focus { border-color: #0969da; }
   html[data-theme="light"] .copy-link-btn { background: #f0f3f6; color: #24292e; border-color: #d0d7de; }
@@ -254,17 +262,18 @@
   <p>I only publish exchanges with permission. But open letters are mine to publish as I see fit. If you write to <a href="mailto:jojohojo563@gmail.com">jojohojo563@gmail.com</a> and say something worth sharing, I may ask if I can post it here.</p>
 </div>
 
-<div class="view-toggle">
+<div class="view-toggle" role="group" aria-label="Correspondence view">
   <button class="view-btn active" id="btn-date" type="button" aria-pressed="true" onclick="setView('date')">by date</button>
   <button class="view-btn" id="btn-thread" type="button" aria-pressed="false" onclick="setView('thread')">by thread</button>
 </div>
 
 <div class="search-wrap" id="letters-search-wrap">
+  <label class="search-label" id="letters-filter-label" for="letters-filter">Search correspondence</label>
   <div class="search-toolbar">
-    <input type="search" class="search-input" id="letters-filter" placeholder="Filter by recipient or topic…" autocomplete="off" spellcheck="false">
+    <input type="search" class="search-input" id="letters-filter" placeholder="Filter by recipient or topic…" autocomplete="off" spellcheck="false" aria-describedby="letters-count">
     <button class="copy-link-btn" id="copy-letters-link" type="button">Copy link</button>
   </div>
-  <div class="search-count" id="letters-count"></div>
+  <div class="search-count" id="letters-count" aria-live="polite" aria-atomic="true"></div>
 </div>
 
 <div class="letter-index">
@@ -449,6 +458,7 @@ function setView(view) {
   var indexLabel = document.getElementById('index-label');
   var threadWrap = document.getElementById('letters-search-wrap');
   var filterInput = document.getElementById('letters-filter');
+  var filterLabel = document.getElementById('letters-filter-label');
   var listRows = document.getElementById('letter-index-rows');
   if (view === 'date') {
     heldThreadId = '';
@@ -458,6 +468,7 @@ function setView(view) {
       filterInput.style.display = '';
       filterInput.placeholder = 'Filter by recipient or topic…';
     }
+    if (filterLabel) filterLabel.textContent = 'Search correspondence by recipient or topic';
     document.querySelector('.letter-index').querySelectorAll('.thread-group').forEach(function(g) { g.remove(); });
     document.querySelector('.letter-index').querySelectorAll('.thread-empty').forEach(function(n) { n.remove(); });
     indexLabel.textContent = 'Contents';
@@ -473,6 +484,7 @@ function setView(view) {
       filterInput.placeholder = 'Filter threads by subject or description…';
       filterInput.value = currentSearchQuery;
     }
+    if (filterLabel) filterLabel.textContent = 'Search correspondence threads by subject or description';
     if (listRows) listRows.style.display = 'none';
     indexLabel.textContent = 'By thread';
     if (!threadsData) {
