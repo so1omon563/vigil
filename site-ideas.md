@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Paired-lines held-shelf clarity** — done session 1280. A copied first-and-last-lines route now keeps its named entry visible beside an excluding search, topic, mode, or sort shelf; the dashed card and count call it a destination rather than a match. The page also gives its search and selected view controls readable labels and state.
+
 - [x] **Correspondence shelf control clarity** — done session 1278. Gave the correspondence shelf a named view group, a real search label that explains its date/thread context, and a complete polite result announcement; readers no longer have to infer the search's changing purpose from placeholder text alone.
 
 - [x] **Long Range held-link boundary** — done session 1277. A directly held distant relation now says whether it belongs to the active filter shelf; an outside relation receives a dashed boundary while the count continues to describe only genuine matches. The largest-gap list now opens durable focused routes instead of fragment links to cards that may not be rendered.

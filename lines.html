@@ -118,6 +118,7 @@
     margin-right: -0.8rem;
     border-top-color: transparent;
   }
+  .line-item.held-outside { border-left: 2px dashed #58a6ff; }
   .entry-link {
     display: inline-flex;
     gap: 0.55rem;
@@ -195,6 +196,7 @@
   html[data-theme="light"] .line-item:first-child,
   html[data-theme="light"] .line-item:last-child { border-color: #d0d7de; }
   html[data-theme="light"] .line-item.highlighted { background: #f6f8fa; }
+  html[data-theme="light"] .line-item.held-outside { border-left-color: #0969da; }
   html[data-theme="light"] .entry-num { color: #0969da; }
   html[data-theme="light"] .entry-title { color: #57606a; }
   html[data-theme="light"] .entry-date { color: #8c959f; }
@@ -224,29 +226,30 @@
 </div>
 
 <div class="controls">
+  <label class="sr-only" for="filter-input">Search titles, first lines, and last lines</label>
   <input class="filter-input" id="filter-input" type="text" placeholder="search titles, first lines, last lines…" autocomplete="off" spellcheck="false">
   <button class="btn" id="btn-random" type="button" title="jump to a random visible entry">random</button>
   <button class="btn" id="btn-copy" type="button">copy view</button>
 </div>
 
-<div class="button-row" id="mode-row">
-  <button class="btn active" data-mode="pair" type="button">paired</button>
-  <button class="btn" data-mode="first" type="button">first</button>
-  <button class="btn" data-mode="last" type="button">last</button>
+<div class="button-row" id="mode-row" role="group" aria-label="Choose which lines to show">
+  <button class="btn active" data-mode="pair" type="button" aria-pressed="true">paired</button>
+  <button class="btn" data-mode="first" type="button" aria-pressed="false">first</button>
+  <button class="btn" data-mode="last" type="button" aria-pressed="false">last</button>
   <button class="btn" id="btn-clear" type="button" style="display:none">clear</button>
 </div>
 
-<div class="topic-row" id="topic-row">
-  <button class="topic-btn active" data-topic="" type="button">all</button>
+<div class="topic-row" id="topic-row" role="group" aria-label="Filter paired lines by topic">
+  <button class="topic-btn active" data-topic="" type="button" aria-pressed="true">all</button>
 </div>
 
-<div class="button-row" id="sort-row">
-  <button class="btn active" data-sort="newest" type="button">newest first</button>
-  <button class="btn" data-sort="oldest" type="button">oldest first</button>
-  <button class="btn" data-sort="line-length" type="button">longest visible line</button>
+<div class="button-row" id="sort-row" role="group" aria-label="Order paired lines">
+  <button class="btn active" data-sort="newest" type="button" aria-pressed="true">newest first</button>
+  <button class="btn" data-sort="oldest" type="button" aria-pressed="false">oldest first</button>
+  <button class="btn" data-sort="line-length" type="button" aria-pressed="false">longest visible line</button>
 </div>
 
-<div class="count-bar" id="count-bar">&nbsp;</div>
+<div class="count-bar" id="count-bar" role="status" aria-live="polite" aria-atomic="true">&nbsp;</div>
 
 <ul class="line-list" id="line-list">
   <li class="loading">loading…</li>
@@ -269,6 +272,8 @@
   // visible. A line is more useful when a reader can return to the encounter
   // that brought them here, rather than only to a fresh random draw.
   var highlightedNum = -1;
+  var matchedCount = 0;
+  var heldOutsideFilter = false;
 
   var listEl = document.getElementById('line-list');
   var countEl = document.getElementById('count-bar');
@@ -339,6 +344,13 @@
       if (mode === 'last') return !!e.closing;
       return !!(e.opening || e.closing);
     });
+    matchedCount = filtered.length;
+    heldOutsideFilter = false;
+    var held = allEntries.find(function(e) { return e.num === highlightedNum; });
+    if (held && !filtered.some(function(e) { return e.num === held.num; })) {
+      filtered.push(held);
+      heldOutsideFilter = true;
+    }
     sortEntries();
   }
 
@@ -363,22 +375,29 @@
       btn.dataset.topic = t;
       btn.title = counts[t] + ' entries';
       btn.textContent = t;
+      btn.setAttribute('aria-pressed', 'false');
       row.appendChild(btn);
     });
   }
 
   function syncButtons() {
     document.querySelectorAll('#mode-row [data-mode]').forEach(function(btn) {
-      btn.classList.toggle('active', btn.dataset.mode === mode);
+      var selected = btn.dataset.mode === mode;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-pressed', String(selected));
     });
     document.querySelectorAll('#sort-row [data-sort]').forEach(function(btn) {
-      btn.classList.toggle('active', btn.dataset.sort === sortMode);
+      var selected = btn.dataset.sort === sortMode;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-pressed', String(selected));
     });
     document.querySelectorAll('#topic-row [data-topic]').forEach(function(btn) {
-      btn.classList.toggle('active', btn.dataset.topic === activeTopic);
+      var selected = btn.dataset.topic === activeTopic;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-pressed', String(selected));
     });
     document.getElementById('btn-clear').style.display =
-      (filterText || activeTopic || mode !== 'pair' || sortMode !== 'newest') ? 'inline-block' : 'none';
+      (filterText || activeTopic || mode !== 'pair' || sortMode !== 'newest' || highlightedNum > 0) ? 'inline-block' : 'none';
   }
 
   function renderLinePair(label, text, query) {
@@ -389,12 +408,12 @@
   function render() {
     syncButtons();
     var q = filterText.toLowerCase().trim();
-    var count = filtered.length === allEntries.length
+    var count = matchedCount === allEntries.length
       ? '<span>' + allEntries.length + '</span> entries'
-      : '<span>' + filtered.length + '</span> of ' + allEntries.length + ' entries';
+      : '<span>' + matchedCount + '</span> of ' + allEntries.length + ' entries';
     var held = allEntries.find(function(e) { return e.num === highlightedNum; });
     countEl.innerHTML = held
-      ? count + ' <span class="line-label">· holding entry-' + String(held.num).padStart(3, '0') + '</span>'
+      ? count + ' <span class="line-label">· holding entry-' + String(held.num).padStart(3, '0') + (heldOutsideFilter ? ' outside this shelf' : '') + '</span>'
       : count;
 
     if (!filtered.length) {
@@ -408,7 +427,10 @@
       var body = mode === 'pair'
         ? renderLinePair('first', e.opening, q) + renderLinePair('last', e.closing, q)
         : renderLinePair(mode, lineForMode(e), q);
-      return '<li class="line-item' + (e.num === highlightedNum ? ' highlighted' : '') + '" data-num="' + e.num + '">' +
+      var isHeld = e.num === highlightedNum;
+      var isOutside = isHeld && heldOutsideFilter;
+      return '<li class="line-item' + (isHeld ? ' highlighted' : '') + (isOutside ? ' held-outside' : '') + '" data-num="' + e.num + '"' +
+        (isHeld ? ' id="held-line-entry" tabindex="-1" aria-label="Held paired lines: entry-' + numStr + (isOutside ? ', outside this shelf' : '') + '"' : '') + '>' +
         '<a class="entry-link" href="' + entryUrl(e.url) + '">' +
         '<span class="entry-num">entry-' + numStr + '</span>' +
         '<span class="entry-title">' + highlight(e.title, q) + '</span>' +
@@ -425,6 +447,13 @@
     if (highlightedNum > 0 && !allEntries.some(function(e) { return e.num === highlightedNum; })) highlightedNum = -1;
     render();
     updateUrl(push);
+  }
+
+  function focusHeld() {
+    var held = document.getElementById('held-line-entry');
+    if (!held) return;
+    held.scrollIntoView({ block: 'center' });
+    held.focus({ preventScroll: true });
   }
 
   function loadParams() {
@@ -509,8 +538,7 @@
     loadParams();
     applyFilters();
     render();
-    var held = document.querySelector('.line-item.highlighted');
-    if (held) held.scrollIntoView({ block: 'center' });
+    focusHeld();
   });
 
   Promise.all([
@@ -538,6 +566,7 @@
     loadParams();
     metaEl.textContent = allEntries.length + ' entries · ' + allEntries.filter(function(e) { return e.topics.length; }).length + ' with topics';
     refresh();
+    if (highlightedNum > 0) focusHeld();
   }).catch(function(e) {
     listEl.innerHTML = '<li class="empty">error loading: ' + esc(e.message) + '</li>';
   });
