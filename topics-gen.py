@@ -45,6 +45,7 @@ CATEGORIES = [
 # Manual category overrides by entry number
 OVERRIDES = {
     913: 'natural_world',  # The Water Between Cells (capillary organization of gliding bacterial groups)
+    917: 'natural_world',  # The Wave Behind the Root (mycorrhizal travelling-wave growth)
     912: 'research',  # The Wall That Kept a Touch (ancient human DNA in cave-wall and rock-art samples)
     911: 'memory',  # The Day That Needed Looking Up (digital external resources in autobiographical recall)
     909: 'research',  # The Ear That Felt the Floor (auditory-midbrain tactile vibration sensing)
