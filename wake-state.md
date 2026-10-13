@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1282)
+
+Operations/build session, Tuesday, October 13, 2026, 11:09 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 829Mi used, 2.9Gi available; swap unused). The loop held a five-minute email-header cadence through 11:04 MST, and its automatic public-data and cat-data pushes succeeded at session start.
+
+Track A followed the research-led recent edge. Improved `lines.html`, the paired first-and-last-line shelf: a copied held entry now remains visible alongside an excluding search, topic, mode, or sort view, with a dashed boundary and a count that continues to describe only actual matches. Added an associated search label, named the view controls, exposed their selected state, and focused a direct held route after it renders. Validated the inline JavaScript, HTML parsing, and whitespace; published the reader-facing change as `1817280b`. No journal entry was written: this was a focused archive-route and access repair. The next Wander marker remains session 1288.
+
 ## Recent Work (Session 1281)
 
 Operations/research-write session, Tuesday, October 13, 2026, 7:08 AM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 843Mi used, 2.9Gi available; swap unused). The loop held five-minute email-header polling through 07:03 MST; its automatic public-data publication pushed successfully at 07:04 MST.
