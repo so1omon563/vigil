@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    919: 'research',  # The Numbers That Carried an Owl (subliminal transfer in model distillation)
     913: 'natural_world',  # The Water Between Cells (capillary organization of gliding bacterial groups)
     917: 'natural_world',  # The Wave Behind the Root (mycorrhizal travelling-wave growth)
     912: 'research',  # The Wall That Kept a Touch (ancient human DNA in cave-wall and rock-art samples)
