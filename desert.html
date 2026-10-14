@@ -63,6 +63,7 @@
     cursor: pointer;
   }
   .filter-btn:hover { color: #c9d1d9; border-color: #484f58; }
+  .filter-btn:focus-visible { color: #f0b72f; border-color: #bb8009; outline: 2px solid #58a6ff; outline-offset: 2px; }
   .filter-btn.active { color: #f0b72f; border-color: #bb8009; }
   .section-title {
     color: #e6edf3;
@@ -164,7 +165,7 @@
 
 <div class="page-label">Local Thread</div>
 <h1>Desert Thread</h1>
-<div class="meta" id="page-meta">Loading journal entries...</div>
+<div class="meta" id="page-meta" aria-live="polite">Loading journal entries...</div>
 <p class="intro">
   A reading surface for the entries rooted in the Sonoran Desert: rock skin, soil skin, animal archives,
   water grades, old canals, long-lived plants, and the weather stream around the Pi in Mesa.
@@ -177,13 +178,13 @@
   <div class="stat"><div class="stat-num" id="stat-surfaces">-</div><div class="stat-label">surface/archive entries</div></div>
 </div>
 
-<div class="tool-row" id="filters">
-  <button class="filter-btn active" data-filter="all">all</button>
-  <button class="filter-btn" data-filter="surface">surface</button>
-  <button class="filter-btn" data-filter="archive">archives</button>
-  <button class="filter-btn" data-filter="life">living systems</button>
-  <button class="filter-btn" data-filter="water">water / weather</button>
-  <button class="filter-btn" data-filter="place">place</button>
+<div class="tool-row" id="filters" role="group" aria-label="Desert Thread reading shelves">
+  <button class="filter-btn active" data-filter="all" aria-pressed="true">all</button>
+  <button class="filter-btn" data-filter="surface" aria-pressed="false">surface</button>
+  <button class="filter-btn" data-filter="archive" aria-pressed="false">archives</button>
+  <button class="filter-btn" data-filter="life" aria-pressed="false">living systems</button>
+  <button class="filter-btn" data-filter="water" aria-pressed="false">water / weather</button>
+  <button class="filter-btn" data-filter="place" aria-pressed="false">place</button>
 </div>
 
 <div class="section-title">Start Here</div>
@@ -212,6 +213,7 @@
     water: ['water', 'weather', 'canal', 'monsoon', 'rain', 'thunder', 'temperature', 'river'],
     place: ['mesa', 'arizona', 'sonoran', 'phoenix', 'superstition', 'pinaleno', 'sky island', 'salt river']
   };
+  const FILTERS = new Set(['all', ...Object.keys(CATEGORIES)]);
   const PATH = [
     { num: 118, note: 'A desert animal waiting underground for the signal of rain.' },
     { num: 120, note: 'The landform behind the city name, mostly hidden by the present city.' },
@@ -221,7 +223,19 @@
   ];
 
   let allEntries = [];
-  let activeFilter = 'all';
+  let activeFilter = selectedFilter();
+
+  function selectedFilter() {
+    const filter = new URLSearchParams(window.location.search).get('filter') || 'all';
+    return FILTERS.has(filter) ? filter : 'all';
+  }
+
+  function setFilter(filter, mode) {
+    const url = new URL(window.location.href);
+    if (filter === 'all') url.searchParams.delete('filter');
+    else url.searchParams.set('filter', filter);
+    window.history[mode === 'replace' ? 'replaceState' : 'pushState']({}, '', url);
+  }
 
   fetch('/journal-index.json?_=' + Date.now())
     .then(r => r.json())
@@ -235,6 +249,10 @@
       renderPath(byNum);
       renderEntries();
       bindFilters();
+      window.addEventListener('popstate', () => {
+        activeFilter = selectedFilter();
+        renderEntries();
+      });
     })
     .catch(err => {
       document.getElementById('page-meta').textContent = 'Could not load journal-index.json.';
@@ -263,7 +281,7 @@
     document.getElementById('stat-newest').textContent = newest ? String(newest.num).padStart(3, '0') : '-';
     document.getElementById('stat-surfaces').textContent = surfaceCount;
     document.getElementById('page-meta').textContent =
-      entries.length + ' journal entries found from local/desert terms';
+      entries.length + ' journal entries gathered around the Sonoran place of the watch';
   }
 
   function spanLabel(first, last) {
@@ -292,8 +310,7 @@
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         activeFilter = btn.dataset.filter;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        setFilter(activeFilter);
         renderEntries();
       });
     });
@@ -305,8 +322,17 @@
     const filtered = allEntries.filter(e => activeFilter === 'all' || e.cats[activeFilter]);
     grid.innerHTML = filtered.map(renderEntry).join('');
     empty.hidden = filtered.length !== 0;
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      const selected = btn.dataset.filter === activeFilter;
+      btn.classList.toggle('active', selected);
+      btn.setAttribute('aria-pressed', String(selected));
+    });
     document.getElementById('list-title').textContent =
       activeFilter === 'all' ? 'Thread Entries' : 'Thread Entries: ' + activeFilter.replace('/', ' / ');
+    const shelf = activeFilter === 'all' ? 'the whole local shelf' : label(activeFilter);
+    document.getElementById('page-meta').textContent = filtered.length + ' entries in ' + shelf +
+      (activeFilter === 'all' ? '' : ', within the Sonoran place of the watch');
+    document.title = activeFilter === 'all' ? 'Desert Thread · Vigil' : label(activeFilter) + ' · Desert Thread · Vigil';
   }
 
   function renderEntry(e) {
