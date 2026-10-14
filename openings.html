@@ -185,6 +185,7 @@
   .entry-item.highlighted .opening-line { color: #e6edf3; }
   .entry-item.highlighted .entry-num { color: #58a6ff; }
   .entry-item.highlighted:focus { outline: 1px solid #58a6ff; outline-offset: 4px; }
+  .entry-item.held-outside { border-left: 2px dashed #58a6ff; padding-left: calc(0.75rem - 2px); }
 
   .loading { font-size: 0.85rem; color: #484f58; padding: 2rem 0; }
   .empty { font-size: 0.85rem; color: #484f58; padding: 1.5rem 0; }
@@ -215,6 +216,7 @@
   html[data-theme="light"] .entry-item.highlighted .opening-line { color: #24292e; }
   html[data-theme="light"] .entry-item.highlighted .entry-num { color: #0969da; }
   html[data-theme="light"] .entry-item.highlighted:focus { outline-color: #0969da; }
+  html[data-theme="light"] .entry-item.held-outside { border-left-color: #0969da; }
   html[data-theme="light"] .topic-btn { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] .topic-btn:hover { border-color: #8c959f; color: #57606a; }
   html[data-theme="light"] .topic-btn.active { border-color: #0969da; color: #0969da; background: #0969da0d; }
@@ -234,6 +236,7 @@
 </div>
 
 <div class="controls">
+  <label class="sr-only" for="filter-input">Search opening lines and titles</label>
   <input type="text" class="filter-input" id="filter-input" placeholder="search opening lines and titles…" autocomplete="off" spellcheck="false">
   <button class="btn" id="btn-random" type="button" title="hold a random visible entry">hold one</button>
   <button class="btn" id="btn-copy" type="button">copy view</button>
@@ -241,14 +244,14 @@
 </div>
 
 <div class="topic-filter-row" id="topic-filter-row" role="group" aria-label="Filter first lines by topic">
-  <button class="topic-btn active" data-topic="" type="button">all</button>
+  <button class="topic-btn active" data-topic="" type="button" aria-pressed="true">all</button>
 </div>
 
 <div class="sort-row" role="group" aria-label="Order first lines">
   <span class="sort-label">sort</span>
-  <button class="btn active" id="sort-newest" type="button">newest first</button>
-  <button class="btn" id="sort-oldest" type="button">oldest first</button>
-  <button class="btn" id="sort-length" type="button">longest first</button>
+  <button class="btn active" id="sort-newest" type="button" aria-pressed="true">newest first</button>
+  <button class="btn" id="sort-oldest" type="button" aria-pressed="false">oldest first</button>
+  <button class="btn" id="sort-length" type="button" aria-pressed="false">longest first</button>
 </div>
 
 <div class="count-bar" id="count-bar" aria-live="polite">&nbsp;</div>
@@ -366,6 +369,7 @@
       btn.className = 'topic-btn';
       btn.dataset.topic = t;
       btn.textContent = t;
+      btn.setAttribute('aria-pressed', 'false');
       btn.title = counts[t] + ' entries';
       row.appendChild(btn);
     });
@@ -427,12 +431,14 @@
       var e = filtered[i];
       var numStr = String(e.n).padStart(3, '0');
       var isHighlighted = (e.n === highlightedNum);
+      var isOutside = isHighlighted && heldOutsideFilter;
       var dateStr = e.d ? '<span class="entry-date">' + fmtDate(e.d) + '</span>' : '';
       var topicTags = (e.p && e.p.length)
         ? e.p.map(function(t) { return '<span class="topic-tag">' + esc(t) + '</span>'; }).join('')
         : '';
       parts.push(
-        '<li class="entry-item' + (isHighlighted ? ' highlighted' : '') + '" data-num="' + e.n + '">' +
+        '<li class="entry-item' + (isHighlighted ? ' highlighted' : '') + (isOutside ? ' held-outside' : '') + '" data-num="' + e.n + '"' +
+        (isHighlighted ? ' id="held-opening-entry" tabindex="-1" aria-label="Held opening: entry-' + numStr + (isOutside ? ', outside this shelf' : '') + '"' : '') + '>' +
         '<a href="' + entryUrl(e.u) + '">' +
         '<div class="entry-num">entry-' + numStr + '</div>' +
         '<div class="opening-line">' + highlightQuery(e.o || '', q) + '</div>' +
@@ -444,7 +450,7 @@
   }
 
   function landOnHighlighted() {
-    var el = document.querySelector('.entry-item.highlighted');
+    var el = document.getElementById('held-opening-entry');
     if (!el) return;
     el.setAttribute('tabindex', '-1');
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
