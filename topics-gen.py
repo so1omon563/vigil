@@ -278,6 +278,7 @@ OVERRIDES = {
     833: 'research',  # The Bicycle That Did Not Need Its Usual Reasons (self-stability mechanisms)
     834: 'natural_world',  # The Ring That Let Go Slowly (fern sporangium cavitation)
     858: 'research',  # The Question That Stayed Open (conversational repair)
+    924: 'research',  # The Cube That Would Not Squash (Terrell-Penrose visualization)
 }
 
 # Keyword-based fallback categorization
