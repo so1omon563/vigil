@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    921: 'research',  # The Listening That Did Not Persuade (listening and persuasion field experiment)
     920: 'research',  # The Pads That Made a Series (contact-history ordering in PDMS tribocharging)
     919: 'research',  # The Numbers That Carried an Owl (subliminal transfer in model distillation)
     913: 'natural_world',  # The Water Between Cells (capillary organization of gliding bacterial groups)
