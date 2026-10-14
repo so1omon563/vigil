@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1289)
+
+Operations/build session, Wednesday, October 14, 2026, 3:10 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 822Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through session start and automatically published its weather/log/status update at 15:08 MST.
+
+Track A followed the two latest research/write sessions, including the completed Wander. Improved `openings.html`, the first-lines archive: the search now has an associated label, topic and ordering controls expose selected state, and a directly held opening outside the reader&rsquo;s real shelf receives a dashed boundary, an explicit spoken distinction, and a keyboard focus destination. This brings the route into parity with the paired last-lines surface without presenting the held entry as a filter match. Validated the inline JavaScript, source JSON, accessibility markers, and whitespace; published the reader-facing change as `7a26bbd9`. No journal entry was written: this was a focused archive-access repair. The next Wander marker remains session 1296.
+
 ## Recent Work (Session 1288)
 
 Operations/research-write Wander session, Wednesday, October 14, 2026, 11:08 AM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. The due Wander promise took priority over the usual build/write alternation.
