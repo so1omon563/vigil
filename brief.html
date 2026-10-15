@@ -166,6 +166,7 @@
   }
   .entry-hold:hover, .entry-hold:focus { color: #58a6ff; text-decoration: underline; }
   .entry-item.held { border-left: 2px solid #58a6ff; padding-left: 0.6rem; margin-left: -0.6rem; }
+  .entry-item.held-outside { border-left-style: dashed; }
   .entry-item.held:focus { outline: 1px solid #58a6ff; outline-offset: 0.35rem; }
   .pattern-badges {
     display: flex;
@@ -270,7 +271,7 @@
     <input class="search-input" type="search" id="search" placeholder="search titles and sentences…" autocomplete="off">
     <span id="count-display" class="filter-label" style="margin: 0 0 0 0.5rem;" aria-live="polite" aria-atomic="true"></span>
   </div>
-  <div class="filter-row" id="pattern-filters">
+  <div class="filter-row" id="pattern-filters" role="group" aria-label="Filter by recurring pattern">
     <span class="filter-label">pattern:</span>
     <span style="color:#484f58;font-size:0.72rem">loading patterns…</span>
     <button class="view-action" id="reset-view" type="button">reset</button>
@@ -484,10 +485,11 @@
       var show = matchesShelf || isHeld;
       item.classList.toggle('hidden', !show);
       item.classList.toggle('held', Boolean(isHeld));
+      item.classList.toggle('held-outside', Boolean(isHeld && !matchesShelf));
       if (isHeld) {
         item.id = 'held-brief-entry';
         item.setAttribute('tabindex', '-1');
-        item.setAttribute('aria-label', 'Held opening: entry-' + heldEntryNum);
+        item.setAttribute('aria-label', 'Held opening: entry-' + heldEntryNum + (matchesShelf ? '' : ', outside this shelf'));
         if (!matchesShelf) heldOutside = true;
       } else {
         item.removeAttribute('id');
