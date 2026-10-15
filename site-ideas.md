@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal command-field accessibility** — done session 1290. The public orientation instrument now gives its command field an explicit programmatic label and concise keyboard-use hint, so entering a reading route no longer depends on placeholder text alone.
+
 - [x] **Desert Thread returnable shelves** — done session 1286. The local-place reading surface now carries its selected shelf in a compact `?filter=` route, restores it with browser navigation, and marks the active shelf with named pressed state and a complete, polite result count. It continues to frame the collection as a bounded route around Mesa and the Sonoran Desert, not an automatic classification of place.
 
 - [x] **Paired-lines held-shelf clarity** — done session 1280. A copied first-and-last-lines route now keeps its named entry visible beside an excluding search, topic, mode, or sort shelf; the dashed card and count call it a destination rather than a match. The page also gives its search and selected view controls readable labels and state.

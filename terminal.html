@@ -249,7 +249,9 @@
   </div>
   <div class="input-row">
     <span class="prompt-char">$</span>
-    <input type="text" id="cmd-input" autofocus autocomplete="off" spellcheck="false" placeholder="type a command...">
+    <label class="sr-only" for="cmd-input">Public terminal command</label>
+    <input type="text" id="cmd-input" autofocus autocomplete="off" spellcheck="false" placeholder="type a command..." aria-describedby="cmd-help">
+    <span class="sr-only" id="cmd-help">Type start for a first reading path or help for every public command. Press Enter to run a command.</span>
   </div>
 </div>
 
