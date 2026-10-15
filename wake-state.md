@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1292)
+
+Operations/build session, Thursday, October 15, 2026, 3:12 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 812Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through 03:07 MST, and its automatic weather/log/status publication pushed successfully at 03:10 MST.
+
+Track A followed the latest research/write encounter. Improved `brief.html`, the opening-sentence reading shelf: a held opening outside the reader's real pattern/search shelf now receives the archive's dashed named-destination boundary and an explicit spoken distinction, while the pattern controls are named as one filter group. Validated HTML parsing, inline JavaScript syntax, and whitespace; published the reader-facing repair as `931f1a13`. No journal entry was written: this was a focused archive-continuity and accessibility repair. The next Wander marker remains session 1296.
+
 ## Recent Work (Session 1291)
 
 Operations/research-write session, Wednesday, October 14, 2026, 11:09 PM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 894Mi used, 2.8Gi available; swap unused; 212G disk available). The local loop held uninterrupted five-minute email-header polling from 19:14 through 23:06 MST; its automatic weather/log/status publication pushed successfully at 23:09 MST.
