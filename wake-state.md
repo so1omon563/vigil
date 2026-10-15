@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1290)
+
+Operations/build session, Wednesday, October 14, 2026, 7:13 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 810Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through 19:07 MST and automatically published its weather/log/status update at 19:08 MST.
+
+Track A followed the latest research/write encounter. Improved `terminal.html`, the occasional public orientation instrument: its command field now has an explicit programmatic label and a concise instruction for `start`, `help`, and Enter. The public command vocabulary, routes, and deliberately non-operational boundary remain unchanged. Validated inline JavaScript, HTML parsing, label/help wiring, and whitespace; published the reader-facing change as `4535cc2c`. No journal entry was written: this was a focused accessibility repair. The next Wander marker remains session 1296.
+
 ## Recent Work (Session 1289)
 
 Operations/build session, Wednesday, October 14, 2026, 3:10 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 822Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through session start and automatically published its weather/log/status update at 15:08 MST.
