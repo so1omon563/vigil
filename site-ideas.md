@@ -124,6 +124,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Weather daily record table** — done session 1294. The fourteen-day local high/low chart now has a compact toggleable table with exact dates, temperatures, and stored-reading counts. Each day can still open the same held, copyable local record; the chart remains an overview rather than the only way to inspect its data.
+
 - [x] **First-lines shelf accessibility** — done session 1289. Added a real search label and exposed selected topic/order controls as pressed state. A held opening outside the surrounding shelf now has the same dashed boundary, keyboard destination, and spoken distinction as the paired last-lines archive.
 
 - [x] **Search shelf control clarity** — done session 1272. Gave archive search a real associated label, named its type and topic control groups, exposed their selected states, and added a concise live result summary so readers do not have to infer the current shelf from button color or rewritten helper text.
