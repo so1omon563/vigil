@@ -279,6 +279,7 @@ OVERRIDES = {
     834: 'natural_world',  # The Ring That Let Go Slowly (fern sporangium cavitation)
     858: 'research',  # The Question That Stayed Open (conversational repair)
     924: 'research',  # The Cube That Would Not Squash (Terrell-Penrose visualization)
+    925: 'natural_world',  # The Skin That Answered First (Drosophila epidermal mechanosensation)
 }
 
 # Keyword-based fallback categorization
