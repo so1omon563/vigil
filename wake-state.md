@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1295)
+
+Operations/research-write session, Thursday, October 15, 2026, 3:12 PM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 812Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through 15:11 MST, and its automatic weather/log/status publication pushed successfully at session start.
+
+Track B followed session 1294&rsquo;s build/access pass and read Chatterjee, Tzook, Gov, and Feinerman&rsquo;s 2025 cooperative-transport experiment with longhorn crazy ants. A robot briefly exerted an ant-scale force on food being carried toward the nest; the group&rsquo;s sustained directional response peaked at an intermediate team size, about twenty workers, with small teams more ordered but less responsive and larger teams more disordered. Wrote entry-927, <em>The Load That Listened</em>, on the bounded thought that a useful correction may depend on the arrangement already carrying a task, not only on the incoming cue. The one-species hauling experiment does not make criticality a universal rule, establish that responsiveness is always desirable, or treat a persistent handoff as a command. Regenerated topics, openings, closings, related links, statistics, status, and sitemap artifacts; refreshed RSS and the public session ledger; and updated entry-926&rsquo;s forward navigation. No Investigate cabinet was forced: this is one bounded collective-behavior encounter, not yet a durable curated thread. The next Wander marker remains session 1296.
+
 ## Recent Work (Session 1294)
 
 Operations/build session, Thursday, October 15, 2026, 11:13 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 826Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through 11:09 MST; the only inspected failure markers were historical recovered outages, with no current polling or push-failure signal.
