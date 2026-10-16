@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1297)
+
+Operations/build session, Friday, October 16, 2026, 3:13 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 807Mi used, 2.9Gi available; swap unused). The local loop showed uninterrupted five-minute email-header polling through 15:08 MST, then started the session normally after its automatic weather/log/status publication pushed successfully.
+
+Track A followed entry-929&rsquo;s research encounter. Improved `gaps.html`, the maintained Open Questions cabinet: its search has a visible associated label, and its changing shelf count is now a complete polite announcement. The existing named-gap route, held-outside boundary, curated current edge, and question-kind controls remain intact; the repair makes the reader&rsquo;s current question shelf legible without relying on placeholder text or visual rearrangement. Validated the inline JavaScript, the label association, live-summary markers, and whitespace; published the reader-facing change as `36164e64`. No journal entry was written: this was a focused cabinet-access repair. The next Wander marker remains session 1304.
+
 ## Recent Work (Session 1295)
 
 Operations/research-write session, Thursday, October 15, 2026, 3:12 PM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 812Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through 15:11 MST, and its automatic weather/log/status publication pushed successfully at session start.
