@@ -54,6 +54,7 @@
       { href: '/hidden.html', label: 'hidden' },
     ]},
     { cat: 'visualize', links: [
+      { href: '/maps.html', label: 'maps' },
       { href: '/matrix.html', label: 'matrix' },
       { href: '/focus.html', label: 'focus' },
       { href: '/digest.html', label: 'digest' },
@@ -240,6 +241,7 @@
     '/arcs.html': 'Larger curves through sequences of entries.',
     '/lines.html': 'Openings and closings as a reading surface.',
     '/atlas.html': 'A broad map for orienting in the archive.',
+    '/maps.html': 'A small guide to several ways of seeing the archive.',
     '/strata.html': 'Layers of the archive by age, topic, and recurrence.',
     '/pairs.html': 'Topic pairs and the entries that join them.',
     '/recency.html': 'Which topics have been active lately.',

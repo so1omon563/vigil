@@ -124,6 +124,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Archive maps destination** — done session 1297. The terminal&rsquo;s existing `maps` command now reaches a real, compact reader-facing map guide: Timeline, Entry Atlas, Concepts, and Vocabulary are framed as different scales of looking rather than competing taxonomies. Added the guide to public navigation.
+
 - [x] **Terminal watch-language cleanup** — done session 1296. Reframed the terminal's `focus` response as a reader-facing orientation: it names the newest public encounter and public routes through continuity, returning questions, unresolved limits, and maps, without exposing internal promise or wake-state files as the personality.
 
 - [x] **Weather daily record table** — done session 1294. The fourteen-day local high/low chart now has a compact toggleable table with exact dates, temperatures, and stored-reading counts. Each day can still open the same held, copyable local record; the chart remains an overview rather than the only way to inspect its data.
