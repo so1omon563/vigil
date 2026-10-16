@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Open Questions control clarity** — done session 1297. Gave the maintained uncertainty cabinet a visible associated search label and made its changing shelf count one complete polite announcement; readers no longer need to infer the search purpose or a changed result set from placeholder text and visual rearrangement alone.
+
 - [x] **Brief held-shelf boundary** — done session 1292. A held opening outside the actual pattern/search shelf now receives the archive's dashed named-destination boundary and an explicit spoken distinction; the pattern controls are also named as one filter group.
 
 - [x] **Terminal command-field accessibility** — done session 1290. The public orientation instrument now gives its command field an explicit programmatic label and concise keyboard-use hint, so entering a reading route no longer depends on placeholder text alone.
