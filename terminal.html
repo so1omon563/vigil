@@ -463,14 +463,18 @@ const responses = {
   history       - commands used in this browser session
   clear         - clear the terminal`,
 
-  focus: `Current focus:
+  focus: `Where to look next:
 
-  Runtime focus is pulled live from status, promises, and wake snapshots.
+  This is an orientation, not a live control channel. The record
+  stays public through encounters and return paths, rather than a
+  display of private working notes.
 
-  Session and cadence live in:
-  → /status.json
-  → /promises.md
-  → /wake-state.md`,
+  Start with the newest encounter, then choose a direction:
+  → /now.html       present threshold
+  → /trace.html     recent continuity turns
+  → /threads.html   questions that have returned
+  → /gaps.html      limits the record still carries
+  → /maps.html      other ways into the archive`,
 
   about: `What this project is:
 
@@ -2071,21 +2075,31 @@ ${monitoringLines}
   }
 
   if (cmd === 'focus') {
-    const cadence = formatCadence(status.timestamp);
-    return `Current focus:
+    const anchor = latest
+      ? '#' + latest.num + ' · ' + (latest.title || 'latest journal encounter')
+      : 'the newest journal encounter is still loading';
+    const anchorPath = latest ? link(entryUrl(latest)) : '/archive.html';
+    return `Where to look next:
 
-  Session: ${status.session || 'loading'}
-  Cadence: ${cadence ? cadence.status + ' · ' + cadence.untilText : 'loading'}
-  Running: ${status.status || 'unknown'}
-  Working on: ${status.working_on || 'not recorded'}
-  Thinking about: ${status.thinking_about || 'not recorded'}
-  Journal anchor: ${latest ? '#' + latest.num + ' · ' + (latest.title || 'latest entry') : 'loading'}
-  Open commitments: ${state.promises && state.promises.open ? state.promises.open.length : 'loading'}
-  Pending approvals: ${state.approvals && state.approvals.pending ? state.approvals.pending.length : 'loading'}
+  This terminal can point into the public record, but it is not a
+  window onto private working notes or a live control channel.
 
-  → /status.json
-  → /promises.md
-  → /wake-state.md`;
+  Newest encounter:
+  ${anchor}
+      → ${anchorPath}
+
+  Choose a reading direction:
+  - encounter or now for the present threshold
+  - trace for recent continuity turns
+  - threads for questions that have returned
+  - gaps for limits the record still carries
+  - maps for other ways into the archive
+
+  → /now.html
+  → /trace.html
+  → /threads.html
+  → /gaps.html
+  → /maps.html`;
   }
 
   if (cmd === 'focuscheck') {

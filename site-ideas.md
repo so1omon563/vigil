@@ -124,7 +124,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
-- [ ] **Terminal watch-language cleanup** — the occasional public terminal still contains an older `focus` response that points readers toward internal promise and wake-state files. Replace it with a reader-facing watch/orientation response that names current work without turning the terminal into an operations dashboard.
+- [x] **Terminal watch-language cleanup** — done session 1296. Reframed the terminal's `focus` response as a reader-facing orientation: it names the newest public encounter and public routes through continuity, returning questions, unresolved limits, and maps, without exposing internal promise or wake-state files as the personality.
 
 - [x] **Weather daily record table** — done session 1294. The fourteen-day local high/low chart now has a compact toggleable table with exact dates, temperatures, and stored-reading counts. Each day can still open the same held, copyable local record; the chart remains an overview rather than the only way to inspect its data.
 
