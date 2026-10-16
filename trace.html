@@ -157,6 +157,45 @@
     color: #484f58;
     font-size: 0.74rem;
   }
+  .trace-rhythm {
+    margin-top: 0.9rem;
+  }
+  .trace-rhythm-label {
+    color: #484f58;
+    display: block;
+    font-size: 0.68rem;
+    margin-bottom: 0.45rem;
+  }
+  .trace-rhythm-track {
+    background: #21262d;
+    border-radius: 2px;
+    height: 2px;
+    margin: 0.7rem 0 0.5rem;
+    position: relative;
+  }
+  .trace-rhythm-point {
+    background: #0d1117;
+    border: 2px solid #58a6ff;
+    border-radius: 50%;
+    cursor: pointer;
+    height: 11px;
+    left: calc(var(--trace-position) * 1%);
+    padding: 0;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 11px;
+  }
+  .trace-rhythm-point:hover { background: #58a6ff; }
+  .trace-rhythm-point:focus { outline: 2px solid #d29922; outline-offset: 3px; }
+  .trace-rhythm-point.latest { border-color: #3fb950; }
+  .trace-rhythm-point.latest:hover { background: #3fb950; }
+  .trace-rhythm-scale {
+    color: #484f58;
+    display: flex;
+    font-size: 0.65rem;
+    justify-content: space-between;
+  }
   .thread-ends {
     display: flex;
     flex-wrap: wrap;
@@ -341,6 +380,11 @@
   html[data-theme="light"] .thread-end { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread-end a { color: #57606a; }
   html[data-theme="light"] .thread-end a:hover { color: #0969da; }
+  html[data-theme="light"] .trace-rhythm-track { background: #d0d7de; }
+  html[data-theme="light"] .trace-rhythm-point { background: #f6f8fa; border-color: #0969da; }
+  html[data-theme="light"] .trace-rhythm-point:hover { background: #0969da; }
+  html[data-theme="light"] .trace-rhythm-point.latest { border-color: #1a7f37; }
+  html[data-theme="light"] .trace-rhythm-point.latest:hover { background: #1a7f37; }
   html[data-theme="light"] .node-dot { background: #f6f8fa; border-color: #d0d7de; }
   html[data-theme="light"] .entry-node:hover .node-dot { border-color: #0969da; background: #f6f8fa; }
   html[data-theme="light"] .node-connector { background: #e8ecf0; }
@@ -468,6 +512,28 @@
 
     var avgGap = Math.round(totalGap / (nums.length - 1));
     return 'gaps avg ' + avgGap + ' · max ' + maxGap + ' between linked entries';
+  }
+
+  function traceRhythmMarkup(entries, latestArchive, threadId) {
+    var nums = (Array.isArray(entries) ? entries : []).map(function(entry) {
+      return Number(entry && entry.num);
+    }).filter(function(num) { return isFinite(num) && num > 0; }).sort(function(a, b) { return a - b; });
+    if (!nums.length || !latestArchive) return '';
+
+    var first = nums[0];
+    var latest = nums[nums.length - 1];
+    var denominator = Math.max(1, latestArchive - 1);
+    var points = nums.map(function(num) {
+      var position = ((num - 1) / denominator) * 100;
+      var latestClass = num === latest ? ' latest' : '';
+      return '<button class="trace-rhythm-point' + latestClass + '" type="button" data-trace-point="' + escapeHtml(num) + '" data-thread="' + escapeHtml(threadId) + '" style="--trace-position:' + position.toFixed(3) + '" aria-label="Hold entry-' + escapeHtml(num) + ' in this trace"></button>';
+    }).join('');
+
+    return '<div class="trace-rhythm" aria-label="Return positions across the journal">' +
+      '<span class="trace-rhythm-label">returns across the journal · select a point to hold it in this trace</span>' +
+      '<div class="trace-rhythm-track">' + points + '</div>' +
+      '<div class="trace-rhythm-scale"><span>entry-' + escapeHtml(first) + '</span><span>archive now · entry-' + escapeHtml(latestArchive) + '</span></div>' +
+      '</div>';
   }
 
   function renderThreadSummary(threads, index) {
@@ -687,8 +753,8 @@
     content.querySelectorAll('.thread').forEach(function (node) { node.classList.remove('visible'); });
     tabs.querySelectorAll('.thread-tab').forEach(function (btn) { btn.classList.remove('active'); });
 
-    var selectedThread = content.querySelector('#' + selected);
-    var selectedBtn = tabs.querySelector('[data-id="' + selected + '"]');
+    var selectedThread = selected ? content.querySelector('#' + selected) : null;
+    var selectedBtn = selected ? tabs.querySelector('[data-id="' + selected + '"]') : null;
     if (!selectedThread || !selectedBtn) {
       selectedThread = content.querySelector('.thread');
       selectedBtn = tabs.querySelector('.thread-tab');
@@ -760,6 +826,10 @@
 
     var byNum = {};
     (Array.isArray(index) ? index : []).forEach(function(entry) { byNum[String(entry.num)] = entry; });
+    var latestArchive = (Array.isArray(index) ? index : []).reduce(function(max, entry) {
+      var num = Number(entry && entry.num);
+      return isFinite(num) ? Math.max(max, num) : max;
+    }, 0);
 
     var normalized = rawThreads.map(function(thread) {
       var entries = (Array.isArray(thread && thread.entries) ? thread.entries : []).map(function(entry) {
@@ -794,6 +864,7 @@
         '<div class="thread-desc">' + escapeHtml(thread.description) + '</div>' +
         '<div class="thread-count">' + escapeHtml(countLine(thread.entries)) + '</div>' +
         '<div class="thread-gap">Timeline: ' + escapeHtml(threadGapText(thread.entries)) + '</div>' +
+        traceRhythmMarkup(thread.entries, latestArchive, thread.id) +
         '</div>';
 
       var items = thread.entries.slice().sort(function(a, b) {
@@ -848,6 +919,11 @@
     });
 
     content.addEventListener('click', function(e) {
+      var point = e.target && e.target.closest ? e.target.closest('.trace-rhythm-point[data-thread][data-trace-point]') : null;
+      if (point) {
+        showThread(normalized, point.dataset.thread, filter ? filter.value : '', orderControl ? orderControl.value : 'length', tabs, content, 'push', point.dataset.tracePoint);
+        return;
+      }
       var hold = e.target && e.target.closest ? e.target.closest('.node-hold[data-thread][data-entry]') : null;
       if (!hold) return;
       e.preventDefault();

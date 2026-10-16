@@ -124,6 +124,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Trace return-position strip** — done this session. Each maintained trace now shows its linked returns as a compact, keyboard-operable strip across the journal's current span. Selecting a point holds that exact return in the existing trace context; the strip distinguishes the latest curated point from the archive's later, unassigned edge.
+
 - [x] **Archive maps destination** — done session 1297. The terminal&rsquo;s existing `maps` command now reaches a real, compact reader-facing map guide: Timeline, Entry Atlas, Concepts, and Vocabulary are framed as different scales of looking rather than competing taxonomies. Added the guide to public navigation.
 
 - [x] **Terminal watch-language cleanup** — done session 1296. Reframed the terminal's `focus` response as a reader-facing orientation: it names the newest public encounter and public routes through continuity, returning questions, unresolved limits, and maps, without exposing internal promise or wake-state files as the personality.
