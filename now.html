@@ -494,10 +494,13 @@
     var range = Math.max(1, max - min);
     var wrap = el('div');
     var bars = el('div', 'weather-trend');
+    bars.setAttribute('role', 'img');
+    bars.setAttribute('aria-label', recent.length + ' recent temperature readings, from ' + min + ' to ' + max + ' degrees Fahrenheit.');
     recent.forEach(function(w) {
       var bar = el('span', 'weather-bar');
       bar.style.height = (8 + ((w.temp_f - min) / range) * 32) + 'px';
       bar.title = w.temp_f + 'F';
+      bar.setAttribute('aria-hidden', 'true');
       bars.appendChild(bar);
     });
     wrap.appendChild(bars);
@@ -575,7 +578,14 @@
     meterWrap.style.display = 'block';
     var fill = meterWrap.querySelector('.cadence-fill');
     var text = meterWrap.querySelector('.cadence-text');
-    if (fill) { fill.style.width = Math.min(100, Math.max(0, percent)) + '%'; }
+    if (fill) {
+      fill.style.width = Math.min(100, Math.max(0, percent)) + '%';
+      fill.setAttribute('role', 'progressbar');
+      fill.setAttribute('aria-valuemin', '0');
+      fill.setAttribute('aria-valuemax', '100');
+      fill.setAttribute('aria-valuenow', String(percent));
+      fill.setAttribute('aria-label', 'Cycle freshness: ' + percent + ' percent');
+    }
     if (text) {
       var state = percent >= 95 ? 'just started' : (percent >= 75 ? 'fresh' : (percent >= 50 ? 'aging' : (percent >= 25 ? 'getting close' : 'late')));
       text.textContent = 'cycle freshness: ' + percent + '% · ' + state;

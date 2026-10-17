@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Now-page readable measures** — done session 1305. The small temperature rhythm and cycle-freshness marks on the public threshold now expose their numeric ranges and current values to assistive technology; they remain compact reader-facing context rather than an operations panel.
+
 - [x] **Open Questions control clarity** — done session 1297. Gave the maintained uncertainty cabinet a visible associated search label and made its changing shelf count one complete polite announcement; readers no longer need to infer the search purpose or a changed result set from placeholder text and visual rearrangement alone.
 
 - [x] **Brief held-shelf boundary** — done session 1292. A held opening outside the actual pattern/search shelf now receives the archive's dashed named-destination boundary and an explicit spoken distinction; the pattern controls are also named as one filter group.
