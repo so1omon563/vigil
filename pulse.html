@@ -118,6 +118,14 @@
   }
   .entry-row:last-child { border-bottom: none; }
   .entry-row.uncollected { border-left: 2px dashed #484f58; padding-left: 0.8rem; }
+  .entry-row.held-entry {
+    margin: 0.35rem -0.65rem;
+    padding: 0.72rem 0.65rem;
+    border: 1px solid #1f6feb;
+    border-radius: 4px;
+    background: #111d2c;
+  }
+  .entry-row.held-entry:focus { outline: 2px solid #58a6ff; outline-offset: 3px; }
   .entry-top {
     display: flex;
     gap: 0.75rem;
@@ -145,6 +153,18 @@
   .thread-tag:hover { color: #58a6ff; border-color: #58a6ff; }
   .thread-tag.hot { border-color: #238636; color: #3fb950; }
   .thread-tag.warm { border-color: #1f6feb; color: #58a6ff; }
+  .entry-hold {
+    margin-left: 0.45rem;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: #484f58;
+    font: inherit;
+    font-size: 0.7rem;
+    cursor: pointer;
+  }
+  .entry-hold:hover { color: #58a6ff; text-decoration: underline; }
+  .held-destination-note { font-size: 0.72rem; color: #8b949e; margin-top: 0.35rem; }
 
   /* Thread overview table */
   .overview-row {
@@ -200,6 +220,7 @@
   html[data-theme="light"] .entry-title a { color: #1c2128; }
   html[data-theme="light"] .entry-row { border-color: #e8ecf0; }
   html[data-theme="light"] .entry-row.uncollected { border-left-color: #8c959f; }
+  html[data-theme="light"] .entry-row.held-entry { border-color: #0969da; background: #ddf4ff; }
   html[data-theme="light"] .thread-bar-row { border-color: #e8ecf0; }
   html[data-theme="light"] .thread-bar-row.held-thread { border-color: #0969da; background: #ddf4ff; }
   html[data-theme="light"] .overview-row { border-color: #e8ecf0; }
@@ -214,6 +235,8 @@
   html[data-theme="light"] .focus-note strong { color: #1c2128; }
   html[data-theme="light"] .thread-focus { color: #57606a; }
   html[data-theme="light"] .thread-focus:hover { color: #0969da; }
+  html[data-theme="light"] .entry-hold { color: #57606a; }
+  html[data-theme="light"] .entry-hold:hover { color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] a { color: #0969da; }
 </style>
@@ -268,6 +291,7 @@
   var HOT_WITHIN = 0.15; // top 15% of entry range = hot
   var WARM_WITHIN = 0.30; // top 30% = warm
   var focusedThread = '';
+  var heldEntry = '';
   var resetView = document.getElementById('reset-view');
   var copyView = document.getElementById('copy-view');
   var focusNote = document.getElementById('focus-note');
@@ -285,6 +309,8 @@
     var url = new URL(window.location.href);
     if (focusedThread) url.searchParams.set('thread', focusedThread);
     else url.searchParams.delete('thread');
+    if (heldEntry) url.searchParams.set('entry', heldEntry);
+    else url.searchParams.delete('entry');
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
   }
 
@@ -299,6 +325,16 @@
   function focusThreadArrival(thread) {
     if (!thread) return;
     var target = document.getElementById('pulse-thread-' + thread.id);
+    if (!target) return;
+    window.requestAnimationFrame(function () {
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
+  function focusEntryArrival(entry) {
+    if (!entry) return;
+    var target = document.getElementById('pulse-entry-' + entry.num);
     if (!target) return;
     window.requestAnimationFrame(function () {
       target.focus({ preventScroll: true });
@@ -357,6 +393,12 @@
         entryThreads[e.num].push(t);
       });
     });
+    var selectedEntry = journalMap[heldEntry];
+    if (heldEntry && (!selectedEntry || (entryThreads[selectedEntry.num] || []).length)) {
+      heldEntry = '';
+      selectedEntry = null;
+      updateUrl(true);
+    }
 
     // --- Thread bars ---
     var barsEl = document.getElementById('thread-bars');
@@ -415,12 +457,20 @@
       var uncollected = journal.slice().sort(function (a, b) { return b.num - a.num; })
         .filter(function (e) { return !(entryThreads[e.num] || []).length; })
         .slice(0, 3);
-      uncollectedEl.innerHTML = uncollected.length
-        ? uncollected.map(function (e) {
-          return '<div class="entry-row uncollected">' +
+      var currentEdgeNums = {};
+      uncollected.forEach(function (e) { currentEdgeNums[e.num] = true; });
+      var visibleUncollected = uncollected.slice();
+      if (selectedEntry && !currentEdgeNums[selectedEntry.num]) visibleUncollected.unshift(selectedEntry);
+      uncollectedEl.innerHTML = visibleUncollected.length
+        ? visibleUncollected.map(function (e) {
+          var held = selectedEntry && e.num === selectedEntry.num;
+          var outsideCurrentEdge = held && !currentEdgeNums[e.num];
+          return '<div class="entry-row uncollected' + (held ? ' held-entry' : '') + '" id="pulse-entry-' + e.num + '" tabindex="-1"' + (held ? ' aria-label="Held unassigned entry: ' + escapeHtml(e.title) + '"' : '') + '>' +
             '<div class="entry-top"><span class="entry-num">#' + e.num + '</span>' +
-            '<span class="entry-title"><a href="/' + escapeHtml(e.url) + '">' + escapeHtml(e.title) + '</a></span></div>' +
+            '<span class="entry-title"><a href="/' + escapeHtml(e.url) + '">' + escapeHtml(e.title) + '</a></span>' +
+            '<button class="entry-hold" type="button" data-entry="' + e.num + '" aria-pressed="' + (held ? 'true' : 'false') + '">' + (held ? 'held' : 'hold') + '</button></div>' +
             '<div class="thread-desc">Not yet placed in a maintained recurring line.</div>' +
+            (outsideCurrentEdge ? '<div class="held-destination-note">Held destination outside the current three-entry edge shelf.</div>' : '') +
           '</div>';
         }).join('')
         : '<p class="thread-desc">Every current entry has a named line here. That is unusual; return to the journal for the wider record.</p>';
@@ -456,8 +506,16 @@
         updateUrl(false);
       });
     });
+    Array.prototype.forEach.call(document.querySelectorAll('.entry-hold'), function (button) {
+      button.addEventListener('click', function () {
+        heldEntry = button.getAttribute('data-entry') || '';
+        render(threads, journal, true);
+        updateUrl(false);
+      });
+    });
 
     if (arrive && selectedThread) focusThreadArrival(selectedThread);
+    if (arrive && selectedEntry) focusEntryArrival(selectedEntry);
   }
 
   var loadedThreads = [];
@@ -465,6 +523,7 @@
 
   function restoreView() {
     focusedThread = new URL(window.location.href).searchParams.get('thread') || '';
+    heldEntry = new URL(window.location.href).searchParams.get('entry') || '';
     if (loadedThreads.length || loadedJournal.length) render(loadedThreads, loadedJournal, true);
   }
 

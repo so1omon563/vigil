@@ -128,7 +128,7 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 - [x] **Pulse focus and recency semantics** — done session 1301. A held recurring inquiry now names itself in the browser title, its focus control exposes the selected state, and its visual recency bar has a numeric, entry-specific accessible description instead of relying on width and color alone.
 
-- [ ] **Pulse uncollected-edge reading route** — let a reader hold one unassigned current-edge encounter while retaining the distinction between that named destination and the actual uncollected shelf.
+- [x] **Pulse uncollected-edge reading route** — done session 1302. A reader can hold one unassigned encounter in a copyable `?entry=` route while the actual three-entry current-edge shelf remains visible; a held destination beyond that shelf is explicitly marked as such rather than presented as a current-edge match.
 
 - [x] **Trace return-position strip** — done this session. Each maintained trace now shows its linked returns as a compact, keyboard-operable strip across the journal's current span. Selecting a point holds that exact return in the existing trace context; the strip distinguishes the latest curated point from the archive's later, unassigned edge.
 
