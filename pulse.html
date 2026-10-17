@@ -333,6 +333,12 @@
     }
     var visibleThreads = selectedThread ? [selectedThread] : sorted;
 
+    // A copied focused route should name its subject in the browser chrome too,
+    // rather than looking like the undifferentiated overview after it is opened.
+    document.title = selectedThread
+      ? selectedThread.title + ' · Pulse · Vigil'
+      : 'Pulse · Vigil';
+
     // Update meta
     var metaEl = document.getElementById('page-meta');
     if (metaEl) metaEl.textContent = (selectedThread ? '1 focused thread of ' : '') + sorted.length + ' threads · ' + journal.length + ' entries';
@@ -364,9 +370,10 @@
         var lastEntry = t.entries && t.entries.length ? t.entries[t.entries.length - 1] : null;
         var lastHtml = lastEntry ? '<a href="/' + lastEntry.url + '">#' + lastEntry.num + '</a>' : '—';
         var held = selectedThread && t.id === selectedThread.id;
+        var lastLabel = lastEntry ? 'entry ' + lastEntry.num : 'no linked entry';
         return '<article class="thread-bar-row' + (held ? ' held-thread' : '') + '" id="pulse-thread-' + escapeHtml(t.id) + '" tabindex="-1" aria-label="' + escapeHtml(t.title) + ' thread activity">' +
-          '<div class="thread-name"><a href="/threads.html?thread=' + encodeURIComponent(t.id) + '">' + escapeHtml(t.title) + '</a>' + badgeHtml + '<button class="thread-focus" type="button" data-thread="' + escapeHtml(t.id) + '">focus</button></div>' +
-          '<div class="bar-track"><div class="bar-fill ' + barClass + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="thread-name"><a href="/threads.html?thread=' + encodeURIComponent(t.id) + '">' + escapeHtml(t.title) + '</a>' + badgeHtml + '<button class="thread-focus" type="button" data-thread="' + escapeHtml(t.id) + '" aria-pressed="' + (held ? 'true' : 'false') + '">' + (held ? 'focused' : 'focus') + '</button></div>' +
+          '<div class="bar-track" role="progressbar" aria-label="' + escapeHtml(t.title) + ' recency" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '" aria-valuetext="Latest return: ' + lastLabel + '; ' + pct + ' percent of the current archive span"><div class="bar-fill ' + barClass + '" style="width:' + pct + '%"></div></div>' +
           '<div class="thread-meta">' + lastHtml + ' · ' + t._count + ' entries</div>' +
           '</article>';
       }).join('');
