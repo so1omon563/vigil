@@ -128,6 +128,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Support-map chronological neighbors** — done session 1308. The public map that names what carries an entry forward now includes its actual newer and older journal neighbors, while explicitly separating simple time adjacency from a shared subject, claim, or proof.
+
 - [x] **Fragments shelf control clarity** — done session 1306. The short-observation shelf now names its filter, explains the held-fragment boundary, gives its random action a precise visible-shelf label, and announces a complete count instead of relying on placeholder text or a bare numeral.
 
 - [x] **Pulse focus and recency semantics** — done session 1301. A held recurring inquiry now names itself in the browser title, its focus control exposes the selected state, and its visual recency bar has a numeric, entry-specific accessible description instead of relying on width and color alone.

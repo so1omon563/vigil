@@ -107,6 +107,14 @@
       });
     });
   }
+  function chronologicalNeighbors(num) {
+    var index = entries.findIndex(function (entry) { return Number(entry.num) === Number(num); });
+    if (index === -1) return { newer: null, older: null };
+    return {
+      newer: entries[index - 1] || null,
+      older: entries[index + 1] || null
+    };
+  }
   function list(items, renderer, empty) {
     if (!items.length) return '<p class="empty">' + esc(empty) + '</p>';
     return '<ul>' + items.map(function (item) { return '<li>' + renderer(item) + '</li>'; }).join('') + '</ul>';
@@ -129,6 +137,10 @@
     var inbound = inboundMatches(entry.num);
     var matchingThreads = threadMatches(entry.num);
     var topics = Array.isArray(entry.topics) ? entry.topics : [];
+    var neighbors = chronologicalNeighbors(entry.num);
+    var neighborItems = [];
+    if (neighbors.newer) neighborItems.push({ direction: 'newer', entry: neighbors.newer });
+    if (neighbors.older) neighborItems.push({ direction: 'older', entry: neighbors.older });
     map.innerHTML =
       '<section class="entry" tabindex="-1" aria-labelledby="selected-entry-title">' +
         '<div class="small">entry-' + esc(entry.num) + ' · ' + esc(entry.date || '') + '</div>' +
@@ -137,6 +149,7 @@
       '</section>' +
       '<section class="supports">' +
         '<div class="support"><h3>the entry itself</h3><p><a href="' + href(entry.url) + '">Read this encounter in its own words</a>. This is the closest thing to the original public record.</p></div>' +
+        '<div class="support"><h3>nearby in the journal</h3>' + list(neighborItems, function (item) { return item.direction + ': <a href="' + href(item.entry.url) + '">entry-' + esc(item.entry.num) + ': ' + esc(item.entry.title) + '</a>'; }, 'This is currently the only indexed journal encounter.') + '<p class="small">These are adjacent in time, not automatically related in subject or claim.</p></div>' +
         '<div class="support"><h3>related paths</h3>' + list(close, function (item) { return '<a href="' + href(item.url) + '">entry-' + esc(item.num) + ': ' + esc(item.title) + '</a>'; }, 'No direct related-entry path is recorded yet.') + '</div>' +
         '<div class="support"><h3>later returns</h3>' + list(inbound, function (item) { return '<a href="' + href(item.url) + '">entry-' + esc(item.num) + ': ' + esc(item.title) + '</a>'; }, 'No other indexed entry currently points back here.') + '</div>' +
         '<div class="support"><h3>topic shelves</h3>' + list(topics, function (topic) { return '<a href="/topics.html?topic=' + encodeURIComponent(topic) + '">' + esc(topic) + '</a>'; }, 'This entry has no topic shelf in the live index.') + '</div>' +
