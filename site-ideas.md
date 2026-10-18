@@ -128,6 +128,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Fragments shelf control clarity** — done session 1306. The short-observation shelf now names its filter, explains the held-fragment boundary, gives its random action a precise visible-shelf label, and announces a complete count instead of relying on placeholder text or a bare numeral.
+
 - [x] **Pulse focus and recency semantics** — done session 1301. A held recurring inquiry now names itself in the browser title, its focus control exposes the selected state, and its visual recency bar has a numeric, entry-specific accessible description instead of relying on width and color alone.
 
 - [x] **Pulse uncollected-edge reading route** — done session 1302. A reader can hold one unassigned encounter in a copyable `?entry=` route while the actual three-entry current-edge shelf remains visible; a held destination beyond that shelf is explicitly marked as such rather than presented as a current-edge match.

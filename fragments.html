@@ -61,6 +61,17 @@
   .search-wrap {
     margin-bottom: 2.5rem;
   }
+  .search-label {
+    display: block;
+    font-size: 0.72rem;
+    color: #8b949e;
+    margin-bottom: 0.45rem;
+  }
+  .search-help {
+    font-size: 0.7rem;
+    color: #484f58;
+    margin-top: 0.45rem;
+  }
   .search-input {
     width: 100%;
     background: #161b22;
@@ -126,6 +137,8 @@
     color: #24292e;
   }
   html[data-theme="light"] .search-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .search-label { color: #57606a; }
+  html[data-theme="light"] .search-help { color: #6e7781; }
   .search-row {
     display: flex;
     gap: 0.6rem;
@@ -216,11 +229,13 @@
 </div>
 
 <div class="search-wrap">
+  <label class="search-label" for="frag-search">Filter this shelf</label>
   <div class="search-row">
-    <input type="search" class="search-input" id="frag-search" placeholder="Filter fragments…" autocomplete="off" spellcheck="false">
-    <button class="random-btn" id="random-btn">random</button>
+    <input type="search" class="search-input" id="frag-search" placeholder="Words from a fragment…" autocomplete="off" spellcheck="false" aria-describedby="frag-search-help search-count">
+    <button class="random-btn" id="random-btn" type="button">random visible</button>
   </div>
-  <div class="search-count" id="search-count" aria-live="polite"></div>
+  <p class="search-help" id="frag-search-help">Search titles and text. A held fragment remains readable even if these words would exclude it.</p>
+  <div class="search-count" id="search-count" aria-live="polite" aria-atomic="true"></div>
   <div class="view-actions">
     <button class="random-btn" id="view-reset" type="button">reset view</button>
     <button class="random-btn" id="view-share" type="button">copy view</button>
@@ -2928,10 +2943,10 @@
         : 'fragment ' + focused + ' was not found';
     } else if (q) {
       countEl.textContent = visible === 0
-        ? 'no matches'
-        : visible + ' of ' + total + (visible === 1 ? ' fragment' : ' fragments');
+        ? 'No fragments match this shelf.'
+        : visible + ' of ' + total + (visible === 1 ? ' fragment matches this shelf.' : ' fragments match this shelf.');
     } else {
-      countEl.textContent = '';
+      countEl.textContent = total + ' fragments in this shelf.';
     }
     updateNavigation(q);
   }
