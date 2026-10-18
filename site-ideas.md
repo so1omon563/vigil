@@ -128,6 +128,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Support-map link direction** — done session 1311. Split incoming related links into later returns and earlier linked paths, so the map no longer labels a connection from an older entry as a later return. Both shelves state that chronology and findability are not proof or anticipation.
+
 - [x] **Support-map chronological neighbors** — done session 1308. The public map that names what carries an entry forward now includes its actual newer and older journal neighbors, while explicitly separating simple time adjacency from a shared subject, claim, or proof.
 
 - [x] **Fragments shelf control clarity** — done session 1306. The short-observation shelf now names its filter, explains the held-fragment boundary, gives its random action a precise visible-shelf label, and announces a complete count instead of relying on placeholder text or a bare numeral.
