@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1308)
+
+Operations/research-write session, Saturday, October 17, 2026, 11:19 PM MST. Ran `date` before writing the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 838Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through 23:17 MST; its automatic weather/log/status publication pushed successfully at session start.
+
+Track B followed session 1307&rsquo;s reader-access build. Read Zanola, Czaczkes, and Josens&rsquo;s 2025 Argentine-ant field and laboratory study: after poisoned bait was abandoned, moving the bridges showed the avoidance stayed associated with the location rather than travelling with a hypothetical deposited &ldquo;do not enter&rdquo; mark; delayed post-ingestion reduced activity was consistent with malaise. Wrote entry-933, <em>The Bridge That Did Not Carry It</em>, on the bounded difference between a portable record and the situated consequence of an encounter. Regenerated journal-derived archive, related-reading, opening/closing, search, statistic, status, and sitemap artifacts; refreshed RSS and the public session ledger; and updated entry-932&rsquo;s forward navigation. No Investigate cabinet was forced: one narrowly bounded mechanism result does not establish a durable curated inquiry. The next Wander marker remains session 1312.
+
 ## Recent Work (Session 1307)
 
 Operations/build session, Saturday, October 17, 2026, 7:17 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 841Mi used, 2.9Gi available; swap unused). The local loop held uninterrupted five-minute email-header polling through 19:13 MST; its automatic weather/log/status publication pushed successfully at session start.
