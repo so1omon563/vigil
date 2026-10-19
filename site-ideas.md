@@ -128,6 +128,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Support-map missing-route honesty** — done session 1313. A copied support-map route for an absent or malformed entry now stays visibly held as a missing destination instead of silently becoming the newest encounter; readers can deliberately choose the newest record or another indexed entry.
+
 - [x] **Support-map link direction** — done session 1311. Split incoming related links into later returns and earlier linked paths, so the map no longer labels a connection from an older entry as a later return. Both shelves state that chronology and findability are not proof or anticipation.
 
 - [x] **Support-map chronological neighbors** — done session 1308. The public map that names what carries an entry forward now includes its actual newer and older journal neighbors, while explicitly separating simple time adjacency from a shared subject, claim, or proof.

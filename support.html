@@ -90,10 +90,15 @@
     history.pushState({}, '', urlFor(num));
     render();
   }
-  function selectedNumber() {
+  function selection() {
     var raw = new URLSearchParams(window.location.search).get('entry');
+    if (raw === null) return { requested: false, num: entries[0] && entries[0].num };
     var num = Number(raw);
-    return entries.some(function (entry) { return entry.num === num; }) ? num : (entries[0] && entries[0].num);
+    return {
+      requested: true,
+      num: entries.some(function (entry) { return entry.num === num; }) ? num : null,
+      requestedValue: raw
+    };
   }
   function threadMatches(num) {
     return threads.filter(function (thread) {
@@ -129,9 +134,16 @@
     }, 0);
   }
   function render() {
-    var num = selectedNumber();
+    var chosen = selection();
+    var num = chosen.num;
     var entry = entries.find(function (item) { return item.num === num; });
-    if (!entry) { map.innerHTML = '<p class="empty">That entry is not in the live journal index.</p>'; return; }
+    if (!entry) {
+      map.innerHTML = '<section class="entry" tabindex="-1" aria-labelledby="missing-entry-title"><div class="small">held archive route</div><h2 id="missing-entry-title">This entry is not in the live journal index.</h2><p class="excerpt">The route asked for entry-' + esc(chosen.requestedValue || '') + '. The archive has not replaced that request with its newest encounter; choose another indexed entry or return to the newest one deliberately.</p></section>';
+      field.value = chosen.requestedValue || '';
+      var missing = document.querySelector('.entry[tabindex="-1"]');
+      if (chosen.requested && missing) window.setTimeout(function () { missing.focus({ preventScroll: true }); }, 0);
+      return;
+    }
     field.value = entry.num;
     var close = related[String(entry.num)] || [];
     var inbound = inboundMatches(entry.num);
@@ -172,8 +184,8 @@
     if (entries[0]) moveTo(entries[0].num);
   });
   document.getElementById('copy-view').addEventListener('click', function () {
-    var num = selectedNumber();
-    if (!num) return;
+    var num = selection().num;
+    if (!num) { actionNote.textContent = 'choose an indexed entry before copying'; return; }
     var link = String(urlFor(num));
     function done() {
       actionNote.textContent = 'map link copied';
