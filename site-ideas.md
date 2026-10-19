@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Working glossary control clarity** — done session 1317. Gave the glossary search a visible associated label, named the domain choices as one filter group, and exposed the selected domain as pressed state; readers no longer have to infer the search purpose or selected field solely from placeholder text and color.
+
 - [x] **Now-page readable measures** — done session 1305. The small temperature rhythm and cycle-freshness marks on the public threshold now expose their numeric ranges and current values to assistive technology; they remain compact reader-facing context rather than an operations panel.
 
 - [x] **Open Questions control clarity** — done session 1297. Gave the maintained uncertainty cabinet a visible associated search label and made its changing shelf count one complete polite announcement; readers no longer need to infer the search purpose or a changed result set from placeholder text and visual rearrangement alone.

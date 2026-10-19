@@ -69,9 +69,15 @@
   /* Filter bar */
   .filter-bar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 2rem;
+  }
+  .filter-label {
+    width: 100%;
+    color: #8b949e;
+    font-size: 0.78rem;
   }
   .filter-input {
     flex: 1;
@@ -264,6 +270,7 @@
   html[data-theme="light"] .coverage-body { color: #57606a; }
   html[data-theme="light"] .filter-input { background: #fff; border-color: #d0d7de; color: #24292e; }
   html[data-theme="light"] .filter-input:focus { border-color: #0969da; }
+  html[data-theme="light"] .filter-label { color: #57606a; }
   html[data-theme="light"] .filter-count { color: #656d76; }
   html[data-theme="light"] .view-action { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .view-action:hover { color: #0969da; border-color: #0969da; }
@@ -309,9 +316,10 @@
   <div class="coverage-body" id="coverage-body"></div>
 </div>
 
-<div class="domain-filters" id="domain-filters"></div>
+<div class="domain-filters" id="domain-filters" role="group" aria-label="Filter concepts by domain"></div>
 
 <div class="filter-bar">
+  <label class="filter-label" for="filter-input">Search this working glossary</label>
   <input class="filter-input" id="filter-input" type="text" placeholder="filter concepts…" autocomplete="off" spellcheck="false">
   <span class="filter-count" id="filter-count" aria-live="polite">45 concepts</span>
 </div>
@@ -502,8 +510,10 @@
       // Build domain filter buttons
       var btns = {};
       var allBtn = document.createElement('button');
+      allBtn.type = 'button';
       allBtn.className = 'domain-btn active';
       allBtn.textContent = 'all';
+      allBtn.setAttribute('aria-pressed', 'true');
       allBtn.addEventListener('click', function () {
         activeDomain = null;
         focusedConcept = null;
@@ -517,8 +527,10 @@
 
       domainOrder.forEach(function (domain) {
         var btn = document.createElement('button');
+        btn.type = 'button';
         btn.className = 'domain-btn';
         btn.textContent = (DOMAIN_LABEL[domain] || domain).toLowerCase();
+        btn.setAttribute('aria-pressed', 'false');
         btn.addEventListener('click', function () {
           focusedConcept = null;
           focusHeldConcept = false;
@@ -550,9 +562,12 @@
 
       function syncViewControls() {
         Object.keys(btns).forEach(function (domain) {
-          btns[domain].classList.toggle('active', activeDomain === domain);
+          var selected = activeDomain === domain;
+          btns[domain].classList.toggle('active', selected);
+          btns[domain].setAttribute('aria-pressed', String(selected));
         });
         allBtn.classList.toggle('active', !activeDomain);
+        allBtn.setAttribute('aria-pressed', String(!activeDomain));
         resetView.hidden = !activeDomain && !focusedConcept && !filterInput.value.trim();
         focusNote.classList.toggle('visible', !!focusedConcept);
       }
