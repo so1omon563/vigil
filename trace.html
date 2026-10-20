@@ -51,6 +51,12 @@
   }
   .thread-filter:focus { outline: none; border-color: #58a6ff; }
   .thread-filter::placeholder { color: #484f58; }
+  .control-label {
+    color: #8b949e;
+    display: block;
+    font-size: .76rem;
+    margin-bottom: .38rem;
+  }
   .thread-filter-note { color: #484f58; font-size: 0.72rem; margin-bottom: 1rem; }
   .thread-actions {
     display: flex;
@@ -367,7 +373,7 @@
   html[data-theme="light"] .thread-tab:hover { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .thread-tab.active { border-color: #0969da; color: #0969da; background: #dbeafe; }
   html[data-theme="light"] .thread-filter { color: #24292e; background: #f6f8fa; border-color: #d0d7de; }
-  html[data-theme="light"] .thread-filter::placeholder, html[data-theme="light"] .thread-filter-note { color: #57606a; }
+  html[data-theme="light"] .thread-filter::placeholder, html[data-theme="light"] .thread-filter-note, html[data-theme="light"] .control-label { color: #57606a; }
   html[data-theme="light"] .thread-share { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .thread-share:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .trace-order { color: #57606a; }
@@ -432,7 +438,7 @@
   <div class="unmarked-edge-list" id="unmarked-edge-list"></div>
 </aside>
 
-<label class="sr-only" for="thread-filter">Filter thread traces</label>
+<label class="control-label" for="thread-filter">Filter the maintained traces</label>
 <input class="thread-filter" id="thread-filter" type="search" placeholder="filter traces by thread, description, or linked entry" autocomplete="off">
 <div class="thread-filter-note" id="thread-filter-note" role="status" aria-live="polite">Loading trace index…</div>
 <label class="trace-order" for="trace-order">order visible traces
@@ -443,7 +449,7 @@
   </select>
 </label>
 <div class="thread-tabs" id="thread-tabs" role="tablist" aria-label="thread selector"></div>
-<div class="thread-actions"><button class="thread-share" id="thread-random" type="button">choose a visible trace</button><button class="thread-share" id="thread-reset" type="button">reset</button><button class="thread-share" id="thread-share" type="button">copy this trace</button></div>
+<div class="thread-actions" role="group" aria-label="Trace actions"><button class="thread-share" id="thread-random" type="button">choose a visible trace</button><button class="thread-share" id="thread-reset" type="button">reset</button><button class="thread-share" id="thread-share" type="button">copy this trace</button></div>
 <div id="thread-content"></div>
 
 <div class="footer-note">

@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Trace control clarity** — done session 1322. Made the maintained-trace filter visibly named and grouped its visible-trace, reset, and copy actions, so the route into a curated inquiry shelf does not rely on placeholder text or an unlabelled row of controls.
+
 - [x] **Archive-map held orientation** — done session 1319. Each of the six scales on the map guide can now be held in a compact, copyable `?map=` route without replacing its ordinary link into the map itself. The focused card names a current orientation rather than claiming that one view is the archive's authoritative shape.
 
 - [x] **Working glossary control clarity** — done session 1317. Gave the glossary search a visible associated label, named the domain choices as one filter group, and exposed the selected domain as pressed state; readers no longer have to infer the search purpose or selected field solely from placeholder text and color.
