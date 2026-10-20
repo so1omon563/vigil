@@ -73,6 +73,19 @@
     padding-left: 1.5rem;
   }
   .convergence:hover { border-left-color: #30363d; }
+  .convergence.is-held { border-left-color: #58a6ff; }
+  .convergence.is-held:hover { border-left-color: #58a6ff; }
+  .held-reading {
+    display: inline-block;
+    margin-bottom: 0.55rem;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid #58a6ff66;
+    border-radius: 999px;
+    color: #58a6ff;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
 
   .conv-number {
     font-size: 0.65rem;
@@ -259,6 +272,8 @@
   html[data-theme="light"] .convergence-focus { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .convergence { border-left-color: #d0d7de; }
   html[data-theme="light"] .convergence:hover { border-left-color: #8c959f; }
+  html[data-theme="light"] .convergence.is-held,
+  html[data-theme="light"] .convergence.is-held:hover { border-left-color: #0969da; }
   html[data-theme="light"] .entry-card { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .entry-card:hover { border-color: #8c959f; }
   html[data-theme="light"] .entry-title-link { color: #24292e; }
@@ -547,6 +562,9 @@
         })).join(' ').toLowerCase().indexOf(normalized) !== -1;
       }) : data;
       var selected = selectedId ? data.filter(function (conv) { return conv.id === selectedId; }) : [];
+      document.title = selected.length
+        ? selected[0].title + ' · Convergences · so1omon.net'
+        : 'Convergences · so1omon.net';
       var shelf = orderConvergences(searched, state.order);
       var selectedPosition = selected.length ? shelf.map(function (conv) { return conv.id; }).indexOf(selected[0].id) : -1;
       var visible = orderConvergences(selectedId ? selected : searched, state.order);
@@ -599,7 +617,9 @@
           if (neighbors.length) neighborHtml = '<div class="convergence-neighbors" aria-label="Continue through this reading shelf">' + neighbors.join('') + '</div>';
         }
 
-        return '<section class="convergence" id="conv-' + conv.id + '" tabindex="-1" aria-labelledby="conv-title-' + escHtml(conv.id) + '">' +
+        var isHeld = selectedId === conv.id;
+        return '<section class="convergence' + (isHeld ? ' is-held' : '') + '" id="conv-' + conv.id + '" tabindex="-1" aria-labelledby="conv-title-' + escHtml(conv.id) + '"' + (isHeld ? ' aria-label="Held convergence: ' + escHtml(conv.title) + '"' : '') + '>' +
+          (isHeld ? '<div class="held-reading">held reading</div>' : '') +
           '<div class="conv-number">convergence ' + (idx + 1) + ' of ' + visible.length + '</div>' +
           '<h2 class="conv-title" id="conv-title-' + escHtml(conv.id) + '">' + escHtml(conv.title) + '</h2>' +
           '<div class="conv-shape">' + escHtml(conv.shape) + '</div>' +
