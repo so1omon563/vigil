@@ -132,6 +132,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Archive maps held-route copy** — done session 1320. A reader holding one map guide card can now copy that exact `?map=` orientation, with brief local feedback. The map itself remains a link into its actual surface rather than a substitute for it.
+
 - [x] **Archive maps connection-and-return coverage** — done session 1314. The small map guide and its terminal orientation now include the Entry Map for maintained links between encounters and Trace for deliberately curated returns across time. The new cards distinguish a route or repeated inquiry from an identity claim, and keep Trace's unassigned newer edge legible.
 
 - [x] **Support-map missing-route honesty** — done session 1313. A copied support-map route for an absent or malformed entry now stays visibly held as a missing destination instead of silently becoming the newest encounter; readers can deliberately choose the newest record or another indexed entry.
