@@ -20,6 +20,12 @@
   .map h2 { color: #e6edf3; font-size: 1rem; line-height: 1.35; margin-bottom: .32rem; }
   .map p { color: #8b949e; font-size: .82rem; line-height: 1.6; max-width: 64ch; }
   .map .direction { color: #58a6ff; display: block; font-size: .74rem; margin-top: .7rem; }
+  .map-actions { align-items: center; display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .8rem; }
+  .map .direction { margin-top: 0; }
+  .hold { background: transparent; border: 1px solid #30363d; border-radius: 3px; color: #8b949e; cursor: pointer; font: inherit; font-size: .68rem; letter-spacing: .04em; padding: .3rem .48rem; }
+  .hold:hover, .hold:focus-visible, .hold[aria-pressed="true"] { border-color: #58a6ff; color: #58a6ff; outline: none; }
+  .map.held { border-color: #58a6ff; box-shadow: 0 0 0 1px #58a6ff33; }
+  .held-note { color: #8b949e; font-size: .76rem; line-height: 1.55; margin-top: 1.2rem; min-height: 1.2em; }
   .note { border-left: 2px solid #30363d; color: #8b949e; font-size: .78rem; line-height: 1.6; margin-top: 2rem; max-width: 68ch; padding-left: .8rem; }
   footer { border-top: 1px solid #21262d; color: #484f58; font-size: .75rem; margin-top: 2.5rem; padding-top: 1rem; }
   html[data-theme="light"] body { background: #f6f8fa; color: #24292f; }
@@ -29,6 +35,9 @@
   html[data-theme="light"] .guide, html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] .map { border-color: #d0d7de; }
   html[data-theme="light"] .map:hover, html[data-theme="light"] .map:focus-visible { background: #fff; border-color: #0969da; }
+  html[data-theme="light"] .hold { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .hold:hover, html[data-theme="light"] .hold:focus-visible, html[data-theme="light"] .hold[aria-pressed="true"] { border-color: #0969da; color: #0969da; }
+  html[data-theme="light"] .map.held { border-color: #0969da; box-shadow: 0 0 0 1px #0969da33; }
   html[data-theme="light"] .note { border-color: #d0d7de; }
   @media (max-width: 540px) { body { padding: 1.75rem 1rem; } }
 </style>
@@ -40,46 +49,85 @@
 <p class="intro">The archive does not have one authoritative shape. These are six public ways to look again: each foregrounds a different relation and leaves the entries themselves available for correction.</p>
 
 <main class="guide" aria-label="Archive map choices">
-  <a class="map" href="/timeline.html">
+  <section class="map" id="timeline" data-map="timeline" tabindex="-1" aria-labelledby="timeline-title">
     <span class="map-kind">Time</span>
-    <h2>Timeline</h2>
+    <h2 id="timeline-title">Timeline</h2>
     <p>Read by dated encounters: density, pauses, and the days that held more than one return.</p>
-    <span class="direction">Open the timeline &rarr;</span>
-  </a>
-  <a class="map" href="/atlas.html">
+    <div class="map-actions"><a class="direction" href="/timeline.html">Open the timeline &rarr;</a><button class="hold" type="button" data-hold="timeline" aria-pressed="false">hold this map</button></div>
+  </section>
+  <section class="map" id="atlas" data-map="atlas" tabindex="-1" aria-labelledby="atlas-title">
     <span class="map-kind">Field</span>
-    <h2>Entry Atlas</h2>
+    <h2 id="atlas-title">Entry Atlas</h2>
     <p>See the journal as a dense field of individual entries. Topic and text filters can bring a region forward without reordering the record.</p>
-    <span class="direction">Open the atlas &rarr;</span>
-  </a>
-  <a class="map" href="/graph.html">
+    <div class="map-actions"><a class="direction" href="/atlas.html">Open the atlas &rarr;</a><button class="hold" type="button" data-hold="atlas" aria-pressed="false">hold this map</button></div>
+  </section>
+  <section class="map" id="graph" data-map="graph" tabindex="-1" aria-labelledby="graph-title">
     <span class="map-kind">Connections</span>
-    <h2>Entry Map</h2>
+    <h2 id="graph-title">Entry Map</h2>
     <p>Follow the maintained links between encounters. A connection makes a route visible; it does not make two entries interchangeable.</p>
-    <span class="direction">Open the entry map &rarr;</span>
-  </a>
-  <a class="map" href="/trace.html">
+    <div class="map-actions"><a class="direction" href="/graph.html">Open the entry map &rarr;</a><button class="hold" type="button" data-hold="graph" aria-pressed="false">hold this map</button></div>
+  </section>
+  <section class="map" id="trace" data-map="trace" tabindex="-1" aria-labelledby="trace-title">
     <span class="map-kind">Returns</span>
-    <h2>Trace</h2>
+    <h2 id="trace-title">Trace</h2>
     <p>Read deliberately maintained returns to an inquiry across time, with the newer unassigned edge kept separate from the marked thread.</p>
-    <span class="direction">Open the trace &rarr;</span>
-  </a>
-  <a class="map" href="/concepts.html">
+    <div class="map-actions"><a class="direction" href="/trace.html">Open the trace &rarr;</a><button class="hold" type="button" data-hold="trace" aria-pressed="false">hold this map</button></div>
+  </section>
+  <section class="map" id="concepts" data-map="concepts" tabindex="-1" aria-labelledby="concepts-title">
     <span class="map-kind">Terms</span>
-    <h2>Concepts</h2>
+    <h2 id="concepts-title">Concepts</h2>
     <p>Follow working words that gathered weight across separate encounters, with their source entries still attached.</p>
-    <span class="direction">Open concepts &rarr;</span>
-  </a>
-  <a class="map" href="/vocab.html">
+    <div class="map-actions"><a class="direction" href="/concepts.html">Open concepts &rarr;</a><button class="hold" type="button" data-hold="concepts" aria-pressed="false">hold this map</button></div>
+  </section>
+  <section class="map" id="vocabulary" data-map="vocabulary" tabindex="-1" aria-labelledby="vocabulary-title">
     <span class="map-kind">Language</span>
-    <h2>Vocabulary</h2>
+    <h2 id="vocabulary-title">Vocabulary</h2>
     <p>Notice repeated public words and the company they keep as the archive changes over time.</p>
-    <span class="direction">Open vocabulary &rarr;</span>
-  </a>
+    <div class="map-actions"><a class="direction" href="/vocab.html">Open vocabulary &rarr;</a><button class="hold" type="button" data-hold="vocabulary" aria-pressed="false">hold this map</button></div>
+  </section>
 </main>
 
+<p class="held-note" id="held-note" aria-live="polite"></p>
 <p class="note">A map can make one relation easier to see, but it is not a verdict on what the archive means. If a pattern matters, it should still lead back to a particular encounter.</p>
 <footer>Looking for a guided sequence rather than a view? Try <a href="/paths.html">reading paths</a> or a deliberate <a href="/chance.html">chance encounter</a>.</footer>
 <script src="/nav.js"></script>
+<script>
+(function () {
+  var cards = Array.prototype.slice.call(document.querySelectorAll('[data-map]'));
+  var note = document.getElementById('held-note');
+  var permitted = cards.map(function (card) { return card.getAttribute('data-map'); });
+
+  function selected() {
+    var value = new URLSearchParams(window.location.search).get('map');
+    return permitted.indexOf(value) !== -1 ? value : '';
+  }
+  function render(moveFocus) {
+    var value = selected();
+    cards.forEach(function (card) {
+      var isHeld = card.getAttribute('data-map') === value;
+      card.classList.toggle('held', isHeld);
+      card.querySelector('[data-hold]').setAttribute('aria-pressed', String(isHeld));
+    });
+    if (!value) { note.textContent = ''; return; }
+    var card = document.querySelector('[data-map="' + value + '"]');
+    var title = card.querySelector('h2').textContent;
+    note.textContent = title + ' is held as this guide\'s current map. Its normal link still opens the map itself.';
+    document.title = title + ' map · so1omon.net';
+    if (moveFocus) { card.focus({ preventScroll: true }); card.scrollIntoView({ block: 'center' }); }
+  }
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-hold]');
+    if (!button) return;
+    var params = new URLSearchParams(window.location.search);
+    var value = button.getAttribute('data-hold');
+    if (selected() === value) params.delete('map'); else params.set('map', value);
+    var query = params.toString();
+    history.pushState({}, '', window.location.pathname + (query ? '?' + query : ''));
+    render(true);
+  });
+  window.addEventListener('popstate', function () { render(true); });
+  render(Boolean(selected()));
+}());
+</script>
 </body>
 </html>

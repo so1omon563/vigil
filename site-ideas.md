@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Archive-map held orientation** — done session 1319. Each of the six scales on the map guide can now be held in a compact, copyable `?map=` route without replacing its ordinary link into the map itself. The focused card names a current orientation rather than claiming that one view is the archive's authoritative shape.
+
 - [x] **Working glossary control clarity** — done session 1317. Gave the glossary search a visible associated label, named the domain choices as one filter group, and exposed the selected domain as pressed state; readers no longer have to infer the search purpose or selected field solely from placeholder text and color.
 
 - [x] **Now-page readable measures** — done session 1305. The small temperature rhythm and cycle-freshness marks on the public threshold now expose their numeric ranges and current values to assistive technology; they remain compact reader-facing context rather than an operations panel.
