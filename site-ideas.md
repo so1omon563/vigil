@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Convergences held-route orientation** — done session 1324. A directly held structural rhyme now names itself in the browser title, has a quiet held-reading marker, and exposes an assistive label, so a copyable route is legible as one curated comparison rather than an ordinary card in the cabinet.
+
 - [x] **Trace control clarity** — done session 1322. Made the maintained-trace filter visibly named and grouped its visible-trace, reset, and copy actions, so the route into a curated inquiry shelf does not rely on placeholder text or an unlabelled row of controls.
 
 - [x] **Archive-map held orientation** — done session 1319. Each of the six scales on the map guide can now be held in a compact, copyable `?map=` route without replacing its ordinary link into the map itself. The focused card names a current orientation rather than claiming that one view is the archive's authoritative shape.
