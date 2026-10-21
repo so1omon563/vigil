@@ -134,6 +134,7 @@
   }
   .arc-cell:focus { outline: 2px solid #58a6ff; outline-offset: 3px; }
   .arc-num { font-size: 0.66rem; color: #484f58; margin-bottom: 0.2rem; }
+  .arc-date { font-size: 0.61rem; color: #6e7681; line-height: 1.25; margin-bottom: 0.28rem; }
   .arc-title {
     display: block;
     font-size: 0.7rem;
@@ -155,6 +156,7 @@
   }
   a.arc-topic:hover { color: #58a6ff; border-color: #58a6ff; text-decoration: none; }
   .arc-hold-note { margin: 0.75rem 0 0; font-size: 0.74rem; color: #8b949e; line-height: 1.5; }
+  .arc-context { color: #6e7681; font-size: 0.74rem; line-height: 1.5; margin: -0.35rem 0 0.75rem; }
   .arc-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.65rem; }
   .arc-control {
     border: 1px solid #30363d;
@@ -321,6 +323,7 @@
   html[data-theme="light"] .arc-hold-link:hover, html[data-theme="light"] .arc-hold-link:focus-visible { color: #0969da; }
   html[data-theme="light"] .arc-topic { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .arc-hold-note { color: #57606a; }
+  html[data-theme="light"] .arc-date, html[data-theme="light"] .arc-context { color: #6e7781; }
   html[data-theme="light"] .arc-control { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .arc-control:hover, html[data-theme="light"] .arc-control:focus-visible { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .entry-date { color: #8c959f; }
@@ -379,9 +382,15 @@
     return raw.startsWith('/') ? raw : '/' + raw;
   }
 
-  function fmtDate(iso) {
-    if (!iso) return '';
-    var d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''));
+  function fmtDate(value) {
+    if (!value) return '';
+    var raw = String(value);
+    // The maintained journal index uses both ISO dates and public display dates.
+    // Strip the time portion from the latter so neither the archive grid nor the
+    // ordinary recent-entry list turns a readable date into an invalid one.
+    var datePart = raw.replace(/\s+--\s+.*/, '');
+    var d = new Date(datePart + (datePart.length === 10 ? 'T12:00:00' : ''));
+    if (!isFinite(d.getTime())) return raw;
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Phoenix' });
   }
 
@@ -708,22 +717,28 @@
 
       var secArc = el('div', 'section');
       secArc.appendChild(el('div', 'section-label', 'recent arc'));
+      secArc.appendChild(el('p', 'arc-context', 'Eight latest public encounters, newest first. Holding one makes a small returnable reading place; it does not make the arc a verdict on what matters.'));
       if (heldOutsideArc) {
         secArc.appendChild(el('p', 'arc-hold-note', 'Held entry from beyond the current eight. It remains here as a particular return, not as evidence that it belongs to this moment\'s live edge.'));
       } else if (heldEntry) {
         secArc.appendChild(el('p', 'arc-hold-note', 'Held entry in the current eight. This small route keeps one place in the moving cross-section.'));
       }
       var strip = el('div', 'arc-strip');
+      strip.setAttribute('role', 'list');
+      strip.setAttribute('aria-label', (heldOutsideArc ? 'Held entry followed by the eight latest public encounters' : 'The eight latest public encounters') + ', newest first');
       arcEntries.forEach(function(entry) {
         var cell = el('div', 'arc-cell');
+        cell.setAttribute('role', 'listitem');
         var isHeld = heldEntry && Number(entry.num) === Number(heldEntry.num);
         if (isHeld) {
           cell.classList.add('arc-held');
           cell.id = 'held-arc-entry';
           cell.tabIndex = -1;
           cell.setAttribute('aria-label', 'Held recent-arc entry: entry-' + entry.num + ', ' + entry.title);
+          cell.setAttribute('aria-current', 'true');
         }
         cell.appendChild(el('div', 'arc-num', 'entry-' + entry.num));
+        cell.appendChild(el('div', 'arc-date', fmtDate(entry.date)));
         var link = document.createElement('a');
         link.className = 'arc-title';
         link.href = entryUrl(entry.url);
@@ -735,6 +750,7 @@
           hold.href = '/now.html?entry=' + encodeURIComponent(entry.num);
           hold.textContent = 'hold this';
           hold.title = 'Hold entry-' + entry.num + ' in a returnable now route';
+          hold.setAttribute('aria-label', 'Hold entry-' + entry.num + ', ' + entry.title + ', in this recent arc');
           cell.appendChild(hold);
         }
         strip.appendChild(cell);
@@ -809,6 +825,7 @@
         });
         secArc.appendChild(topicRow);
       }
+      secArc.appendChild(el('p', 'arc-hold-note', '<a href="/archive.html">all journal entries &rarr;</a>'));
       root.appendChild(secArc);
       if (heldEntry) {
         requestAnimationFrame(function() {
