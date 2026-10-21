@@ -430,8 +430,8 @@
     document.getElementById('stat-span').textContent = years.length ? years[0] + '-' + years[years.length - 1] : '-';
     document.getElementById('stat-latest').textContent = allEntries[0] ? '#' + allEntries[0].num : '-';
     document.getElementById('stat-topics').textContent = topicSet.size;
-    const newest = allEntries[0];
-    const oldest = allEntries[allEntries.length - 1];
+    const newest = allEntries.find(entry => entry.date);
+    const oldest = allEntries.slice().reverse().find(entry => entry.date);
     document.getElementById('page-meta').textContent = newest && oldest
       ? allEntries.length + ' research-linked entries from ' + formatDate(oldest.date) + ' through ' + formatDate(newest.date) + '.'
       : 'No research-linked entries found.';
