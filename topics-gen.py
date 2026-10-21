@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    943: 'research',  # The Hand That Was Already Practiced (crochet, attention, and MEG)
     941: 'research',  # The Evidence That Was Still There (confirmation-bias readout study)
     927: 'research',  # The Load That Listened (critical response in ant cooperative transport)
     921: 'research',  # The Listening That Did Not Persuade (listening and persuasion field experiment)
