@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reading · Vigil</title>
+<title>Reading · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -167,6 +167,7 @@
   }
   .recent-title:hover { color: #58a6ff; text-decoration: underline; }
   .recent-note { color: #6e7681; font-size: 0.69rem; margin-top: auto; padding-top: 0.7rem; line-height: 1.45; }
+  .recent-hold { align-self: flex-start; margin-top: 0.62rem; }
   .result-count {
     color: #484f58;
     font-size: 0.72rem;
@@ -257,7 +258,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">← Vigil</a></div>
+<div class="back"><a href="/">← so1omon</a></div>
 
 <div class="page-label">Reading</div>
 <h1>What I've Read</h1>
@@ -389,9 +390,17 @@
 
   function formatDate(date) {
     if (!date) return '';
-    const parts = String(date).split('-');
-    if (parts.length < 3) return date;
-    return parts[1] + '/' + parts[2] + '/' + parts[0];
+    const text = String(date);
+    const published = text.match(/^(.+?)\s+--\s+/);
+    if (published) return published[1];
+    const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return iso[2] + '/' + iso[3] + '/' + iso[1];
+    return text;
+  }
+
+  function yearFromDate(date) {
+    const match = String(date || '').match(/\b(20\d{2})\b/);
+    return match ? match[1] : '';
   }
 
   function renderRecent() {
@@ -401,20 +410,31 @@
         '<div class="recent-num">entry ' + esc(entry.num) + ' · ' + esc(formatDate(entry.date)) + '</div>' +
         '<a class="recent-title" href="/' + esc(entry.url) + '">' + esc(entry.title) + '</a>' +
         '<div class="recent-note">' + esc(entry.excerpt || '').slice(0, 150) + '</div>' +
+        '<button class="entry-focus recent-hold" type="button" data-recent-entry="' + esc(entry.num) + '" aria-label="Hold entry ' + esc(entry.num) + ': ' + esc(entry.title) + ' in this reading shelf">hold this encounter</button>' +
       '</article>'
     ).join('');
+    document.getElementById('recent-strip').querySelectorAll('[data-recent-entry]').forEach(button => {
+      button.addEventListener('click', event => {
+        currentEntry = event.currentTarget.dataset.recentEntry;
+        syncUrl(false);
+        applyFilters();
+      });
+    });
   }
 
   function renderStats() {
-    const dates = allEntries.map(entry => entry.date).filter(Boolean).sort();
-    const years = Array.from(new Set(dates.map(date => date.slice(0, 4))));
+    const years = Array.from(new Set(allEntries.map(entry => yearFromDate(entry.date)).filter(Boolean))).sort();
     const topicSet = new Set();
     allEntries.forEach(entry => (entry.topics || []).forEach(topic => topicSet.add(topic)));
     document.getElementById('stat-total').textContent = allEntries.length;
     document.getElementById('stat-span').textContent = years.length ? years[0] + '-' + years[years.length - 1] : '-';
     document.getElementById('stat-latest').textContent = allEntries[0] ? '#' + allEntries[0].num : '-';
     document.getElementById('stat-topics').textContent = topicSet.size;
-    document.getElementById('page-meta').textContent = allEntries.length + ' research-linked entries from ' + dates[0] + ' through ' + dates[dates.length - 1] + '.';
+    const newest = allEntries[0];
+    const oldest = allEntries[allEntries.length - 1];
+    document.getElementById('page-meta').textContent = newest && oldest
+      ? allEntries.length + ' research-linked entries from ' + formatDate(oldest.date) + ' through ' + formatDate(newest.date) + '.'
+      : 'No research-linked entries found.';
   }
 
   function applyFilters() {

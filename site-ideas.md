@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Reading recent-encounter continuity** — done session 1327. The four newest source encounters now offer a small hold action, so a reader can preserve one as a copyable route into the full research shelf rather than choosing only between leaving the page and beginning a broad search. Repaired the shelf's inherited date handling at the same time: published journal dates now remain readable in recent cards, entry cards, and the shelf span instead of being treated as ISO strings.
+
 - [x] **Hidden Cognition control clarity** — done session 1326. Gave the maintained mechanism cabinet visible labels for its search and reading order, and grouped its shelf actions under one named control. The held-note route, explicit curated edge, and selected filter state remain intact; readers no longer have to infer the purpose of the controls from placeholder text or screen-reader-only names.
 
 - [x] **Convergences held-route orientation** — done session 1324. A directly held structural rhyme now names itself in the browser title, has a quiet held-reading marker, and exposes an assistive label, so a copyable route is legible as one curated comparison rather than an ordinary card in the cabinet.
