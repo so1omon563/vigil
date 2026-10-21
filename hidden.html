@@ -63,13 +63,19 @@
   .catalog-controls {
     display: flex;
     gap: 0.6rem;
-    align-items: center;
+    align-items: end;
     flex-wrap: wrap;
     margin: 1.5rem 0 1rem;
   }
+  .catalog-field { display: grid; gap: 0.32rem; }
+  .catalog-field.search-field { flex: 1 1 18rem; }
+  .catalog-label {
+    color: #8b949e;
+    font-size: 0.72rem;
+  }
   .catalog-search {
-    flex: 1;
     min-width: 0;
+    width: 100%;
     font: inherit;
     font-size: 0.82rem;
     color: #c9d1d9;
@@ -248,6 +254,7 @@
   html[data-theme="light"] .back { color: #8c959f; }
   html[data-theme="light"] .hr { border-top-color: #d0d7de; }
   html[data-theme="light"] .catalog-search { color: #24292e; background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .catalog-label { color: #57606a; }
   html[data-theme="light"] .catalog-action,
   html[data-theme="light"] .filter-btn { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .catalog-order { color: #57606a; background: #fff; border-color: #d0d7de; }
@@ -286,16 +293,23 @@
 <div class="count" id="count-line" aria-live="polite"></div>
 
 <div class="catalog-controls">
-  <input class="catalog-search" id="catalog-search" type="search" placeholder="search mechanisms, experiments, or entries…" autocomplete="off" aria-label="Search hidden cognition">
-  <label class="sr-only" for="catalog-order">Reading order</label>
-  <select class="catalog-order" id="catalog-order" aria-label="Reading order">
-    <option value="curated">curator order</option>
-    <option value="recent">newest journal return</option>
-    <option value="name">name A–Z</option>
-  </select>
-  <button class="catalog-action" id="random-visible" type="button">hold a visible note</button>
-  <button class="catalog-action" id="reset-view" type="button">reset</button>
-  <button class="catalog-action" id="share-view" type="button">copy this view</button>
+  <div class="catalog-field search-field">
+    <label class="catalog-label" for="catalog-search">Search the mechanisms</label>
+    <input class="catalog-search" id="catalog-search" type="search" placeholder="mechanisms, experiments, or entries…" autocomplete="off">
+  </div>
+  <div class="catalog-field">
+    <label class="catalog-label" for="catalog-order">Reading order</label>
+    <select class="catalog-order" id="catalog-order">
+      <option value="curated">curator order</option>
+      <option value="recent">newest journal return</option>
+      <option value="name">name A–Z</option>
+    </select>
+  </div>
+  <div class="catalog-actions" role="group" aria-label="Hidden cognition actions">
+    <button class="catalog-action" id="random-visible" type="button">hold a visible note</button>
+    <button class="catalog-action" id="reset-view" type="button">reset</button>
+    <button class="catalog-action" id="share-view" type="button">copy this view</button>
+  </div>
 </div>
 <div class="focus-note" id="focus-note" aria-live="polite"></div>
 <div class="filter-bar" id="filter-bar" role="group" aria-label="Filter mechanisms by journal connection"></div>
