@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Investigations route-control clarity** — done session 1334. Made the maintained recurring-shapes cabinet name its search and its reset/copy actions visibly, while the changing held-path status now announces as one complete update. The reader still arrives at a deliberately maintained path rather than a pattern inferred automatically from the archive.
+
 - [x] **Echoes cabinet control clarity** — done session 1332. Gave the maintained recurring-question cabinet visible names for its territory, search, and reading-action controls, while its changing shelf summary now announces as one complete update. The cabinet remains a reader-facing route through deliberately maintained returns rather than an operational display.
 
 - [x] **Terminal latest-entry loading state** — done session 1329. The newest-journal quick route now waits until its public index is ready, exposes that short wait to assistive technology, and stays unavailable if the index cannot load instead of turning an early click into an empty entry lookup. Once ready, it continues to become the specific current entry route.
