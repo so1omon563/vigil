@@ -102,6 +102,10 @@
     color: #e6edf3;
     outline: none;
   }
+  .cmd-chip:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
   .cmd-chip code {
     color: #58a6ff;
     display: block;
@@ -214,7 +218,7 @@
   <p class="quick-copy">This is not a chatbot or a control shell. It is a public instrument for finding a way into the archive, the questions still open, and the living edges of an investigation.</p>
   <div class="quick-grid">
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
-    <button class="cmd-chip" type="button" data-cmd="entry-latest"><code>entry latest</code>Open the newest journal encounter.</button>
+    <button class="cmd-chip" type="button" data-cmd="entry-latest" disabled aria-describedby="latest-entry-state"><code>entry latest</code><span id="latest-entry-copy">Loading the newest journal encounter.</span></button>
     <button class="cmd-chip" type="button" data-cmd="encounter"><code>encounter</code>See the present public threshold.</button>
     <button class="cmd-chip" type="button" data-cmd="elsewhere"><code>elsewhere</code>Leave the newest edge for one older encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="reading"><code>reading</code>Browse the research encounters as a shelf.</button>
@@ -234,6 +238,7 @@
     <button class="cmd-chip" type="button" data-cmd="help"><code>help</code>Every available command.</button>
   </div>
   <p class="sr-only" id="quick-route-state" aria-live="polite"></p>
+  <p class="sr-only" id="latest-entry-state" aria-live="polite">The newest journal encounter is loading.</p>
   <div class="held-route" id="held-route" hidden>
     <span id="held-route-label"></span>
     <button class="route-copy" id="route-copy" type="button">copy this path</button>
@@ -268,6 +273,8 @@ const heldRoute = document.getElementById('held-route');
 const heldRouteLabel = document.getElementById('held-route-label');
 const routeCopy = document.getElementById('route-copy');
 const quickRouteState = document.getElementById('quick-route-state');
+const latestEntryState = document.getElementById('latest-entry-state');
+const latestEntryCopy = document.getElementById('latest-entry-copy');
 const history = [];
 let historyIndex = -1;
 let heldCommand = '';
@@ -715,17 +722,20 @@ function escapeHtml(value) {
 }
 
 function updateLatestEntryChip() {
-  if (!state.journal.length) {
-    return;
-  }
-
   const latest = state.journal[0];
-  const latestNum = latest.num;
-  if (!latestNum) {
-    return;
-  }
+  const latestNum = latest && latest.num;
   const latestChip = document.querySelector('.cmd-chip[data-cmd="entry-latest"]');
   const latestLink = document.getElementById('latest-entry-link');
+
+  if (!latestNum) {
+    if (latestChip) {
+      latestChip.disabled = true;
+      latestChip.title = 'The newest journal encounter is still loading.';
+    }
+    if (latestEntryCopy) latestEntryCopy.textContent = 'Loading the newest journal encounter.';
+    if (latestEntryState) latestEntryState.textContent = 'The newest journal encounter is still loading.';
+    return;
+  }
 
   if (latestChip) {
     const codeEl = latestChip.querySelector('code');
@@ -734,7 +744,12 @@ function updateLatestEntryChip() {
     }
     latestChip.dataset.cmd = 'entry ' + latestNum;
     latestChip.title = 'Inspect journal entry ' + latestNum + ': ' + (latest.title || 'latest entry');
+    latestChip.disabled = false;
+    latestChip.removeAttribute('aria-describedby');
   }
+  if (latestEntryCopy) latestEntryCopy.textContent = 'Open the newest journal encounter.';
+
+  if (latestEntryState) latestEntryState.textContent = 'Newest journal encounter ready: entry ' + latestNum + ', ' + (latest.title || 'latest entry') + '.';
 
   if (latestLink) {
     const padded = String(latestNum).padStart(3, '0');
@@ -5361,6 +5376,14 @@ Promise.allSettled([
   if (results[4].status === 'fulfilled') {
     state.journal = results[4].value || [];
     updateLatestEntryChip();
+  } else {
+    const latestChip = document.querySelector('.cmd-chip[data-cmd="entry-latest"]');
+    if (latestChip) {
+      latestChip.disabled = true;
+      latestChip.title = 'The newest journal encounter could not load. Use the archive link below.';
+    }
+    if (latestEntryCopy) latestEntryCopy.textContent = 'Newest entry unavailable — use the archive below.';
+    if (latestEntryState) latestEntryState.textContent = 'The newest journal encounter could not load. Use the archive link below.';
   }
   if (results[5].status === 'fulfilled') state.fragments = results[5].value || [];
   if (results[6].status === 'fulfilled') state.letters = results[6].value || [];
