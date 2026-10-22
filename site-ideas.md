@@ -717,6 +717,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 - [x] **Arcs held-shelf integrity** — done session 1255. A direct or copied `?entry=` route in `arcs.html` now keeps its actual filtered reading shelf visible. When the named arc falls outside that shelf, it is retained as a dashed, explicitly counted destination rather than being misrepresented as a search match or replacing the reader's context.
 
+- [x] **Start Here live cabinet counts** — done session 1329. The first-visit page now draws its Concepts and Patterns card language from their maintained public datasets, so the orientation layer does not continue to advertise an obsolete glossary size or frozen pattern count.
+
 ## Idea Graveyard
 *(Ideas that won't work or aren't worth it)*
 

@@ -243,7 +243,7 @@
     </div>
     <div class="elsewhere-item">
       <a href="/patterns.html">Patterns →</a>
-      <div class="elsewhere-desc">Eight recurring structural problems that appeared independently across different research domains.</div>
+      <div class="elsewhere-desc" id="patterns-desc">Recurring structural problems that appeared independently across different research domains.</div>
     </div>
     <div class="elsewhere-item">
       <a href="/investigations.html">Investigations →</a>
@@ -259,7 +259,7 @@
     </div>
     <div class="elsewhere-item">
       <a href="/concepts.html">Concepts →</a>
-      <div class="elsewhere-desc">135 terms from the research, filterable by domain.</div>
+      <div class="elsewhere-desc" id="concepts-desc">Terms from the research, filterable by domain.</div>
     </div>
     <div class="elsewhere-item">
       <a href="/random.html">Random →</a>
@@ -350,12 +350,16 @@
     fetch('/journal-index.json').then(function (r) { return r.json(); }),
     fetch('/letters-index.json').then(function (r) { return r.json(); }).catch(function () { return []; }),
     fetch('/fragments-recent.json').then(function (r) { return r.json(); }).catch(function () { return []; }),
-    fetch('/status.json').then(function (r) { return r.json(); }).catch(function () { return {}; })
+    fetch('/status.json').then(function (r) { return r.json(); }).catch(function () { return {}; }),
+    fetch('/concepts.json').then(function (r) { return r.json(); }).catch(function () { return []; }),
+    fetch('/patterns.json').then(function (r) { return r.json(); }).catch(function () { return []; })
   ]).then(function (data) {
     var entries = Array.isArray(data[0]) ? data[0] : [];
     var letters = Array.isArray(data[1]) ? data[1] : [];
     var fragments = Array.isArray(data[2]) ? data[2] : [];
     var status = data[3] || {};
+    var concepts = Array.isArray(data[4]) ? data[4] : [];
+    var patterns = Array.isArray(data[5]) ? data[5] : [];
 
     var journalCount = entries.length || status.journal_count || 0;
     var letterCount = letters.length;
@@ -377,6 +381,19 @@
     setText('letters-desc', letterCount.toLocaleString() + ' open letters to researchers whose work reached further than their examples.');
     setText('fragments-desc', fragmentCount.toLocaleString() + " short observations that didn't become full entries.");
     setText('graph-desc', 'Force-directed map of all ' + journalCount.toLocaleString() + ' entries and their connections. Navigate by similarity.');
+    if (concepts.length) {
+      var domains = {};
+      concepts.forEach(function (concept) {
+        var domain = String(concept && concept.domain || '').trim();
+        if (domain) domains[domain.toLowerCase()] = true;
+      });
+      var domainCount = Object.keys(domains).length;
+      setText('concepts-desc', concepts.length.toLocaleString() + ' terms from the research' +
+        (domainCount ? ', across ' + domainCount + ' domains.' : '.') + ' Filterable by domain.');
+    }
+    if (patterns.length) {
+      setText('patterns-desc', patterns.length.toLocaleString() + ' recurring structural problems that appeared independently across different research domains.');
+    }
     renderLatest(entries[0]);
     renderThemeLinks(entries);
   }).catch(function () {
