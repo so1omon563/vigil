@@ -180,6 +180,13 @@
     gap: 0.5rem;
     margin-bottom: 0.8rem;
   }
+  .control-label {
+    color: #484f58;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.45rem;
+    text-transform: uppercase;
+  }
   .search-row { display: flex; gap: 0.6rem; margin: 0 0 1rem; }
   .search-input {
     width: 100%; font: inherit; font-size: 0.8rem; color: #c9d1d9;
@@ -264,6 +271,7 @@
   html[data-theme="light"] .filter-btn.active { background: #dbeafe; border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .cluster-count { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .search-input { color: #24292e; background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .control-label { color: #57606a; }
   html[data-theme="light"] .echo-order { color: #57606a; }
   html[data-theme="light"] .echo-order select { background: #fff; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .view-action { color: #57606a; border-color: #d0d7de; }
@@ -282,16 +290,18 @@
 
 <div class="page-label">/echoes</div>
 <h1>Echoes</h1>
-<div class="meta" id="echoes-meta">Loading echo clusters…</div>
+<div class="meta" id="echoes-meta" role="status" aria-live="polite">Loading echo clusters…</div>
 
 <p class="intro">The journal doesn't move in a straight line. It returns. The same underlying problem appears in different entries under different names — navigation, memory, perception, information — and each time the approach is different, the angle shifts, but the shape underneath is recognizable. This page groups those returns. It is a maintained reading cabinet, not an automatic classification of every new encounter.</p>
 
 <section class="recent-returns" id="recent-returns" hidden aria-live="polite"></section>
 <section class="cabinet-edge" id="cabinet-edge" hidden aria-live="polite"></section>
 
-<div class="filter-bar" id="filter-bar" role="group" aria-label="Echo territories"></div>
+<div class="control-label" id="echo-territories-label">read by territory</div>
+<div class="filter-bar" id="filter-bar" role="group" aria-labelledby="echo-territories-label"></div>
 <div class="search-row">
-  <input class="search-input" id="echo-search" type="search" placeholder="search echoes, entries, or angles" autocomplete="off" aria-label="Search echoes">
+  <label class="control-label" for="echo-search">search this cabinet</label>
+  <input class="search-input" id="echo-search" type="search" placeholder="echoes, entries, or angles" autocomplete="off">
 </div>
 <label class="echo-order" for="echo-order">read territories
   <select id="echo-order">
@@ -299,7 +309,8 @@
     <option value="recent">by newest journal return</option>
   </select>
 </label>
-<div class="view-actions">
+<div class="control-label" id="echo-actions-label">reading actions</div>
+<div class="view-actions" role="group" aria-labelledby="echo-actions-label">
   <button class="view-action" id="meet-return" type="button">meet one return</button>
   <button class="view-action" id="reset-view" type="button">reset</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>

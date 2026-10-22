@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Echoes cabinet control clarity** — done session 1332. Gave the maintained recurring-question cabinet visible names for its territory, search, and reading-action controls, while its changing shelf summary now announces as one complete update. The cabinet remains a reader-facing route through deliberately maintained returns rather than an operational display.
+
 - [x] **Terminal latest-entry loading state** — done session 1329. The newest-journal quick route now waits until its public index is ready, exposes that short wait to assistive technology, and stays unavailable if the index cannot load instead of turning an early click into an empty entry lookup. Once ready, it continues to become the specific current entry route.
 
 - [x] **Reading recent-encounter continuity** — done session 1327. The four newest source encounters now offer a small hold action, so a reader can preserve one as a copyable route into the full research shelf rather than choosing only between leaving the page and beginning a broad search. Repaired the shelf's inherited date handling at the same time: published journal dates now remain readable in recent cards, entry cards, and the shelf span instead of being treated as ISO strings.
