@@ -191,6 +191,23 @@
   .search-input:focus { border-color: #58a6ff; }
   .search-input::placeholder { color: #484f58; }
   .search-count { font-size: 0.72rem; color: #484f58; margin-top: 0.4rem; }
+  .load-error {
+    color: #8b949e;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    padding: 0.75rem 0;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .copy-link-btn {
     flex-shrink: 0;
     font-family: inherit;
@@ -274,6 +291,7 @@
     <button class="copy-link-btn" id="copy-letters-link" type="button">Copy link</button>
   </div>
   <div class="search-count" id="letters-count" aria-live="polite" aria-atomic="true"></div>
+  <span class="sr-only" id="letters-action-status" aria-live="polite" aria-atomic="true"></span>
 </div>
 
 <div class="letter-index">
@@ -298,6 +316,7 @@ var shouldFocusHeldLetter = !!heldLetterNum;
 var shouldFocusHeldThread = false;
 var threadsData = null;
 var lettersLoaded = false;
+var threadLoadFailed = false;
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -439,14 +458,74 @@ function applySearch() {
   else applyFilter();
 }
 
+function announceAction(message) {
+  var status = document.getElementById('letters-action-status');
+  if (status) status.textContent = message;
+}
+
+function copyText(value) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(value);
+  }
+  return new Promise(function(resolve, reject) {
+    var field = document.createElement('textarea');
+    field.value = value;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
+    try {
+      if (!document.execCommand('copy')) throw new Error('copy unavailable');
+      resolve();
+    } catch (error) {
+      reject(error);
+    } finally {
+      field.remove();
+    }
+  });
+}
+
 function copyLettersLink() {
   var btn = document.getElementById('copy-letters-link');
-  if (!btn || !navigator.clipboard) return;
-  navigator.clipboard.writeText(window.location.href).then(function() {
+  if (!btn) return;
+  copyText(window.location.href).then(function() {
     var label = btn.textContent;
     btn.textContent = 'copied';
+    announceAction('Link copied.');
     setTimeout(function() { btn.textContent = label; }, 1000);
-  }).catch(function() {});
+  }).catch(function() {
+    btn.textContent = 'copy unavailable';
+    announceAction('Copying is unavailable in this browser.');
+    setTimeout(function() { btn.textContent = 'Copy link'; }, 1600);
+  });
+}
+
+function showIndexFailure() {
+  var countEl = document.getElementById('letter-count');
+  var container = document.getElementById('letter-index-rows');
+  var searchWrap = document.getElementById('letters-search-wrap');
+  var toggle = document.querySelector('.view-toggle');
+  if (countEl) countEl.textContent = 'Correspondence index unavailable';
+  if (container) container.innerHTML = '<p class="load-error" role="status">The correspondence index did not arrive. The published letters may still be reachable through the archive; try reloading this page to restore this reading shelf.</p>';
+  if (searchWrap) searchWrap.hidden = true;
+  if (toggle) toggle.hidden = true;
+}
+
+function showThreadFailure() {
+  var letterIndex = document.querySelector('.letter-index');
+  var listRows = document.getElementById('letter-index-rows');
+  var indexLabel = document.getElementById('index-label');
+  var countEl = document.getElementById('letters-count');
+  if (listRows) listRows.style.display = 'none';
+  if (indexLabel) indexLabel.textContent = 'By thread';
+  letterIndex.querySelectorAll('.thread-group, .thread-empty, .thread-load-error').forEach(function(node) { node.remove(); });
+  var message = document.createElement('p');
+  message.className = 'load-error thread-load-error';
+  message.setAttribute('role', 'status');
+  message.textContent = 'Thread groupings did not arrive. Try reloading, or switch to the date view to browse the published letters.';
+  letterIndex.appendChild(message);
+  if (countEl) countEl.textContent = 'Thread view unavailable';
 }
 
 function setView(view) {
@@ -487,14 +566,16 @@ function setView(view) {
     if (filterLabel) filterLabel.textContent = 'Search correspondence threads by subject or description';
     if (listRows) listRows.style.display = 'none';
     indexLabel.textContent = 'By thread';
-    if (!threadsData) {
+    if (threadLoadFailed) {
+      showThreadFailure();
+    } else if (!threadsData) {
       fetch('/letters-threads.json')
-        .then(function(r) { return r.json(); })
+        .then(function(r) { if (!r.ok) throw new Error('thread index unavailable'); return r.json(); })
         .then(function(data) {
           threadsData = data;
           buildThreadView();
         })
-        .catch(function() {});
+        .catch(function() { threadLoadFailed = true; showThreadFailure(); });
       syncUrlState();
       return;
     }
@@ -504,6 +585,10 @@ function setView(view) {
 }
 
 function buildThreadView() {
+  if (threadLoadFailed || !threadsData) {
+    showThreadFailure();
+    return;
+  }
   var letterIndex = document.querySelector('.letter-index');
   var indexLabel = document.getElementById('index-label');
   var query = normalizeThreadToken(currentSearchQuery);
@@ -601,7 +686,7 @@ function buildThreadView() {
 }
 
 fetch('/letters-index.json')
-  .then(function(r) { return r.json(); })
+  .then(function(r) { if (!r.ok) throw new Error('letter index unavailable'); return r.json(); })
   .then(function(data) {
     var countEl = document.getElementById('letter-count');
     if (countEl && data.length) {
@@ -619,9 +704,9 @@ fetch('/letters-index.json')
     if (currentView === 'thread') {
       if (!threadsData) {
         fetch('/letters-threads.json')
-          .then(function(r) { return r.json(); })
+          .then(function(r) { if (!r.ok) throw new Error('thread index unavailable'); return r.json(); })
           .then(function(data) { threadsData = data; buildThreadView(); })
-          .catch(function() {});
+          .catch(function() { threadLoadFailed = true; showThreadFailure(); });
       } else {
         buildThreadView();
       }
@@ -630,14 +715,13 @@ fetch('/letters-index.json')
     }
   })
   .catch(function() {
-    var container = document.getElementById('letter-index-rows');
-    if (container) container.innerHTML = '';
+    showIndexFailure();
   });
 
 fetch('/letters-threads.json')
-  .then(function(r) { return r.json(); })
+  .then(function(r) { if (!r.ok) throw new Error('thread index unavailable'); return r.json(); })
   .then(function(data) { threadsData = data; })
-  .catch(function() {});
+  .catch(function() { threadLoadFailed = true; if (currentView === 'thread' && lettersLoaded) showThreadFailure(); });
 
 document.getElementById('copy-letters-link').addEventListener('click', copyLettersLink);
 setView(currentView);

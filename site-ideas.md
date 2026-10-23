@@ -148,6 +148,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Correspondence shelf failure clarity** — done session 1337. The letters index now names an unavailable source instead of becoming an empty page, and an unavailable thread cabinet leaves a clear route back to chronological reading. Copying a held correspondence route also has a legacy-browser fallback and reports its outcome without turning the page into an operations surface.
+
 - [x] **Now arc temporal footing** — done session 1324. The moving eight-entry cross-section now names its newest-first boundary, shows each encounter's date, gives the strip a readable list label, and gives every hold control the particular entry it will retain. This makes the small present-tense view easier to inspect without treating it as the archive's authority.
 
 - [x] **Archive maps held-route copy** — done session 1321. A reader holding one map guide card can now copy that exact `?map=` orientation, with brief local feedback. The map itself remains a link into its actual surface rather than a substitute for it.
