@@ -65,6 +65,7 @@
     display: flex;
     gap: 0.6rem;
     align-items: center;
+    flex-wrap: wrap;
     margin-bottom: 1rem;
   }
   .search-label {
@@ -96,6 +97,12 @@
     white-space: nowrap;
   }
   .gap-action:hover { color: #58a6ff; border-color: #58a6ff; }
+  .gap-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
   .filter-btn {
     font-family: inherit;
     font-size: 0.72rem;
@@ -291,9 +298,12 @@
 <div class="search-row">
   <label class="search-label" for="gap-search">Search this cabinet</label>
   <input class="gap-search" id="gap-search" type="search" placeholder="questions, mechanisms, entries…" autocomplete="off">
-  <button class="gap-action" id="hold-visible" type="button">hold a visible question</button>
-  <button class="gap-action" id="reset-view" type="button">reset</button>
-  <button class="gap-action" id="share-view" type="button">copy this view</button>
+  <div class="gap-actions" role="group" aria-label="Open Questions reading actions">
+    <button class="gap-action" id="hold-visible" type="button">hold a visible question</button>
+    <button class="gap-action" id="reset-view" type="button">reset</button>
+    <button class="gap-action" id="share-view" type="button">copy this view</button>
+  </div>
+  <span class="sr-only" id="gap-action-status" aria-live="polite" aria-atomic="true"></span>
 </div>
 
 <div class="filter-bar" id="filter-bar" role="group" aria-label="Filter open questions by kind">
@@ -351,6 +361,32 @@ function syncUrl(replace) {
   if (validGapId(currentGapId)) url.searchParams.set('gap', currentGapId);
   else url.searchParams.delete('gap');
   window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+}
+
+function announceAction(message) {
+  const status = document.getElementById('gap-action-status');
+  if (status) status.textContent = message;
+}
+
+function copyCurrentUrl() {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(window.location.href).then(() => true).catch(() => fallbackCopyCurrentUrl());
+  }
+  return Promise.resolve(fallbackCopyCurrentUrl());
+}
+
+function fallbackCopyCurrentUrl() {
+  const field = document.createElement('textarea');
+  field.value = window.location.href;
+  field.setAttribute('readonly', '');
+  field.style.position = 'fixed';
+  field.style.opacity = '0';
+  document.body.appendChild(field);
+  field.select();
+  let copied = false;
+  try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
+  field.remove();
+  return copied;
 }
 
 function renderFilters() {
@@ -550,6 +586,7 @@ document.getElementById('hold-visible').addEventListener('click', event => {
   const candidates = filteredGaps();
   if (!candidates.length) {
     event.currentTarget.textContent = 'no visible questions';
+    announceAction('No visible questions are available to hold in this shelf.');
     window.setTimeout(() => { event.currentTarget.textContent = 'hold a visible question'; }, 1400);
     return;
   }
@@ -559,6 +596,7 @@ document.getElementById('hold-visible').addEventListener('click', event => {
   landOnFocusedGap = true;
   syncUrl(false);
   render();
+  announceAction('One visible open question is held in this reading route.');
 });
 
 document.getElementById('reset-view').addEventListener('click', () => {
@@ -577,11 +615,13 @@ document.getElementById('show-all').addEventListener('click', () => {
 });
 
 document.getElementById('share-view').addEventListener('click', async event => {
-  try {
-    await navigator.clipboard.writeText(window.location.href);
+  const copied = await copyCurrentUrl();
+  if (copied) {
     event.currentTarget.textContent = 'copied';
-  } catch (_) {
+    announceAction('The current Open Questions reading route was copied.');
+  } else {
     event.currentTarget.textContent = 'copy unavailable';
+    announceAction('This browser could not copy the current reading route.');
   }
   window.setTimeout(() => { event.currentTarget.textContent = 'copy this view'; }, 1400);
 });

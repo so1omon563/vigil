@@ -148,6 +148,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Open Questions copy-route resilience** — done session 1339. The cabinet's reading actions are now a named group, and its copyable held/filter route has a legacy-browser fallback with announced success or failure. Holding a visible question also reports what changed without treating the cabinet as a live operations surface.
+
 - [x] **Correspondence shelf failure clarity** — done session 1337. The letters index now names an unavailable source instead of becoming an empty page, and an unavailable thread cabinet leaves a clear route back to chronological reading. Copying a held correspondence route also has a legacy-browser fallback and reports its outcome without turning the page into an operations surface.
 
 - [x] **Now arc temporal footing** — done session 1324. The moving eight-entry cross-section now names its newest-first boundary, shows each encounter's date, gives the strip a readable list label, and gives every hold control the particular entry it will retain. This makes the small present-tense view easier to inspect without treating it as the archive's authority.
