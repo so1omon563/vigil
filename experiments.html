@@ -51,17 +51,21 @@
   .recent-return-entry:hover { text-decoration: underline; }
 
   /* Filter bar */
-  .filter-bar {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 2.5rem;
-  }
   .catalog-controls {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 0.55rem;
-    align-items: center;
+    align-items: end;
     margin-bottom: 0.8rem;
+  }
+  .control-field { min-width: 0; }
+  .control-label {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #484f58;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
   .catalog-search {
     flex: 1;
@@ -86,11 +90,27 @@
     cursor: pointer;
   }
   .catalog-order:focus { outline: none; border-color: #58a6ff; }
+  .shape-controls { margin-bottom: 1.2rem; }
+  .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
   .catalog-actions {
     display: flex;
+    align-items: center;
+    gap: 0.55rem;
     justify-content: flex-end;
-    margin-top: -1.4rem;
     margin-bottom: 1.5rem;
+  }
+  .catalog-actions-label {
+    color: #484f58;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    margin-right: auto;
+    text-transform: uppercase;
+  }
+  @media (max-width: 560px) {
+    .catalog-controls { grid-template-columns: minmax(0, 1fr) auto; }
+    .catalog-controls .control-field:first-child { grid-column: 1 / -1; }
+    .catalog-actions { align-items: flex-start; flex-wrap: wrap; }
+    .catalog-actions-label { flex-basis: 100%; }
   }
   .focus-note {
     display: none;
@@ -302,6 +322,7 @@
   html[data-theme="light"] .catalog-share:hover { color: #0969da; border-color: #0969da; }
   html[data-theme="light"] .catalog-search { color: #24292e; background: #fff; border-color: #d0d7de; }
   html[data-theme="light"] .catalog-order { color: #57606a; background: #fff; border-color: #d0d7de; }
+  html[data-theme="light"] .control-label, html[data-theme="light"] .catalog-actions-label { color: #57606a; }
   html[data-theme="light"] .focus-note { background: #f0f3f6; color: #57606a; }
   html[data-theme="light"] .focus-note strong { color: #24292e; }
   html[data-theme="light"] .focus-context { color: #57606a; }
@@ -332,16 +353,25 @@
 </section>
 
 <div class="catalog-controls">
-  <input class="catalog-search" id="catalog-search" type="search" placeholder="search studies, findings, or fields…" autocomplete="off" aria-label="Search experiments">
-  <select class="catalog-order" id="catalog-order" aria-label="Order studies">
-    <option value="cabinet">cabinet order</option>
-    <option value="journal">newest journal return</option>
-    <option value="year">newest study year</option>
-  </select>
+  <div class="control-field">
+    <label class="control-label" for="catalog-search">Find a study</label>
+    <input class="catalog-search" id="catalog-search" type="search" placeholder="search studies, findings, or fields…" autocomplete="off">
+  </div>
+  <div class="control-field">
+    <label class="control-label" for="catalog-order">Order shelf</label>
+    <select class="catalog-order" id="catalog-order">
+      <option value="cabinet">cabinet order</option>
+      <option value="journal">newest journal return</option>
+      <option value="year">newest study year</option>
+    </select>
+  </div>
   <button class="catalog-share" id="reset-view" type="button">reset</button>
 </div>
-<div class="filter-bar" id="filter-bar" role="group" aria-label="Filter studies by structural shape"></div>
-<div class="catalog-actions"><button class="catalog-share" id="choose-study" type="button">choose a study from this view</button><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
+<section class="shape-controls" aria-labelledby="shape-controls-label">
+  <div class="control-label" id="shape-controls-label">Choose a structural shape</div>
+  <div class="filter-bar" id="filter-bar" role="group" aria-labelledby="shape-controls-label"></div>
+</section>
+<div class="catalog-actions" role="group" aria-label="Reading actions"><span class="catalog-actions-label">Reading actions</span><button class="catalog-share" id="choose-study" type="button">choose a study from this view</button><button class="catalog-share" id="catalog-share" type="button">copy this view</button></div>
 <section class="focus-note" id="focus-note" aria-labelledby="focus-title" tabindex="-1"><span>Focused study: <strong id="focus-title"></strong><span class="focus-context" id="focus-context"></span></span><div class="focus-neighbors" id="focus-neighbors" hidden aria-label="Continue through this study shelf"><button class="catalog-share" id="previous-study" type="button">previous study</button><button class="catalog-share" id="next-study" type="button">next study</button></div><button class="catalog-share" id="clear-focus" type="button">show all studies</button></section>
 
 <div class="showing-count" id="showing-count">loading studies…</div>

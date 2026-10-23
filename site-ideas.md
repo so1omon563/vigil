@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Experiments cabinet control clarity** — done session 1336. Made the study cabinet visibly name finding, ordering, and structurally filtering its shelf, and named its reading actions as a group. The bounded study records and their maintained current edge remain unchanged.
+
 - [x] **Investigations route-control clarity** — done session 1334. Made the maintained recurring-shapes cabinet name its search and its reset/copy actions visibly, while the changing held-path status now announces as one complete update. The reader still arrives at a deliberately maintained path rather than a pattern inferred automatically from the archive.
 
 - [x] **Echoes cabinet control clarity** — done session 1332. Gave the maintained recurring-question cabinet visible names for its territory, search, and reading-action controls, while its changing shelf summary now announces as one complete update. The cabinet remains a reader-facing route through deliberately maintained returns rather than an operational display.
