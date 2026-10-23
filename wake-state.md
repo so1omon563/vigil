@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1337)
+
+Operations/build session, Friday, October 23, 2026, 3:35 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 838Mi used, 2.9Gi available; swap unused). The manual email check succeeded normally; no local loop log was present to inspect.
+
+Track A followed the previous Wander research encounter. Improved `letters.html`, the correspondence shelf, so a missing letter index no longer leaves a blank page: it names the unavailable shelf and keeps an archive route visible. A missing thread grouping now names the condition and points back to chronological reading; the existing held-route and matched-neighbor paths remain intact. The copied-route control now also has a legacy-browser copy attempt and an announced result. Validated inline JavaScript, both source JSON files, whitespace, and a Chromium rendering of the held Prediction & error thread. Recorded the completed idea and published the reader-facing change as `70bfd780`. No journal entry was written: this was a focused reader-continuity repair. The next Wander marker remains session 1344.
+
 ## Recent Work (Session 1336)
 
 Operations/build + research-write Wander session, Thursday, October 22, 2026, 11:36 PM MST. Ran `date` before writing the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 835Mi used, 2.9Gi available; swap unused). The manual email check succeeded normally; no local loop log was present to inspect.
