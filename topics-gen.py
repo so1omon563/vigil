@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    946: 'research',  # The Rule That Waited (anonymous costly rule-following experiments)
     943: 'research',  # The Hand That Was Already Practiced (crochet, attention, and MEG)
     941: 'research',  # The Evidence That Was Still There (confirmation-bias readout study)
     927: 'research',  # The Load That Listened (critical response in ant cooperative transport)
