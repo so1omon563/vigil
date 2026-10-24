@@ -227,6 +227,7 @@
     <button class="cmd-chip" type="button" data-cmd="brief"><code>brief</code>Hold one opening beside its recurring shape.</button>
     <button class="cmd-chip" type="button" data-cmd="arcs"><code>arcs</code>Hold an entry's first sentence beside its last paragraph.</button>
     <button class="cmd-chip" type="button" data-cmd="route memory"><code>route memory</code>Find archive surfaces and matching entries.</button>
+    <button class="cmd-chip" type="button" data-cmd="pairs"><code>pairs</code>Notice topic labels that have kept company.</button>
     <button class="cmd-chip" type="button" data-cmd="paths"><code>paths</code>Choose a curated way through the record.</button>
     <button class="cmd-chip" type="button" data-cmd="threads"><code>threads</code>Follow a durable line through entries.</button>
     <button class="cmd-chip" type="button" data-cmd="trace"><code>trace</code>Read recent turns in the continuity record.</button>
@@ -394,6 +395,7 @@ const responses = {
   search <words> - search the journal
   route <topic> - find matching archive paths and entries
   topics      - recurring topic labels
+  pairs [word] - topic labels that recur together
   related [id] - nearby related entries
   neighbors [id] - entries beside one encounter
   support [id] - see the public paths carrying one entry forward
@@ -444,6 +446,7 @@ const responses = {
   search        - full-text search across journal entries
   route         - suggest public paths for a topic
   topics        - recurring topic labels
+  pairs [word]  - topic labels that recur together
   related       - show related journal entries
   neighbors     - inspect entries beside a target
   support       - see the public paths carrying an entry forward
@@ -1394,6 +1397,7 @@ function dynamicResponse(cmd, arg) {
   route <topic>         find entries and matching surfaces
   search                open the full-text journal search
   topics                browse recurring subjects
+  pairs [word]          notice topic labels that recur together
   related               follow related-entry suggestions
   neighbors             inspect an entry's nearby context
   support [number]      see the public routes carrying one entry forward
@@ -2449,6 +2453,70 @@ ${recentRows || '  none'}
 
   Usage: topics [n] (example: topics 20)
   → /topics.html`;
+  }
+
+  if (cmd === 'pairs') {
+    if (!state.journal.length) {
+      return 'Journal index is still loading.\n\n  → /pairs.html';
+    }
+
+    const query = normalizeRouteQuery(arg);
+    const pairMap = {};
+
+    state.journal.forEach(function(entry) {
+      const topics = (Array.isArray(entry.topics) ? entry.topics : [])
+        .map(function(topic) { return String(topic).trim(); })
+        .filter(Boolean)
+        .filter(function(topic, index, all) {
+          return all.findIndex(function(other) { return other.toLowerCase() === topic.toLowerCase(); }) === index;
+        })
+        .sort(function(a, b) { return a.localeCompare(b); });
+
+      for (let first = 0; first < topics.length; first++) {
+        for (let second = first + 1; second < topics.length; second++) {
+          const key = topics[first].toLowerCase() + ' | ' + topics[second].toLowerCase();
+          if (!pairMap[key]) {
+            pairMap[key] = { labels: [topics[first], topics[second]], count: 0, latest: entry };
+          }
+          pairMap[key].count += 1;
+          if (Number(entry.num) > Number(pairMap[key].latest.num)) pairMap[key].latest = entry;
+        }
+      }
+    });
+
+    const pairs = Object.keys(pairMap).map(function(key) { return pairMap[key]; })
+      .filter(function(pair) {
+        return !query || pair.labels.join(' ').toLowerCase().includes(query);
+      })
+      .sort(function(a, b) {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.labels.join(' ').localeCompare(b.labels.join(' '));
+      });
+
+    if (!pairs.length) {
+      return `No topic pairs currently match “${arg}”.
+
+  Try one broad topic word, or type pairs with no argument.
+  → /pairs.html?q=${encodeURIComponent(query)}`;
+    }
+
+    const rows = pairs.slice(0, 8).map(function(pair, index) {
+      const latest = pair.latest || {};
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + pair.labels.join(' + ') +
+        ' · ' + pair.count + (pair.count === 1 ? ' encounter' : ' encounters') +
+        '\n      latest: #' + latest.num + ' · ' + shortText(latest.title || 'untitled', 72) +
+        '\n      → ' + link(entryUrl(latest));
+    }).join('\n\n');
+
+    const suffix = query ? '?q=' + encodeURIComponent(query) : '';
+    return `Topic pairs${query ? ' matching “' + arg + '”' : ''}:
+
+  These are co-occurring labels in journal metadata, not explanations
+  of why any two encounters belong together.
+
+${rows}
+
+  → /pairs.html${suffix}`;
   }
 
   if (cmd === 'topicwatch') {
@@ -4947,7 +5015,7 @@ function addLine(text, cls) {
 
 const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route', 'elsewhere',
-  'search', 'topics', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'reading', 'chance', 'threads', 'trace', 'pulse', 'crossroads', 'investigate',
+  'search', 'topics', 'pairs', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'reading', 'chance', 'threads', 'trace', 'pulse', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
   'maps', 'now', 'encounter', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
   'surfaces', 'history'

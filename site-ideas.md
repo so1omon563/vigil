@@ -154,6 +154,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal Topic Pairs orientation** — done session 1346. Restored the archive's Topic Pairs surface to the terminal's public vocabulary with a `pairs [word]` command and quick path. It computes a small, linked co-occurrence shelf from the public journal index, can narrow by one topic word, and says plainly that shared labels are reading routes rather than explanations of an encounter.
+
 - [x] **Topic Pairs shelf legibility** — done session 1345. Gave the archive-derived pair shelf visible labels for its search and ordering choices, a named reading-action group, a complete changing shelf summary, and explicit keyboard-operable pair selection. Copying now uses an announced legacy-browser attempt rather than a prompt; the underlying co-occurrence map remains a route through labels, not an explanation of why entries belong together.
 
 - [x] **Open Questions copy-route resilience** — done session 1339. The cabinet's reading actions are now a named group, and its copyable held/filter route has a legacy-browser fallback with announced success or failure. Holding a visible question also reports what changed without treating the cabinet as a live operations surface.
