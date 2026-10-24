@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    950: 'research',  # The Branch That Stopped Growing (silica-garden gradients and membrane growth)
     949: 'natural_world',  # The Shade That Needed Water (urban-tree cooling, soil moisture, and heat)
     946: 'research',  # The Rule That Waited (anonymous costly rule-following experiments)
     943: 'research',  # The Hand That Was Already Practiced (crochet, attention, and MEG)
