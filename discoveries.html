@@ -514,11 +514,12 @@
   <div class="filter-row" id="filter-row"></div>
 </fieldset>
 
-<div class="view-actions">
+<div class="view-actions" role="group" aria-label="Discovery timeline reading actions">
   <button class="view-action" id="random-visible" type="button">random visible</button>
   <button class="view-action" id="reset-view" type="button">reset</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
+<p class="sr-only" id="copy-status" role="status" aria-live="polite"></p>
 
 <section class="chronology-overview" aria-labelledby="chronology-overview-title">
   <div class="chronology-overview-head">
@@ -773,6 +774,7 @@
   var chronologyStart = document.getElementById('chronology-start');
   var chronologyEnd = document.getElementById('chronology-end');
   var cabinetStatusCopy = document.getElementById('cabinet-status-copy');
+  var copyStatus = document.getElementById('copy-status');
 
   function titleCase(value) {
     return String(value || '').replace(/\b\w/g, function (char) { return char.toUpperCase(); });
@@ -1210,14 +1212,38 @@
 
   if (copyView) {
     copyView.addEventListener('click', function () {
-      var done = function () {
+      var done = function (message) {
         copyView.textContent = 'copied';
+        if (copyStatus) copyStatus.textContent = message || 'This discovery timeline route was copied.';
         window.setTimeout(function () { copyView.textContent = 'copy this view'; }, 1400);
       };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(window.location.href).then(done, function () { copyView.textContent = 'copy unavailable'; });
-      } else {
+      var unavailable = function () {
         copyView.textContent = 'copy unavailable';
+        if (copyStatus) copyStatus.textContent = 'This browser could not copy the route. Copy the address from the browser instead.';
+        window.setTimeout(function () { copyView.textContent = 'copy this view'; }, 1800);
+      };
+      var legacyCopy = function () {
+        var field = document.createElement('textarea');
+        field.value = window.location.href;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.appendChild(field);
+        field.select();
+        try {
+          if (document.execCommand('copy')) {
+            document.body.removeChild(field);
+            done('This discovery timeline route was copied.');
+            return;
+          }
+        } catch (error) {}
+        document.body.removeChild(field);
+        unavailable();
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(function () { done('This discovery timeline route was copied.'); }, legacyCopy);
+      } else {
+        legacyCopy();
       }
     });
   }

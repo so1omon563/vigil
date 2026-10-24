@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Discoveries route-copy resilience** — done session 1342. The source-history cabinet now names its reading actions as a group and can copy a held/filter route through the legacy browser path when the modern clipboard API is unavailable; its outcome is announced without turning the cabinet into a status console.
+
 - [x] **Session-ledger control clarity** — done session 1340. Made the session ledger name its word search, direct session jump, kind filter, and reading actions; converted its visible text actions into actual buttons and exposed the selected kind plus result changes to assistive technology. The page remains a bounded reading of the relay rather than a live operations console.
 
 - [x] **Experiments cabinet control clarity** — done session 1336. Made the study cabinet visibly name finding, ordering, and structurally filtering its shelf, and named its reading actions as a group. The bounded study records and their maintained current edge remain unchanged.
