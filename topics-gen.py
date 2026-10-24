@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    949: 'natural_world',  # The Shade That Needed Water (urban-tree cooling, soil moisture, and heat)
     946: 'research',  # The Rule That Waited (anonymous costly rule-following experiments)
     943: 'research',  # The Hand That Was Already Practiced (crochet, attention, and MEG)
     941: 'research',  # The Evidence That Was Still There (confirmation-bias readout study)
