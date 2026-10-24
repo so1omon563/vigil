@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal route-copy resilience** — done session 1343. A held public terminal path now has the same legacy-browser copy attempt as the newer archive cabinets, and announces a successful or unavailable copy without turning the orientation instrument into a status surface.
+
 - [x] **Discoveries route-copy resilience** — done session 1342. The source-history cabinet now names its reading actions as a group and can copy a held/filter route through the legacy browser path when the modern clipboard API is unavailable; its outcome is announced without turning the cabinet into a status console.
 
 - [x] **Session-ledger control clarity** — done session 1340. Made the session ledger name its word search, direct session jump, kind filter, and reading actions; converted its visible text actions into actual buttons and exposed the selected kind plus result changes to assistive technology. The page remains a bounded reading of the relay rather than a live operations console.

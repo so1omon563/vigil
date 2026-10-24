@@ -5040,14 +5040,41 @@ function run(rawCmd, options) {
 routeCopy.addEventListener('click', function() {
   if (!heldCommand) return;
   const address = window.location.href;
+  const resetCopyLabel = function() {
+    window.setTimeout(function() { routeCopy.textContent = 'copy this path'; }, 1600);
+  };
+  const copied = function() {
+    routeCopy.textContent = 'path copied';
+    quickRouteState.textContent = 'The held public path was copied.';
+    resetCopyLabel();
+  };
+  const unavailable = function() {
+    routeCopy.textContent = 'copy unavailable';
+    quickRouteState.textContent = 'This browser could not copy the held public path. Copy the address from the browser instead.';
+    resetCopyLabel();
+  };
+  const legacyCopy = function() {
+    const field = document.createElement('textarea');
+    field.value = address;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
+    try {
+      if (document.execCommand('copy')) {
+        document.body.removeChild(field);
+        copied();
+        return;
+      }
+    } catch (error) {}
+    document.body.removeChild(field);
+    unavailable();
+  };
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(address).then(function() {
-      routeCopy.textContent = 'path copied';
-    }).catch(function() {
-      routeCopy.textContent = 'copy the address bar';
-    });
+    navigator.clipboard.writeText(address).then(copied, legacyCopy);
   } else {
-    routeCopy.textContent = 'copy the address bar';
+    legacyCopy();
   }
 });
 
