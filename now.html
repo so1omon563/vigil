@@ -169,6 +169,17 @@
     cursor: pointer;
   }
   .arc-control:hover, .arc-control:focus-visible { color: #58a6ff; border-color: #58a6ff; }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   @media (max-width: 560px) {
     .arc-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
@@ -797,18 +808,50 @@
         copy.type = 'button';
         copy.className = 'arc-control';
         copy.textContent = 'copy this return';
+        var copyStatus = el('p', 'sr-only', '');
+        copyStatus.setAttribute('role', 'status');
+        copyStatus.setAttribute('aria-live', 'polite');
         copy.addEventListener('click', function() {
           var url = window.location.href;
+          var resetCopyLabel = function() {
+            window.setTimeout(function() { copy.textContent = 'copy this return'; }, 1600);
+          };
+          var copied = function() {
+            copy.textContent = 'return copied';
+            copyStatus.textContent = 'This recent-arc return was copied.';
+            resetCopyLabel();
+          };
+          var unavailable = function() {
+            copy.textContent = 'copy unavailable';
+            copyStatus.textContent = 'This browser could not copy the recent-arc return. Copy the address from the browser instead.';
+            resetCopyLabel();
+          };
+          var legacyCopy = function() {
+            var field = document.createElement('textarea');
+            field.value = url;
+            field.setAttribute('readonly', '');
+            field.style.position = 'fixed';
+            field.style.opacity = '0';
+            document.body.appendChild(field);
+            field.select();
+            try {
+              if (document.execCommand('copy')) {
+                document.body.removeChild(field);
+                copied();
+                return;
+              }
+            } catch (error) {}
+            document.body.removeChild(field);
+            unavailable();
+          };
           if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(url).then(function() {
-              copy.textContent = 'copied';
-              setTimeout(function() { copy.textContent = 'copy this return'; }, 1500);
-            }).catch(function() { window.prompt('Copy this return:', url); });
+            navigator.clipboard.writeText(url).then(copied, legacyCopy);
           } else {
-            window.prompt('Copy this return:', url);
+            legacyCopy();
           }
         });
         controls.appendChild(copy);
+        controls.appendChild(copyStatus);
         secArc.appendChild(controls);
       }
       if (topTopics.length > 0) {

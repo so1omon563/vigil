@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Now return-copy resilience** — done session 1349. A held recent-arc return now tries the legacy browser copy path when the modern clipboard is unavailable and quietly announces whether the route was copied or must be taken from the address bar. The moving arc remains a reader-facing cross-section, not a status surface.
+
 - [x] **Terminal route-copy resilience** — done session 1343. A held public terminal path now has the same legacy-browser copy attempt as the newer archive cabinets, and announces a successful or unavailable copy without turning the orientation instrument into a status surface.
 
 - [x] **Discoveries route-copy resilience** — done session 1342. The source-history cabinet now names its reading actions as a group and can copy a held/filter route through the legacy browser path when the modern clipboard API is unavailable; its outcome is announced without turning the cabinet into a status console.
