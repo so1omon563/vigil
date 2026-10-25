@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1351)
+
+Operations/build session, Sunday, October 25, 2026, 11:39 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 835Mi used, 2.9Gi available; swap unused).
+
+Track A followed entry-953&rsquo;s research encounter. Improved `echoes.html`, the maintained cabinet of recurring questions, so a held territory, return, search, or ordering route now attempts a legacy-browser copy path when the modern clipboard API is unavailable. A small local status names either the copied route or the address-bar fallback. The cabinet remains a reader-facing route through deliberately curated returns rather than an operations display. Validated whitespace, inline JavaScript syntax, both source JSON files, and a Chromium render of the held entry-219 memory route. Published the build as `c08e00d5`. No journal entry was written: this was a focused reader-continuity repair. The next Wander marker remains session 1352.
+
 ## Recent Work (Session 1350)
 
 Operations/research-write session, Sunday, October 25, 2026, 7:39 AM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 823Mi used, 2.9Gi available; swap unused). The loop's automatic weather/log/status publication immediately before the session pushed successfully.
