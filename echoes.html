@@ -218,6 +218,13 @@
     border-radius: 2px; cursor: pointer;
   }
   .view-action:hover { border-color: #58a6ff; color: #c9d1d9; }
+  .view-note {
+    min-height: 1.2em;
+    margin: -1.45rem 0 1.8rem;
+    color: #484f58;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
   .filter-btn {
     font-family: inherit;
     font-size: 0.75rem;
@@ -315,6 +322,7 @@
   <button class="view-action" id="reset-view" type="button">reset</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
+<p class="view-note" id="copy-note" role="status" aria-live="polite"></p>
 
 <div id="clusters"></div>
 
@@ -334,6 +342,7 @@
   const recentReturns = document.getElementById('recent-returns');
   const cabinetEdge = document.getElementById('cabinet-edge');
   const orderSelect = document.getElementById('echo-order');
+  const copyNote = document.getElementById('copy-note');
 
   const fallbackText = 'Echoes is currently loading from local data sources. If this message remains, please reload in a moment.';
   clustersRoot.innerHTML = '<p class="entry-angle">' + fallbackText + '</p>';
@@ -778,11 +787,35 @@
 
     copyButton.addEventListener('click', function() {
       const text = window.location.href;
-      const done = function() {
+      const done = function(message) {
         copyButton.textContent = 'copied';
+        copyNote.textContent = message;
         window.setTimeout(function() { copyButton.textContent = 'copy this view'; }, 1600);
       };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(function() {});
+      const unavailable = function() {
+        copyButton.textContent = 'copy unavailable';
+        copyNote.textContent = 'This browser could not copy the route. You can keep this view by copying the address from the browser.';
+        window.setTimeout(function() { copyButton.textContent = 'copy this view'; }, 2200);
+      };
+      const legacyCopy = function() {
+        const field = document.createElement('textarea');
+        field.value = text;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.appendChild(field);
+        field.select();
+        let copied = false;
+        try { copied = document.execCommand('copy'); } catch (error) {}
+        document.body.removeChild(field);
+        if (copied) done('This Echoes reading route was copied.');
+        else unavailable();
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() { done('This Echoes reading route was copied.'); }, legacyCopy);
+      } else {
+        legacyCopy();
+      }
     });
 
     window.addEventListener('popstate', function() {

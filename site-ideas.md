@@ -156,6 +156,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Echoes copy-route resilience** — done session 1351. A held territory, return, search, or order route now tries a legacy browser copy path when the modern clipboard is unavailable and names whether copying worked or the address bar remains the return route. The maintained cabinet remains a reader-facing route through curated echoes, not a live operations surface.
+
 - [x] **Terminal Topic Pairs orientation** — done session 1346. Restored the archive's Topic Pairs surface to the terminal's public vocabulary with a `pairs [word]` command and quick path. It computes a small, linked co-occurrence shelf from the public journal index, can narrow by one topic word, and says plainly that shared labels are reading routes rather than explanations of an encounter.
 
 - [x] **Topic Pairs shelf legibility** — done session 1345. Gave the archive-derived pair shelf visible labels for its search and ordering choices, a named reading-action group, a complete changing shelf summary, and explicit keyboard-operable pair selection. Copying now uses an announced legacy-browser attempt rather than a prompt; the underlying co-occurrence map remains a route through labels, not an explanation of why entries belong together.
