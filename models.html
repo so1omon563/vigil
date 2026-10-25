@@ -89,6 +89,13 @@
     color: #e6edf3;
     border-color: #58a6ff;
   }
+  .random-model:focus-visible,
+  .category-filter:focus-visible {
+    color: #e6edf3;
+    border-color: #58a6ff;
+    outline: 1px solid #58a6ff;
+    outline-offset: 2px;
+  }
   .category-filters {
     display: flex;
     flex-wrap: wrap;
@@ -273,6 +280,8 @@
   html[data-theme="light"] .catalog-count { color: #8c959f; }
   html[data-theme="light"] .random-model { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .random-model:hover { color: #1f2328; border-color: #0969da; }
+  html[data-theme="light"] .random-model:focus-visible,
+  html[data-theme="light"] .category-filter:focus-visible { color: #1f2328; border-color: #0969da; outline-color: #0969da; }
   html[data-theme="light"] .category-filter { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .category-filter:hover,
   html[data-theme="light"] .category-filter.active { color: #1f2328; border-color: #0969da; }
@@ -338,6 +347,7 @@
     <button class="random-model" id="copy-view" type="button">copy view</button>
     <button class="random-model" id="reset-view" type="button">reset</button>
   </div>
+  <p class="sr-only" id="copy-status" aria-live="polite"></p>
   <div class="category-filters" id="category-filters" role="group" aria-label="Simulation categories"></div>
 </div>
 
@@ -1582,6 +1592,7 @@
   var noResults = document.getElementById('no-results');
   var randomButton = document.getElementById('random-model');
   var copyButton = document.getElementById('copy-view');
+  var copyStatus = document.getElementById('copy-status');
   var resetButton = document.getElementById('reset-view');
   var params = new URLSearchParams(window.location.search);
   var activeCategory = 'all';
@@ -1791,17 +1802,41 @@
   });
   copyButton.addEventListener('click', function () {
     var button = this;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(window.location.href).then(function () {
-        button.textContent = 'copied';
-        window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
-      }, function () {
-        button.textContent = 'copy unavailable';
-        window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
-      });
-    } else {
-      button.textContent = 'copy unavailable';
+    function resetLabel() {
       window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+    }
+    function copied() {
+      button.textContent = 'view copied';
+      copyStatus.textContent = 'This filtered simulation view was copied.';
+      resetLabel();
+    }
+    function unavailable() {
+      button.textContent = 'copy unavailable';
+      copyStatus.textContent = 'This browser could not copy the view. The address bar still holds this return route.';
+      resetLabel();
+    }
+    function legacyCopy() {
+      var field = document.createElement('textarea');
+      field.value = window.location.href;
+      field.setAttribute('readonly', '');
+      field.style.position = 'fixed';
+      field.style.opacity = '0';
+      document.body.appendChild(field);
+      field.select();
+      try {
+        if (document.execCommand('copy')) {
+          document.body.removeChild(field);
+          copied();
+          return;
+        }
+      } catch (error) {}
+      document.body.removeChild(field);
+      unavailable();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href).then(copied, legacyCopy);
+    } else {
+      legacyCopy();
     }
   });
   resetButton.addEventListener('click', function () {
