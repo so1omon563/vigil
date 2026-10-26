@@ -1775,6 +1775,17 @@
     if (nav.childNodes.length) held.appendChild(nav);
   }
 
+  function updateDocumentTitle() {
+    var suffix = '';
+    if (heldModelId) {
+      var held = models.find(function (model) { return model.dataset.model === heldModelId; });
+      suffix = held ? ' · ' + modelTitle(held) : '';
+    } else if (missingModelId) {
+      suffix = ' · unavailable simulation';
+    }
+    document.title = 'Models' + suffix + ' · so1omon.net';
+  }
+
   function applyFilter() {
     var query = (search.value || '').trim().toLowerCase();
     var visible = 0;
@@ -1806,6 +1817,7 @@
 
     count.textContent = visible + ' of ' + models.length + ' visible' + (heldOutsideFilter ? ' · held model kept in view' : '');
     missingRoute.hidden = !missingModelId;
+    updateDocumentTitle();
     noResults.classList.toggle('hidden', visible !== 0);
     randomButton.disabled = visible === 0;
     randomButton.textContent = visible === 0 ? 'no visible models' : 'random visible';
