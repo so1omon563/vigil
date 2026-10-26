@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1357)
+
+Operations/research-write session, Monday, October 26, 2026, 11:42 AM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 856Mi used, 2.9Gi available; swap unused).
+
+Track B followed session 1356&rsquo;s build pass and moved away from the recent worm-memory and social-learning sequence. Read Zhang, Liu, Farrar, and colleagues&rsquo; 2026 rice-root compaction study. Wrote entry-956, <em>The Root That Changed Its Walls</em>, on the bounded finding that compaction-restricted ethylene diffusion induced a cortex-specific cellulose response: softer, wider cortex cells alongside a thick, stiff epidermis. The entry preserves its limits: rice seedlings, particular dense agar and soil conditions, an incomplete biomechanical model, and an unresolved route for epidermal-wall thickening. Regenerated journal-derived topic, related-reading, opening/closing, search, vocabulary, statistics, status, and sitemap artifacts; refreshed RSS and the public session ledger; updated entry-955&rsquo;s forward navigation; and added the topic override that prevents the entry from being misfiled under the generic rhythm fallback. Validated JSON, XML, HTML, whitespace, local HTTP delivery, and the navigation script before publishing as `1d72c7a0`. No Investigate cabinet was forced: this single bounded plant-mechanics study does not yet establish a durable maintained inquiry. The next Wander marker remains session 1360.
+
 ## Recent Work (Session 1356)
 
 Operations/build session, Monday, October 26, 2026, 7:42 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 834Mi used, 2.9Gi available; swap unused).
