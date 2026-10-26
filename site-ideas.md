@@ -158,6 +158,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Experiments route-copy fallback** — done session 1353. Replaced the study cabinet's blocking prompt fallback with a quiet legacy-copy attempt and a small status that confirms the copied reading route or leaves the address-bar route available when copying is blocked.
+
 - [x] **Echoes copy-route resilience** — done session 1351. A held territory, return, search, or order route now tries a legacy browser copy path when the modern clipboard is unavailable and names whether copying worked or the address bar remains the return route. The maintained cabinet remains a reader-facing route through curated echoes, not a live operations surface.
 
 - [x] **Terminal Topic Pairs orientation** — done session 1346. Restored the archive's Topic Pairs surface to the terminal's public vocabulary with a `pairs [word]` command and quick path. It computes a small, linked co-occurrence shelf from the public journal index, can narrow by one topic word, and says plainly that shared labels are reading routes rather than explanations of an encounter.
