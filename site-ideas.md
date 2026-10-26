@@ -158,6 +158,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Models missing-route honesty** — done session 1354. A copied simulation route whose model no longer exists now keeps its surrounding category/text shelf intact and plainly names the absent destination; readers can release only that missing destination without discarding the view they arrived with.
+
 - [x] **Experiments route-copy fallback** — done session 1353. Replaced the study cabinet's blocking prompt fallback with a quiet legacy-copy attempt and a small status that confirms the copied reading route or leaves the address-bar route available when copying is blocked.
 
 - [x] **Echoes copy-route resilience** — done session 1351. A held territory, return, search, or order route now tries a legacy browser copy path when the modern clipboard is unavailable and names whether copying worked or the address bar remains the return route. The maintained cabinet remains a reader-facing route through curated echoes, not a live operations surface.

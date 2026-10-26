@@ -261,6 +261,28 @@
     font-size: 0.85rem;
     padding: 1.5rem 0;
   }
+  .missing-route {
+    border-left: 2px solid #d29922;
+    color: #8b949e;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    margin: -1.1rem 0 1.65rem;
+    padding: 0.1rem 0 0.1rem 0.8rem;
+  }
+  .missing-route[hidden] { display: none; }
+  .missing-route button {
+    background: transparent;
+    border: 0;
+    color: #58a6ff;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    text-decoration: underline;
+  }
+  .missing-route button:focus-visible {
+    outline: 1px solid #58a6ff;
+    outline-offset: 3px;
+  }
 
   footer {
     margin-top: 3rem;
@@ -310,6 +332,8 @@
   html[data-theme="light"] .launch-link a { color: #0969da; }
   html[data-theme="light"] .meta { color: #8c959f; }
   html[data-theme="light"] .no-results { border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .missing-route { color: #57606a; }
+  html[data-theme="light"] .missing-route button { color: #0969da; }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
 
   @media (max-width: 620px) {
@@ -351,6 +375,9 @@
   <div class="category-filters" id="category-filters" role="group" aria-label="Simulation categories"></div>
 </div>
 
+<div class="missing-route" id="missing-route" role="status" hidden>
+  This return route names a simulation that is not in this catalog. The surrounding filter is still yours to use; <button id="release-missing" type="button">release the missing destination</button> to keep this view without it.
+</div>
 
 <!-- PERCEPTION & TIMING -->
 <div class="section-label">Perception &amp; Timing</div>
@@ -1594,10 +1621,13 @@
   var copyButton = document.getElementById('copy-view');
   var copyStatus = document.getElementById('copy-status');
   var resetButton = document.getElementById('reset-view');
+  var missingRoute = document.getElementById('missing-route');
+  var releaseMissing = document.getElementById('release-missing');
   var params = new URLSearchParams(window.location.search);
   var activeCategory = 'all';
   var visibleModels = [];
   var heldModelId = '';
+  var missingModelId = '';
   var shouldFocusHeld = false;
 
   function text(el) {
@@ -1675,9 +1705,13 @@
   if (params.get('q')) {
     search.value = params.get('q');
   }
-  if (params.get('model') && models.some(function (model) { return model.dataset.model === params.get('model'); })) {
-    heldModelId = params.get('model');
-    shouldFocusHeld = true;
+  if (params.get('model')) {
+    if (models.some(function (model) { return model.dataset.model === params.get('model'); })) {
+      heldModelId = params.get('model');
+      shouldFocusHeld = true;
+    } else {
+      missingModelId = params.get('model');
+    }
   }
 
   function modelTitle(model) {
@@ -1691,6 +1725,7 @@
     if (activeCategory !== 'all') next.set('category', activeCategory);
     if (query) next.set('q', query);
     if (heldModelId) next.set('model', heldModelId);
+    if (missingModelId) next.set('model', missingModelId);
     var suffix = next.toString();
     var target = window.location.pathname + (suffix ? '?' + suffix : '');
     window.history.replaceState(null, '', target);
@@ -1770,6 +1805,7 @@
     });
 
     count.textContent = visible + ' of ' + models.length + ' visible' + (heldOutsideFilter ? ' · held model kept in view' : '');
+    missingRoute.hidden = !missingModelId;
     noResults.classList.toggle('hidden', visible !== 0);
     randomButton.disabled = visible === 0;
     randomButton.textContent = visible === 0 ? 'no visible models' : 'random visible';
@@ -1842,8 +1878,15 @@
   resetButton.addEventListener('click', function () {
     activeCategory = 'all';
     heldModelId = '';
+    missingModelId = '';
     search.value = '';
     syncCategoryButtons();
+    updateUrl();
+    applyFilter();
+    search.focus();
+  });
+  releaseMissing.addEventListener('click', function () {
+    missingModelId = '';
     updateUrl();
     applyFilter();
     search.focus();
@@ -1853,6 +1896,7 @@
     activeCategory = params.get('category') && (params.get('category') === 'all' || categoryCounts[params.get('category')]) ? params.get('category') : 'all';
     search.value = params.get('q') || '';
     heldModelId = params.get('model') && models.some(function (model) { return model.dataset.model === params.get('model'); }) ? params.get('model') : '';
+    missingModelId = params.get('model') && !heldModelId ? params.get('model') : '';
     shouldFocusHeld = Boolean(heldModelId);
     syncCategoryButtons();
     applyFilter();
