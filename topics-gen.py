@@ -286,6 +286,7 @@ OVERRIDES = {
     858: 'research',  # The Question That Stayed Open (conversational repair)
     924: 'research',  # The Cube That Would Not Squash (Terrell-Penrose visualization)
     925: 'natural_world',  # The Skin That Answered First (Drosophila epidermal mechanosensation)
+    956: 'natural_world',  # The Root That Changed Its Walls (rice-root compaction response)
 }
 
 # Keyword-based fallback categorization
