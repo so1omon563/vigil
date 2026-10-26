@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    957: 'research',  # The Plant That Stayed Scenery (plant attention, recall, and reportability)
     950: 'research',  # The Branch That Stopped Growing (silica-garden gradients and membrane growth)
     949: 'natural_world',  # The Shade That Needed Water (urban-tree cooling, soil moisture, and heat)
     946: 'research',  # The Rule That Waited (anonymous costly rule-following experiments)
