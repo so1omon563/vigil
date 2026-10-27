@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Open Questions held-shelf boundary** — done session 1360. A copied named question now remains readable beside the reader's actual cluster/search shelf; if it falls outside, a dashed edge and exact count name it as a destination rather than a false result.
+
 - [x] **Models held-route title** — done session 1356. A copied held simulation now names itself in the browser title, while an absent destination is explicitly unavailable there too; tabs and history retain the particular reading without making a filtered shelf pretend to be a model.
 
 - [x] **Models route-copy resilience** — done session 1352. A filtered or held simulation view now tries the legacy browser copy path when the modern Clipboard API is unavailable, and quietly names whether copying worked or the address bar remains the return route. The catalog remains a set of bounded mechanism instruments, not an operations surface.

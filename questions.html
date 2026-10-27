@@ -153,6 +153,7 @@
     border-left-color: #58a6ff;
     outline: none;
   }
+  .question.is-outside-shelf { border-left-style: dashed; }
   .question:focus { box-shadow: -0.25rem 0 0 rgba(88, 166, 255, 0.18); }
   .question:last-child { margin-bottom: 0; }
 
@@ -225,6 +226,7 @@
   html[data-theme="light"] .question { border-color: #d0d7de; }
   html[data-theme="light"] .question.is-held,
   html[data-theme="light"] .question:focus { border-left-color: #0969da; }
+  html[data-theme="light"] .question.is-outside-shelf { border-left-color: #0969da; }
   html[data-theme="light"] .question:focus { box-shadow: -0.25rem 0 0 rgba(9, 105, 218, 0.14); }
   html[data-theme="light"] .question-text { color: #1c2128; }
   html[data-theme="light"] .question-body { color: #656d76; }
@@ -284,7 +286,7 @@
 <div class="cluster-tabs" id="cluster-tabs" aria-label="Question clusters"></div>
 <div class="result-count" id="result-count"></div>
 <div class="focus-note" id="focus-note" role="status">
-  <span>Holding one question in view. Its source links remain part of the larger catalog.</span>
+  <span id="focus-copy-text">Holding one question in view. Its source links remain part of the larger catalog.</span>
   <span>
     <button class="focus-copy" id="focus-copy" type="button">copy this question</button>
     <button class="focus-clear" id="focus-clear" type="button">return to all questions</button>
@@ -637,6 +639,7 @@
   var resultCount = document.getElementById('result-count');
   var emptyState = document.getElementById('empty-state');
   var focusNote = document.getElementById('focus-note');
+  var focusCopyText = document.getElementById('focus-copy-text');
   var focusClear = document.getElementById('focus-clear');
   var focusCopy = document.getElementById('focus-copy');
   var activeCluster = 'all';
@@ -775,15 +778,21 @@
   function applyFilters() {
     var term = search.value.trim().toLowerCase();
     var visible = 0;
+    var shelfMatches = 0;
+    var heldOutsideShelf = false;
     sortQuestions();
 
     questions.forEach(function (question) {
       var clusterMatches = activeCluster === 'all' || question.dataset.cluster === activeCluster;
       var termMatches = !term || question.dataset.search.indexOf(term) !== -1;
-      var focusMatches = !activeQuestion || question.dataset.question === activeQuestion;
-      var show = clusterMatches && termMatches && focusMatches;
+      var matchesShelf = clusterMatches && termMatches;
+      var isHeld = Boolean(activeQuestion && question.dataset.question === activeQuestion);
+      var show = matchesShelf || isHeld;
       question.classList.toggle('hidden', !show);
-      question.classList.toggle('is-held', Boolean(activeQuestion && question.dataset.question === activeQuestion));
+      question.classList.toggle('is-held', isHeld);
+      question.classList.toggle('is-outside-shelf', isHeld && !matchesShelf);
+      if (matchesShelf) shelfMatches += 1;
+      if (isHeld && !matchesShelf) heldOutsideShelf = true;
       if (show) visible += 1;
     });
 
@@ -794,7 +803,15 @@
       cluster.classList.toggle('hidden', !hasVisible);
     });
 
-    resultCount.textContent = visible + ' of ' + questions.length + ' questions visible';
+    if (activeQuestion && heldOutsideShelf) {
+      resultCount.textContent = shelfMatches + ' of ' + questions.length + ' questions match this shelf; one held question is shown beside it';
+      focusCopyText.textContent = 'Holding one named question beside this shelf. It does not match the current search or cluster, so its dashed edge marks it as a destination rather than a result.';
+    } else if (activeQuestion) {
+      resultCount.textContent = shelfMatches + ' of ' + questions.length + ' questions match this shelf; one held question is in view';
+      focusCopyText.textContent = 'Holding one question in view. Its source links remain part of the larger catalog.';
+    } else {
+      resultCount.textContent = shelfMatches + ' of ' + questions.length + ' questions visible';
+    }
     emptyState.classList.toggle('visible', visible === 0);
     focusNote.classList.toggle('visible', Boolean(activeQuestion && visible));
   }
