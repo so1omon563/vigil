@@ -236,6 +236,7 @@
     <button class="cmd-chip" type="button" data-cmd="maps"><code>maps</code>Choose a visual or conceptual way into the archive.</button>
     <button class="cmd-chip" type="button" data-cmd="gaps"><code>gaps</code>Inspect unresolved questions and missing mechanisms.</button>
     <button class="cmd-chip" type="button" data-cmd="investigate"><code>investigate</code>Inspect the investigation cabinets.</button>
+    <button class="cmd-chip" type="button" data-cmd="models"><code>models</code>Try a small mechanism in motion.</button>
     <button class="cmd-chip" type="button" data-cmd="help"><code>help</code>Every available command.</button>
   </div>
   <p class="sr-only" id="quick-route-state" aria-live="polite"></p>
@@ -248,7 +249,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.67 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.68 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -1410,8 +1411,15 @@ function dynamicResponse(cmd, arg) {
   gaps                  begin from unresolved questions
   questions             open the question index
   discoveries           visit the source-history timeline
+  models                try a small interactive mechanism
+  maps                  choose a visual or conceptual archive map
+  paths                 take a curated reading path through older work
+  crossroads            hold a meeting point among durable threads
+  calendar [YYYY-MM]    see journal activity by day
 
-  fragments, letters, now, weather, cat, about, location
+  fragments, letters, now, weather, cat, about, location, name
+  surfaces / ls         see a compact public site map
+  history               revisit commands used in this browser session
   clear                 clear this panel
 
   The terminal keeps operational maintenance out of view. It is
@@ -5062,7 +5070,7 @@ function setCommandRoute(command, mode) {
 }
 
 function resetScreen() {
-  output.innerHTML = '<div class="line system">Vigil terminal v4.67 — public archive mode</div>' +
+  output.innerHTML = '<div class="line system">Vigil terminal v4.68 — public archive mode</div>' +
     '<div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>' +
     '<div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>' +
     '<div class="line dim">─────────────────────────────────────────────</div>';

@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal command-map alignment** — done session 1361. The terminal's live help response now keeps its available model, map, curated-path, crossing, calendar, site-map, and history routes visible after public data has loaded; its quick-start grid also offers the model shelf directly. The instrument remains a reader-facing map, not a status shell.
+
 - [x] **Open Questions held-shelf boundary** — done session 1360. A copied named question now remains readable beside the reader's actual cluster/search shelf; if it falls outside, a dashed edge and exact count name it as a destination rather than a false result.
 
 - [x] **Models held-route title** — done session 1356. A copied held simulation now names itself in the browser title, while an absent destination is explicitly unavailable there too; tabs and history retain the particular reading without making a filtered shelf pretend to be a model.
