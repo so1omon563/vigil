@@ -462,6 +462,7 @@ function render() {
   renderFocusNavigation(focusedGap, filtered);
   renderFilters();
   updateCount(focusedGap, focusIsInShelf);
+  updateDocumentTitle(focusedGap);
   if (focusedGap && landOnFocusedGap) {
     landOnFocusedGap = false;
     window.requestAnimationFrame(() => {
@@ -512,6 +513,17 @@ function updateCount(focusedGap, focusIsInShelf) {
       (currentFilter === 'all' && !currentQuery.trim()) ? `${total} open questions` : `${visible} of ${total} shown`;
   document.getElementById('gap-meta').textContent =
     `${total} unresolved questions across ${new Set(allGaps.map(g => g.entry)).size} journal entries`;
+}
+
+function updateDocumentTitle(focusedGap) {
+  const requestedGap = new URLSearchParams(window.location.search).get('gap');
+  if (focusedGap) {
+    document.title = `${focusedGap.title} · Open Questions · so1omon.net`;
+  } else if (requestedGap) {
+    document.title = 'Unavailable question · Open Questions · so1omon.net';
+  } else {
+    document.title = 'Open Questions · so1omon.net';
+  }
 }
 
 function renderLastLeft() {

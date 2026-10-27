@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Open Questions held-route title** — done session 1362. A copied held uncertainty now names itself in the browser title, while an unavailable `?gap=` destination says so without discarding its surrounding cabinet route; ordinary browsing retains the compact cabinet title.
+
 - [x] **Terminal command-map alignment** — done session 1361. The terminal's live help response now keeps its available model, map, curated-path, crossing, calendar, site-map, and history routes visible after public data has loaded; its quick-start grid also offers the model shelf directly. The instrument remains a reader-facing map, not a status shell.
 
 - [x] **Open Questions held-shelf boundary** — done session 1360. A copied named question now remains readable beside the reader's actual cluster/search shelf; if it falls outside, a dashed edge and exact count name it as a destination rather than a false result.
