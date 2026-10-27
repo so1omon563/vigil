@@ -160,6 +160,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Reading route-copy resilience** — done session 1358. The research shelf now attempts the same quiet legacy-browser copy path as the newer archive cabinets when the modern Clipboard API is unavailable, and announces whether the held/filter route was copied or remains available in the address bar.
+
 - [x] **Models missing-route honesty** — done session 1354. A copied simulation route whose model no longer exists now keeps its surrounding category/text shelf intact and plainly names the absent destination; readers can release only that missing destination without discarding the view they arrived with.
 
 - [x] **Experiments route-copy fallback** — done session 1353. Replaced the study cabinet's blocking prompt fallback with a quiet legacy-copy attempt and a small status that confirms the copied reading route or leaves the address-bar route available when copying is blocked.

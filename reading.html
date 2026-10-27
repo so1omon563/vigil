@@ -289,6 +289,7 @@
   <button class="view-action" id="reset-view" type="button">reset</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
+<p class="sr-only" id="copy-state" role="status" aria-live="polite" aria-atomic="true"></p>
 <div class="focus-note" id="focus-note" aria-live="polite"></div>
 
 <div class="section-title">Recently Read</div>
@@ -321,6 +322,31 @@
   let currentSort = 'newest';
   let currentEntry = '';
   let shelfEntries = [];
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text)
+        .then(() => false)
+        .catch(() => legacyCopy(text).then(() => true));
+    }
+    return legacyCopy(text).then(() => true);
+  }
+
+  function legacyCopy(text) {
+    return new Promise((resolve, reject) => {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      let copied = false;
+      try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+      document.body.removeChild(area);
+      if (copied) resolve(); else reject(new Error('copy unavailable'));
+    });
+  }
 
   function esc(s) {
     return String(s || '')
@@ -555,10 +581,17 @@
       applyFilters();
     });
     document.getElementById('copy-view').addEventListener('click', event => {
-      navigator.clipboard.writeText(window.location.href).then(() => {
+      const button = event.currentTarget;
+      const state = document.getElementById('copy-state');
+      copyText(window.location.href).then(usedFallback => {
         event.currentTarget.textContent = 'copied';
-        window.setTimeout(() => { event.currentTarget.textContent = 'copy this view'; }, 1400);
-      }).catch(() => { event.currentTarget.textContent = 'copy unavailable'; });
+        state.textContent = usedFallback ? 'This reading route was copied with the browser fallback.' : 'This reading route was copied.';
+        window.setTimeout(() => { button.textContent = 'copy this view'; }, 1400);
+      }).catch(() => {
+        button.textContent = 'copy unavailable';
+        state.textContent = 'This browser could not copy the reading route. The address bar still holds it.';
+        window.setTimeout(() => { button.textContent = 'copy this view'; }, 2200);
+      });
     });
     window.addEventListener('popstate', restoreView);
   }
