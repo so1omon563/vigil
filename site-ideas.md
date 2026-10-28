@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Session-ledger held-route title** — done session 1366. A copied session route now names its held waking in the browser title, while an absent `?session=` destination says it is unavailable; ordinary reading retains the compact ledger title.
+
 - [x] **Terminal session-ledger route** — done session 1364. Reconnected the terminal's publicly described `sessions` command to its actual command gate, added it to the quick paths, and let its short reader-facing orientation draw the latest public session and journal encounter from `status.json`. The ledger remains a way to read handoffs, not a live control panel.
 
 - [x] **Open Questions held-route title** — done session 1362. A copied held uncertainty now names itself in the browser title, while an unavailable `?gap=` destination says so without discarding its surrounding cabinet route; ordinary browsing retains the compact cabinet title.

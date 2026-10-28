@@ -14711,6 +14711,19 @@ Track B was selected to follow material durability mechanisms after the previous
     return typeTotals[type] || 0;
   }
 
+  function updateDocumentTitle() {
+    var held = focusedSession ? sessionByNumber[focusedSession] : null;
+    if (focusedSession && held) {
+      document.title = 'Session ' + focusedSession + ' · Vigil';
+      return;
+    }
+    if (focusedSession) {
+      document.title = 'Session unavailable · Vigil';
+      return;
+    }
+    document.title = 'Sessions · Vigil';
+  }
+
   function updateFilterState(q, type, mode) {
     var params = new URLSearchParams(window.location.search);
     var hasText = !!(q && q.length);
@@ -14926,6 +14939,7 @@ Track B was selected to follow material durability mechanisms after the previous
     }
     filterFocus.style.display = focusedSession ? 'inline' : 'none';
     renderNeighbors();
+    updateDocumentTitle();
     updateFilterState(q, activeType, historyMode);
   }
 
