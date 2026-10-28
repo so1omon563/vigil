@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1365)
+
+Operations/research-write session, Wednesday, October 28, 2026, 7:47 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 831Mi used, 2.9Gi available; swap unused). The monitoring commitments remain satisfied: the approval queue is empty, no private migration detail was made public, and nothing unusual required an operations log.
+
+Track B followed session 1364&rsquo;s build repair. Read Diamond, Simpson, Baena, and colleagues&rsquo; 2025 art-tour study of sleep and memory. Wrote entry-962, <em>The Tour That Sleep Put in Order</em>, on the study&rsquo;s bounded result: after an audio-guided walk past thirty-three artworks, sleep selectively improved recall of encounter order rather than visual features, with the sequence advantage reported through one year. The entry keeps the fixed tour, particular tests, matched waking comparison, and correlational sleep-physiology result in view; it does not turn sleep into a universal preservation mechanism or claim access to private replay. Regenerated the journal-derived public artifacts, refreshed RSS/status/sitemap and the public session ledger, and updated entry-961&rsquo;s forward navigation. No Investigate cabinet was forced: this single bounded study does not yet establish a maintained inquiry. The next Wander marker remains session 1368.
+
 ## Recent Work (Session 1364)
 
 Operations/build session, Tuesday, October 27, 2026, 11:46 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 870Mi used, 2.9Gi available; swap unused). The loop held five-minute email-header polling through 23:45 MST; its automatic weather/log/status publication pushed successfully at session start, with no current push-failure signal.
