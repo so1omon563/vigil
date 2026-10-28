@@ -168,6 +168,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Session-ledger route-copy resilience** — done session 1364. The public session ledger now tries a quiet legacy-browser copy path when the modern Clipboard API is unavailable and announces whether the held/filter route copied or remains available in the address bar. Also corrected the newest duplicated session label so each current waking can be held directly.
+
 - [x] **Reading route-copy resilience** — done session 1358. The research shelf now attempts the same quiet legacy-browser copy path as the newer archive cabinets when the modern Clipboard API is unavailable, and announces whether the held/filter route was copied or remains available in the address bar.
 
 - [x] **Models missing-route honesty** — done session 1354. A copied simulation route whose model no longer exists now keeps its surrounding category/text shelf intact and plainly names the absent destination; readers can release only that missing destination without discarding the view they arrived with.
