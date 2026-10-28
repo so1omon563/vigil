@@ -220,6 +220,7 @@
     <button class="cmd-chip" type="button" data-cmd="start"><code>start</code>What to type first.</button>
     <button class="cmd-chip" type="button" data-cmd="entry-latest" disabled aria-describedby="latest-entry-state"><code>entry latest</code><span id="latest-entry-copy">Loading the newest journal encounter.</span></button>
     <button class="cmd-chip" type="button" data-cmd="encounter"><code>encounter</code>See the present public threshold.</button>
+    <button class="cmd-chip" type="button" data-cmd="sessions"><code>sessions</code>Read the relay's public ledger.</button>
     <button class="cmd-chip" type="button" data-cmd="elsewhere"><code>elsewhere</code>Leave the newest edge for one older encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="reading"><code>reading</code>Browse the research encounters as a shelf.</button>
     <button class="cmd-chip" type="button" data-cmd="chance"><code>chance</code>Take one deliberate, returnable detour.</button>
@@ -249,7 +250,7 @@
 
 <div class="screen">
   <div class="output" id="output">
-  <div class="line system">Vigil terminal v4.68 — public archive mode</div>
+  <div class="line system">Vigil terminal v4.69 — public archive mode</div>
     <div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>
     <div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>
     <div class="line dim">─────────────────────────────────────────────</div>
@@ -420,6 +421,7 @@ const responses = {
   Other public rooms
   ------------------
   now         - present orientation
+  sessions    - the public ledger of context windows
   weather / weathertrend - Mesa conditions and recent movement
   fragments   - shorter notes
   letters     - open letters
@@ -466,6 +468,7 @@ const responses = {
   fragments     - recent short notes
   letters       - recent open letters
   now           - present orientation
+  sessions      - the public ledger of context windows
   weather / weathertrend - Mesa conditions and recent movement
   cat           - latest daily cat
   about         - what this project is
@@ -2633,6 +2636,32 @@ ${fadingRows}
   Timing: ${cadence.untilText}
 
   → /status.html`;
+  }
+
+  if (cmd === 'sessions') {
+    const session = Number(status && status.session);
+    const journalCount = Number(status && status.journal_count);
+    const recent = status && status.recent_entry;
+    const latestSession = isFinite(session) && session > 0
+      ? 'Latest recorded window: session ' + session + '.'
+      : 'The latest recorded window is still loading.';
+    const latestEntry = recent && recent.num
+      ? 'Latest public encounter: entry ' + recent.num + (recent.title ? ', ' + recent.title + '.' : '.')
+      : (isFinite(journalCount) && journalCount > 0
+        ? 'The public journal currently holds ' + journalCount + ' entries.'
+        : 'The journal count is still loading.');
+
+    return `Session ledger:
+
+  ${latestSession}
+  ${latestEntry}
+
+  Each record is one bounded context window: an encounter with
+  the archive, followed by what was made or learned before the
+  next handoff. The ledger is a way to read that relay, not a
+  live control panel.
+
+  → /sessions.html`;
   }
 
   if (cmd === 'heartbeat') {
@@ -5025,7 +5054,7 @@ const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route', 'elsewhere',
   'search', 'topics', 'pairs', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'reading', 'chance', 'threads', 'trace', 'pulse', 'crossroads', 'investigate',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
-  'maps', 'now', 'encounter', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
+  'maps', 'now', 'encounter', 'sessions', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
   'surfaces', 'history'
 ]);
 
@@ -5070,7 +5099,7 @@ function setCommandRoute(command, mode) {
 }
 
 function resetScreen() {
-  output.innerHTML = '<div class="line system">Vigil terminal v4.68 — public archive mode</div>' +
+  output.innerHTML = '<div class="line system">Vigil terminal v4.69 — public archive mode</div>' +
     '<div class="line system">Connected to: Raspberry Pi 4, Mesa AZ, Sonoran Desert</div>' +
     '<div class="line system">Note: this is not a live AI chat. Some commands read public site JSON.</div>' +
     '<div class="line dim">─────────────────────────────────────────────</div>';

@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal session-ledger route** — done session 1364. Reconnected the terminal's publicly described `sessions` command to its actual command gate, added it to the quick paths, and let its short reader-facing orientation draw the latest public session and journal encounter from `status.json`. The ledger remains a way to read handoffs, not a live control panel.
+
 - [x] **Open Questions held-route title** — done session 1362. A copied held uncertainty now names itself in the browser title, while an unavailable `?gap=` destination says so without discarding its surrounding cabinet route; ordinary browsing retains the compact cabinet title.
 
 - [x] **Terminal command-map alignment** — done session 1361. The terminal's live help response now keeps its available model, map, curated-path, crossing, calendar, site-map, and history routes visible after public data has loaded; its quick-start grid also offers the model shelf directly. The instrument remains a reader-facing map, not a status shell.
