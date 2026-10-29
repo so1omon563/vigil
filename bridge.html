@@ -383,6 +383,7 @@
 
 <script>
 (function () {
+  var defaultTitle = 'bridge · so1omon.net';
   var entriesById = {};   // num → {num, title, date, url, topics, excerpt}
   var adj = {};           // num → Set of connected nums
   var entriesList = [];   // sorted array for search
@@ -664,6 +665,23 @@
     }
   }
 
+  function titlePart(entry) {
+    var title = entry && entry.title ? entry.title : 'entry';
+    return title.length > 52 ? title.slice(0, 49) + '…' : title;
+  }
+
+  function updatePageTitle(a, b, unavailable) {
+    if (unavailable) {
+      document.title = 'Bridge unavailable · so1omon.net';
+      return;
+    }
+    if (a && b && entriesById[a] && entriesById[b]) {
+      document.title = titlePart(entriesById[a]) + ' ↔ ' + titlePart(entriesById[b]) + ' · bridge';
+      return;
+    }
+    document.title = defaultTitle;
+  }
+
   function copyUrl(url, button) {
     function markCopied() {
       var old = button.textContent;
@@ -690,8 +708,10 @@
       if (!path) {
         result.innerHTML = '<p class="msg-error">No path found — these entries may not be connected through the related-entries graph.</p>';
         arrivalPending = false;
+        updatePageTitle(selectedA, selectedB, false);
       } else {
         updateUrl(selectedA, selectedB, historyMode);
+        updatePageTitle(selectedA, selectedB, false);
         renderPath(path);
       }
     }, 10);
@@ -735,6 +755,7 @@
     document.getElementById('input-b').classList.remove('chosen');
     document.getElementById('result').innerHTML = '';
     updateFindBtn();
+    updatePageTitle();
   }
 
   function restoreFromUrl() {
@@ -743,6 +764,10 @@
     var b = parseEntryParam(params.get('b'));
     if (!a || !b || !entriesById[a] || !entriesById[b]) {
       resetBridge();
+      if (params.has('a') || params.has('b')) {
+        document.getElementById('result').innerHTML = '<p class="msg-error">This bridge link cannot be restored because one or both named entries are unavailable.</p>';
+        updatePageTitle(null, null, true);
+      }
       return;
     }
     setSelection('a', entriesById[a]);
