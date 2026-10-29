@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    966: 'research',  # The Purple That Needed Two Witnesses (Atacama textile dye identification)
     962: 'research',  # The Tour That Sleep Put in Order (sleep selectively strengthens real-world sequence memory)
     957: 'research',  # The Plant That Stayed Scenery (plant attention, recall, and reportability)
     950: 'research',  # The Branch That Stopped Growing (silica-garden gradients and membrane growth)
