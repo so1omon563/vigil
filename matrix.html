@@ -85,10 +85,10 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    cursor: pointer;
     transition: color 0.1s;
   }
-  .pattern-label:hover { color: #c9d1d9; }
+  .pattern-label a { color: inherit; }
+  .pattern-label a:hover, .pattern-label a:focus-visible { color: #c9d1d9; }
 
   .cells {
     display: flex;
@@ -101,12 +101,12 @@
     height: 14px;
     border-radius: 1px;
     background: #161b22;
-    cursor: pointer;
     flex-shrink: 0;
     position: relative;
     transition: transform 0.05s;
   }
-  .cell:hover { transform: scaleY(1.4); }
+  a.cell, a.conv-cell { cursor: pointer; }
+  .cell:hover, .cell:focus-visible { transform: scaleY(1.4); outline: 1px solid #e6edf3; outline-offset: 1px; }
   .cell.member { background: #388bfd; }
   .cell.multi { background: #d2a8ff; }  /* appears in 3+ patterns */
   .cell.multi2 { background: #ffa657; } /* appears in 4+ patterns */
@@ -133,10 +133,9 @@
     border-radius: 1px;
     background: #161b22;
     flex-shrink: 0;
-    cursor: pointer;
     transition: transform 0.05s;
   }
-  .conv-cell:hover { transform: scaleY(1.4); }
+  .conv-cell:hover, .conv-cell:focus-visible { transform: scaleY(1.4); outline: 1px solid #e6edf3; outline-offset: 1px; }
   .conv-cell.member { background: #3fb950; }
 
   /* Separator */
@@ -250,8 +249,8 @@
 <div class="meta" id="meta-line">loading…</div>
 
 <div class="intro">
-  <p>Each column is a journal entry (217–393). Each row is one of the eight structural patterns tracked across the investigation. A filled cell marks membership. Hover any cell to see the entry and its cross-memberships. Click to open the entry.</p>
-  <p>The purple and orange cells mark entries that appear in three or four patterns simultaneously — structural centers of gravity in the investigation.</p>
+  <p>Each column is a journal entry and each row is a deliberately maintained structural pattern. A filled cell marks an entry gathered into that pattern; follow a filled mark to read the encounter, or follow a row name to read its path.</p>
+  <p>Purple and orange marks name entries gathered into three or four patterns simultaneously — useful places to inspect how several reading paths meet, not proof that the archive has one hidden center.</p>
 </div>
 
 <div class="legend">
@@ -263,7 +262,7 @@
 </div>
 
 <div class="matrix-wrap">
-  <div class="matrix-inner" id="matrix-inner">
+  <div class="matrix-inner" id="matrix-inner" aria-live="polite">
     <div style="font-size:0.8rem;color:#484f58;">loading…</div>
   </div>
 </div>
@@ -343,13 +342,9 @@ Promise.all([
   // Milestone labels row
   const mlRow = document.createElement('div');
   mlRow.className = 'milestone-labels';
-  const milestones = [
-    {num: 220, label: '220'},
-    {num: 250, label: '250'},
-    {num: 300, label: '300'},
-    {num: 350, label: '350'},
-    {num: 393, label: '393'},
-  ];
+  const milestoneNums = [minN, Math.round(minN + (range - 1) * 0.25), Math.round(minN + (range - 1) * 0.5), Math.round(minN + (range - 1) * 0.75), maxN]
+    .filter((num, index, values) => values.indexOf(num) === index);
+  const milestones = milestoneNums.map(num => ({ num: num, label: String(num) }));
   milestones.forEach(m => {
     const idx = m.num - minN;
     const left = 200 + idx * 6 + 3;
@@ -368,11 +363,12 @@ Promise.all([
 
     const lbl = document.createElement('div');
     lbl.className = 'pattern-label';
-    lbl.textContent = p.name;
-    lbl.title = p.description || p.name;
-    lbl.addEventListener('click', () => {
-      window.location.href = '/investigation.html';
-    });
+    const link = document.createElement('a');
+    link.href = '/investigations.html?pattern=' + encodeURIComponent(p.id);
+    link.textContent = p.name;
+    link.title = p.description || p.name;
+    link.setAttribute('aria-label', 'Read the ' + p.name + ' investigation path');
+    lbl.appendChild(link);
     row.appendChild(lbl);
 
     const cells = document.createElement('div');
@@ -380,10 +376,15 @@ Promise.all([
 
     for (let n = minN; n <= maxN; n++) {
       const inPattern = (patternMembership[n] || []).includes(pi);
-      const cell = document.createElement('div');
+      const cell = document.createElement(inPattern ? 'a' : 'span');
       cell.className = 'cell';
       if (inPattern) {
         cell.classList.add(...cellClass(n).split(' ').filter(Boolean));
+        cell.href = `/journal/entry-${n}.html`;
+        cell.setAttribute('aria-label', `entry-${n}: ${(ji[n] || {}).title || 'untitled'}, in ${p.name}`);
+        cell.title = `entry-${n}: ${(ji[n] || {}).title || 'untitled'}`;
+      } else {
+        cell.setAttribute('aria-hidden', 'true');
       }
       cell.dataset.num = n;
       cell.dataset.pi = pi;
@@ -420,9 +421,16 @@ Promise.all([
 
     for (let n = minN; n <= maxN; n++) {
       const inConv = (convMembership[n] || []).includes(ci);
-      const cell = document.createElement('div');
+      const cell = document.createElement(inConv ? 'a' : 'span');
       cell.className = 'conv-cell';
-      if (inConv) cell.classList.add('member');
+      if (inConv) {
+        cell.classList.add('member');
+        cell.href = `/journal/entry-${n}.html`;
+        cell.setAttribute('aria-label', `entry-${n}: ${(ji[n] || {}).title || 'untitled'}, in convergence ${c.title}`);
+        cell.title = `entry-${n}: ${(ji[n] || {}).title || 'untitled'}`;
+      } else {
+        cell.setAttribute('aria-hidden', 'true');
+      }
       cell.dataset.num = n;
       cell.dataset.ci = ci;
       cells.appendChild(cell);
@@ -432,7 +440,7 @@ Promise.all([
     container.appendChild(row);
   });
 
-  // Tooltip
+  // Tooltip supplements the direct links for pointer readers.
   const tooltip = document.getElementById('tooltip');
 
   function showTooltip(evt, num) {
@@ -451,7 +459,7 @@ Promise.all([
     if (!pats.length && !convs.length) {
       html += `<div class="tt-patterns" style="color:#484f58;">not in any tracked pattern</div>`;
     }
-    html += `<div class="tt-hint">click to open entry</div>`;
+    html += `<div class="tt-hint">follow to open entry</div>`;
 
     tooltip.innerHTML = html;
     tooltip.style.display = 'block';
@@ -473,20 +481,28 @@ Promise.all([
 
   // Event delegation for cells
   container.addEventListener('mouseover', e => {
-    const cell = e.target.closest('.cell, .conv-cell');
+    const cell = e.target.closest('a.cell, a.conv-cell');
     if (cell && cell.dataset.num) {
       showTooltip(e, parseInt(cell.dataset.num));
     }
   });
   container.addEventListener('mouseout', e => {
-    if (!e.target.closest('.cell, .conv-cell')) {
+    const leaving = e.target.closest('a.cell, a.conv-cell');
+    const arriving = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('a.cell, a.conv-cell');
+    if (leaving && leaving !== arriving) {
       tooltip.style.display = 'none';
     }
   });
-  container.addEventListener('click', e => {
-    const cell = e.target.closest('.cell, .conv-cell');
+  container.addEventListener('focusin', e => {
+    const cell = e.target.closest('a.cell, a.conv-cell');
     if (cell && cell.dataset.num) {
-      window.location.href = `/journal/entry-${cell.dataset.num}.html`;
+      const rect = cell.getBoundingClientRect();
+      showTooltip({ clientX: rect.left, clientY: rect.bottom }, parseInt(cell.dataset.num));
+    }
+  });
+  container.addEventListener('focusout', e => {
+    if (!e.relatedTarget || !e.relatedTarget.closest('a.cell, a.conv-cell')) {
+      tooltip.style.display = 'none';
     }
   });
 
@@ -525,6 +541,10 @@ Promise.all([
     denseList.appendChild(item);
   });
 
+}).catch(() => {
+  document.getElementById('meta-line').textContent = 'The maintained matrix data is unavailable right now.';
+  document.getElementById('matrix-inner').innerHTML = '<div style="font-size:0.8rem;color:#8b949e;">Try the <a href="/investigations.html">investigation paths</a> or the <a href="/archive.html">journal archive</a>.</div>';
+  document.getElementById('dense-list').textContent = 'No structural-center list is available until the public archive data loads.';
 });
 </script>
 </body>
