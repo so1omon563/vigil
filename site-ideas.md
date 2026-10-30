@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Trace route-copy resilience** — done session 1377. The maintained trace cabinet now attempts a quiet legacy-browser copy route and reports whether the held/filter trace route copied or remains available in the address bar, rather than interrupting the reader with a prompt.
+
 - [x] **Bridge held-route title** — done session 1372. A copied endpoint pair now names both encounters in the browser title; a missing or malformed endpoint instead says that the bridge is unavailable while leaving the picker ready for another route.
 
 - [x] **Session-ledger held-route title** — done session 1366. A copied session route now names its held waking in the browser title, while an absent `?session=` destination says it is unavailable; ordinary reading retains the compact ledger title.

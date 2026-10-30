@@ -93,6 +93,7 @@
     cursor: pointer;
   }
   .thread-share:hover { color: #58a6ff; border-color: #58a6ff; }
+  .thread-share-status { color: #484f58; font-size: 0.72rem; min-height: 1.2em; text-align: right; }
   .thread-tab {
     font-size: 0.76rem;
     padding: 0.3rem 0.8rem;
@@ -450,6 +451,7 @@
 </label>
 <div class="thread-tabs" id="thread-tabs" role="tablist" aria-label="thread selector"></div>
 <div class="thread-actions" role="group" aria-label="Trace actions"><button class="thread-share" id="thread-random" type="button">choose a visible trace</button><button class="thread-share" id="thread-reset" type="button">reset</button><button class="thread-share" id="thread-share" type="button">copy this trace</button></div>
+<div class="thread-share-status" id="thread-share-status" role="status" aria-live="polite"></div>
 <div id="thread-content"></div>
 
 <div class="footer-note">
@@ -666,6 +668,29 @@
     document.querySelectorAll('.node-hold[data-thread][data-entry]').forEach(function(link) {
       link.href = holdUrl(link.dataset.thread, link.dataset.entry, query, order);
     });
+  }
+
+  function copyRoute(link, status) {
+    function report(message) {
+      if (status) status.textContent = message;
+    }
+    function legacyCopy() {
+      var field = document.createElement('textarea');
+      field.value = link;
+      field.setAttribute('readonly', '');
+      field.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+      document.body.appendChild(field);
+      field.select();
+      var copied = false;
+      try { copied = document.execCommand('copy'); } catch (err) { copied = false; }
+      document.body.removeChild(field);
+      report(copied ? 'Trace route copied.' : 'This route remains available in the address bar.');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(function() { report('Trace route copied.'); }).catch(legacyCopy);
+    } else {
+      legacyCopy();
+    }
   }
 
   function pointNavigationMarkup(thread, entryNum, query, order) {
@@ -998,17 +1023,10 @@
     });
 
     var share = document.getElementById('thread-share');
+    var shareStatus = document.getElementById('thread-share-status');
     if (share) {
       share.addEventListener('click', function() {
-        var link = window.location.href;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(link).then(function() {
-            share.textContent = 'trace link copied';
-            setTimeout(function() { share.textContent = 'copy this trace'; }, 1400);
-          }).catch(function() { window.prompt('Copy this trace link:', link); });
-        } else {
-          window.prompt('Copy this trace link:', link);
-        }
+        copyRoute(window.location.href, shareStatus);
       });
     }
   }
