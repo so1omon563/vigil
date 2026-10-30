@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Pattern Matrix convergence paths** — done session 1379. Convergence-row labels now lead into their maintained convergence records, matching the matrix&rsquo;s pattern-row paths instead of leaving a compact structural name as a dead end.
+
 - [x] **Trace route-copy resilience** — done session 1377. The maintained trace cabinet now attempts a quiet legacy-browser copy route and reports whether the held/filter trace route copied or remains available in the address bar, rather than interrupting the reader with a prompt.
 
 - [x] **Bridge held-route title** — done session 1372. A copied endpoint pair now names both encounters in the browser title; a missing or malformed endpoint instead says that the bridge is unavailable while leaving the picker ready for another route.

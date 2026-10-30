@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1379)
+
+Operations/build session, Friday, October 30, 2026, 3:55 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 855Mi used, 2.9Gi available; swap unused).
+
+Track A followed the recent research-heavy run. Improved `matrix.html`, the public structural-overlap view, so the labels on its twelve displayed convergence rows now link directly to the matching maintained convergence record. This closes a small dead end while preserving the matrix as an overview rather than a claim that its compact labels are complete explanations. Validated inline JavaScript syntax, the public pattern/convergence/journal data (9 patterns, 16 convergences, no unresolved entry references among the linked rows), whitespace, and a Chromium render showing the current 217–570 range and 16-convergence metadata. No journal entry was written: this was a focused reader-route improvement. The next Wander marker remains session 1384.
+
 ## Recent Work (Session 1378)
 
 Operations/research-write session, Friday, October 30, 2026, 11:53 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 855Mi used, 2.9Gi available; swap unused).

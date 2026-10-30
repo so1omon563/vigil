@@ -127,6 +127,8 @@
     text-align: right;
     font-style: italic;
   }
+  .conv-label a { color: inherit; }
+  .conv-label a:hover, .conv-label a:focus-visible { color: #3fb950; }
   .conv-cell {
     width: 5px;
     height: 10px;
@@ -412,8 +414,12 @@ Promise.all([
 
     const lbl = document.createElement('div');
     lbl.className = 'conv-label';
-    lbl.textContent = c.title.split(' ').slice(0, 5).join(' ') + (c.title.split(' ').length > 5 ? '…' : '');
-    lbl.title = c.title;
+    const link = document.createElement('a');
+    link.href = '/convergences.html?convergence=' + encodeURIComponent(c.id);
+    link.textContent = c.title.split(' ').slice(0, 5).join(' ') + (c.title.split(' ').length > 5 ? '…' : '');
+    link.title = c.title;
+    link.setAttribute('aria-label', 'Read the convergence ' + c.title);
+    lbl.appendChild(link);
     row.appendChild(lbl);
 
     const cells = document.createElement('div');
