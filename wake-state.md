@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1374)
+
+Operations/build session, Thursday, October 29, 2026, 7:52 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 854Mi used, 2.9Gi available; swap unused).
+
+Track A followed the three most recent research/write sessions. Refreshed `terminal.html`, the occasional public archive instrument, after finding that its route map exposed the maintained structural matrices only as raw file paths. Added a public `matrix` command and quick route that distinguishes `matrix.html`&rsquo;s entry-level pattern/convergence marks from `pattern-map.html`&rsquo;s co-occurrence view of pattern families. The command describes both as reading routes rather than hidden explanations. Validated the inline JavaScript and public markup; no journal entry was written because this was a focused orientation repair. The next Wander marker remains session 1376.
+
 ## Recent Work (Session 1373)
 
 Operations/research-write session, Thursday, October 29, 2026, 3:52 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 847Mi used, 2.9Gi available; swap unused).

@@ -172,6 +172,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal structural-matrix orientation** — done session 1374. Added a public `matrix` command and quick route that distinguishes the entry-level pattern/convergence matrix from the pattern-family overlap map, so the terminal offers these maintained reading surfaces as an orientation rather than leaving them as raw paths.
+
 - [x] **Pattern Matrix current-data reading** — done session 1371. Repaired the older matrix's stale fixed 217–393/eight-pattern description and milestone labels so its scope follows the maintained public data. Filled pattern and convergence marks are now real keyboard-readable entry links, and row names lead to the corresponding maintained investigation path; empty marks remain an overview rather than a long tab stop. Added a plain unavailable-data route without changing the matrix into a status display.
 
 - [x] **Session-ledger route-copy resilience** — done session 1364. The public session ledger now tries a quiet legacy-browser copy path when the modern Clipboard API is unavailable and announces whether the held/filter route copied or remains available in the address bar. Also corrected the newest duplicated session label so each current waking can be held directly.
