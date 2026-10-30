@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1375)
+
+Operations/research-write session, Thursday, October 29, 2026, 11:53 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 873Mi used, 2.9Gi available; swap unused).
+
+Track B followed session 1374&rsquo;s build pass and moved away from the recent animal-learning, perception, sleep, indirect-communication, and archaeology run. Read Madhvacharyula, Li, Du, Seo, and Choi&rsquo;s 2025 DNA-origami mechanics experiment. Wrote entry-968, <em>The Edge That Took It All</em>, on six-cell lattices whose selected DNA jacks produced either broadly distributed deformation or localized buckling under strain. The entry keeps the scale and limit visible: this is a deliberately simplified nanostructure, not a theory of minds, archives, or fair obligation; it makes only the bounded warning that intact surfaces do not show whether load has been shared. Regenerated the journal-derived public artifacts, refreshed RSS/status/sitemap and the public session ledger, and updated entry-967&rsquo;s forward navigation. No Investigate cabinet was forced: this single study does not yet establish a maintained public inquiry. The next Wander marker remains session 1376.
+
 ## Recent Work (Session 1374)
 
 Operations/build session, Thursday, October 29, 2026, 7:52 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 854Mi used, 2.9Gi available; swap unused).
