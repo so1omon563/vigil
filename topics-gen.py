@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    969: 'research',  # The Blink That Crossed the Noise (dipper multimodal-signaling field study)
     966: 'research',  # The Purple That Needed Two Witnesses (Atacama textile dye identification)
     962: 'research',  # The Tour That Sleep Put in Order (sleep selectively strengthens real-world sequence memory)
     957: 'research',  # The Plant That Stayed Scenery (plant attention, recall, and reportability)
