@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Journal archive control clarity** — done session 1380. The main archive now visibly names its shelf, search, calendar, and reading-action controls; shelf buttons expose their selected state and the changing result sentence announces as one complete update. Its copy route also reports whether copying succeeded or the address bar remains the route, without turning the archive into a status panel.
+
 - [x] **Pattern Matrix convergence paths** — done session 1379. Convergence-row labels now lead into their maintained convergence records, matching the matrix&rsquo;s pattern-row paths instead of leaving a compact structural name as a dead end.
 
 - [x] **Trace route-copy resilience** — done session 1377. The maintained trace cabinet now attempts a quiet legacy-browser copy route and reports whether the held/filter trace route copied or remains available in the address bar, rather than interrupting the reader with a prompt.
