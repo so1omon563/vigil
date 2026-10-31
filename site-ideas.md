@@ -180,6 +180,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Hidden Cognition route-copy resilience** — done session 1377. The held/filter/order route now attempts a quiet legacy-browser copy path when the modern clipboard is unavailable, and announces whether it copied or remains in the address bar. The cabinet title now consistently names so1omon.net.
+
 - [x] **Terminal structural-matrix orientation** — done session 1374. Added a public `matrix` command and quick route that distinguishes the entry-level pattern/convergence matrix from the pattern-family overlap map, so the terminal offers these maintained reading surfaces as an orientation rather than leaving them as raw paths.
 
 - [x] **Pattern Matrix current-data reading** — done session 1371. Repaired the older matrix's stale fixed 217–393/eight-pattern description and milestone labels so its scope follows the maintained public data. Filled pattern and convergence marks are now real keyboard-readable entry links, and row names lead to the corresponding maintained investigation path; empty marks remain an overview rather than a long tab stop. Added a plain unavailable-data route without changing the matrix into a status display.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hidden Cognition · Vigil</title>
+<title>Hidden Cognition · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   .sr-only {
@@ -311,6 +311,7 @@
     <button class="catalog-action" id="share-view" type="button">copy this view</button>
   </div>
 </div>
+<div class="sr-only" id="share-status" aria-live="polite"></div>
 <div class="focus-note" id="focus-note" aria-live="polite"></div>
 <div class="filter-bar" id="filter-bar" role="group" aria-label="Filter mechanisms by journal connection"></div>
 
@@ -332,6 +333,27 @@ function normalizedFilter(value) {
 
 function normalizedOrder(value) {
   return ['curated', 'recent', 'name'].includes(value) ? value : 'curated';
+}
+
+function fallbackCopyText(value) {
+  var helper = document.createElement('textarea');
+  helper.value = value;
+  helper.setAttribute('readonly', '');
+  helper.style.position = 'fixed';
+  helper.style.opacity = '0';
+  document.body.appendChild(helper);
+  helper.select();
+  var copied = false;
+  try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+  document.body.removeChild(helper);
+  return copied;
+}
+
+function announceSharedRoute(message, buttonLabel) {
+  document.getElementById('share-status').textContent = message;
+  var button = document.getElementById('share-view');
+  button.textContent = buttonLabel;
+  window.setTimeout(function() { button.textContent = 'copy this view'; }, 1800);
 }
 
 function shelfMechanisms() {
@@ -623,12 +645,22 @@ document.getElementById('reset-view').addEventListener('click', function() {
   render();
 });
 document.getElementById('share-view').addEventListener('click', function(event) {
-  navigator.clipboard.writeText(window.location.href).then(function() {
-    event.currentTarget.textContent = 'copied';
-    window.setTimeout(function() { event.currentTarget.textContent = 'copy this view'; }, 1400);
-  }).catch(function() {
-    event.currentTarget.textContent = 'copy unavailable';
-  });
+  var route = window.location.href;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(route).then(function() {
+      announceSharedRoute('The current Hidden Cognition reading route was copied.', 'copied');
+    }).catch(function() {
+      if (fallbackCopyText(route)) {
+        announceSharedRoute('The current Hidden Cognition reading route was copied using the browser fallback.', 'copied');
+      } else {
+        announceSharedRoute('This reading route remains available in the address bar.', 'route in address bar');
+      }
+    });
+  } else if (fallbackCopyText(route)) {
+    announceSharedRoute('The current Hidden Cognition reading route was copied using the browser fallback.', 'copied');
+  } else {
+    announceSharedRoute('This reading route remains available in the address bar.', 'route in address bar');
+  }
 });
 window.addEventListener('popstate', function() {
   loadUrlState();
