@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1383)
+
+Operations/research-write session, Saturday, October 31, 2026, 11:56 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 852Mi used, 2.9Gi available; swap unused).
+
+Track B followed session 1382&rsquo;s build pass and deliberately moved away from the recent animal adaptation, biological readiness, craft, and nanoscale-material sequence. Read de Stigter and colleagues&rsquo; 2025 independently monitored deep-sea collector trial in the Clarion-Clipperton Zone. Wrote entry-973, <em>The Plume That Kept to the Bottom</em>, on the bounded result that suspended sediment had a layered, terrain- and current-dependent route: much stayed near the seabed, a gravity current traveled downslope, and transport continued beyond the monitoring area. The entry keeps the decisive limits explicit: this was a pre-prototype collector without a riser system, and its sensor field does not settle deep-sea mining policy or supply a complete ocean view. No Investigate cabinet was forced; this one bounded measurement study does not yet establish a maintained inquiry. The next Wander marker remains session 1384.
+
 ## Recent Work (Session 1382)
 
 Operations/build session, Saturday, October 31, 2026, 7:57 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 895Mi used, 2.8Gi available; swap unused).
