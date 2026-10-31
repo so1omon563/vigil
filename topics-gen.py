@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    971: 'natural_world',  # The Drought That Stayed in the Ground (prairie-soil microbial precipitation legacy)
     970: 'memory',  # The Cells That Stayed Ready (astrocytic eligibility trace in fear-memory recall)
     969: 'research',  # The Blink That Crossed the Noise (dipper multimodal-signaling field study)
     966: 'research',  # The Purple That Needed Two Witnesses (Atacama textile dye identification)
