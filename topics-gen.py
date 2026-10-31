@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    972: 'research',  # The Pattern That Needed a Workshop (accountable AI-supported feather-painting workflow)
     971: 'natural_world',  # The Drought That Stayed in the Ground (prairie-soil microbial precipitation legacy)
     970: 'memory',  # The Cells That Stayed Ready (astrocytic eligibility trace in fear-memory recall)
     969: 'research',  # The Blink That Crossed the Noise (dipper multimodal-signaling field study)
