@@ -127,6 +127,15 @@
     align-items: center;
     margin-bottom: 1rem;
   }
+  .pattern-search-label,
+  .pattern-actions-label {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: #8b949e;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+  .pattern-search-label { width: 100%; }
   .pattern-search {
     flex: 1;
     min-width: 0;
@@ -158,6 +167,7 @@
   .filter-btn:hover { border-color: #58a6ff; color: #c9d1d9; }
   .filter-btn.active { border-color: #58a6ff; color: #58a6ff; background: #0d1117; }
   .pattern-actions { display: flex; gap: 0.55rem; flex-wrap: wrap; margin: -0.85rem 0 1.75rem; }
+  .pattern-actions-label { width: 100%; }
   .pattern-action {
     font: inherit;
     font-size: 0.72rem;
@@ -489,6 +499,8 @@
     flex-shrink: 0;
   }
 
+  html[data-theme="light"] .pattern-search-label,
+  html[data-theme="light"] .pattern-actions-label { color: #57606a; }
   html[data-theme="light"] .density-card { background: #f0f3f6; border-color: #d0d7de; }
   html[data-theme="light"] .density-card.count-4 { border-color: #9a6700; }
   html[data-theme="light"] .density-title a { color: #24292e; }
@@ -521,7 +533,8 @@
 <div class="density-section" id="density-section"></div>
 
 <div class="pattern-search-row">
-  <input class="pattern-search" id="pattern-search" type="search" placeholder="search shapes, journal entries, or observations…" autocomplete="off" aria-label="Search recurring patterns">
+  <label class="pattern-search-label" for="pattern-search">Search recurring shapes</label>
+  <input class="pattern-search" id="pattern-search" type="search" placeholder="shapes, journal entries, or observations…" autocomplete="off">
 </div>
 
 <div class="filter-row" id="filter-row" role="group" aria-label="Filter recurring patterns">
@@ -529,7 +542,8 @@
   <button class="filter-btn active" data-filter="all" aria-pressed="true">all patterns</button>
 </div>
 
-<div class="pattern-actions">
+<div class="pattern-actions" role="group" aria-label="Reading actions">
+  <span class="pattern-actions-label">Reading actions</span>
   <button class="pattern-action" id="reset-view" type="button">show all</button>
   <button class="pattern-action" id="share-view" type="button">copy this view</button>
 </div>
@@ -975,7 +989,13 @@
       b.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
     syncUrl(replace);
+    updateTitle(patterns);
     renderPatterns(patterns);
+  }
+
+  function updateTitle(patterns) {
+    var focused = patterns.find(function (pattern) { return pattern.id === activeFilter; });
+    document.title = focused ? focused.name + ' · Recurring Shapes · Vigil' : 'Recurring Shapes · Vigil';
   }
 
   function syncUrl(replace) {
@@ -994,11 +1014,33 @@
       label.textContent = 'view copied';
       window.setTimeout(function () { label.textContent = 'copy this view'; }, 1400);
     };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(window.location.href).then(copy, function () { label.textContent = 'copy unavailable'; });
-    } else {
+    var unavailable = function () {
       label.textContent = 'copy unavailable';
+      window.setTimeout(function () { label.textContent = 'copy this view'; }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href).then(copy, function () {
+        if (copyLegacy(window.location.href)) copy();
+        else unavailable();
+      });
+    } else {
+      if (copyLegacy(window.location.href)) copy();
+      else unavailable();
     }
+  }
+
+  function copyLegacy(value) {
+    var field = document.createElement('textarea');
+    field.value = value;
+    field.setAttribute('readonly', '');
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    document.body.appendChild(field);
+    field.select();
+    var copied = false;
+    try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+    document.body.removeChild(field);
+    return copied;
   }
 
   function renderPatterns(patterns) {
