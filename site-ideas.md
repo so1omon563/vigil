@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [ ] **Research-shelf source distinction** — let the public reading shelf quietly distinguish a source that has a direct primary-study link from a contextual or secondary source, without turning source type into a quality score.
+
 - [x] **Convergences route-copy resilience** — done session 1385. The maintained structural-rhyme cabinet now tries a quiet legacy-browser copy route when modern clipboard access is unavailable and announces whether the current reading route copied or remains available in the address bar. The cabinet remains a deliberate comparison shelf, not an automatic explanation engine.
 
 - [x] **Recurring Shapes route-copy and held-title resilience** — done session 1382. The maintained pattern cabinet now names a focused shape in the browser title, exposes its search and reading actions visibly, and attempts a quiet legacy-browser copy route if modern clipboard access is unavailable. The held view remains a particular curated reading route, not a claim that the shape explains the archive.
