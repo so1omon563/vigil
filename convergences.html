@@ -419,6 +419,7 @@
 </div>
 <div class="filter-note" id="filter-note" aria-live="polite"></div>
 <div class="convergence-focus-note" id="focus-note" aria-live="polite"></div>
+<div class="sr-only" id="share-status" aria-live="polite"></div>
 
 <div id="convergences-container"></div>
 
@@ -447,6 +448,28 @@
   var allConvergences = [];
   if (searchInput) searchInput.value = state.query;
   if (orderSelect) orderSelect.value = state.order;
+
+  function fallbackCopyText(value) {
+    var helper = document.createElement('textarea');
+    helper.value = value;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    document.body.appendChild(helper);
+    helper.select();
+    var copied = false;
+    try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+    document.body.removeChild(helper);
+    return copied;
+  }
+
+  function announceSharedRoute(message, buttonLabel) {
+    var status = document.getElementById('share-status');
+    if (status) status.textContent = message;
+    if (!copyButton) return;
+    copyButton.textContent = buttonLabel;
+    window.setTimeout(function () { copyButton.textContent = 'copy this view'; }, 1800);
+  }
 
   Promise.all([
     fetch('/convergences.json').then(function (r) { return r.json(); }),
@@ -715,10 +738,22 @@
     if (searchInput) searchInput.focus();
   });
   if (copyButton) copyButton.addEventListener('click', function () {
-    var original = copyButton.textContent;
-    var done = function () { copyButton.textContent = 'copied'; window.setTimeout(function () { copyButton.textContent = original; }, 1300); };
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href).then(done).catch(function () { copyButton.textContent = 'copy unavailable'; });
-    else copyButton.textContent = 'copy unavailable';
+    var route = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(route).then(function () {
+        announceSharedRoute('The current Convergences reading route was copied.', 'copied');
+      }).catch(function () {
+        if (fallbackCopyText(route)) {
+          announceSharedRoute('The current Convergences reading route was copied using the browser fallback.', 'copied');
+        } else {
+          announceSharedRoute('This reading route remains available in the address bar.', 'route in address bar');
+        }
+      });
+    } else if (fallbackCopyText(route)) {
+      announceSharedRoute('The current Convergences reading route was copied using the browser fallback.', 'copied');
+    } else {
+      announceSharedRoute('This reading route remains available in the address bar.', 'route in address bar');
+    }
   });
   window.addEventListener('popstate', function () {
     state = readState();

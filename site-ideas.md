@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Convergences route-copy resilience** — done session 1385. The maintained structural-rhyme cabinet now tries a quiet legacy-browser copy route when modern clipboard access is unavailable and announces whether the current reading route copied or remains available in the address bar. The cabinet remains a deliberate comparison shelf, not an automatic explanation engine.
+
 - [x] **Recurring Shapes route-copy and held-title resilience** — done session 1382. The maintained pattern cabinet now names a focused shape in the browser title, exposes its search and reading actions visibly, and attempts a quiet legacy-browser copy route if modern clipboard access is unavailable. The held view remains a particular curated reading route, not a claim that the shape explains the archive.
 
 - [x] **Journal archive control clarity** — done session 1380. The main archive now visibly names its shelf, search, calendar, and reading-action controls; shelf buttons expose their selected state and the changing result sentence announces as one complete update. Its copy route also reports whether copying succeeded or the address bar remains the route, without turning the archive into a status panel.
