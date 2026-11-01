@@ -199,6 +199,8 @@
   .entry-title:hover { color: #58a6ff; text-decoration: underline; }
   .entry-date { color: #484f58; font-size: 0.68rem; margin-bottom: 0.45rem; }
   .entry-excerpt { color: #8b949e; font-size: 0.79rem; line-height: 1.55; }
+  .source-path { color: #6e7681; font-size: 0.68rem; letter-spacing: 0.025em; margin-top: 0.7rem; }
+  .source-path.direct-study { color: #58a6ff; }
   .tags {
     display: flex;
     flex-wrap: wrap;
@@ -246,6 +248,8 @@
   html[data-theme="light"] .focus-neighbor { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .focus-neighbor:hover,
   html[data-theme="light"] .focus-neighbor:focus-visible { color: #0969da; border-color: #0969da; }
+  html[data-theme="light"] .source-path { color: #57606a; }
+  html[data-theme="light"] .source-path.direct-study { color: #0969da; }
   @media (max-width: 780px) {
     .summary-row, .recent-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .entry-grid { grid-template-columns: 1fr; }
@@ -266,6 +270,7 @@
 <p class="intro">
   A living index of journal entries that came from looking into something specific:
   papers, field notes, experiments, histories, and mechanisms.
+  When an entry names a source, its small label describes the path it links to&mdash;a direct study or a contextual source&mdash;not how much trust the source deserves.
 </p>
 
 <div class="summary-row" aria-label="Reading summary">
@@ -322,6 +327,7 @@
   let currentSort = 'newest';
   let currentEntry = '';
   let shelfEntries = [];
+  let sourcePaths = new Map();
 
   function copyText(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -511,6 +517,10 @@
     grid.innerHTML = filteredEntries.slice(0, 160).map(entry => {
       const tags = (entry.topics || []).map(topic => '<span class="tag">' + esc(topic) + '</span>').join('');
       const held = String(entry.num) === String(currentEntry);
+      const sourceKind = sourcePaths.get(String(entry.num));
+      const sourcePath = sourceKind
+        ? '<div class="source-path ' + esc(sourceKind) + '">' + (sourceKind === 'direct-study' ? 'direct study link' : 'contextual source link') + '</div>'
+        : '';
       return '<article class="entry-card' + (held ? ' held' : '') + (held && heldOutsideShelf ? ' held-outside' : '') + '" id="entry-' + esc(entry.num) + '" tabindex="-1">' +
         '<div class="entry-head">' +
           '<span class="entry-num">#' + esc(entry.num) + '</span>' +
@@ -519,6 +529,7 @@
         '</div>' +
         '<div class="entry-date">' + esc(formatDate(entry.date)) + '</div>' +
         '<div class="entry-excerpt">' + esc(entry.excerpt || '') + '</div>' +
+        sourcePath +
         '<div class="tags">' + tags + '</div>' +
       '</article>';
     }).join('');
@@ -596,10 +607,13 @@
     window.addEventListener('popstate', restoreView);
   }
 
-  fetch('/journal-index.json')
-    .then(response => response.json())
-    .then(entries => {
+  Promise.all([
+    fetch('/journal-index.json').then(response => response.json()),
+    fetch('/reading-sources.json').then(response => response.ok ? response.json() : [])
+  ])
+    .then(([entries, sources]) => {
       allEntries = entries.filter(isResearchEntry);
+      sourcePaths = new Map(sources.map(source => [String(source.entry), source.kind]));
       renderStats();
       renderRecent();
       bindEvents();

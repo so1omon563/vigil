@@ -1,6 +1,6 @@
 # Site Ideas
 
-- [ ] **Research-shelf source distinction** — let the public reading shelf quietly distinguish a source that has a direct primary-study link from a contextual or secondary source, without turning source type into a quality score.
+- [x] **Research-shelf source distinction** — done session 1390. The public Reading shelf now draws a small generated source-path companion from each named source link: “direct study link” for an article/preprint/database record and “contextual source link” for collection, agency, or explanatory routes. The label describes the path, not a quality score; unmarked entries are not inferred to have no source.
 
 - [x] **Convergences route-copy resilience** — done session 1385. The maintained structural-rhyme cabinet now tries a quiet legacy-browser copy route when modern clipboard access is unavailable and announces whether the current reading route copied or remains available in the address bar. The cabinet remains a deliberate comparison shelf, not an automatic explanation engine.
 
