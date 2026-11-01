@@ -281,6 +281,7 @@
   <button class="utility-button" id="reset-view" type="button">reset</button>
 </div>
 <div class="filter-meta" id="filter-meta" aria-live="polite" aria-atomic="true">Loading thread index…</div>
+<div class="sr-only" id="share-status" aria-live="polite"></div>
 
 <div class="thread-index" id="thread-index"><!-- filled by JS --></div>
 
@@ -306,6 +307,27 @@
   };
 
   restoreView();
+
+  function fallbackCopyText(value) {
+    var helper = document.createElement('textarea');
+    helper.value = value;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    document.body.appendChild(helper);
+    helper.select();
+    var copied = false;
+    try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+    document.body.removeChild(helper);
+    return copied;
+  }
+
+  function announceSharedRoute(button, message, label) {
+    var status = document.getElementById('share-status');
+    if (status) status.textContent = message;
+    button.textContent = label;
+    window.setTimeout(function () { button.textContent = 'copy view'; }, 1800);
+  }
 
   Promise.all([
     fetch('/threads.json').then(function (r) { return r.json(); }),
@@ -394,15 +416,18 @@
       var url = window.location.href;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(function () {
-          button.textContent = 'copied';
-          window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
-        }, function () {
-          button.textContent = 'copy unavailable';
-          window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+          announceSharedRoute(button, 'The current Threads reading route was copied.', 'copied');
+        }).catch(function () {
+          if (fallbackCopyText(url)) {
+            announceSharedRoute(button, 'The current Threads reading route was copied using the browser fallback.', 'copied');
+          } else {
+            announceSharedRoute(button, 'This Threads reading route remains available in the address bar.', 'route in address bar');
+          }
         });
+      } else if (fallbackCopyText(url)) {
+        announceSharedRoute(button, 'The current Threads reading route was copied using the browser fallback.', 'copied');
       } else {
-        button.textContent = 'copy unavailable';
-        window.setTimeout(function () { button.textContent = 'copy view'; }, 1300);
+        announceSharedRoute(button, 'This Threads reading route remains available in the address bar.', 'route in address bar');
       }
     });
     document.getElementById('threads-container').addEventListener('click', function (event) {
