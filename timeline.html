@@ -18,7 +18,7 @@
   .controls { display: flex; gap: .55rem; flex-wrap: wrap; margin: 1rem 0 .75rem; }
   input, button { font: inherit; font-size: .76rem; border: 1px solid #30363d; border-radius: 3px; padding: .42rem .55rem; background: #0d1117; color: #c9d1d9; }
   input { min-width: min(100%, 260px); flex: 1; } button { cursor: pointer; color: #8b949e; } button:hover, button.active { border-color: #58a6ff; color: #58a6ff; }
-  .count { margin: .7rem 0 1.4rem; } .count strong { color: #c9d1d9; }
+  .count { margin: .7rem 0 1.4rem; } .count strong { color: #c9d1d9; } .copy-state { min-height: 1.3em; margin: -.25rem 0 .8rem; }
   .month { margin: 2rem 0; } .month:first-of-type { margin-top: 0; }
   .month-title { font-size: .72rem; color: #58a6ff; text-transform: uppercase; letter-spacing: .12em; padding-bottom: .45rem; border-bottom: 1px solid #21262d; }
   .day { display: grid; grid-template-columns: 98px 1fr; gap: 1rem; padding: .8rem 0; border-bottom: 1px solid #161b22; }
@@ -54,6 +54,7 @@
   <button type="button" data-range="30">30 days</button><button type="button" data-range="90">90 days</button><button type="button" data-range="all" class="active">all time</button>
   <button type="button" id="reset">reset</button><button type="button" id="copy">copy view</button>
 </div>
+<p class="meta copy-state" id="copy-state" aria-live="polite"></p>
 <p class="count" id="count" aria-live="polite"></p>
 <main id="timeline"><p class="loading">Reading the archive…</p></main>
 <footer id="footer">Timeline derives from <a href="/journal-index.json">journal-index.json</a> when opened.</footer>
@@ -113,7 +114,27 @@
   query.addEventListener('input', function(){ term=query.value.trim(); heldDay=''; heldEntry=''; setUrl(true); render(); });
   document.querySelectorAll('[data-range]').forEach(function(b){ b.addEventListener('click', function(){ range=b.dataset.range; heldDay=''; heldEntry=''; setUrl(false); render(); }); });
   document.getElementById('reset').addEventListener('click', function(){ range='all'; term=''; heldDay=''; heldEntry=''; query.value=''; setUrl(false); render(); });
-  document.getElementById('copy').addEventListener('click', function(){ navigator.clipboard && navigator.clipboard.writeText(location.href); this.textContent='copied'; var b=this; setTimeout(function(){b.textContent='copy view';},1200); });
+  document.getElementById('copy').addEventListener('click', function(){
+    var b = this, state = document.getElementById('copy-state'), route = location.href;
+    function say(message) { state.textContent = message; b.textContent = 'copied'; setTimeout(function(){ b.textContent='copy view'; }, 1200); }
+    function legacyCopy() {
+      var field = document.createElement('textarea');
+      field.value = route; field.setAttribute('readonly', '');
+      field.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+      document.body.appendChild(field); field.select();
+      var copied = false;
+      try { copied = document.execCommand('copy'); } catch (err) {}
+      document.body.removeChild(field);
+      return copied;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(route).then(function(){ say('This timeline view was copied.'); }).catch(function(){
+        say(legacyCopy() ? 'This timeline view was copied with a browser fallback.' : 'This view remains available in the address bar.');
+      });
+    } else {
+      say(legacyCopy() ? 'This timeline view was copied with a browser fallback.' : 'This view remains available in the address bar.');
+    }
+  });
   addEventListener('popstate', refreshFromUrl);
   fetch('/journal-index.json', {cache:'no-store'}).then(function(r){ if(!r.ok) throw Error('journal index unavailable'); return r.json(); }).then(function(data){ all = data.map(function(e){ return {num:e.num, title:e.title||'', excerpt:e.excerpt||'', topics:e.topics||[], url:e.url||'', when:parse(e)}; }).filter(function(e){return e.when;});
     var earliest = all.reduce(function(a,e){return !a||e.when<a.when?e:a;}, null), latest = all.reduce(function(a,e){return !a||e.when>a.when?e:a;}, null);

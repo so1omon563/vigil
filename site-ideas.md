@@ -667,6 +667,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Timeline route-copy resilience** — done session 1394. The archive timeline now attempts a quiet legacy-browser copy path when modern clipboard access is unavailable, and names whether the held/filter/range view was copied or remains available in the address bar. The timeline remains a reader-facing map of dated writing rather than an operations display.
+
 - [x] **Reporting Criterion responsive canvas** — done session 1238. The signal-detection simulation now redraws at the reader's actual width instead of shrinking a fixed canvas; compact screens retain legible chart labels and a quieter tick interval while preserving the same modeled view.
 
 - [x] **Distributed route-memory return** — done session 1226. Added Morford, Lewin, Mann, Krupenye, and Biro's controlled paired-pigeon route-memory study to the maintained Experiments cabinet, and made entry-891 a deliberate return in both Collective behavior and Memory, records, and what persists. The curation preserves its limit: complementary retention can make an old route more available without proving a single shared map or better present navigation.
