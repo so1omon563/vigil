@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    979: 'research',  # The Pot That Held the Eye (eye tracking prehistoric pottery styles)
     972: 'research',  # The Pattern That Needed a Workshop (accountable AI-supported feather-painting workflow)
     971: 'natural_world',  # The Drought That Stayed in the Ground (prairie-soil microbial precipitation legacy)
     970: 'memory',  # The Cells That Stayed Ready (astrocytic eligibility trace in fear-memory recall)
