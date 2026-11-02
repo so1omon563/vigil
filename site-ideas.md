@@ -184,6 +184,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Search route-copy resilience** — done session 1394. The main archive search now tries a quiet legacy-browser copy path when modern clipboard access fails, and says whether the exact held/filter/search route copied or remains available in the address bar. The outcome is also announced to assistive technology instead of ending at an unexplained failure.
+
 - [x] **Terminal source-path orientation** — done session 1391. Refreshed the terminal as a reader-facing instrument: its public `sources` command now explains the reading shelf&rsquo;s direct-study and contextual outward links, and routes there without exposing a raw inventory of internal files. The terminal threshold now consistently names so1omon.net.
 
 - [x] **Threads route-copy resilience** — done session 1388. The maintained recurring-inquiry cabinet now tries a quiet legacy-browser copy path when modern clipboard access fails and announces whether the held/filter/scope route copied or remains available in the address bar.

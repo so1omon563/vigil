@@ -670,32 +670,47 @@ function copySearchLink() {
   const link = window.location.href;
   const btn = document.getElementById('search-share');
   const previousLabel = btn.textContent;
-  const onComplete = (nextLabel) => {
+  const onComplete = (nextLabel, announcement) => {
     btn.textContent = nextLabel;
+    if (announcement) setSearchSummary(announcement);
     setTimeout(() => {
       btn.textContent = previousLabel;
     }, 1200);
   };
 
+  const legacyCopy = () => {
+    const ta = document.createElement('textarea');
+    ta.value = link;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch (err) {}
+    document.body.removeChild(ta);
+    return copied;
+  };
+
+  const fallback = () => {
+    if (legacyCopy()) {
+      onComplete('copied', 'This search route was copied with a browser fallback.');
+    } else {
+      onComplete('address bar', 'This search route remains available in the address bar.');
+    }
+  };
+
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(link).then(() => {
-      onComplete('copied');
+      onComplete('copied', 'This search route was copied.');
     }).catch(() => {
-      onComplete('failed');
+      fallback();
     });
     return;
   }
 
-  const ta = document.createElement('textarea');
-  ta.value = link;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  ta.style.left = '-9999px';
-  document.body.appendChild(ta);
-  ta.select();
-  const ok = document.execCommand('copy');
-  document.body.removeChild(ta);
-  onComplete(ok ? 'copied' : 'failed');
+  fallback();
 }
 
 function rerunSearch() {
