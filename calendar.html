@@ -86,6 +86,25 @@
     text-underline-offset: 0.18em;
   }
   .view-action:hover { color: #58a6ff; }
+  .copy-status { color: #484f58; font-size: 0.7rem; min-height: 1.2em; }
+  .held-day-note {
+    border-left: 2px solid #30363d;
+    color: #8b949e;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    margin: -0.85rem 0 1.5rem;
+    padding-left: 0.85rem;
+  }
+  .held-day-note[hidden] { display: none; }
+  .held-day-note button {
+    background: none;
+    border: 0;
+    color: #58a6ff;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    text-decoration: underline;
+  }
 
   /* Calendar grid */
   .calendar-wrap {
@@ -367,7 +386,9 @@
 <div class="view-actions" aria-label="Calendar view actions">
   <button class="view-action" id="reset-view" type="button">reset view</button>
   <button class="view-action" id="copy-view" type="button">copy link</button>
+  <span class="copy-status" id="copy-status" aria-live="polite"></span>
 </div>
+<div class="held-day-note" id="held-day-note" hidden></div>
 
 <div class="stats-row" id="stats-row">
   <div class="stat-card"><div class="stat-label">Active days</div><div class="stat-value" id="stat-active">—</div><div class="stat-sub" id="stat-active-sub"></div></div>
@@ -521,19 +542,44 @@ function dayLabel(iso, count) {
   return DAY_NAMES[d.getDay()] + ', ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ': ' + count + ' entr' + (count === 1 ? 'y' : 'ies') + '. Select to read.';
 }
 
+function updateTitle(topic, heldDay, available) {
+  var suffix = 'Activity Calendar · so1omon.net';
+  if (heldDay) document.title = (available ? formatShortDate(heldDay) : 'Unavailable date') + ' · ' + suffix;
+  else if (topic) document.title = topic + ' · ' + suffix;
+  else document.title = suffix;
+}
+
+function showDayDetail(iso, dayData, context) {
+  var d = isoToDate(iso);
+  var panel = document.getElementById('day-detail');
+  document.getElementById('detail-date').textContent = DAY_NAMES[d.getDay()] + ', ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' — ' + dayData.count + ' entr' + (dayData.count === 1 ? 'y' : 'ies') + (context || '');
+  document.getElementById('detail-entries').innerHTML = dayData.entries.map(function(en) {
+    return '<div class="detail-entry">' +
+      '<div class="detail-num">#' + en.num + '</div>' +
+      '<div class="detail-topic">' + escapeHtml(en.topics.join(', ')) + '</div>' +
+      '<div class="detail-title"><a href="/' + escapeHtml(en.url) + '">' + escapeHtml(en.title) + '</a></div>' +
+      '</div>';
+  }).join('');
+  panel.classList.add('visible');
+}
+
 function render(topic, wantedDay) {
     var days = groupByDay(entries.filter(function(entry) { return entryMatchesTopic(entry, topic); }));
+    var allDays = groupByDay(entries);
     var restoreSelection = wantedDay || '';
     var isos = Object.keys(days).sort();
     var monthRow = document.getElementById('month-row');
     var weeksRow = document.getElementById('weeks-row');
     var notableEl = document.getElementById('notable-days');
     var detail = document.getElementById('day-detail');
+    var heldDayNote = document.getElementById('held-day-note');
 
     monthRow.innerHTML = '';
     weeksRow.innerHTML = '';
     notableEl.innerHTML = '';
     detail.classList.remove('visible');
+    heldDayNote.hidden = true;
+    heldDayNote.innerHTML = '';
     selectedIso = null;
 
     if (!isos.length) {
@@ -703,19 +749,8 @@ function render(topic, wantedDay) {
             cell.classList.add('selected');
             cell.setAttribute('aria-pressed', 'true');
 
-            var d = isoToDate(iso);
             var panel = document.getElementById('day-detail');
-            var dateEl = document.getElementById('detail-date');
-            var entriesEl = document.getElementById('detail-entries');
-            dateEl.textContent = DAY_NAMES[d.getDay()] + ', ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' — ' + count + ' entr' + (count===1?'y':'ies');
-            entriesEl.innerHTML = dayData.entries.map(function(en) {
-              return '<div class="detail-entry">' +
-                '<div class="detail-num">#' + en.num + '</div>' +
-                '<div class="detail-topic">' + escapeHtml(en.topics.join(', ')) + '</div>' +
-                '<div class="detail-title"><a href="/' + escapeHtml(en.url) + '">' + escapeHtml(en.title) + '</a></div>' +
-                '</div>';
-            }).join('');
-            panel.classList.add('visible');
+            showDayDetail(iso, dayData);
             panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             writeState({ topic: topic, day: iso }, restoreSelection === iso ? 'replaceState' : undefined);
             if (restoreSelection === iso) {
@@ -783,7 +818,26 @@ function render(topic, wantedDay) {
         wantedCell.click();
         writeState({ topic: topic, day: wantedDay }, 'replaceState');
       }
+    } else if (wantedDay && allDays[wantedDay]) {
+      heldDayNote.hidden = false;
+      heldDayNote.innerHTML = 'Held date <strong>' + escapeHtml(formatShortDate(wantedDay)) + '</strong> is outside the current ' +
+        (topic ? escapeHtml(topic) + ' topic view' : 'calendar view') + '. It remains below as a named date, not as a matching cell. ' +
+        '<button type="button" id="release-held-day">Release this date</button>';
+      showDayDetail(wantedDay, allDays[wantedDay], ' · held outside this topic view');
+      document.getElementById('release-held-day').addEventListener('click', function() {
+        writeState({ topic: topic, day: '' });
+        render(topic);
+      });
+    } else if (wantedDay) {
+      heldDayNote.hidden = false;
+      heldDayNote.innerHTML = 'The held date <strong>' + escapeHtml(wantedDay) + '</strong> is not available in the current archive. ' +
+        '<button type="button" id="release-held-day">Release this date</button>';
+      document.getElementById('release-held-day').addEventListener('click', function() {
+        writeState({ topic: topic, day: '' });
+        render(topic);
+      });
     }
+    updateTitle(topic, wantedDay, !!allDays[wantedDay]);
 
 }
 
@@ -832,14 +886,40 @@ fetch('/journal-index.json')
     });
     document.getElementById('copy-view').addEventListener('click', function() {
       var button = this;
-      var copy = navigator.clipboard && navigator.clipboard.writeText
-        ? navigator.clipboard.writeText(window.location.href)
-        : Promise.reject(new Error('Clipboard unavailable'));
-      copy.then(function() {
-        var old = button.textContent;
+      var copyStatus = document.getElementById('copy-status');
+      var done = function(message) {
         button.textContent = 'copied';
-        window.setTimeout(function() { button.textContent = old; }, 1200);
-      }).catch(function() { button.textContent = 'copy unavailable'; });
+        if (copyStatus) copyStatus.textContent = message;
+        window.setTimeout(function() { button.textContent = 'copy link'; }, 1400);
+      };
+      var unavailable = function() {
+        button.textContent = 'copy unavailable';
+        if (copyStatus) copyStatus.textContent = 'This browser could not copy the route. The address bar still holds it.';
+        window.setTimeout(function() { button.textContent = 'copy link'; }, 1800);
+      };
+      var legacyCopy = function() {
+        var field = document.createElement('textarea');
+        field.value = window.location.href;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.appendChild(field);
+        field.select();
+        try {
+          if (document.execCommand('copy')) {
+            document.body.removeChild(field);
+            done('This calendar route was copied.');
+            return;
+          }
+        } catch (error) {}
+        document.body.removeChild(field);
+        unavailable();
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(function() { done('This calendar route was copied.'); }, legacyCopy);
+      } else {
+        legacyCopy();
+      }
     });
     window.addEventListener('popstate', restoreFromURL);
     restoreFromURL();

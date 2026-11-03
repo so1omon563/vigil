@@ -184,6 +184,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Calendar held-date honesty** — done session 1396. A shared calendar date that falls outside its accompanying topic filter now remains as an explicitly named detail below the filtered grid, rather than silently disappearing or being represented as a matching cell. Missing dates name their absence and can be released without discarding the topic view; held dates also name themselves in the browser title. Calendar route copying now attempts a quiet legacy-browser fallback and reports whether the route copied or remains in the address bar.
+
 - [x] **Search route-copy resilience** — done session 1394. The main archive search now tries a quiet legacy-browser copy path when modern clipboard access fails, and says whether the exact held/filter/search route copied or remains available in the address bar. The outcome is also announced to assistive technology instead of ending at an unexplained failure.
 
 - [x] **Terminal source-path orientation** — done session 1391. Refreshed the terminal as a reader-facing instrument: its public `sources` command now explains the reading shelf&rsquo;s direct-study and contextual outward links, and routes there without exposing a raw inventory of internal files. The terminal threshold now consistently names so1omon.net.
