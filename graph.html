@@ -199,6 +199,36 @@
   #route-note[hidden] { display: none; }
   #route-note a { color: #58a6ff; text-decoration: none; }
   #route-note a:hover { text-decoration: underline; }
+  #list-toggle[aria-pressed="true"] { border-color: #58a6ff; color: #c9d1d9; }
+  #list-view {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    background: #0d1117;
+    padding: 1.25rem;
+    z-index: 4;
+  }
+  #list-view[hidden] { display: none; }
+  .list-intro {
+    max-width: 46rem;
+    color: #8b949e;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    margin: 0 auto 1rem;
+  }
+  .list-summary {
+    max-width: 46rem;
+    margin: 0 auto 0.85rem;
+    color: #484f58;
+    font-size: 0.7rem;
+  }
+  .entry-list { max-width: 46rem; margin: 0 auto; display: grid; gap: 0.55rem; }
+  .entry-list-card { border: 1px solid #21262d; background: #0f141b; padding: 0.8rem 0.9rem; }
+  .entry-list-card.held-list-card { border-left: 3px solid #58a6ff; }
+  .entry-list-title { color: #e6edf3; font-size: 0.86rem; text-decoration: none; }
+  .entry-list-title:hover { color: #58a6ff; text-decoration: underline; }
+  .entry-list-meta { color: #484f58; font-size: 0.68rem; margin-top: 0.35rem; }
+  .entry-list-excerpt { color: #8b949e; font-size: 0.74rem; line-height: 1.5; margin-top: 0.45rem; }
   /* Loading */
   #loading {
     position: absolute;
@@ -228,6 +258,15 @@
   html[data-theme="light"] .legend-label { color: #57606a; }
   html[data-theme="light"] #hint { color: #d0d7de; }
   html[data-theme="light"] #route-note { color: #57606a; }
+  html[data-theme="light"] #list-toggle[aria-pressed="true"] { border-color: #0969da; color: #24292e; }
+  html[data-theme="light"] #list-view { background: #f6f8fa; }
+  html[data-theme="light"] .list-intro { color: #57606a; }
+  html[data-theme="light"] .list-summary,
+  html[data-theme="light"] .entry-list-meta { color: #8c959f; }
+  html[data-theme="light"] .entry-list-card { background: #ffffff; border-color: #d0d7de; }
+  html[data-theme="light"] .entry-list-title { color: #1c2128; }
+  html[data-theme="light"] .entry-list-title:hover { color: #0969da; }
+  html[data-theme="light"] .entry-list-excerpt { color: #57606a; }
   html[data-theme="light"] #loading { color: #8b949e; }
 </style>
 </head>
@@ -247,6 +286,7 @@
   <div id="search-wrap">
     <input type="search" id="search-input" placeholder="search entries…" aria-label="Search entries in the map" autocomplete="off">
   </div>
+  <button class="filter-btn" id="list-toggle" type="button" aria-pressed="false" aria-controls="list-view">list this shelf</button>
   <div id="route-note" hidden></div>
 </div>
 
@@ -255,6 +295,11 @@
   <svg id="graph-svg" role="img" aria-label="A map of related Vigil journal entries. Use the controls to narrow it; select a node to hold a reading destination."></svg>
   <div id="legend"></div>
   <div id="hint">scroll to zoom · drag to pan<br>select a node to hold its reading</div>
+  <section id="list-view" hidden aria-labelledby="list-view-heading">
+    <p class="list-intro" id="list-view-heading">The map is a visual route through deliberately related journal entries. This list offers the same current shelf as ordinary links, ordered by the number of visible connections; a connection is a reading invitation, not proof that two entries explain one another.</p>
+    <p class="list-summary" id="list-summary" aria-live="polite"></p>
+    <div class="entry-list" id="entry-list"></div>
+  </section>
 </div>
 
 <div id="tooltip"></div>
@@ -321,6 +366,7 @@
   var heldEntry = Number(initialParams.get('entry')) || null;
   var simulation, svg, link, node, tooltip;
   var nodes = [], links = [];
+  var listOpen = false;
 
   function writeRoute(mode) {
     var url = new URL(window.location.href);
@@ -466,6 +512,60 @@
     }).length;
     document.getElementById('page-sub').textContent = nodes.length + ' entries · ' + links.length + ' connections';
     document.getElementById('graph-stats').textContent = (heldEntry && visible !== matched ? matched + ' matched + held · ' : visible + ' shown · ') + visibleLinks + ' links';
+  }
+
+  function renderList() {
+    var list = document.getElementById('entry-list');
+    var summary = document.getElementById('list-summary');
+    if (!listOpen || !nodes.length) return;
+
+    var visibleIds = new Set(nodes.filter(function (item) { return item._visible !== false; }).map(function (item) { return item.id; }));
+    var visibleDegrees = {};
+    links.forEach(function (edge) {
+      var source = typeof edge.source === 'object' ? edge.source.id : edge.source;
+      var target = typeof edge.target === 'object' ? edge.target.id : edge.target;
+      if (visibleIds.has(source) && visibleIds.has(target)) {
+        visibleDegrees[source] = (visibleDegrees[source] || 0) + 1;
+        visibleDegrees[target] = (visibleDegrees[target] || 0) + 1;
+      }
+    });
+    var rows = nodes.filter(function (item) { return item._visible !== false; }).slice().sort(function (a, b) {
+      if ((visibleDegrees[b.id] || 0) !== (visibleDegrees[a.id] || 0)) return (visibleDegrees[b.id] || 0) - (visibleDegrees[a.id] || 0);
+      return b.id - a.id;
+    });
+    var matched = rows.filter(function (item) { return item._matches; }).length;
+    summary.textContent = matched + (heldEntry && rows.length !== matched ? ' matching entries plus one held destination' : ' matching entries') + ', ordered by connections within the current map.';
+    list.replaceChildren();
+    rows.forEach(function (item) {
+      var card = document.createElement('article');
+      card.className = 'entry-list-card' + (String(item.id) === String(heldEntry) ? ' held-list-card' : '');
+      var title = document.createElement('a');
+      title.className = 'entry-list-title';
+      title.href = '/' + item.url;
+      title.textContent = '#' + item.id + ' · ' + item.title;
+      var meta = document.createElement('div');
+      meta.className = 'entry-list-meta';
+      var degree = visibleDegrees[item.id] || 0;
+      meta.textContent = (item.rawTopic || item.topic || 'unfiled') + ' · ' + degree + (degree === 1 ? ' connection' : ' connections') + (String(item.id) === String(heldEntry) && !item._matches ? ' · held outside this shelf' : '');
+      card.append(title, meta);
+      if (item.excerpt) {
+        var excerpt = document.createElement('div');
+        excerpt.className = 'entry-list-excerpt';
+        excerpt.textContent = item.excerpt;
+        card.append(excerpt);
+      }
+      list.append(card);
+    });
+  }
+
+  function setListOpen(open) {
+    listOpen = open;
+    var view = document.getElementById('list-view');
+    var toggle = document.getElementById('list-toggle');
+    view.hidden = !open;
+    toggle.setAttribute('aria-pressed', open ? 'true' : 'false');
+    toggle.textContent = open ? 'show map' : 'list this shelf';
+    if (open) renderList();
   }
 
   function buildLegend() {
@@ -661,6 +761,7 @@
       return !visibleIds.has(s) || !visibleIds.has(t);
     });
     updateCounts();
+    renderList();
     renderHeldEntry(focusHeld === true);
   }
 
@@ -680,6 +781,10 @@
     searchTerm = this.value;
     writeRoute('replaceState');
     applyFilter();
+  });
+
+  document.getElementById('list-toggle').addEventListener('click', function () {
+    setListOpen(!listOpen);
   });
 
   window.addEventListener('popstate', function () {
