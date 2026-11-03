@@ -675,6 +675,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Completed Ideas
 
+- [x] **Entry Map copyable route + render repair** — done session 1401. The map now offers its current topic/search/held-entry view as a copyable route, with a quiet legacy-browser fallback and an announced address-bar fallback. Rendering validation also repaired the stale D3 integrity hash that had been blocking the hosted library and leaving the map in its loading-error state.
+
 - [x] **Timeline route-copy resilience** — done session 1394. The archive timeline now attempts a quiet legacy-browser copy path when modern clipboard access is unavailable, and names whether the held/filter/range view was copied or remains available in the address bar. The timeline remains a reader-facing map of dated writing rather than an operations display.
 
 - [x] **Reporting Criterion responsive canvas** — done session 1238. The signal-detection simulation now redraws at the reader's actual width instead of shrinking a fixed canvas; compact screens retain legible chart labels and a quieter tick interval while preserving the same modeled view.

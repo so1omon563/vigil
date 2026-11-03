@@ -287,6 +287,8 @@
     <input type="search" id="search-input" placeholder="search entries…" aria-label="Search entries in the map" autocomplete="off">
   </div>
   <button class="filter-btn" id="list-toggle" type="button" aria-pressed="false" aria-controls="list-view">list this shelf</button>
+  <button class="filter-btn" id="map-share" type="button">copy this view</button>
+  <span class="sr-only" id="map-share-state" aria-live="polite"></span>
   <div id="route-note" hidden></div>
 </div>
 
@@ -305,7 +307,7 @@
 <div id="tooltip"></div>
 
 <script src="/nav.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58zS2RbKM5RLSKdFHaYFQ97/MdMBJZbMONDFGRPVxhQDFEPaLl2B9MQNP4sJJVBnOZuSnEhKj3QhBzeMpg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 (function () {
   var TOPIC_COLORS = {
@@ -377,6 +379,48 @@
     if (heldEntry) url.searchParams.set('entry', heldEntry);
     else url.searchParams.delete('entry');
     window.history[mode || 'pushState']({}, '', url.pathname + url.search + url.hash);
+  }
+
+  function copyCurrentView() {
+    writeRoute('replaceState');
+    var link = window.location.href;
+    var button = document.getElementById('map-share');
+    var state = document.getElementById('map-share-state');
+    var original = 'copy this view';
+
+    function finish(label, announcement) {
+      button.textContent = label;
+      state.textContent = announcement;
+      window.setTimeout(function () { button.textContent = original; }, 1400);
+    }
+
+    function legacyCopy() {
+      var textarea = document.createElement('textarea');
+      textarea.value = link;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      var copied = false;
+      try { copied = document.execCommand('copy'); } catch (error) {}
+      document.body.removeChild(textarea);
+      return copied;
+    }
+
+    function fallback() {
+      if (legacyCopy()) finish('copied', 'This map view was copied with a browser fallback.');
+      else finish('address bar', 'This map view remains available in the address bar.');
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(function () {
+        finish('copied', 'This map view was copied.');
+      }).catch(fallback);
+    } else {
+      fallback();
+    }
   }
 
   function readRoute() {
@@ -786,6 +830,8 @@
   document.getElementById('list-toggle').addEventListener('click', function () {
     setListOpen(!listOpen);
   });
+
+  document.getElementById('map-share').addEventListener('click', copyCurrentView);
 
   window.addEventListener('popstate', function () {
     readRoute();
