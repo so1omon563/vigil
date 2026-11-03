@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Discoveries · Vigil</title>
+<title>Discoveries · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -766,6 +766,7 @@
   var activeQuery = '';
   var activeDecade = '';
   var focusedEvent = '';
+  var unavailableEvent = '';
   var categories = [];
   var recentReadingList = document.getElementById('recent-reading-list');
   var recentReadingMeta = document.getElementById('recent-reading-meta');
@@ -807,6 +808,20 @@
     if (activeDecade) url.searchParams.set('decade', activeDecade); else url.searchParams.delete('decade');
     if (focusedEvent) url.searchParams.set('event', focusedEvent); else url.searchParams.delete('event');
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+  }
+
+  function updateTitle() {
+    var suffix = 'Discoveries · so1omon.net';
+    var selected = events.filter(function (item) { return eventId(item) === focusedEvent; })[0];
+    if (selected) {
+      document.title = selected.year + ' · ' + selected.title + ' · ' + suffix;
+    } else if (unavailableEvent) {
+      document.title = 'Unavailable record · ' + suffix;
+    } else if (activeCategory !== 'all') {
+      document.title = titleCase(activeCategory) + ' · ' + suffix;
+    } else {
+      document.title = suffix;
+    }
   }
 
   function renderControls() {
@@ -863,7 +878,10 @@
     activeCategory = categories.indexOf(category) !== -1 ? category : 'all';
     // A category is a return to the timeline, rather than a constraint silently
     // carried into a single held record.
-    if (!options.keepFocus) focusedEvent = '';
+    if (!options.keepFocus) {
+      focusedEvent = '';
+      unavailableEvent = '';
+    }
     renderControls();
     renderEvents();
     if (!options.silent) updateUrl(false);
@@ -997,6 +1015,7 @@
       mark.title = year + ' · ' + safeText(item.title);
       mark.addEventListener('click', function () {
         focusedEvent = id;
+        unavailableEvent = '';
         renderEvents();
         updateUrl(false);
       });
@@ -1111,7 +1130,7 @@
 
     if (focusNote) {
       var selected = events.filter(function (item) { return eventId(item) === focusedEvent; })[0];
-      focusNote.hidden = !selected;
+      focusNote.hidden = !selected && !unavailableEvent;
       var shelf = shelfItems();
       var selectedIndex = shelf.indexOf(selected);
       var previous = selectedIndex > 0 ? shelf[selectedIndex - 1] : null;
@@ -1126,11 +1145,14 @@
       }
       focusNote.innerHTML = selected ? '<strong>Focused record:</strong> ' + escapeHtml(selected.year) + ' · ' + escapeHtml(selected.title) + '.' +
         (outsideShelf ? ' This held record sits outside the current category, time slice, or search.' : '') +
-        ' <button class="focus-return" id="focus-return" type="button">return to this slice</button>' + neighbors : '';
+        ' <button class="focus-return" id="focus-return" type="button">return to this slice</button>' + neighbors :
+        '<strong>Unavailable record:</strong> this shared timeline destination is no longer in the maintained cabinet. The current category, decade, and search slice remain visible; this page is not treating another record as the one named by the link. ' +
+        '<button class="focus-return" id="focus-return" type="button">release this unavailable record</button>';
       var focusReturn = document.getElementById('focus-return');
       if (focusReturn) {
         focusReturn.addEventListener('click', function () {
           focusedEvent = '';
+          unavailableEvent = '';
           renderEvents();
           updateUrl(false);
         });
@@ -1140,6 +1162,7 @@
         if (neighborButton && pair[1]) {
           neighborButton.addEventListener('click', function () {
             focusedEvent = eventId(pair[1]);
+            unavailableEvent = '';
             renderEvents();
             updateUrl(false);
           });
@@ -1160,6 +1183,7 @@
     Array.prototype.forEach.call(timeline.querySelectorAll('.event-focus'), function (button) {
       button.addEventListener('click', function () {
         focusedEvent = button.getAttribute('data-event') || '';
+        unavailableEvent = '';
         renderEvents();
         updateUrl(false);
       });
@@ -1172,18 +1196,19 @@
     activeQuery = params.get('q') || '';
     activeDecade = params.get('decade') || '';
     focusedEvent = params.get('event') || '';
+    unavailableEvent = '';
     if (categories.indexOf(activeCategory) === -1) activeCategory = 'all';
     if (decadeList(events).indexOf(activeDecade) === -1) activeDecade = '';
-    // Dataset records can be renamed or retired. Preserve the reader's broader
-    // category/search slice rather than letting an old focused URL render an
-    // unexplained empty chronology.
+    // Dataset records can be renamed or retired. Keep that absence named while
+    // preserving the reader's broader category/search slice.
     if (focusedEvent && !events.some(function (item) { return eventId(item) === focusedEvent; })) {
+      unavailableEvent = focusedEvent;
       focusedEvent = '';
-      updateUrl(true);
     }
     if (searchInput) searchInput.value = activeQuery;
     renderControls();
     renderEvents();
+    updateTitle();
   }
 
   if (resetView) {
@@ -1192,6 +1217,7 @@
       activeQuery = '';
       activeDecade = '';
       focusedEvent = '';
+      unavailableEvent = '';
       if (searchInput) searchInput.value = '';
       renderControls();
       renderEvents();
@@ -1205,6 +1231,7 @@
       if (!choices.length) return;
       var selected = choices[Math.floor(Math.random() * choices.length)];
       focusedEvent = eventId(selected);
+      unavailableEvent = '';
       renderEvents();
       updateUrl(false);
     });
@@ -1254,6 +1281,7 @@
     searchInput.addEventListener('input', function () {
       activeQuery = safeText(searchInput.value);
       focusedEvent = '';
+      unavailableEvent = '';
       renderEvents();
       updateUrl(false);
     });
@@ -1263,6 +1291,7 @@
     decadeSelect.addEventListener('change', function () {
       activeDecade = decadeList(events).indexOf(decadeSelect.value) !== -1 ? decadeSelect.value : '';
       focusedEvent = '';
+      unavailableEvent = '';
       renderEvents();
       updateUrl(false);
     });

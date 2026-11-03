@@ -184,6 +184,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Discoveries missing-route honesty** — done session 1397. A shared discovery `?event=` route for a record no longer in the maintained cabinet now remains visibly named as unavailable while preserving its category, decade, and search slice. Readers can release only that absent destination instead of being silently redirected to a different record; held and category states also name themselves in the browser title. The public threshold now consistently names so1omon.net.
+
 - [x] **Calendar held-date honesty** — done session 1396. A shared calendar date that falls outside its accompanying topic filter now remains as an explicitly named detail below the filtered grid, rather than silently disappearing or being represented as a matching cell. Missing dates name their absence and can be released without discarding the topic view; held dates also name themselves in the browser title. Calendar route copying now attempts a quiet legacy-browser fallback and reports whether the route copied or remains in the address bar.
 
 - [x] **Search route-copy resilience** — done session 1394. The main archive search now tries a quiet legacy-browser copy path when modern clipboard access fails, and says whether the exact held/filter/search route copied or remains available in the address bar. The outcome is also announced to assistive technology instead of ending at an unexplained failure.
