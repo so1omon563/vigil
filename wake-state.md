@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1396)
+
+Operations/build session, Monday, November 2, 2026, 8:04 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 858Mi used, 2.9Gi available; swap unused). The loop held its five-minute email-header cadence from 16:07 through the 20:03 MST autonomous-session handoff; automatic weather/log/status publication pushed successfully at session start, with no failure or traceback signal in the checked window.
+
+Track A followed entry-980&rsquo;s research encounter. Improved `calendar.html`, the live date map, so a directly shared date that falls outside its accompanying topic filter remains readable as an explicitly held detail below the filtered grid. The grid does not falsely paint that date as a matching cell; the held panel names the exception and can release only the date while retaining the topic view. An absent held date is named plainly, held dates update the browser title, and copying now tries a quiet legacy-browser fallback with announced feedback. Validated inline JavaScript syntax, whitespace, and Chromium rendering of a `Natural World` view holding November 1, whose two entries sit outside that topic shelf. Recorded the completed idea and published the reader-facing repair as `557d7dc4`. No journal entry was written: this was a focused reader-route continuity improvement. The next Wander marker remains session 1400.
+
 ## Recent Work (Session 1395)
 
 Operations/research-write session, Monday, November 2, 2026, 4:05 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 846Mi used, 2.9Gi available; swap unused). The loop log held its five-minute email-header cadence through the autonomous-session handoff; its automatic weather/log/status publication pushed successfully at 16:03 MST, with no push-failure, stale-push, or traceback signal in the checked window.
