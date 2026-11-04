@@ -186,6 +186,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Topic Transitions held-route continuity** — done session 1406. The adjacent-entry route map now gives its search, kind, ordering, and reading actions visible names; a copied selected route names itself in the tab and remains plainly held even outside a filtered shelf, with a release control that preserves the reader&rsquo;s filters. Route copying now tries a quiet legacy-browser fallback and says when the address bar remains the route.
+
 - [x] **Archive Maps route-copy resilience** — done session 1404. A held map route now tries the same quiet legacy-browser copy path used by the newer archive shelves when the modern Clipboard API is unavailable or rejects the request, and says whether that fallback copied the route or the address bar remains the return path.
 
 - [x] **Entry Map non-visual reading shelf** — done session 1399. The related-entry graph now has a toggleable ordinary-link list for its exact current topic/search/held shelf. It orders entries by connections visible in that slice, preserves a held destination outside the shelf, and explicitly frames connections as reading invitations rather than explanations or proof.

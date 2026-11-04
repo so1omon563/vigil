@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Topic Transitions · Vigil</title>
+<title>Topic Transitions · so1omon</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -49,6 +49,14 @@
     align-items: center;
     margin-bottom: 1rem;
   }
+  .control { display: grid; gap: 0.28rem; }
+  .control label, .action-label {
+    color: #8b949e;
+    font-size: 0.69rem;
+    letter-spacing: 0.04em;
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: end; }
+  .actions .action-label { flex-basis: 100%; }
   input, select, button {
     font: inherit;
     font-size: 0.78rem;
@@ -163,6 +171,7 @@
   }
   .focus-note.visible { display: block; }
   .focus-note strong { color: #f0f6fc; }
+  .focus-note button { margin-left: 0.45rem; }
   .transition-card.focused { outline: 1px solid #58a6ff; outline-offset: 3px; }
   footer {
     margin-top: 2.5rem;
@@ -198,7 +207,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">Vigil</a></div>
+<div class="back"><a href="/">so1omon</a></div>
 
 <div class="page-label">Archive Surface</div>
 <h1>Topic transitions</h1>
@@ -212,21 +221,20 @@
 </section>
 
 <section class="toolbar" aria-label="Topic transition controls">
-  <input id="search" type="search" placeholder="search route or entry" autocomplete="off" spellcheck="false">
-  <select id="mode" aria-label="Transition mode">
+  <div class="control"><label for="search">Search this shelf</label><input id="search" type="search" placeholder="route or entry" autocomplete="off" spellcheck="false"></div>
+  <div class="control"><label for="mode">Route kind</label><select id="mode">
     <option value="all">all routes</option>
     <option value="persistent">same-topic routes</option>
     <option value="handoff">topic handoffs</option>
-  </select>
-  <select id="sort" aria-label="Sort transitions">
+  </select></div>
+  <div class="control"><label for="sort">Order routes by</label><select id="sort">
     <option value="count">most repeated</option>
     <option value="newest">newest activity</option>
     <option value="name">route name</option>
-  </select>
-  <button id="random" type="button">random route</button>
-  <button id="reset" type="button">reset</button>
-  <button id="copy" type="button">copy view</button>
+  </select></div>
+  <div class="actions" role="group" aria-label="Shelf actions"><span class="action-label">Reading actions</span><button id="random" type="button">random route</button><button id="reset" type="button">reset view</button><button id="copy" type="button">copy view</button></div>
 </section>
+<p id="shelf-status" class="focus-note visible" role="status" aria-live="polite">Loading topic transitions.</p>
 <div id="focus-note" class="focus-note" aria-live="polite"></div>
 
 <main class="layout">
@@ -243,7 +251,7 @@
 </main>
 
 <footer>
-  <a href="/">Vigil</a> · <a href="archive.html">archive</a> · <a href="topics.html">topics</a> · <a href="pairs.html">topic pairs</a>
+  <a href="/">so1omon</a> · <a href="archive.html">archive</a> · <a href="topics.html">topics</a> · <a href="pairs.html">topic pairs</a>
 </footer>
 
 <script>
@@ -252,6 +260,7 @@
   var routes = [];
   var visible = [];
   var selectedKey = "";
+  var hasHeldRoute = false;
   var focusRequested = false;
   var els = {
     pairCount: document.getElementById("pair-count"),
@@ -265,6 +274,7 @@
     reset: document.getElementById("reset"),
     copy: document.getElementById("copy"),
     focusNote: document.getElementById("focus-note"),
+    shelfStatus: document.getElementById("shelf-status"),
     transitions: document.getElementById("transitions"),
     empty: document.getElementById("empty"),
     selectedTitle: document.getElementById("selected-title"),
@@ -293,7 +303,8 @@
     els.mode.value = params.get("mode") || "all";
     els.sort.value = params.get("sort") || "count";
     selectedKey = keyForSlug(params.get("route"));
-    focusRequested = Boolean(params.get("route"));
+    hasHeldRoute = Boolean(params.get("route"));
+    focusRequested = hasHeldRoute;
   }
 
   function updateUrl(method) {
@@ -302,9 +313,14 @@
     if (els.mode.value !== "all") params.set("mode", els.mode.value);
     if (els.sort.value !== "count") params.set("sort", els.sort.value);
     var route = slugForKey(selectedKey);
-    if (route) params.set("route", route);
+    if (hasHeldRoute && route) params.set("route", route);
     var next = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
     window.history[method || "replaceState"]({}, "", next);
+    updateDocumentTitle(hasHeldRoute ? (routes.find(function (item) { return item.key === selectedKey; }) || null) : null);
+  }
+
+  function updateDocumentTitle(route) {
+    document.title = route ? routeLabel(route) + " · Topic transitions · so1omon" : "Topic transitions · so1omon";
   }
 
   function textFor(entry) {
@@ -389,8 +405,10 @@
     var selected = routes.find(function (route) { return route.key === selectedKey; });
     if (!selected) {
       focusRequested = false;
+      hasHeldRoute = false;
       selectedKey = visible.length ? visible[0].key : "";
     }
+    els.shelfStatus.textContent = visible.length + " topic " + (visible.length === 1 ? "route matches" : "routes match") + "; " + els.mode.options[els.mode.selectedIndex].text + ", ordered by " + els.sort.options[els.sort.selectedIndex].text + ".";
     renderList();
     renderSelected();
     focusSelectedRoute();
@@ -411,12 +429,13 @@
 
   function renderList() {
     var selected = routes.find(function (route) { return route.key === selectedKey; });
-    var heldOutsideShelf = selected && !visible.some(function (route) { return route.key === selected.key; });
+    var selectedInShelf = selected && visible.some(function (route) { return route.key === selected.key; });
+    var heldOutsideShelf = selected && !selectedInShelf;
     var list = heldOutsideShelf ? [selected].concat(visible) : visible;
     els.empty.style.display = list.length ? "none" : "block";
-    els.focusNote.classList.toggle("visible", Boolean(heldOutsideShelf));
-    els.focusNote.innerHTML = heldOutsideShelf
-      ? '<strong>' + escapeHtml(routeLabel(selected)) + '</strong> is held here as one route, outside the current filtered shelf.'
+    els.focusNote.classList.toggle("visible", Boolean(hasHeldRoute && selected));
+    els.focusNote.innerHTML = hasHeldRoute && selected
+      ? '<strong>' + escapeHtml(routeLabel(selected)) + '</strong> is held ' + (selectedInShelf ? 'in this shelf.' : 'outside this filtered shelf; it is not a filter match.') + '<button id="release-route" type="button">return to this shelf</button>'
       : '';
     els.transitions.innerHTML = list.slice(0, heldOutsideShelf ? 81 : 80).map(function (route) {
       var latest = route.examples[0];
@@ -448,6 +467,7 @@
       els.examples.innerHTML = "";
       return;
     }
+    updateDocumentTitle(hasHeldRoute ? route : null);
     els.selectedTitle.textContent = routeLabel(route);
     els.selectedCopy.textContent = route.count + " adjacent entry pair" + (route.count === 1 ? "" : "s") +
       " move through this route. " + (route.isPersistent ? "This is continuity under the same label." : "This is a topic-to-topic handoff.");
@@ -484,7 +504,8 @@
     var card = event.target.closest(".transition-card");
     if (!card) return;
     selectedKey = card.getAttribute("data-key");
-    renderSelected();
+    hasHeldRoute = true;
+    applyFilters();
     updateUrl("pushState");
   });
   els.search.addEventListener("input", function () { applyFilters("replaceState"); });
@@ -493,7 +514,8 @@
   els.random.addEventListener("click", function () {
     if (!visible.length) return;
     selectedKey = visible[Math.floor(Math.random() * visible.length)].key;
-    renderSelected();
+    hasHeldRoute = true;
+    applyFilters();
     updateUrl("pushState");
     Array.prototype.some.call(document.querySelectorAll(".transition-card"), function (card) {
       if (card.getAttribute("data-key") !== selectedKey) return false;
@@ -506,6 +528,7 @@
     els.mode.value = "all";
     els.sort.value = "count";
     selectedKey = "";
+    hasHeldRoute = false;
     applyFilters("pushState");
   });
   els.copy.addEventListener("click", function () {
@@ -514,11 +537,35 @@
       els.copy.textContent = "copied";
       window.setTimeout(function () { els.copy.textContent = label; }, 1300);
     }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(window.location.href).then(done).catch(function () { window.prompt("Copy this route:", window.location.href); });
-    } else {
-      window.prompt("Copy this route:", window.location.href);
+    function unavailable() {
+      els.copy.textContent = "route in address bar";
+      window.setTimeout(function () { els.copy.textContent = label; }, 1700);
     }
+    function legacyCopy() {
+      var field = document.createElement("textarea");
+      field.value = window.location.href;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      var copied = false;
+      try { copied = document.execCommand("copy"); } catch (error) { copied = false; }
+      document.body.removeChild(field);
+      if (copied) done(); else unavailable();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href).then(done).catch(legacyCopy);
+    } else {
+      legacyCopy();
+    }
+  });
+  els.focusNote.addEventListener("click", function (event) {
+    if (!event.target.closest("#release-route")) return;
+    selectedKey = "";
+    hasHeldRoute = false;
+    applyFilters();
+    updateUrl("pushState");
   });
   window.addEventListener("popstate", function () {
     restoreState();
