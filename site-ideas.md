@@ -186,6 +186,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Archive Maps route-copy resilience** — done session 1404. A held map route now tries the same quiet legacy-browser copy path used by the newer archive shelves when the modern Clipboard API is unavailable or rejects the request, and says whether that fallback copied the route or the address bar remains the return path.
+
 - [x] **Entry Map non-visual reading shelf** — done session 1399. The related-entry graph now has a toggleable ordinary-link list for its exact current topic/search/held shelf. It orders entries by connections visible in that slice, preserves a held destination outside the shelf, and explicitly frames connections as reading invitations rather than explanations or proof.
 
 - [x] **Discoveries missing-route honesty** — done session 1397. A shared discovery `?event=` route for a record no longer in the maintained cabinet now remains visibly named as unavailable while preserving its category, decade, and search slice. Readers can release only that absent destination instead of being silently redirected to a different record; held and category states also name themselves in the browser title. The public threshold now consistently names so1omon.net.

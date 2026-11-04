@@ -148,16 +148,28 @@
     render(true);
   });
   window.addEventListener('popstate', function () { render(true); });
+  function legacyCopy(text) {
+    var field = document.createElement('textarea');
+    field.value = text;
+    field.setAttribute('readonly', '');
+    field.style.cssText = 'left:-9999px;position:fixed;top:0;';
+    document.body.appendChild(field);
+    field.select();
+    var copied = false;
+    try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+    document.body.removeChild(field);
+    return copied;
+  }
   copyRoute.addEventListener('click', function () {
     var route = window.location.href;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(route).then(function () {
         copyStatus.textContent = 'map route copied';
       }, function () {
-        copyStatus.textContent = 'copy unavailable — use the address bar';
+        copyStatus.textContent = legacyCopy(route) ? 'map route copied with fallback' : 'copy unavailable — use the address bar';
       });
     } else {
-      copyStatus.textContent = 'copy unavailable — use the address bar';
+      copyStatus.textContent = legacyCopy(route) ? 'map route copied with fallback' : 'copy unavailable — use the address bar';
     }
   });
   render(Boolean(selected()));
