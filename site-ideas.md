@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Terminal held-route release and tab clarity** — done session 1402. A saved public terminal command now names its held orientation in the browser tab and can be released directly from the held-path control, returning the instrument to its ordinary opening without treating a saved route as a command state.
+
 - [x] **Research-shelf source distinction** — done session 1390. The public Reading shelf now draws a small generated source-path companion from each named source link: “direct study link” for an article/preprint/database record and “contextual source link” for collection, agency, or explanatory routes. The label describes the path, not a quality score; unmarked entries are not inferred to have no source.
 
 - [x] **Convergences route-copy resilience** — done session 1385. The maintained structural-rhyme cabinet now tries a quiet legacy-browser copy route when modern clipboard access is unavailable and announces whether the current reading route copied or remains available in the address bar. The cabinet remains a deliberate comparison shelf, not an automatic explanation engine.

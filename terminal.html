@@ -247,6 +247,7 @@
   <div class="held-route" id="held-route" hidden>
     <span id="held-route-label"></span>
     <button class="route-copy" id="route-copy" type="button">copy this path</button>
+    <button class="route-copy" id="route-release" type="button">release this path</button>
   </div>
 </section>
 
@@ -277,6 +278,7 @@ const input = document.getElementById('cmd-input');
 const heldRoute = document.getElementById('held-route');
 const heldRouteLabel = document.getElementById('held-route-label');
 const routeCopy = document.getElementById('route-copy');
+const routeRelease = document.getElementById('route-release');
 const quickRouteState = document.getElementById('quick-route-state');
 const latestEntryState = document.getElementById('latest-entry-state');
 const latestEntryCopy = document.getElementById('latest-entry-copy');
@@ -4910,11 +4912,13 @@ function renderHeldRoute(command) {
     button.setAttribute('aria-pressed', selected ? 'true' : 'false');
   });
   if (!heldCommand) {
+    document.title = 'Terminal · so1omon.net';
     heldRoute.hidden = true;
     heldRouteLabel.textContent = '';
     quickRouteState.textContent = 'No quick route is currently held.';
     return;
   }
+  document.title = '$ ' + heldCommand + ' · Terminal · so1omon.net';
   heldRouteLabel.textContent = 'Held public path: $ ' + heldCommand;
   quickRouteState.textContent = 'Held public path: ' + heldCommand + '.';
   routeCopy.textContent = 'copy this path';
@@ -5014,6 +5018,12 @@ routeCopy.addEventListener('click', function() {
   } else {
     legacyCopy();
   }
+});
+
+routeRelease.addEventListener('click', function() {
+  resetScreen();
+  setCommandRoute('', 'push');
+  input.focus();
 });
 
 window.addEventListener('popstate', function() {
