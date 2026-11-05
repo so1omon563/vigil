@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Desert Thread · Vigil</title>
+<title>Desert Thread · so1omon</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -52,6 +52,14 @@
     gap: 0.45rem;
     margin-bottom: 1.8rem;
   }
+  .shelf-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: -0.95rem 0 1.8rem;
+  }
+  .action-label { color: #6e7681; font-size: 0.7rem; margin-right: 0.05rem; }
   .filter-btn {
     font-family: inherit;
     background: #161b22;
@@ -65,6 +73,30 @@
   .filter-btn:hover { color: #c9d1d9; border-color: #484f58; }
   .filter-btn:focus-visible { color: #f0b72f; border-color: #bb8009; outline: 2px solid #58a6ff; outline-offset: 2px; }
   .filter-btn.active { color: #f0b72f; border-color: #bb8009; }
+  .copy-btn {
+    background: transparent;
+    border: 1px solid #30363d;
+    border-radius: 3px;
+    color: #8b949e;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.73rem;
+    padding: 0.28rem 0.58rem;
+  }
+  .copy-btn:hover { border-color: #484f58; color: #c9d1d9; }
+  .copy-btn:focus-visible { outline: 2px solid #58a6ff; outline-offset: 2px; }
+  .sr-only {
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
   .section-title {
     color: #e6edf3;
     font-size: 0.9rem;
@@ -147,6 +179,7 @@
   html[data-theme="light"] footer { border-color: #d0d7de; }
   html[data-theme="light"] .filter-btn { background: #f6f8fa; border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .filter-btn.active { color: #9a6700; border-color: #bf8700; }
+  html[data-theme="light"] .copy-btn { border-color: #d0d7de; color: #57606a; }
 
   @media (max-width: 760px) {
     .summary-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -161,7 +194,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">← Vigil</a></div>
+<div class="back"><a href="/">← so1omon</a></div>
 
 <div class="page-label">Local Thread</div>
 <h1>Desert Thread</h1>
@@ -176,6 +209,11 @@
   <div class="stat"><div class="stat-num" id="stat-years">-</div><div class="stat-label">calendar span</div></div>
   <div class="stat"><div class="stat-num" id="stat-newest">-</div><div class="stat-label">newest entry</div></div>
   <div class="stat"><div class="stat-num" id="stat-surfaces">-</div><div class="stat-label">surface/archive entries</div></div>
+</div>
+<div class="shelf-actions" role="group" aria-label="Desert Thread reading actions">
+  <span class="action-label">Reading actions</span>
+  <button class="copy-btn" id="copy-view" type="button">copy this shelf</button>
+  <span id="copy-status" class="sr-only" role="status" aria-live="polite"></span>
 </div>
 
 <div class="tool-row" id="filters" role="group" aria-label="Desert Thread reading shelves">
@@ -195,7 +233,7 @@
 <div class="empty" id="empty" hidden>No entries match this filter.</div>
 
 <footer>
-  <a href="/">Vigil</a> · <a href="/archive.html">archive</a> · <a href="/topics.html">topics</a> · <a href="/weather.html">weather</a>
+  <a href="/">so1omon</a> · <a href="/archive.html">archive</a> · <a href="/topics.html">topics</a> · <a href="/weather.html">weather</a>
 </footer>
 
 <script>
@@ -224,6 +262,8 @@
 
   let allEntries = [];
   let activeFilter = selectedFilter();
+  const copyButton = document.getElementById('copy-view');
+  const copyStatus = document.getElementById('copy-status');
 
   function selectedFilter() {
     const filter = new URLSearchParams(window.location.search).get('filter') || 'all';
@@ -314,6 +354,36 @@
         renderEntries();
       });
     });
+    copyButton.addEventListener('click', copyView);
+  }
+
+  function copyView() {
+    const label = copyButton.textContent;
+    function report(text, status) {
+      copyButton.textContent = text;
+      copyStatus.textContent = status;
+      window.setTimeout(() => { copyButton.textContent = label; }, 1600);
+    }
+    function legacyCopy() {
+      const field = document.createElement('textarea');
+      field.value = window.location.href;
+      field.setAttribute('readonly', '');
+      field.style.position = 'fixed';
+      field.style.opacity = '0';
+      document.body.appendChild(field);
+      field.select();
+      let copied = false;
+      try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+      document.body.removeChild(field);
+      report(copied ? 'copied' : 'route in address bar', copied ? 'This shelf route copied.' : 'This shelf route remains in the address bar.');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => report('copied', 'This shelf route copied.'))
+        .catch(legacyCopy);
+    } else {
+      legacyCopy();
+    }
   }
 
   function renderEntries() {
@@ -332,7 +402,7 @@
     const shelf = activeFilter === 'all' ? 'the whole local shelf' : label(activeFilter);
     document.getElementById('page-meta').textContent = filtered.length + ' entries in ' + shelf +
       (activeFilter === 'all' ? '' : ', within the Sonoran place of the watch');
-    document.title = activeFilter === 'all' ? 'Desert Thread · Vigil' : label(activeFilter) + ' · Desert Thread · Vigil';
+    document.title = activeFilter === 'all' ? 'Desert Thread · so1omon' : label(activeFilter) + ' · Desert Thread · so1omon';
   }
 
   function renderEntry(e) {
