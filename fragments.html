@@ -2854,6 +2854,7 @@
   var total = fragments.length;
   var highlighted = null;
   var focused = null;
+  var unavailable = null;
 
   fragments.forEach(function (fragment) {
     var number = (fragment.querySelector('.frag-num') || {}).textContent || '';
@@ -2936,7 +2937,9 @@
         f.classList.add('hidden');
       }
     });
-    if (focused) {
+    if (unavailable) {
+      countEl.textContent = 'fragment ' + unavailable + ' is not available in this shelf. The surrounding search remains open.';
+    } else if (focused) {
       var inShelf = matchingFragments(q).some(function (f) { return f.dataset.fragment === focused; });
       countEl.textContent = visible
         ? 'fragment ' + focused + (inShelf ? ' · focused reading view' : ' · held outside this search shelf')
@@ -2948,6 +2951,11 @@
     } else {
       countEl.textContent = total + ' fragments in this shelf.';
     }
+    document.title = unavailable
+      ? 'Fragment ' + unavailable + ' unavailable · so1omon.net'
+      : focused
+        ? 'Fragment ' + focused + ' · Fragments · so1omon.net'
+        : 'Fragments · so1omon.net';
     updateNavigation(q);
   }
 
@@ -2959,6 +2967,7 @@
     pick.classList.add('highlight');
     highlighted = pick;
     focused = pick.dataset.fragment;
+    unavailable = null;
     setRoute({ q: input.value.trim(), fragment: focused });
     update();
     pick.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2971,6 +2980,7 @@
     var current = route();
     input.value = current.q;
     focused = fragments.some(function (f) { return f.dataset.fragment === current.fragment; }) ? current.fragment : null;
+    unavailable = current.fragment && !focused ? current.fragment : null;
     update();
     if (focused) {
       var target = document.getElementById('fragment-' + focused);
@@ -2982,13 +2992,28 @@
 
   function copyView() {
     var url = window.location.href;
+    function report(message) {
+      countEl.textContent = message;
+    }
+    function legacyCopy() {
+      var area = document.createElement('textarea');
+      area.value = url;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      var copied = false;
+      try { copied = document.execCommand('copy'); } catch (err) { copied = false; }
+      document.body.removeChild(area);
+      report(copied ? 'This exact fragment view was copied.' : 'This exact view remains available in the address bar.');
+    }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(url).then(function () {
-        shareBtn.textContent = 'copied';
-        setTimeout(function () { shareBtn.textContent = 'copy view'; }, 1200);
-      }).catch(function () { window.prompt('Copy this view:', url); });
+        report('This exact fragment view was copied.');
+      }).catch(legacyCopy);
     } else {
-      window.prompt('Copy this view:', url);
+      legacyCopy();
     }
   }
 
@@ -2998,6 +3023,7 @@
     var next = shelf[index + direction];
     if (!next) return;
     focused = next.dataset.fragment;
+    unavailable = null;
     setRoute({ q: input.value.trim(), fragment: focused });
     update();
     focusFragment(focused);
@@ -3055,6 +3081,7 @@
 
   input.addEventListener('input', function () {
     focused = null;
+    unavailable = null;
     setRoute({ q: input.value.trim(), fragment: '' });
     update();
   });
@@ -3063,6 +3090,7 @@
   nextBtn.addEventListener('click', function () { moveFocused(1); });
   resetBtn.addEventListener('click', function () {
     focused = null;
+    unavailable = null;
     input.value = '';
     setRoute({ q: '', fragment: '' });
     update();

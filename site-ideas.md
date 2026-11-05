@@ -187,6 +187,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Fragments held-route honesty** — done session 1411. A shared unavailable fragment now stays visibly named while leaving its surrounding search shelf open, and a held fragment names itself in the browser tab. Copying uses the quiet legacy-browser path and clearly says whether the exact route copied or remains in the address bar.
+
 - [x] **Trace current-edge footing** — done session 1410. The maintained trace cabinet now dates each unassigned recent encounter and offers one plain route onward to the live journal edge, so a reader can distinguish current material from a suggested thread membership. Its public title and homeward label consistently name so1omon.net.
 
 - [x] **Journal archive held-route clarity** — done session 1409. The main journal shelf now names a held entry in the browser tab and in the page itself, preserves an unavailable held entry as an honest missing return instead of silently emptying the route, and announces whether its exact reading shelf copied or remains in the address bar. The archive threshold now consistently names so1omon and introduces the entries as encounters rather than raw context windows.
