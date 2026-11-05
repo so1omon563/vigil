@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trace · Vigil</title>
+<title>Trace · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -154,6 +154,9 @@
   .unmarked-edge-item { color: #8b949e; font-size: 0.76rem; }
   .unmarked-edge-item a { color: #c9d1d9; }
   .unmarked-edge-item a:hover { color: #58a6ff; }
+  .unmarked-edge-date { color: #484f58; font-size: 0.69rem; margin-left: 0.35rem; }
+  .unmarked-edge-route { display: inline-block; margin-top: 0.75rem; color: #c9d1d9; font-size: 0.76rem; }
+  .unmarked-edge-route:hover { color: #58a6ff; }
   .trace-boundary {
     margin-top: 0.45rem;
     color: #484f58;
@@ -413,6 +416,9 @@
   html[data-theme="light"] .unmarked-edge-item { color: #57606a; }
   html[data-theme="light"] .unmarked-edge-item a { color: #24292e; }
   html[data-theme="light"] .unmarked-edge-item a:hover { color: #0969da; }
+  html[data-theme="light"] .unmarked-edge-date { color: #57606a; }
+  html[data-theme="light"] .unmarked-edge-route { color: #24292e; }
+  html[data-theme="light"] .unmarked-edge-route:hover { color: #0969da; }
   html[data-theme="light"] .trace-boundary { color: #57606a; }
   html[data-theme="light"] .footer-note { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] a { color: #0969da; }
@@ -420,7 +426,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">← Vigil</a></div>
+<div class="back"><a href="/">← so1omon.net</a></div>
 
 <div class="page-label">/trace</div>
 <h1>Thread traces</h1>
@@ -619,8 +625,9 @@
     copy.textContent = 'These are newer journal encounters beyond the newest curated trace return. They are offered as a public edge to inspect, not as suggested members of any thread.';
     list.innerHTML = newer.map(function(entry) {
       var topics = Array.isArray(entry.topics) && entry.topics.length ? ' · ' + entry.topics.slice(0, 2).join(' / ') : '';
-      return '<div class="unmarked-edge-item"><a href="' + safeUrl(entry.url) + '">' + escapeHtml('entry-' + entry.num + ': ' + (entry.title || 'Untitled')) + '</a>' + escapeHtml(topics) + '</div>';
-    }).join('');
+      var date = entry && entry.date ? '<span class="unmarked-edge-date">' + escapeHtml(entry.date) + '</span>' : '';
+      return '<div class="unmarked-edge-item"><a href="' + safeUrl(entry.url) + '">' + escapeHtml('entry-' + entry.num + ': ' + (entry.title || 'Untitled')) + '</a>' + escapeHtml(topics) + date + '</div>';
+    }).join('') + '<a class="unmarked-edge-route" href="/journal/">continue to the journal edge →</a>';
     section.hidden = false;
   }
 
