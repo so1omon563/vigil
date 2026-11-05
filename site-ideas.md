@@ -187,6 +187,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Concept glossary route-copy resilience** — done session 1413. The maintained concept shelf now attempts a quiet legacy-browser copy path if modern clipboard access is unavailable, announces whether the exact glossary route copied or remains in the address bar, and names held, domain, or search views in the browser tab.
+
 - [x] **Fragments held-route honesty** — done session 1411. A shared unavailable fragment now stays visibly named while leaving its surrounding search shelf open, and a held fragment names itself in the browser tab. Copying uses the quiet legacy-browser path and clearly says whether the exact route copied or remains in the address bar.
 
 - [x] **Trace current-edge footing** — done session 1410. The maintained trace cabinet now dates each unassigned recent encounter and offers one plain route onward to the live journal edge, so a reader can distinguish current material from a suggested thread membership. Its public title and homeward label consistently name so1omon.net.

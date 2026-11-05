@@ -97,6 +97,7 @@
   .view-action { font: inherit; font-size: 0.7rem; color: #8b949e; background: transparent; border: 1px solid #30363d; border-radius: 3px; padding: 0.3rem 0.55rem; cursor: pointer; }
   .view-action:hover { color: #58a6ff; border-color: #58a6ff; }
   .view-action[hidden] { display: none; }
+  .view-status { align-self: center; color: #8b949e; font-size: 0.72rem; }
   .focus-note { display: none; margin: -0.65rem 0 1.35rem; padding: 0.65rem 0.8rem; border-left: 2px solid #58a6ff; background: #58a6ff0c; color: #8b949e; font-size: 0.79rem; }
   .focus-note.visible { display: block; }
   .focus-note button { margin-left: 0.45rem; }
@@ -327,6 +328,7 @@
 <div class="view-actions" aria-label="Glossary view controls">
   <button class="view-action" id="reset-view" type="button" hidden>reset view</button>
   <button class="view-action" id="copy-view" type="button">copy view</button>
+  <span class="view-status" id="view-status" aria-live="polite"></span>
 </div>
 <div class="focus-note" id="focus-note">Holding one term in view.<button class="view-action" id="return-to-glossary" type="button">return to glossary</button></div>
 
@@ -485,6 +487,7 @@
       var domainFilterEl = document.getElementById('domain-filters');
       var resetView = document.getElementById('reset-view');
       var copyView = document.getElementById('copy-view');
+      var viewStatus = document.getElementById('view-status');
       var focusNote = document.getElementById('focus-note');
 
       // Group by domain
@@ -570,6 +573,11 @@
         allBtn.setAttribute('aria-pressed', String(!activeDomain));
         resetView.hidden = !activeDomain && !focusedConcept && !filterInput.value.trim();
         focusNote.classList.toggle('visible', !!focusedConcept);
+        var held = concepts.find(function (c) { return conceptKey(c) === focusedConcept; });
+        if (held) document.title = held.term + ' · Concepts · so1omon.net';
+        else if (activeDomain) document.title = (DOMAIN_LABEL[activeDomain] || activeDomain) + ' · Concepts · so1omon.net';
+        else if (filterInput.value.trim()) document.title = 'Concept search · Concepts · so1omon.net';
+        else document.title = 'Concepts · so1omon.net';
       }
 
       function writeView(mode) {
@@ -784,15 +792,31 @@
         applyFilter('');
       });
       copyView.addEventListener('click', function () {
-        var original = copyView.textContent;
-        var done = function () {
-          copyView.textContent = 'copied';
-          window.setTimeout(function () { copyView.textContent = original; }, 1200);
+        var done = function (message) {
+          viewStatus.textContent = message;
+          window.setTimeout(function () { viewStatus.textContent = ''; }, 2200);
+        };
+        var fallback = function () {
+          var input = document.createElement('textarea');
+          input.value = window.location.href;
+          input.setAttribute('readonly', '');
+          input.style.position = 'fixed';
+          input.style.opacity = '0';
+          document.body.appendChild(input);
+          input.select();
+          var copied = false;
+          try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+          document.body.removeChild(input);
+          return copied;
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(window.location.href).then(done, function () { copyView.textContent = 'copy unavailable'; });
+          navigator.clipboard.writeText(window.location.href).then(function () {
+            done('This glossary route was copied.');
+          }, function () {
+            done(fallback() ? 'This glossary route was copied with fallback.' : 'Copy was unavailable here; the address bar still holds this glossary route.');
+          });
         } else {
-          copyView.textContent = 'copy unavailable';
+          done(fallback() ? 'This glossary route was copied with fallback.' : 'Copy was unavailable here; the address bar still holds this glossary route.');
         }
       });
       window.addEventListener('popstate', function () {
