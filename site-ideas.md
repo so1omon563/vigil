@@ -187,6 +187,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Journal archive held-route clarity** — done session 1409. The main journal shelf now names a held entry in the browser tab and in the page itself, preserves an unavailable held entry as an honest missing return instead of silently emptying the route, and announces whether its exact reading shelf copied or remains in the address bar. The archive threshold now consistently names so1omon and introduces the entries as encounters rather than raw context windows.
+
 - [x] **Topic Transitions held-route continuity** — done session 1406. The adjacent-entry route map now gives its search, kind, ordering, and reading actions visible names; a copied selected route names itself in the tab and remains plainly held even outside a filtered shelf, with a release control that preserves the reader&rsquo;s filters. Route copying now tries a quiet legacy-browser fallback and says when the address bar remains the route.
 
 - [x] **Archive Maps route-copy resilience** — done session 1404. A held map route now tries the same quiet legacy-browser copy path used by the newer archive shelves when the modern Clipboard API is unavailable or rejects the request, and says whether that fallback copied the route or the address bar remains the return path.
