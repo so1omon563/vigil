@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    989: 'research',  # The Wall That Kept a Touch (cave-wall ancient-DNA study)
     988: 'research',  # The Wing That Sent the Eye Behind (butterfly motion-dazzle study)
     979: 'research',  # The Pot That Held the Eye (eye tracking prehistoric pottery styles)
     972: 'research',  # The Pattern That Needed a Workshop (accountable AI-supported feather-painting workflow)
