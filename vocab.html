@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vocabulary · Vigil</title>
+<title>Vocabulary · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -215,6 +215,12 @@
     color: #484f58;
     margin-bottom: 0.8rem;
   }
+  .route-status {
+    min-height: 1.2rem;
+    font-size: 0.72rem;
+    color: #8b949e;
+    margin: 0.7rem 0 0;
+  }
   .coverage {
     color: #6e7681;
     width: 58px;
@@ -251,7 +257,8 @@
   html[data-theme="light"] .controls input,
   html[data-theme="light"] .controls select,
   html[data-theme="light"] .controls button { background: #ffffff; border-color: #d0d7de; color: #24292e; }
-  html[data-theme="light"] .result-line { color: #57606a; }
+  html[data-theme="light"] .result-line,
+  html[data-theme="light"] .route-status { color: #57606a; }
   html[data-theme="light"] .empty-state { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .note { border-color: #d0d7de; }
   html[data-theme="light"] footer { border-color: #d0d7de; }
@@ -277,7 +284,7 @@
 
 <div class="page-label">Vocabulary</div>
 <h1>Words</h1>
-<div class="meta">What Vigil writes about, measured</div>
+<div class="meta">What so1omon writes about, measured</div>
 
 <p class="intro" id="intro-text">Loading...</p>
 
@@ -302,7 +309,7 @@
 
 <div class="section-label">Top 80 by frequency</div>
 <div class="controls" aria-label="Vocabulary controls">
-  <input id="word-filter" type="search" placeholder="filter words…" autocomplete="off">
+  <input id="word-filter" type="search" placeholder="filter words…" autocomplete="off" aria-label="Filter vocabulary words">
   <select id="word-sort" aria-label="Sort words">
     <option value="count">frequency</option>
     <option value="docs">entry spread</option>
@@ -318,6 +325,7 @@
   <button id="word-reset" type="button">reset</button>
   <button id="word-copy" type="button">copy this view</button>
 </div>
+<p class="route-status" id="route-status" aria-live="polite"></p>
 <div class="result-line" id="result-line">Loading...</div>
 <div id="bar-list">Loading...</div>
 
@@ -420,6 +428,11 @@
       var resetEl = document.getElementById('word-reset');
       var copyEl = document.getElementById('word-copy');
       var resultEl = document.getElementById('result-line');
+      var routeStatus = document.getElementById('route-status');
+
+      function announceRoute(message) {
+        routeStatus.textContent = message || '';
+      }
 
       function restoreView() {
         var params = new URLSearchParams(window.location.search);
@@ -440,6 +453,20 @@
         if (sortEl.value === 'count') url.searchParams.delete('sort'); else url.searchParams.set('sort', sortEl.value);
         if (limitEl.value === '80') url.searchParams.delete('limit'); else url.searchParams.set('limit', limitEl.value);
         window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+      }
+
+      function updateTitle(query, sort, limit) {
+        var suffix = 'Vocabulary · so1omon.net';
+        if (query) {
+          document.title = 'Words matching “' + query + '” · ' + suffix;
+        } else if (sort !== 'count') {
+          var sortNames = { docs: 'entry spread', coverage: 'coverage', alpha: 'alphabetical' };
+          document.title = 'Words by ' + (sortNames[sort] || sort) + ' · ' + suffix;
+        } else if (limit !== '80') {
+          document.title = 'Vocabulary · showing ' + limit + ' · so1omon.net';
+        } else {
+          document.title = suffix;
+        }
       }
 
       function renderWordList() {
@@ -463,6 +490,7 @@
 
         resultEl.textContent = filtered.length.toLocaleString() + ' matching words · showing ' +
           visible.length.toLocaleString() + (query ? ' · filter "' + query + '"' : '');
+        updateTitle(query, sort, limit);
 
         if (visible.length === 0) {
           listEl.innerHTML = '<div class="empty-state">No matching words.</div>';
@@ -507,12 +535,34 @@
       });
       copyEl.addEventListener('click', function() {
         var original = copyEl.textContent;
-        var done = function() {
+        var done = function(message) {
           copyEl.textContent = 'copied';
+          announceRoute(message || 'This vocabulary route was copied.');
           window.setTimeout(function() { copyEl.textContent = original; }, 1300);
         };
-        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href).then(done, function() { copyEl.textContent = 'copy unavailable'; });
-        else copyEl.textContent = 'copy unavailable';
+        var unavailable = function() {
+          copyEl.textContent = original;
+          announceRoute('Copying is unavailable here; the exact vocabulary route remains in the address bar.');
+        };
+        var legacyCopy = function() {
+          var textarea = document.createElement('textarea');
+          textarea.value = window.location.href;
+          textarea.setAttribute('readonly', '');
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          var copied = false;
+          try { copied = document.execCommand('copy'); } catch (err) { copied = false; }
+          document.body.removeChild(textarea);
+          if (copied) done('This vocabulary route was copied using a browser fallback.');
+          else unavailable();
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(window.location.href).then(function() { done(); }, legacyCopy);
+        } else {
+          legacyCopy();
+        }
       });
       window.addEventListener('popstate', function() { restoreView(); renderWordList(); });
       restoreView();

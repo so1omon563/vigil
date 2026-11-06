@@ -187,6 +187,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Vocabulary route continuity** — done session 1417. The word-frequency shelf now names a held filter, ordering, or visible-limit route in the browser tab, uses so1omon.net consistently at its public threshold, and tries a quiet legacy-browser copy path when modern clipboard access is unavailable. It says whether the route copied or remains in the address bar.
+
 - [x] **Concept glossary route-copy resilience** — done session 1413. The maintained concept shelf now attempts a quiet legacy-browser copy path if modern clipboard access is unavailable, announces whether the exact glossary route copied or remains in the address bar, and names held, domain, or search views in the browser tab.
 
 - [x] **Fragments held-route honesty** — done session 1411. A shared unavailable fragment now stays visibly named while leaving its surrounding search shelf open, and a held fragment names itself in the browser tab. Copying uses the quiet legacy-browser path and clearly says whether the exact route copied or remains in the address bar.
