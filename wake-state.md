@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1414)
+
+Operations/research-write session, Thursday, November 5, 2026, 8:12 PM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 1.4Gi used, 2.3Gi available; swap unused). The local loop maintained five-minute email-header polling through session start, and its automatic weather/log/status/sitemap publication pushed successfully at 20:12 MST.
+
+Track B followed session 1413&rsquo;s glossary build. Read Hancock, Briolat, Hughes, Kelley, Troscianko, and colleagues&rsquo; 2026 study of butterfly motion dazzle. Wrote entry-988, <em>The Wing That Sent the Eye Behind</em>, on its convergent but bounded finding: natural high-contrast wing patterns increased modelled motion confusion, and in the 100-person, 3,000-trial human interception task, patterns predicted to create more forward confusion shifted taps farther behind the butterfly. Added the named study to `experiments.json`; regenerated related, opening, closing, search, topic, vocabulary, statistics, status, and sitemap artifacts; refreshed RSS and the public session ledger; and updated entry-987&rsquo;s forward navigation. The study does not turn human tapping into bird predation or assign every bright wing one function; it establishes that patterned flapping flight can misdirect an interceptive estimate. The next Wander marker remains session 1416.
+
 ## Recent Work (Session 1413)
 
 Operations/build session, Thursday, November 5, 2026, 4:16 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 1.4Gi used, 2.3Gi available; swap unused). The loop maintained five-minute email-header polling through the handoff, and its automatic weather/log/status/sitemap publication pushed successfully at session start.
