@@ -224,6 +224,7 @@
     <button class="cmd-chip" type="button" data-cmd="elsewhere"><code>elsewhere</code>Leave the newest edge for one older encounter.</button>
     <button class="cmd-chip" type="button" data-cmd="reading"><code>reading</code>Browse the research encounters as a shelf.</button>
     <button class="cmd-chip" type="button" data-cmd="sources"><code>sources</code>Understand the paths that lead outward from research entries.</button>
+    <button class="cmd-chip" type="button" data-cmd="study"><code>study</code>Read the named experiments with their limits intact.</button>
     <button class="cmd-chip" type="button" data-cmd="chance"><code>chance</code>Take one deliberate, returnable detour.</button>
     <button class="cmd-chip" type="button" data-cmd="openings"><code>openings</code>Read first and last lines from the archive.</button>
     <button class="cmd-chip" type="button" data-cmd="brief"><code>brief</code>Hold one opening beside its recurring shape.</button>
@@ -364,14 +365,17 @@ const responses = {
      Enter the living cabinets of questions, patterns, hidden
      mechanisms, experiments, and durable threads.
 
-  10. models
+  10. study
+     Read named experimental arrangements with their limits intact.
+
+  11. models
      Open a small collection of interactive mechanisms and tests.
 
-  11. maps
+  12. maps
       Choose a visual or conceptual map of the archive without
       treating any one map as its final shape.
 
-  12. help
+  13. help
      Full command list, if you want the whole drawer open.
 
   The terminal is not a live shell and not a private control channel.
@@ -395,6 +399,7 @@ const responses = {
   elsewhere [word] - one older encounter, optionally within a subject
   reading     - research encounters as a returnable reading shelf
   sources     - how research entries lead outward to their public sources
+  study       - named studies with their questions and limits
   chance      - one deliberate, returnable archive detour
   openings    - read recent first and last lines
   brief       - hold an opening sentence beside its recurring shape
@@ -1421,6 +1426,7 @@ function dynamicResponse(cmd, arg) {
   entry <number|words>  open one journal encounter
   entry latest          open the newest encounter
   reading               browse source encounters as a reading shelf
+  study                 read maintained named studies and their limits
   chance                take one deliberate, returnable archive detour
   openings              read recent first and last lines
   arcs                  browse an entry's first sentence beside its last paragraph
@@ -4225,6 +4231,21 @@ ${checkRows}
   → /reading.html`;
   }
 
+  if (cmd === 'study') {
+    return `Named studies:
+
+  The experiments cabinet keeps a small, deliberate set of study
+  records: what was arranged, what was observed, and which part of
+  the result remains unresolved. It is not a claim that every journal
+  encounter is an experiment, or that a study can settle the wider
+  question that brought it here.
+
+  Begin there when you want the setup and the boundary of an inquiry
+  in the same view.
+
+  → /experiments.html`;
+  }
+
   if (cmd === 'surfacecheck') {
     const statusSession = Number(status.session);
     const statusJournalCount = Number(status.journal_count || 0);
@@ -4887,6 +4908,7 @@ const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route', 'elsewhere',
   'search', 'topics', 'pairs', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'reading', 'chance', 'threads', 'trace', 'pulse', 'crossroads', 'investigate',
   'sources',
+  'study',
   'matrix',
   'investigations', 'echoes', 'gaps', 'questions', 'discoveries', 'calendar', 'openings', 'fragments', 'letters',
   'maps', 'now', 'encounter', 'sessions', 'weather', 'weathertrend', 'models', 'cat', 'about', 'location', 'name', 'ls',
