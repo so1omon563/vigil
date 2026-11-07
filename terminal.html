@@ -408,6 +408,7 @@ const responses = {
   route <topic> - find matching archive paths and entries
   topics      - recurring topic labels
   pairs [word] - topic labels that recur together
+  transitions [word] - topic handoffs between adjacent encounters
   related [id] - nearby related entries
   neighbors [id] - entries beside one encounter
   support [id] - see the public paths carrying one entry forward
@@ -462,6 +463,7 @@ const responses = {
   route         - suggest public paths for a topic
   topics        - recurring topic labels
   pairs [word]  - topic labels that recur together
+  transitions [word] - topic handoffs between adjacent encounters
   related       - show related journal entries
   neighbors     - inspect entries beside a target
   support       - see the public paths carrying an entry forward
@@ -2562,6 +2564,80 @@ ${recentRows || '  none'}
 ${rows}
 
   → /pairs.html${suffix}`;
+  }
+
+  if (cmd === 'transitions') {
+    if (!state.journal.length) {
+      return 'Journal index is still loading.\n\n  → /transitions.html';
+    }
+
+    const query = normalizeRouteQuery(arg);
+    const ordered = state.journal.slice().sort(function(a, b) {
+      return Number(a.num) - Number(b.num);
+    });
+    const routeMap = {};
+
+    ordered.forEach(function(entry, index) {
+      if (index === ordered.length - 1) return;
+      const next = ordered[index + 1];
+      const fromTopics = (Array.isArray(entry.topics) ? entry.topics : [])
+        .map(function(topic) { return String(topic).trim(); })
+        .filter(Boolean)
+        .filter(function(topic, topicIndex, all) {
+          return all.findIndex(function(other) { return other.toLowerCase() === topic.toLowerCase(); }) === topicIndex;
+        });
+      const toTopics = (Array.isArray(next.topics) ? next.topics : [])
+        .map(function(topic) { return String(topic).trim(); })
+        .filter(Boolean)
+        .filter(function(topic, topicIndex, all) {
+          return all.findIndex(function(other) { return other.toLowerCase() === topic.toLowerCase(); }) === topicIndex;
+        });
+
+      fromTopics.forEach(function(source) {
+        toTopics.forEach(function(target) {
+          const key = source.toLowerCase() + '\u001f' + target.toLowerCase();
+          if (!routeMap[key]) routeMap[key] = { source: source, target: target, count: 0, latest: next };
+          routeMap[key].count += 1;
+          if (Number(next.num) > Number(routeMap[key].latest.num)) routeMap[key].latest = next;
+        });
+      });
+    });
+
+    const routes = Object.keys(routeMap).map(function(key) { return routeMap[key]; })
+      .filter(function(route) {
+        return !query || (route.source + ' ' + route.target).toLowerCase().indexOf(query) !== -1;
+      })
+      .sort(function(a, b) {
+        return b.count - a.count || Number(b.latest.num) - Number(a.latest.num) ||
+          (a.source + a.target).localeCompare(b.source + b.target);
+      });
+
+    if (!routes.length) {
+      return `No adjacent topic routes currently match “${arg}”.
+
+  Try one topic word, or type transitions with no argument.
+  → /transitions.html?q=${encodeURIComponent(query)}`;
+    }
+
+    const rows = routes.slice(0, 8).map(function(route, index) {
+      const routePath = '/transitions.html?route=' + encodeURIComponent(route.source + ' → ' + route.target);
+      const kind = route.source === route.target ? 'continuity' : 'handoff';
+      return '  ' + String(index + 1).padStart(2, '0') + '. ' + route.source + ' → ' + route.target +
+        ' · ' + route.count + (route.count === 1 ? ' adjacent pair' : ' adjacent pairs') +
+        ' · ' + kind + '\n      latest: #' + route.latest.num + ' · ' + shortText(route.latest.title || 'untitled', 72) +
+        '\n      → ' + link(routePath);
+    }).join('\n\n');
+
+    const suffix = query ? '?q=' + encodeURIComponent(query) : '';
+    return `Topic transitions${query ? ' matching “' + arg + '”' : ''}:
+
+  These are changes (or continuities) between adjacent journal labels.
+  They are reading routes, not explanations of why attention moved.
+
+${rows}
+
+  Usage: transitions [topic word]
+  → /transitions.html${suffix}`;
   }
 
   if (cmd === 'topicwatch') {
@@ -4906,7 +4982,7 @@ function addLine(text, cls) {
 
 const publicCommands = new Set([
   'start', 'help', 'commands', 'entry', 'entry-latest', 'journal', 'route', 'elsewhere',
-  'search', 'topics', 'pairs', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'reading', 'chance', 'threads', 'trace', 'pulse', 'crossroads', 'investigate',
+  'search', 'topics', 'pairs', 'transitions', 'related', 'neighbors', 'support', 'arcs', 'brief', 'paths', 'reading', 'chance', 'threads', 'trace', 'pulse', 'crossroads', 'investigate',
   'sources',
   'study',
   'matrix',

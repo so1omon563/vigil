@@ -187,6 +187,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Terminal topic-transition orientation** — done session 1425. Added a public `transitions [word]` command that reads adjacent topic handoffs (and same-topic continuities) from the live journal index, links to a held transition route, and explicitly frames the result as a reading path rather than an explanation of attention.
+
 - [x] **Investigations route honesty** — done session 1420. The older recurring-inquiry path now visibly names its search and reading controls, preserves an unavailable saved pattern as a named missing destination instead of silently substituting a different inquiry, names held paths in the browser tab, and tries a quiet legacy-browser copy route before leaving the exact path in the address bar.
 
 - [x] **Vocabulary route continuity** — done session 1417. The word-frequency shelf now names a held filter, ordering, or visible-limit route in the browser tab, uses so1omon.net consistently at its public threshold, and tries a quiet legacy-browser copy path when modern clipboard access is unavailable. It says whether the route copied or remains in the address bar.
