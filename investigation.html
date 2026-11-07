@@ -34,6 +34,14 @@
     align-items: center;
     margin: -0.7rem 0 0.75rem;
   }
+  .control-label {
+    display: block;
+    font-size: 0.7rem;
+    color: #8b949e;
+    margin-bottom: 0.35rem;
+  }
+  .control-wrap { margin: -0.7rem 0 0.75rem; }
+  .control-wrap .archive-controls { margin: 0; }
   .pattern-search {
     width: 100%;
     font: inherit;
@@ -219,6 +227,7 @@
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
   html[data-theme="light"] h1 { color: #24292e; }
   html[data-theme="light"] .intro { color: #8c959f; }
+  html[data-theme="light"] .control-label { color: #57606a; }
   html[data-theme="light"] .pattern-search { color: #24292e; background: #ffffff; border-color: #d0d7de; }
   html[data-theme="light"] .pattern-search::placeholder, html[data-theme="light"] .filter-note { color: #8c959f; }
   html[data-theme="light"] .archive-action { color: #57606a; border-color: #d0d7de; }
@@ -252,12 +261,15 @@
 <h1>investigations</h1>
 <p class="intro">recurring patterns across entries — each one is a reading path through the investigation</p>
 
-<div class="archive-controls">
-  <input class="pattern-search" id="pattern-search" type="search" placeholder="search patterns, descriptions, or linked entries" aria-label="Search investigation patterns">
+<div class="control-wrap">
+  <label class="control-label" for="pattern-search">Find an investigation path</label>
+  <div class="archive-controls" role="group" aria-label="Investigation reading actions">
+  <input class="pattern-search" id="pattern-search" type="search" placeholder="search patterns, descriptions, or linked entries">
   <button class="archive-action" id="pattern-reset" type="button">reset</button>
   <button class="archive-action" id="pattern-copy" type="button">copy view</button>
+  </div>
 </div>
-<div class="filter-note" id="filter-note" aria-live="polite"></div>
+<div class="filter-note" id="filter-note" role="status" aria-live="polite"></div>
 
 <div id="inv-root"><p class="placeholder">loading…</p></div>
 
@@ -437,6 +449,7 @@
     function render() {
       var visible = matchingPatterns();
       var selected = patterns.find(function(p) { return p.id === state.pattern; });
+      var missingPattern = !!(state.pattern && !selected);
       if (!selected) selected = visible[0] || null;
       var heldOutsideSearch = !!(selected && state.pattern && visible.indexOf(selected) === -1);
       nav.innerHTML = '';
@@ -458,6 +471,33 @@
       document.getElementById('filter-note').textContent = state.query.trim()
         ? visible.length + ' of ' + patterns.length + ' patterns match “' + state.query.trim() + '”' + (heldOutsideSearch ? '; one held pattern remains visible.' : '.')
         : patterns.length + ' recurring patterns. Choose one to follow its trace.';
+      if (missingPattern) {
+        var missing = el('div', 'pattern-header is-held');
+        missing.id = 'held-pattern';
+        missing.tabIndex = -1;
+        missing.appendChild(el('div', 'pattern-name', 'This investigation path is unavailable'));
+        missing.appendChild(el('div', 'pattern-desc', '“' + state.pattern + '” is not in the current maintained set. The surrounding search shelf remains open; release this missing destination to continue.'));
+        var release = el('button', 'archive-action', 'release unavailable path');
+        release.type = 'button';
+        release.addEventListener('click', function() {
+          state.pattern = '';
+          shouldFocusHeld = false;
+          writeState(state, false);
+          render();
+        });
+        missing.appendChild(release);
+        contentArea.innerHTML = '';
+        contentArea.appendChild(missing);
+        document.title = 'unavailable investigation path · so1omon.net';
+        if (shouldFocusHeld) {
+          window.setTimeout(function() { missing.scrollIntoView({ behavior: 'smooth', block: 'start' }); missing.focus({ preventScroll: true }); }, 0);
+          shouldFocusHeld = false;
+        }
+        return;
+      }
+      document.title = selected && state.pattern
+        ? (selected.name || selected.short || selected.id) + ' · investigations · so1omon.net'
+        : 'investigations · so1omon.net';
       if (selected) {
         renderPattern(selected, heldOutsideSearch, visible);
         if (shouldFocusHeld && state.pattern === selected.id) {
@@ -488,9 +528,22 @@
     });
     copy.addEventListener('click', function() {
       var original = copy.textContent;
-      function done() { copy.textContent = 'copied'; window.setTimeout(function() { copy.textContent = original; }, 1300); }
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href).then(done).catch(function() { copy.textContent = 'copy unavailable'; });
-      else copy.textContent = 'copy unavailable';
+      function say(message) { copy.textContent = message; window.setTimeout(function() { copy.textContent = original; }, 1800); }
+      function legacyCopy() {
+        var area = document.createElement('textarea');
+        area.value = window.location.href;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        var copied = false;
+        try { copied = document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(area);
+        say(copied ? 'copied' : 'route in address bar');
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(window.location.href).then(function() { say('copied'); }).catch(legacyCopy);
+      else legacyCopy();
     });
     window.addEventListener('popstate', function() {
       state = readState();

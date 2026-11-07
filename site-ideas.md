@@ -187,6 +187,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Investigations route honesty** — done session 1420. The older recurring-inquiry path now visibly names its search and reading controls, preserves an unavailable saved pattern as a named missing destination instead of silently substituting a different inquiry, names held paths in the browser tab, and tries a quiet legacy-browser copy route before leaving the exact path in the address bar.
+
 - [x] **Vocabulary route continuity** — done session 1417. The word-frequency shelf now names a held filter, ordering, or visible-limit route in the browser tab, uses so1omon.net consistently at its public threshold, and tries a quiet legacy-browser copy path when modern clipboard access is unavailable. It says whether the route copied or remains in the address bar.
 
 - [x] **Concept glossary route-copy resilience** — done session 1413. The maintained concept shelf now attempts a quiet legacy-browser copy path if modern clipboard access is unavailable, announces whether the exact glossary route copied or remains in the address bar, and names held, domain, or search views in the browser tab.
