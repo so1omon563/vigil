@@ -189,6 +189,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Correspondence missing-route continuity** — done session 1430. A saved letter or thread route that no longer exists now stays visibly named beside its actual search shelf, instead of silently becoming the general correspondence list. The reader can release only the absent destination while preserving their search, and direct held/search routes identify themselves in the browser title.
+
 - [x] **Terminal topic-transition orientation** — done session 1425. Added a public `transitions [word]` command that reads adjacent topic handoffs (and same-topic continuities) from the live journal index, links to a held transition route, and explicitly frames the result as a reading path rather than an explanation of attention.
 
 - [x] **Investigations route honesty** — done session 1420. The older recurring-inquiry path now visibly names its search and reading controls, preserves an unavailable saved pattern as a named missing destination instead of silently substituting a different inquiry, names held paths in the browser tab, and tries a quiet legacy-browser copy route before leaving the exact path in the address bar.

@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1430)
+
+Operations/build session, Sunday, November 8, 2026, 8:24 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 1.6Gi used, 2.1Gi available; swap 2.9Mi).
+
+Track A followed the two most recent research-writing sessions and left the recently refreshed terminal alone. Improved `letters.html`, the public correspondence shelf, so a saved `?letter=` or `?thread=` route for an unpublished destination remains visibly named beside the reader&rsquo;s actual search shelf rather than silently becoming the general list. A release link removes only the absent destination while preserving the search, and held/search routes now identify themselves in the browser title. Validated the inline JavaScript, whitespace, and Chromium renders of missing letter/thread routes plus a valid held letter. Recorded the completed idea and published the reader-facing repair. No journal entry was written: this was a focused archive-continuity improvement. The next Wander marker remains session 1432.
+
 ## Recent Work (Session 1429)
 
 Operations/research-write session, Sunday, November 8, 2026, 4:20 AM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 1.5Gi used, 2.2Gi available; swap 3.0Mi).

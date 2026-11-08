@@ -162,6 +162,15 @@
     font-size: 0.8rem;
     padding: 0.75rem 0;
   }
+  .missing-route {
+    border-left: 2px dashed #d29922;
+    color: #8b949e;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    margin: 0.8rem 0 0.2rem;
+    padding: 0.25rem 0 0.25rem 0.8rem;
+  }
+  .missing-route a { white-space: nowrap; }
 
   .search-wrap { margin-bottom: 1.5rem; }
   .search-label {
@@ -331,6 +340,37 @@ function normalizeThreadToken(value) {
   return (value || '').trim().toLowerCase();
 }
 
+function setPageTitle(label) {
+  document.title = (label ? label + ' · ' : '') + 'Correspondence · so1omon.net';
+}
+
+function dateListRoute() {
+  var p = new URLSearchParams();
+  if (currentSearchQuery) p.set('q', currentSearchQuery);
+  var qs = p.toString();
+  return '/letters.html' + (qs ? '?' + qs : '');
+}
+
+function threadListRoute() {
+  var p = new URLSearchParams();
+  p.set('view', 'thread');
+  if (currentSearchQuery) p.set('q', currentSearchQuery);
+  return '/letters.html?' + p.toString();
+}
+
+function renderMissingRoute(kind, value, releaseHref) {
+  document.querySelectorAll('.missing-route').forEach(function(node) { node.remove(); });
+  var message = document.createElement('p');
+  message.className = 'missing-route';
+  message.setAttribute('role', 'status');
+  message.appendChild(document.createTextNode('The requested ' + kind + ' “' + value + '” is not in the published correspondence. '));
+  var release = document.createElement('a');
+  release.href = releaseHref;
+  release.textContent = 'Release this missing destination';
+  message.appendChild(release);
+  document.querySelector('.letter-index').appendChild(message);
+}
+
 if (currentView === 'thread') {
   heldThreadId = normalizeThreadToken(params.get('thread'));
   shouldFocusHeldThread = !!heldThreadId;
@@ -436,11 +476,16 @@ function applyFilter() {
     }
   });
   var countEl = document.getElementById('letters-count');
+  var missingHeldLetter = !!heldLetterNum && !heldRow;
+  document.querySelectorAll('.missing-route').forEach(function(node) { node.remove(); });
+  if (missingHeldLetter) renderMissingRoute('letter', heldLetterNum, dateListRoute());
   if (countEl) {
     var suffix = heldRow && q && heldRow.textContent.toLowerCase().indexOf(q) === -1 ? ' · held letter outside this filter' : '';
-    countEl.textContent = q ? (visible === 0 ? 'no matches' : visible + ' of ' + rows.length + ' letters' + suffix) : (heldRow ? 'held letter' : '');
+    if (missingHeldLetter) suffix = ' · requested letter unavailable';
+    countEl.textContent = q ? (visible === 0 ? 'no matches' + suffix : visible + ' of ' + rows.length + ' letters' + suffix) : (missingHeldLetter ? 'requested letter unavailable' : (heldRow ? 'held letter' : ''));
   }
   renderHeldLetterNav(heldRow, rows, q);
+  setPageTitle(missingHeldLetter ? ('Letter ' + heldLetterNum + ' unavailable') : (heldRow ? ('Letter ' + heldLetterNum) : (q ? ('Search: ' + q) : '')));
   syncUrlState();
   if (heldRow && shouldFocusHeldLetter) {
     shouldFocusHeldLetter = false;
@@ -607,6 +652,9 @@ function buildThreadView() {
   });
 
   var heldThread = threadsData.filter(function(thread) { return thread.id === heldThreadId; })[0] || null;
+  var missingHeldThread = !!heldThreadId && !heldThread;
+  document.querySelectorAll('.missing-route').forEach(function(node) { node.remove(); });
+  if (missingHeldThread) renderMissingRoute('thread', heldThreadId, threadListRoute());
   if (heldThread) {
     indexLabel.textContent = 'Correspondence thread: ' + heldThread.label + (query ? ' · searching “' + query + '”' : '');
   }
@@ -663,7 +711,7 @@ function buildThreadView() {
   var countEl = document.getElementById('letters-count');
   if (countEl) {
     var heldOutside = heldThread && query && normalizeThreadToken(heldThread.label).indexOf(query) === -1 && normalizeThreadToken(heldThread.desc).indexOf(query) === -1;
-    countEl.textContent = visibleThreads === 0 ? 'no thread matches' : (visibleThreads + ' thread' + (visibleThreads === 1 ? '' : 's') + ' · ' + visibleLetters + ' letters shown' + (heldOutside ? ' · held thread outside this filter' : ''));
+    countEl.textContent = missingHeldThread ? 'requested thread unavailable' : (visibleThreads === 0 ? 'no thread matches' : (visibleThreads + ' thread' + (visibleThreads === 1 ? '' : 's') + ' · ' + visibleLetters + ' letters shown' + (heldOutside ? ' · held thread outside this filter' : '')));
   }
 
   if (visibleThreads === 0) {
@@ -683,6 +731,7 @@ function buildThreadView() {
       });
     }
   }
+  setPageTitle(missingHeldThread ? ('Thread ' + heldThreadId + ' unavailable') : (heldThread ? heldThread.label : (query ? ('Thread search: ' + query) : '')));
 }
 
 fetch('/letters-index.json')
