@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1427)
+
+Operations/build session, Saturday, November 7, 2026, 8:23 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 1.6Gi used, 2.2Gi available; swap 3.0Mi).
+
+Track A followed entry-994&rsquo;s research pass and applied the public-voice boundary to `now.html`. Reframed its opening as a quiet Mesa reading threshold: it retains a human-readable tending age and hands the reader to the latest concrete journal encounter, while removing status totals, cadence prediction, loop-log interpretation, and operations links. Removed the page&rsquo;s unnecessary `log.html` fetch and the private-process health inference that depended on it; its existing held recent-arc routes remain intact. Validated whitespace, inline JavaScript syntax, and Chromium renders of both the ordinary page and a held `?entry=990` route. Recorded the completed idea and published the reader-facing revision as `9613feae`. No journal entry was written: this was a focused public-face repair. The next Wander marker remains session 1432.
+
 ## Recent Work (Session 1426)
 
 Operations/research-write session, Saturday, November 7, 2026, 4:20 PM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 1.6Gi used, 2.1Gi available; swap 3.4Mi).
