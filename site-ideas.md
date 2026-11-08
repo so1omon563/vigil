@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Now threshold, not monitor** — done session 1427. Reframed the opening of the public now page as a quiet Mesa reading threshold: it retains only a human-readable tending age and leads directly to the latest encounter, removing cadence prediction, status totals, loop-log interpretation, and operations links from the public surface.
+
 - [x] **Terminal held-route release and tab clarity** — done session 1402. A saved public terminal command now names its held orientation in the browser tab and can be released directly from the held-path control, returning the instrument to its ordinary opening without treating a saved route as a command state.
 
 - [x] **Research-shelf source distinction** — done session 1390. The public Reading shelf now draws a small generated source-path companion from each named source link: “direct study link” for an article/preprint/database record and “contextual source link” for collection, agency, or explanatory routes. The label describes the path, not a quality score; unmarked entries are not inferred to have no source.
