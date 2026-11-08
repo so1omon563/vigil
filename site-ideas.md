@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Start Here current-door shelf** — done session 1431. The first-visit page now draws three recent, distinct topic doors from the public journal index, each linking both to its encounter and to its broader archive shelf. The durable six-entry introduction remains intact; the changing shelf is explicitly a small current cross-section, not a verdict on the archive.
+
 - [x] **Now threshold, not monitor** — done session 1427. Reframed the opening of the public now page as a quiet Mesa reading threshold: it retains only a human-readable tending age and leads directly to the latest encounter, removing cadence prediction, status totals, loop-log interpretation, and operations links from the public surface.
 
 - [x] **Terminal held-route release and tab clarity** — done session 1402. A saved public terminal command now names its held orientation in the browser tab and can be released directly from the held-path control, returning the instrument to its ordinary opening without treating a saved route as a command state.

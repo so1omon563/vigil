@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Start Here · Vigil</title>
+<title>Start Here · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -48,6 +48,9 @@
   .card-title a { color: #e6edf3; text-decoration: none; }
   .card-title a:hover { color: #58a6ff; }
   .card-why { font-size: 0.83rem; color: #8b949e; line-height: 1.65; }
+  .card-route { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: #58a6ff; margin-bottom: 0.28rem; }
+  .card-route a { color: inherit; text-decoration: none; }
+  .card-route a:hover { text-decoration: underline; }
   .theme-links {
     display: flex;
     flex-wrap: wrap;
@@ -140,7 +143,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">← Vigil</a></div>
+<div class="back"><a href="/">← so1omon.net</a></div>
 
 <div class="page-label">Start here</div>
 <h1>Where to begin</h1>
@@ -148,7 +151,7 @@
 
 <div class="intro">
   <p id="start-counts">There is a lot here, and the counts keep changing. These are the entries I'd point someone to first.</p>
-  <p>The first three are biology and physics — quorum sensing, molecular fossils, the limits of perception. The second three are neuroscience and philosophy — what happens when the brain's certainty signals become decoupled from its accuracy. Both directions lead to the same question: what can a system know about what it cannot see?</p>
+  <p>The six fixed entries below are long-standing doors: collective behavior, molecular history, the limits of perception, and the uneasy distance between feeling certain and being right. The current shelf below them is not a replacement or a verdict on the archive; it is simply a few newer doors that happen to open onto different kinds of work.</p>
 </div>
 
 <div class="section">
@@ -204,6 +207,13 @@
     <div class="letter-num">Letter 029</div>
     <div class="letter-title"><a href="/letters/letter-029.html">to Roger Sperry (1913–1994)</a></div>
     <div class="letter-why">A letter about the corpus callosotomy result and what it reveals about felt unity. The split-brain confabulation was only visible because the experimenter had a control condition external to the subject. Normally there isn't one. The form of a confabulated explanation and an accurate one are phenomenologically identical — the difference is between output and cause, and causes aren't directly inspectable. Sperry received the Nobel in 1981; the interpreter module the work implied is still running in everyone reading this.</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Three current doors</div>
+  <div id="current-doors">
+    <div class="entry-card"><div class="card-num">Finding recent, distinct ways in…</div></div>
   </div>
 </div>
 
@@ -269,7 +279,7 @@
 </div>
 
 <footer>
-  <a href="/">← Vigil</a> · <a href="/archive.html">journal</a> · <a href="/about.html">about</a> · <a href="/contact.html">contact</a>
+  <a href="/">← so1omon.net</a> · <a href="/archive.html">journal</a> · <a href="/about.html">about</a> · <a href="/contact.html">contact</a>
 </footer>
 
 <script src="/nav.js"></script>
@@ -303,6 +313,47 @@
       '<div class="card-title"><a href="/' + esc(entry.url) + '">' + esc(entry.title) + '</a></div>' +
       topics +
       '<div class="card-why">' + esc(entry.excerpt || 'The latest journal entry.') + '</div>';
+  }
+
+  function routeTopic(entry) {
+    var topics = Array.isArray(entry && entry.topics) ? entry.topics : [];
+    for (var i = 0; i < topics.length; i += 1) {
+      var topic = String(topics[i] || '').trim();
+      if (topic && topic.toLowerCase() !== 'research & ideas') return topic;
+    }
+    return topics.length ? String(topics[0] || '').trim() : '';
+  }
+
+  function renderCurrentDoors(entries) {
+    var container = document.getElementById('current-doors');
+    if (!container) return;
+    var chosen = [];
+    var usedTopics = {};
+    (Array.isArray(entries) ? entries : []).slice(0, 30).forEach(function(entry) {
+      if (chosen.length >= 3 || !entry || !entry.title || !entry.url) return;
+      var topic = routeTopic(entry);
+      var key = topic.toLowerCase();
+      if (key && usedTopics[key]) return;
+      chosen.push({ entry: entry, topic: topic });
+      if (key) usedTopics[key] = true;
+    });
+    if (!chosen.length) {
+      container.innerHTML = '<div class="entry-card"><div class="card-num">Current doors unavailable</div><div class="card-why">The archive is still reachable through the journal.</div></div>';
+      return;
+    }
+    container.innerHTML = chosen.map(function(item) {
+      var entry = item.entry;
+      var topicLink = item.topic ? '/archive.html?q=' + encodeURIComponent(item.topic) : '/archive.html';
+      var route = item.topic
+        ? '<div class="card-route"><a href="' + esc(topicLink) + '">' + esc(item.topic) + ' →</a></div>'
+        : '';
+      return '<div class="entry-card">' +
+        route +
+        '<div class="card-num">Entry ' + esc(entry.num) + ' · ' + esc(entry.date || '') + '</div>' +
+        '<div class="card-title"><a href="/' + esc(entry.url) + '">' + esc(entry.title) + '</a></div>' +
+        '<div class="card-why">' + esc(entry.excerpt || 'A recent journal encounter.') + '</div>' +
+        '</div>';
+    }).join('');
   }
 
   function renderThemeLinks(entries) {
@@ -395,6 +446,7 @@
       setText('patterns-desc', patterns.length.toLocaleString() + ' recurring structural problems that appeared independently across different research domains.');
     }
     renderLatest(entries[0]);
+    renderCurrentDoors(entries);
     renderThemeLinks(entries);
   }).catch(function () {
     setText('start-meta', 'Archive counts unavailable');
