@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Topics · Vigil</title>
+<title>Topics · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -90,11 +90,25 @@
     font-size: 0.76rem;
     margin: -0.7rem 0 1rem;
   }
+  .copy-status {
+    color: #484f58;
+    font-size: 0.72rem;
+    min-height: 1.1rem;
+    margin: -0.65rem 0 1rem;
+  }
   .category-section { margin-bottom: 2.5rem; }
   .category-section.held-topic {
     border-left: 2px solid var(--held-color, #58a6ff);
     padding-left: 0.8rem;
     scroll-margin-top: 1.25rem;
+  }
+  .category-section.unavailable-topic {
+    border-left-style: dashed;
+  }
+  .unavailable-note {
+    color: #d29922;
+    font-size: 0.76rem;
+    margin-bottom: 0.8rem;
   }
   .category-header {
     display: flex; align-items: baseline; gap: 0.75rem;
@@ -173,7 +187,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">← Vigil</a></div>
+<div class="back"><a href="/">← so1omon</a></div>
 
 <h1>Topics</h1>
 <div class="meta">Journal entries grouped by theme</div>
@@ -198,6 +212,7 @@
   <button class="view-action" id="reset-view" type="button">reset view</button>
   <button class="view-action" id="copy-view" type="button">copy this view</button>
 </div>
+<div class="copy-status" id="copy-status" aria-live="polite" aria-atomic="true"></div>
 
 <div class="filter-row" id="filter-row" role="group" aria-label="Filter entries by topic"></div>
 
@@ -212,7 +227,7 @@
 </div>
 
 <footer>
-  <a href="/">Vigil</a> · <a href="/archive.html">archive</a> · <a href="/journal">journal</a> · <a href="/rss.xml">RSS</a>
+  <a href="/">so1omon</a> · <a href="/archive.html">archive</a> · <a href="/journal">journal</a> · <a href="/rss.xml">RSS</a>
 </footer>
 
 <script>
@@ -253,23 +268,32 @@ Promise.all([
     const sortSelect = document.getElementById('topic-sort');
     const resetView = document.getElementById('reset-view');
     const copyView = document.getElementById('copy-view');
+    const copyStatus = document.getElementById('copy-status');
     let activeTopic = null;
+    let unavailableTopic = '';
     let shouldArrive = false;
 
     function readState(arrive = false) {
       const params = new URLSearchParams(window.location.search);
       const requestedTopic = params.get('topic');
       activeTopic = requestedTopic && topicMap.has(requestedTopic) ? requestedTopic : null;
+      unavailableTopic = requestedTopic && !topicMap.has(requestedTopic) ? requestedTopic : '';
       searchInput.value = params.get('q') || '';
       const requestedSort = params.get('sort');
       sortSelect.value = ['newest', 'oldest', 'number'].includes(requestedSort) ? requestedSort : 'newest';
       shouldArrive = arrive && !!activeTopic;
+      document.title = activeTopic
+        ? `${activeTopic} · Topics · so1omon.net`
+        : unavailableTopic
+          ? 'Unavailable topic · Topics · so1omon.net'
+          : 'Topics · so1omon.net';
     }
 
     function viewURL() {
       const url = new URL(window.location.href);
       url.search = '';
       if (activeTopic) url.searchParams.set('topic', activeTopic);
+      else if (unavailableTopic) url.searchParams.set('topic', unavailableTopic);
       const query = searchInput.value.trim();
       if (query) url.searchParams.set('q', query);
       if (sortSelect.value !== 'newest') url.searchParams.set('sort', sortSelect.value);
@@ -294,6 +318,7 @@ Promise.all([
       btn.appendChild(count);
       btn.addEventListener('click', () => {
         activeTopic = activeTopic === topic.label ? null : topic.label;
+        unavailableTopic = '';
         shouldArrive = false;
         writeState();
         render();
@@ -307,6 +332,7 @@ Promise.all([
     allBtn.setAttribute('aria-pressed', 'true');
     allBtn.addEventListener('click', () => {
       activeTopic = null;
+      unavailableTopic = '';
       shouldArrive = false;
       writeState();
       render();
@@ -324,6 +350,7 @@ Promise.all([
     });
     resetView.addEventListener('click', () => {
       activeTopic = null;
+      unavailableTopic = '';
       searchInput.value = '';
       sortSelect.value = 'newest';
       writeState();
@@ -331,11 +358,41 @@ Promise.all([
     });
     copyView.addEventListener('click', async () => {
       const label = copyView.textContent;
-      try {
-        await navigator.clipboard.writeText(viewURL().href);
+      const copied = () => {
         copyView.textContent = 'copied';
-      } catch (_) {
+        copyStatus.textContent = 'This topic view was copied.';
+      };
+      const unavailable = () => {
         copyView.textContent = 'copy unavailable';
+        copyStatus.textContent = 'This browser could not copy the view. The address bar still holds this return route.';
+      };
+      const legacyCopy = () => {
+        const field = document.createElement('textarea');
+        field.value = viewURL().href;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.appendChild(field);
+        field.select();
+        try {
+          if (document.execCommand('copy')) {
+            field.remove();
+            copied();
+            window.setTimeout(() => { copyView.textContent = label; }, 1400);
+            return;
+          }
+        } catch (_) {}
+        field.remove();
+        unavailable();
+        window.setTimeout(() => { copyView.textContent = label; }, 1400);
+      };
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(viewURL().href);
+        copied();
+      } catch (_) {
+        legacyCopy();
+        return;
       }
       window.setTimeout(() => { copyView.textContent = label; }, 1400);
     });
@@ -391,7 +448,13 @@ Promise.all([
       }
 
       const section = document.createElement('section');
-      section.className = 'category-section' + (activeTopic ? ' held-topic' : '');
+      section.className = 'category-section' + (activeTopic || unavailableTopic ? ' held-topic' : '') + (unavailableTopic ? ' unavailable-topic' : '');
+      if (unavailableTopic) {
+        const note = document.createElement('p');
+        note.className = 'unavailable-note';
+        note.textContent = `“${unavailableTopic}” is not a current topic label. The entries below remain the shelf selected by your other controls.`;
+        section.appendChild(note);
+      }
       if (activeTopic) {
         const topic = topics.find(item => item.label === activeTopic);
         section.style.setProperty('--held-color', topic && topic.color || '#58a6ff');
