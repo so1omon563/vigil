@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Echoes · Vigil</title>
+<title>Echoes · so1omon.net</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -293,7 +293,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">← Vigil</a></div>
+<div class="back"><a href="/">← so1omon</a></div>
 
 <div class="page-label">/echoes</div>
 <h1>Echoes</h1>
@@ -659,9 +659,21 @@
     return clusters.some(function(cluster) { return cluster.id === requested; }) ? requested : '';
   }
 
+  function missingFocusFromUrl(clusters) {
+    const requested = new URLSearchParams(window.location.search).get('echo');
+    return requested && !clusters.some(function(cluster) { return cluster.id === requested; }) ? requested : '';
+  }
+
   function heldFromUrl(clusters) {
     const requested = new URLSearchParams(window.location.search).get('entry');
     return clusters.some(function(cluster) {
+      return (cluster.entries || []).some(function(entryRef) { return String(entryRef.num) === String(requested); });
+    }) ? requested : '';
+  }
+
+  function missingHeldFromUrl(clusters) {
+    const requested = new URLSearchParams(window.location.search).get('entry');
+    return requested && !clusters.some(function(cluster) {
       return (cluster.entries || []).some(function(entryRef) { return String(entryRef.num) === String(requested); });
     }) ? requested : '';
   }
@@ -707,9 +719,31 @@
     let currentFocus = focusFromUrl(clusters);
     let currentHeld = heldFromUrl(clusters);
     let currentOrder = orderFromUrl();
+    let missingFocus = missingFocusFromUrl(clusters);
+    let missingHeld = missingHeldFromUrl(clusters);
     let searchTimer = null;
 
-    function applyView(filter, query, focus, held, order, updateUrl) {
+    function updateTitle() {
+      const focusCluster = clusters.find(function(cluster) { return cluster.id === currentFocus; });
+      const heldEntry = journalByNum[String(currentHeld)];
+      const heldName = heldEntry && heldEntry.title ? heldEntry.title : (currentHeld ? 'entry ' + currentHeld : '');
+      const label = missingFocus
+        ? 'Unavailable territory: ' + missingFocus
+        : missingHeld
+        ? 'Unavailable return: entry ' + missingHeld
+        : heldName
+        ? heldName
+        : focusCluster
+        ? (focusCluster.title || focusCluster.label || focusCluster.id)
+        : currentQuery
+        ? 'Search: ' + currentQuery
+        : currentFilter !== 'all'
+        ? ((clusters.find(function(cluster) { return cluster.id === currentFilter; }) || {}).label || currentFilter)
+        : '';
+      document.title = (label ? label + ' · ' : '') + 'Echoes · so1omon.net';
+    }
+
+    function applyView(filter, query, focus, held, order, updateUrl, unavailableFocus, unavailableHeld) {
       currentFilter = clusters.some(function(cluster) { return cluster.id === filter; }) ? filter : 'all';
       currentQuery = String(query || '');
       currentFocus = clusters.some(function(cluster) { return cluster.id === focus; }) ? focus : '';
@@ -717,6 +751,8 @@
         return (cluster.entries || []).some(function(entryRef) { return String(entryRef.num) === String(held); });
       }) ? String(held) : '';
       currentOrder = order === 'recent' ? 'recent' : 'curated';
+      missingFocus = unavailableFocus || '';
+      missingHeld = unavailableHeld || '';
       searchInput.value = currentQuery;
       orderSelect.value = currentOrder;
       renderButtons(clusters, currentFilter);
@@ -724,12 +760,21 @@
       renderCounts(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
       renderRecentReturns(clusters, journalByNum, currentFilter, currentQuery, currentFocus, currentHeld);
       resetButton.textContent = currentFocus || currentHeld ? 'return to cabinet' : 'reset';
+      updateTitle();
+      if (missingFocus || missingHeld) {
+        const missingNote = document.createElement('p');
+        missingNote.className = 'focus-note';
+        missingNote.textContent = missingFocus
+          ? 'The saved territory “' + missingFocus + '” is not in this maintained cabinet. The current reading shelf remains below.'
+          : 'The saved return, entry ' + missingHeld + ', is not in this maintained cabinet. The current reading shelf remains below.';
+        clustersRoot.insertBefore(missingNote, clustersRoot.firstChild);
+      }
       if (currentHeld) arriveAtHeldReturn(currentHeld);
       else arriveAtHeldTerritory(currentFocus);
       if (updateUrl) setViewInUrl(currentFilter, currentQuery, currentFocus, currentHeld, currentOrder);
     }
 
-    applyView(currentFilter, currentQuery, currentFocus, currentHeld, currentOrder, false);
+    applyView(currentFilter, currentQuery, currentFocus, currentHeld, currentOrder, false, missingFocus, missingHeld);
     renderCabinetEdge(clusters, journal);
 
     filterBar.addEventListener('click', function(e) {
@@ -819,7 +864,7 @@
     });
 
     window.addEventListener('popstate', function() {
-      applyView(filterFromUrl(clusters), queryFromUrl(), focusFromUrl(clusters), heldFromUrl(clusters), orderFromUrl(), false);
+      applyView(filterFromUrl(clusters), queryFromUrl(), focusFromUrl(clusters), heldFromUrl(clusters), orderFromUrl(), false, missingFocusFromUrl(clusters), missingHeldFromUrl(clusters));
     });
   }).catch(function() {
     clustersRoot.innerHTML = '<p class="entry-angle">Echoes is temporarily unavailable. This page needs /echoes-data.json and /journal-index.json to render.</p>';
