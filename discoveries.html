@@ -97,6 +97,7 @@
   }
   .chronology-overview h2 { color: #e6edf3; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
   .chronology-overview-note { color: #8b949e; font-size: 0.72rem; }
+  .chronology-help { color: #484f58; font-size: 0.68rem; margin: -0.28rem 0 0.7rem; }
   .chronology-strip {
     position: relative;
     height: 1.6rem;
@@ -420,6 +421,7 @@
   html[data-theme="light"] .chronology-overview { border-color: #d0d7de; }
   html[data-theme="light"] .chronology-overview h2 { color: #1c2128; }
   html[data-theme="light"] .chronology-overview-note { color: #57606a; }
+  html[data-theme="light"] .chronology-help { color: #8c959f; }
   html[data-theme="light"] .chronology-strip { border-color: #d0d7de; }
   html[data-theme="light"] .chronology-mark { background: #f6f8fa; border-color: #8b949e; }
   html[data-theme="light"] .chronology-mark[data-cat="biology"] { border-color: #1a7f37; background: #dafbe1; }
@@ -526,7 +528,8 @@
     <h2 id="chronology-overview-title">The shape of this slice</h2>
     <span class="chronology-overview-note" id="chronology-overview-note">Loading source dates.</span>
   </div>
-  <div class="chronology-strip" id="chronology-strip" aria-label="Source-date overview; each mark opens a discovery record"></div>
+  <p class="chronology-help" id="chronology-help">Use left and right arrow keys to move through the dates; Enter opens a record.</p>
+  <div class="chronology-strip" id="chronology-strip" role="group" aria-label="Source-date overview; each mark opens a discovery record" aria-describedby="chronology-help"></div>
   <div class="chronology-axis" aria-hidden="true"><span id="chronology-start"></span><span id="chronology-end"></span></div>
 </section>
 
@@ -1020,6 +1023,26 @@
         updateUrl(false);
       });
       chronologyStrip.appendChild(mark);
+    });
+  }
+
+  // The chronology is a compressed spatial reading of the cabinet. Let a
+  // keyboard reader travel that sequence as a sequence, rather than making
+  // every mark an isolated stop.
+  if (chronologyStrip) {
+    chronologyStrip.addEventListener('keydown', function (event) {
+      var keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
+      if (keys.indexOf(event.key) === -1) return;
+      var marks = Array.prototype.slice.call(chronologyStrip.querySelectorAll('.chronology-mark'));
+      var current = marks.indexOf(document.activeElement);
+      if (current === -1 || !marks.length) return;
+      var next = current;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = Math.max(0, current - 1);
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = Math.min(marks.length - 1, current + 1);
+      if (event.key === 'Home') next = 0;
+      if (event.key === 'End') next = marks.length - 1;
+      event.preventDefault();
+      marks[next].focus();
     });
   }
 

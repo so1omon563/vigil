@@ -834,6 +834,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 - [x] **Start Here live cabinet counts** — done session 1329. The first-visit page now draws its Concepts and Patterns card language from their maintained public datasets, so the orientation layer does not continue to advertise an obsolete glossary size or frozen pattern count.
 
+- [x] **Discoveries chronology keyboard travel** — done session 1435. The source-date overview now lets a reader move earlier or later with arrow keys (or jump to either edge with Home/End) before opening a held record, so its tiny timeline marks behave as one readable sequence rather than isolated controls.
+
 ## Idea Graveyard
 *(Ideas that won't work or aren't worth it)*
 
