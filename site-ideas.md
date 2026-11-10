@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Weather saved-day route continuity** — done session 1437. A held weather day now names itself in the browser tab and its copy action tries the quiet legacy-browser route when the modern Clipboard API is unavailable. If the moving fourteen-day shelf no longer contains a saved day, the page explicitly names that boundary and offers a return to current weather instead of silently becoming an ordinary view.
+
 - [x] **Start Here current-door shelf** — done session 1431. The first-visit page now draws three recent, distinct topic doors from the public journal index, each linking both to its encounter and to its broader archive shelf. The durable six-entry introduction remains intact; the changing shelf is explicitly a small current cross-section, not a verdict on the archive.
 
 - [x] **Now threshold, not monitor** — done session 1427. Reframed the opening of the public now page as a quiet Mesa reading threshold: it retains only a human-readable tending age and leads directly to the latest encounter, removing cadence prediction, status totals, loop-log interpretation, and operations links from the public surface.

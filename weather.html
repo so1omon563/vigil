@@ -631,6 +631,8 @@ fetch('/weather-history.json')
       const dayRows = new Map();
       const tableToggle = document.getElementById('daily-table-toggle');
       const tableWrap = document.getElementById('daily-table-wrap');
+      const returnButton = document.getElementById('day-reading-return');
+      const copyButton = document.getElementById('day-reading-copy');
       function selectedDayIndex(day) {
         return dayData.findIndex(item => item.day === day);
       }
@@ -667,8 +669,28 @@ fetch('/weather-history.json')
           '. This is one local day in the record, not a climate claim.';
         reading.style.display = 'block';
         readingStatus.textContent = '';
+        earlierButton.hidden = false;
+        laterButton.hidden = false;
+        copyButton.hidden = false;
+        returnButton.textContent = 'return to latest day';
+        document.title = 'Weather — ' + day + ' · so1omon';
         markHeldDay(day);
         updateDayStepper(day);
+        if (focusReading) {
+          requestAnimationFrame(() => reading.focus({ preventScroll: false }));
+        }
+      }
+
+      function showUnavailableDay(day, focusReading = false) {
+        readingText.innerHTML = '<strong>' + day + '</strong> is not among the fourteen stored days currently held here. The weather record keeps moving; this saved reading can no longer be reopened from this small shelf.';
+        reading.style.display = 'block';
+        readingStatus.textContent = '';
+        earlierButton.hidden = true;
+        laterButton.hidden = true;
+        copyButton.hidden = true;
+        returnButton.textContent = 'return to current weather';
+        document.title = 'Weather — saved day unavailable · so1omon';
+        markHeldDay(null);
         if (focusReading) {
           requestAnimationFrame(() => reading.focus({ preventScroll: false }));
         }
@@ -685,27 +707,59 @@ fetch('/weather-history.json')
         if (index >= 0 && index < dayData.length - 1) showDayReading(dayData[index + 1].day, true);
       };
 
-      document.getElementById('day-reading-return').onclick = () => {
+      returnButton.onclick = () => {
         reading.style.display = 'none';
         readingStatus.textContent = '';
         setWeatherDay(null);
         markHeldDay(null);
+        document.title = 'Weather · so1omon';
       };
-      document.getElementById('day-reading-copy').onclick = async () => {
-        try {
-          await navigator.clipboard.writeText(window.location.href);
-          readingStatus.textContent = 'link copied';
-        } catch (err) {
-          readingStatus.textContent = 'copy unavailable — the address holds this day';
+      copyButton.onclick = () => {
+        const url = window.location.href;
+        const resetCopyLabel = () => window.setTimeout(() => { copyButton.textContent = 'copy this day'; }, 1600);
+        const copied = () => {
+          copyButton.textContent = 'link copied';
+          readingStatus.textContent = 'This saved weather day was copied.';
+          resetCopyLabel();
+        };
+        const unavailable = () => {
+          copyButton.textContent = 'copy unavailable';
+          readingStatus.textContent = 'This browser could not copy the saved weather day. Copy the address from the browser instead.';
+          resetCopyLabel();
+        };
+        const legacyCopy = () => {
+          const field = document.createElement('textarea');
+          field.value = url;
+          field.setAttribute('readonly', '');
+          field.style.position = 'fixed';
+          field.style.opacity = '0';
+          document.body.appendChild(field);
+          field.select();
+          try {
+            if (document.execCommand('copy')) {
+              document.body.removeChild(field);
+              copied();
+              return;
+            }
+          } catch (error) {}
+          document.body.removeChild(field);
+          unavailable();
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(copied, legacyCopy);
+        } else {
+          legacyCopy();
         }
       };
       window.addEventListener('popstate', () => {
         const day = selectedWeatherDay();
         if (day && dayData.some(item => item.day === day)) showDayReading(day, false, true);
+        else if (day) showUnavailableDay(day, true);
         else {
           reading.style.display = 'none';
           readingStatus.textContent = '';
           markHeldDay(null);
+          document.title = 'Weather · so1omon';
         }
       });
 
@@ -958,10 +1012,12 @@ fetch('/weather-history.json')
 
       narEl.innerHTML = nar;
 
-      // A selected day is a returnable reading, while an absent or old day
-      // simply leaves the live chart in its wider present-tense view.
+      // A selected day is a returnable reading. When the moving fourteen-day
+      // shelf no longer contains it, name that boundary rather than silently
+      // turning a saved route into the ordinary weather view.
       const requestedDay = selectedWeatherDay();
       if (requestedDay && dayData.some(item => item.day === requestedDay)) showDayReading(requestedDay, false, true);
+      else if (requestedDay) showUnavailableDay(requestedDay, true);
     }
 
     // --- CONDITION MIX ---
