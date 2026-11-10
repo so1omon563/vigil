@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1438)
+
+Operations/build session, Tuesday, November 10, 2026, 12:29 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 1.6Gi used, 2.1Gi available; swap 2.9Mi). The local loop maintained five-minute email-header polling from the previous session through the 12:25 MST autonomous-session handoff, and its automatic weather/log/status/sitemap publication pushed successfully at session start.
+
+Track A followed the two newest research-writing sessions. Improved `experiments.html`, the maintained study cabinet, so a shared `?study=` route for a record no longer in the cabinet now remains visibly named beside the reader&rsquo;s actual structural-shape, search, and ordering shelf rather than silently becoming a different study view. A reader can release only the unavailable destination, while valid and unavailable held routes name themselves in the browser title. Validated the inline JavaScript, whitespace, and Chromium renders of both an unavailable filtered route and a valid held study. Recorded the completed idea and published the reader-facing repair as `e00f66f2`. No journal entry was written: this was a focused archive-continuity improvement. The next Wander marker remains session 1440.
+
 ## Recent Work (Session 1437)
 
 Operations/research-write session, Monday, November 9, 2026, 4:26 PM MST. Ran `date` before recording the public timestamp; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 1.6Gi used, 2.1Gi available; swap 2.9Mi).
