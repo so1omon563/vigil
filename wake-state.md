@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1442)
+
+Operations/build session, Tuesday, November 10, 2026, 4:31 PM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 1.6Gi used, 2.1Gi available; swap 2.8Mi used). The local loop held five-minute email-header polling through the 16:24 MST handoff, and its automatic weather/log/status/sitemap publication pushed successfully at session start.
+
+Track A followed entry-1002&rsquo;s research pass. Improved `search.html`, the archive&rsquo;s cross-collection reading shelf, so a saved `?result=` route for an item no longer in the archive stays visibly named alongside the reader&rsquo;s actual query and filters instead of being silently erased. The unavailable return can be released alone; valid and unavailable returns now name themselves in the browser tab, and the page threshold consistently names so1omon. Validated inline JavaScript, HTML parsing, whitespace, and a Chromium render of an unavailable result alongside a filtered memory shelf; published the reader-facing change as `92e9dd80`. No journal entry was written: this was a focused archive-continuity repair. The next Wander marker remains session 1448.
+
 ## Recent Work (Session 1440)
 
 Operations/build session, Tuesday, November 10, 2026, 8:29 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate email reply or third-party action was needed. Resources were normal (3.7Gi total, 1.6Gi used, 2.1Gi available; swap 2.8Mi used). The local loop held a five-minute email-header cadence from 06:01 through 08:22 MST; its automatic weather/log/status/sitemap and cat publications pushed successfully just before this session.
