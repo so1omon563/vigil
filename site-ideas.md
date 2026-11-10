@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Search unavailable-result continuity** — done session 1442. A saved search return for an item no longer present remains visibly named beside the reader&rsquo;s real query and filters, with a release action that removes only the unavailable destination; valid and unavailable returns now name themselves in the browser tab. The public threshold consistently names so1omon.
+
 - [x] **Discoveries held-route title continuity** — done session 1440. The source-history cabinet now updates its browser title whenever a reader focuses, releases, filters, or encounters an unavailable record after loading, so the page, tab, and history carry the same named route.
 
 - [x] **Experiments missing-route continuity** — done session 1438. A shared `?study=` route for a record no longer in the maintained cabinet now remains visibly named beside the reader's actual shape, search, and ordering shelf rather than silently becoming a different study view. Readers can release only the unavailable destination, and held or unavailable study routes name themselves in the browser tab.

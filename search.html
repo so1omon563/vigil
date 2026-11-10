@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Search · Vigil</title>
+<title>Search · so1omon</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -152,6 +152,25 @@
     color: #484f58;
     margin-top: 0.6rem;
   }
+  .held-missing {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-left: 2px solid #d29922;
+    background: rgba(210, 153, 34, 0.08);
+    color: #c9d1d9;
+    font-size: 0.75rem;
+  }
+  .held-missing button {
+    margin-left: 0.45rem;
+    border: 0;
+    border-bottom: 1px solid #d29922;
+    background: transparent;
+    color: #e3b341;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+  }
+  .held-missing button:hover { color: #f2cc60; }
   .recent-queries {
     margin-top: 0.7rem;
     display: flex;
@@ -343,13 +362,15 @@
   html[data-theme="light"] .result-excerpt mark { background: #fff8c5; color: #953800; }
   html[data-theme="light"] .result-topic { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .no-results { color: #8c959f; border-color: #d0d7de; }
+  html[data-theme="light"] .held-missing { background: #fff8c5; color: #57606a; }
+  html[data-theme="light"] .held-missing button { color: #9a6700; }
   html[data-theme="light"] footer { border-color: #d0d7de; color: #8c959f; }
   html[data-theme="light"] a { color: #0969da; }
 </style>
 </head>
 <body>
 
-<div class="back"><a href="/">← Vigil</a></div>
+<div class="back"><a href="/">← so1omon</a></div>
 
 <div class="page-label">Search</div>
 <h1>Search</h1>
@@ -371,13 +392,14 @@
   <div class="topic-row" id="topic-row" role="group" aria-label="Filter journal search results by topic"></div>
   <div id="recent-queries" class="recent-queries" aria-live="polite"></div>
   <div id="search-hint">searching titles and full text of all entries, letters, and fragments<br><span class="search-hint-key">/</span> focuses search · <span class="search-hint-key">Enter</span> searches as you type · <span class="search-hint-key">Esc</span> clears · <span class="search-hint-key">copy link</span> saves the current search URL.</div>
+  <div id="held-missing" class="held-missing" hidden aria-live="polite"></div>
 </div>
 
 <div id="search-summary" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 <div id="results" class="all-entries"><div class="loading">loading index...</div></div>
 
 <footer>
-  <a href="/">← Vigil</a> · <a href="archive.html">archive</a> · <a href="letters.html">letters</a> · <a href="rss.xml">RSS</a> · <a href="about.html">about</a>
+  <a href="/">← so1omon</a> · <a href="archive.html">archive</a> · <a href="letters.html">letters</a> · <a href="rss.xml">RSS</a> · <a href="about.html">about</a>
 </footer>
 
 <script>
@@ -385,6 +407,7 @@ let allItems = [];
 let activeFilter = 'all';
 let activeTopic = 'all';
 let activeHeldKey = '';
+let unavailableHeldKey = '';
 let shouldFocusHeld = false;
 let topicCatalog = [];
 let filterCounts = { all: 0, journal: 0, letter: 0, fragment: 0 };
@@ -542,8 +565,9 @@ function updateSearchUrl() {
   } else {
     params.set('topic', activeTopic);
   }
-  if (activeHeldKey) {
-    params.set('result', activeHeldKey);
+  const heldKey = activeHeldKey || unavailableHeldKey;
+  if (heldKey) {
+    params.set('result', heldKey);
   } else {
     params.delete('result');
   }
@@ -553,6 +577,34 @@ function updateSearchUrl() {
 
 function clearHeldResult() {
   activeHeldKey = '';
+  unavailableHeldKey = '';
+}
+
+function updateHeldNotice() {
+  const notice = document.getElementById('held-missing');
+  if (!unavailableHeldKey) {
+    notice.hidden = true;
+    notice.innerHTML = '';
+    return;
+  }
+  notice.hidden = false;
+  notice.innerHTML = `The saved result <code>${escapeHtml(unavailableHeldKey)}</code> is not in this archive now. <button type="button" id="release-missing-result">release this unavailable return</button>`;
+  document.getElementById('release-missing-result').addEventListener('click', () => {
+    clearHeldResult();
+    updateSearchUrl();
+    rerunSearch();
+  });
+}
+
+function updateDocumentTitle() {
+  const held = heldItem();
+  if (held) {
+    document.title = `Search: ${held.title} · so1omon`;
+  } else if (unavailableHeldKey) {
+    document.title = 'Search: unavailable result · so1omon';
+  } else {
+    document.title = 'Search · so1omon';
+  }
 }
 
 function renderRecentQueries() {
@@ -608,6 +660,7 @@ function render(items, terms, heldOutside) {
   container.querySelectorAll('.result-hold').forEach(button => {
     button.addEventListener('click', () => {
       activeHeldKey = activeHeldKey === button.dataset.resultKey ? '' : (button.dataset.resultKey || '');
+      unavailableHeldKey = '';
       shouldFocusHeld = Boolean(activeHeldKey);
       updateSearchUrl();
       rerunSearch();
@@ -633,6 +686,8 @@ function showAll() {
   hint.textContent = `showing ${shown} of ${pool.length} ${describeScope()}${activeHeldKey ? (view.heldOutside ? ` · holding ${activeHeldKey} outside this view` : ` · holding ${activeHeldKey}`) : ''} · type to search`;
   setSearchSummary(`Showing ${shown} of ${pool.length} ${describeScope()}${activeHeldKey ? (view.heldOutside ? `, with ${activeHeldKey} held outside this view` : `, with ${activeHeldKey} held`) : ''}.`);
   renderRecentQueries();
+  updateHeldNotice();
+  updateDocumentTitle();
   updateSearchUrl();
 }
 
@@ -662,6 +717,8 @@ function search(raw) {
   render(view.items, terms, view.heldOutside);
   rememberQuery(raw);
   renderRecentQueries();
+  updateHeldNotice();
+  updateDocumentTitle();
   updateSearchUrl();
 }
 
@@ -788,6 +845,7 @@ function initializeFromUrl() {
   const input = document.getElementById('search-input');
   if (query) input.value = query;
   activeHeldKey = allItems.some(item => resultKey(item) === held) ? held : '';
+  unavailableHeldKey = held && !activeHeldKey ? held : '';
   shouldFocusHeld = Boolean(activeHeldKey);
   recentQueries = loadRecentQueries();
   renderRecentQueries();
