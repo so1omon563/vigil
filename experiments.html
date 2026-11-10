@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Experiments · Vigil</title>
+<title>Experiments · so1omon</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -378,6 +378,7 @@
 </section>
 <div class="catalog-actions" role="group" aria-label="Reading actions"><span class="catalog-actions-label">Reading actions</span><button class="catalog-share" id="choose-study" type="button">choose a study from this view</button><button class="catalog-share" id="catalog-share" type="button">copy this view</button><span class="catalog-share-status" id="catalog-share-status" aria-live="polite"></span></div>
 <section class="focus-note" id="focus-note" aria-labelledby="focus-title" tabindex="-1"><span>Focused study: <strong id="focus-title"></strong><span class="focus-context" id="focus-context"></span></span><div class="focus-neighbors" id="focus-neighbors" hidden aria-label="Continue through this study shelf"><button class="catalog-share" id="previous-study" type="button">previous study</button><button class="catalog-share" id="next-study" type="button">next study</button></div><button class="catalog-share" id="clear-focus" type="button">show all studies</button></section>
+<section class="focus-note" id="missing-study-note" aria-live="polite"><span><strong>Unavailable study:</strong> <span id="missing-study-id"></span>. This shared destination is no longer in the maintained cabinet. The current shape, search, and ordering shelf remain visible; this page is not treating another study as the one named by the link.</span><button class="catalog-share" id="clear-missing-study" type="button">release unavailable study</button></section>
 
 <div class="showing-count" id="showing-count">loading studies…</div>
 
@@ -396,6 +397,7 @@
   var currentCluster = 'all';
   var currentQuery = '';
   var currentStudy = '';
+  var missingStudy = '';
   var currentOrder = 'cabinet';
 
   Promise.all([
@@ -433,6 +435,7 @@
         currentCluster = 'all';
         currentQuery = '';
         currentStudy = '';
+        missingStudy = '';
         currentOrder = 'cabinet';
         document.getElementById('catalog-search').value = '';
         document.getElementById('catalog-order').value = currentOrder;
@@ -442,6 +445,12 @@
 
       document.getElementById('clear-focus').addEventListener('click', function () {
         currentStudy = '';
+        syncUrl(false);
+        render();
+      });
+
+      document.getElementById('clear-missing-study').addEventListener('click', function () {
+        missingStudy = '';
         syncUrl(false);
         render();
       });
@@ -501,6 +510,7 @@
           if (alternatives.length) candidates = alternatives;
         }
         currentStudy = candidates[Math.floor(Math.random() * candidates.length)].id;
+        missingStudy = '';
         syncUrl(false);
         render();
         focusSelectedStudy();
@@ -517,6 +527,7 @@
     currentQuery = params.get('q') || '';
     var requestedStudy = params.get('study');
     currentStudy = requestedStudy && experiments.some(function (exp) { return exp.id === requestedStudy; }) ? requestedStudy : '';
+    missingStudy = requestedStudy && !currentStudy ? requestedStudy : '';
     var requestedOrder = params.get('order');
     currentOrder = ['cabinet', 'journal', 'year'].indexOf(requestedOrder) !== -1 ? requestedOrder : 'cabinet';
     document.getElementById('catalog-search').value = currentQuery;
@@ -527,7 +538,9 @@
     var url = new URL(window.location.href);
     if (currentCluster === 'all') url.searchParams.delete('cluster'); else url.searchParams.set('cluster', currentCluster);
     if (currentQuery.trim()) url.searchParams.set('q', currentQuery.trim()); else url.searchParams.delete('q');
-    if (currentStudy) url.searchParams.set('study', currentStudy); else url.searchParams.delete('study');
+    if (currentStudy) url.searchParams.set('study', currentStudy);
+    else if (missingStudy) url.searchParams.set('study', missingStudy);
+    else url.searchParams.delete('study');
     if (currentOrder === 'cabinet') url.searchParams.delete('order'); else url.searchParams.set('order', currentOrder);
     window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + (url.search || '') + url.hash);
   }
@@ -652,8 +665,11 @@
     var shelf = shelfExperiments();
     var focused = experiments.find(function (exp) { return exp.id === currentStudy; });
     var focusNote = document.getElementById('focus-note');
+    var missingNote = document.getElementById('missing-study-note');
     focusNote.classList.toggle('visible', !!focused);
+    missingNote.classList.toggle('visible', !!missingStudy);
     document.getElementById('focus-title').textContent = focused ? focused.title : '';
+    document.getElementById('missing-study-id').textContent = missingStudy;
     document.getElementById('focus-context').textContent = focused && shelf.indexOf(focused) === -1
       ? ' — held outside this search shelf'
       : '';
@@ -776,6 +792,7 @@
         focusButton.disabled = currentStudy === exp.id;
         focusButton.addEventListener('click', function () {
           currentStudy = exp.id;
+          missingStudy = '';
           syncUrl(false);
           render();
           focusSelectedStudy();
@@ -795,6 +812,17 @@
         (focused && shelf.indexOf(focused) === -1 ? ' · one held study is outside the current shelf' : '') + orderNote;
     }
     document.getElementById('empty-state').classList.toggle('visible', shown === 0);
+    updateDocumentTitle(focused);
+  }
+
+  function updateDocumentTitle(focused) {
+    if (missingStudy) {
+      document.title = 'Unavailable study — Experiments · so1omon';
+    } else if (focused) {
+      document.title = focused.title + ' — Experiments · so1omon';
+    } else {
+      document.title = 'Experiments · so1omon';
+    }
   }
 
   function focusSelectedStudy() {
