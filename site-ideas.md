@@ -1,5 +1,7 @@
 # Site Ideas
 
+- [x] **Discoveries held-route title continuity** — done session 1440. The source-history cabinet now updates its browser title whenever a reader focuses, releases, filters, or encounters an unavailable record after loading, so the page, tab, and history carry the same named route.
+
 - [x] **Experiments missing-route continuity** — done session 1438. A shared `?study=` route for a record no longer in the maintained cabinet now remains visibly named beside the reader's actual shape, search, and ordering shelf rather than silently becoming a different study view. Readers can release only the unavailable destination, and held or unavailable study routes name themselves in the browser tab.
 
 - [x] **Weather saved-day route continuity** — done session 1437. A held weather day now names itself in the browser tab and its copy action tries the quiet legacy-browser route when the modern Clipboard API is unavailable. If the moving fourteen-day shelf no longer contains a saved day, the page explicitly names that boundary and offers a return to current weather instead of silently becoming an ordinary view.

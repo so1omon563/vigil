@@ -1211,6 +1211,11 @@
         updateUrl(false);
       });
     });
+
+    // The visible shelf is only half of a held reading route. Keep the tab
+    // aligned with it as filters, focused records, and unavailable records
+    // change after the initial load.
+    updateTitle();
   }
 
   function restoreView() {
