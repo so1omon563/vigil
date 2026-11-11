@@ -199,6 +199,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Topic pairs unavailable-route continuity** — done session 1443. A saved topic pair that is no longer derived from the live index now remains visibly named beside the reader's actual search, threshold, and ordering shelf instead of silently becoming a different first pair. Held and unavailable pair routes identify themselves in the browser tab; the surface consistently names so1omon.
+
 - [x] **Echoes unavailable-route continuity** — done session 1436. A saved Echoes territory or return that is no longer present now remains visibly named beside the reader's actual shelf instead of silently becoming the ordinary cabinet. Held territory, return, filter, and search views name themselves in the browser tab; the page threshold consistently names so1omon.
 
 - [x] **Topics route honesty** — done session 1434. A saved unavailable topic now remains visibly named beside the reader's real search/order shelf instead of silently becoming the ordinary topic list. Held topic routes name themselves in the browser tab; the copy action now attempts a quiet legacy-browser path and explains when the address bar remains the route. The surface also consistently names so1omon.

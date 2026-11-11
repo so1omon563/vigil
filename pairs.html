@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Topic Pairs · Vigil</title>
+<title>Topic Pairs · so1omon</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -185,7 +185,7 @@
 </head>
 <body>
 
-<div class="back"><a href="/">Vigil</a></div>
+<div class="back"><a href="/">so1omon</a></div>
 
 <div class="page-label">Archive Surface</div>
 <h1>Topic pairs</h1>
@@ -233,7 +233,7 @@
 </main>
 
 <footer>
-  <a href="/">Vigil</a> · <a href="archive.html">archive</a> · <a href="topics.html">topics</a> · <a href="graph.html">graph</a>
+  <a href="/">so1omon</a> · <a href="archive.html">archive</a> · <a href="topics.html">topics</a> · <a href="graph.html">graph</a>
 </footer>
 
 <script>
@@ -357,6 +357,18 @@
     return pairs.find(function (pair) { return pair.key === selectedKey; }) || null;
   }
 
+  function updateDocumentTitle(selected, unavailable) {
+    if (unavailable) {
+      document.title = "Topic pairs: unavailable pair · so1omon";
+    } else if (selected && hasHeldPair) {
+      document.title = "Topic pairs: " + selected.topics.join(" + ") + " · so1omon";
+    } else if (els.search.value.trim()) {
+      document.title = "Topic pairs: search · so1omon";
+    } else {
+      document.title = "Topic pairs · so1omon";
+    }
+  }
+
   function filterPairs(routeMode, focusArrival) {
     landOnSelected = landOnSelected || !!focusArrival;
     var query = els.search.value.trim().toLowerCase();
@@ -365,13 +377,15 @@
       return pair.entries.length >= min && (!query || pair.searchText.indexOf(query) !== -1);
     }));
     var selected = selectedPair();
-    if (!selected) {
+    var unavailable = hasHeldPair && !!selectedKey && !selected;
+    if (!selected && !unavailable) {
       hasHeldPair = false;
       selectedKey = visible.length ? visible[0].key : "";
       selected = selectedPair();
     }
-    renderPairs(selected, !!selected && visible.some(function (pair) { return pair.key === selected.key; }), hasHeldPair);
+    renderPairs(selected, !!selected && visible.some(function (pair) { return pair.key === selected.key; }), hasHeldPair, unavailable);
     renderSelected(selected);
+    updateDocumentTitle(selected, unavailable);
     if (routeMode) updateUrl(routeMode);
   }
 
@@ -379,13 +393,15 @@
     return "Entry " + entry.num + " · " + (entry.date || "undated");
   }
 
-  function renderPairs(selected, selectedInShelf, held) {
+  function renderPairs(selected, selectedInShelf, held, unavailable) {
     var rendered = held && selected && !selectedInShelf ? [selected].concat(visible) : visible;
     els.visibleCount.textContent = visible.length.toLocaleString();
-    els.shelfStatus.textContent = visible.length + " topic " + (visible.length === 1 ? "pair matches" : "pairs match") + "; ordered by " + els.sort.options[els.sort.selectedIndex].text + ".";
+    els.shelfStatus.textContent = visible.length + " topic " + (visible.length === 1 ? "pair matches" : "pairs match") + "; ordered by " + els.sort.options[els.sort.selectedIndex].text + (unavailable ? "; the saved pair is unavailable." : ".");
     els.empty.style.display = visible.length || (held && selected) ? "none" : "block";
-    els.focusNote.classList.toggle("visible", !!held && !!selected);
-    if (held && selected) {
+    els.focusNote.classList.toggle("visible", !!held);
+    if (held && unavailable) {
+      els.focusCopy.textContent = "The saved topic pair “" + selectedKey.replace(/\|\|/g, " + ") + "” is not in this archive now; this shelf is unchanged.";
+    } else if (held && selected) {
       els.focusCopy.textContent = selectedInShelf
         ? "One named topic pair is held in this shelf."
         : "One named topic pair is held outside this shelf; it is not a filter match.";
