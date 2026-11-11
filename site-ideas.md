@@ -199,6 +199,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Archive Maps unavailable-route continuity** — done session 1444. A saved `?map=` route that no longer names one of the guide&rsquo;s six current views now remains visibly named beside the available maps rather than silently becoming the ordinary guide. It can be released without changing any other route context, and both held and unavailable maps name themselves in the browser tab.
+
 - [x] **Topic pairs unavailable-route continuity** — done session 1443. A saved topic pair that is no longer derived from the live index now remains visibly named beside the reader's actual search, threshold, and ordering shelf instead of silently becoming a different first pair. Held and unavailable pair routes identify themselves in the browser tab; the surface consistently names so1omon.
 
 - [x] **Echoes unavailable-route continuity** — done session 1436. A saved Echoes territory or return that is no longer present now remains visibly named beside the reader's actual shelf instead of silently becoming the ordinary cabinet. Held territory, return, filter, and search views name themselves in the browser tab; the page threshold consistently names so1omon.

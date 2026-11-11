@@ -26,6 +26,7 @@
   .hold:hover, .hold:focus-visible, .hold[aria-pressed="true"] { border-color: #58a6ff; color: #58a6ff; outline: none; }
   .map.held { border-color: #58a6ff; box-shadow: 0 0 0 1px #58a6ff33; }
   .held-note { color: #8b949e; font-size: .76rem; line-height: 1.55; margin-top: 1.2rem; min-height: 1.2em; }
+  .unavailable-note { border-left: 2px solid #30363d; color: #8b949e; font-size: .76rem; line-height: 1.55; margin-top: 1.2rem; padding-left: .8rem; }
   .held-actions { align-items: center; display: flex; flex-wrap: wrap; gap: .65rem; margin-top: .65rem; min-height: 1.8rem; }
   .copy-route { background: transparent; border: 1px solid #30363d; border-radius: 3px; color: #8b949e; cursor: pointer; font: inherit; font-size: .68rem; letter-spacing: .04em; padding: .3rem .48rem; }
   .copy-route:hover, .copy-route:focus-visible { border-color: #58a6ff; color: #58a6ff; outline: none; }
@@ -43,6 +44,7 @@
   html[data-theme="light"] .hold:hover, html[data-theme="light"] .hold:focus-visible, html[data-theme="light"] .hold[aria-pressed="true"] { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .map.held { border-color: #0969da; box-shadow: 0 0 0 1px #0969da33; }
   html[data-theme="light"] .note { border-color: #d0d7de; }
+  html[data-theme="light"] .unavailable-note { border-color: #d0d7de; }
   html[data-theme="light"] .copy-route { border-color: #d0d7de; color: #57606a; }
   html[data-theme="light"] .copy-route:hover, html[data-theme="light"] .copy-route:focus-visible { border-color: #0969da; color: #0969da; }
   html[data-theme="light"] .copy-status { color: #6e7781; }
@@ -95,6 +97,7 @@
 </main>
 
 <p class="held-note" id="held-note" aria-live="polite"></p>
+<p class="unavailable-note" id="unavailable-note" hidden></p>
 <div class="held-actions" id="held-actions" hidden>
   <button class="copy-route" id="copy-route" type="button">copy this map route</button>
   <span class="copy-status" id="copy-status" aria-live="polite"></span>
@@ -106,17 +109,22 @@
 (function () {
   var cards = Array.prototype.slice.call(document.querySelectorAll('[data-map]'));
   var note = document.getElementById('held-note');
+  var unavailableNote = document.getElementById('unavailable-note');
   var heldActions = document.getElementById('held-actions');
   var copyRoute = document.getElementById('copy-route');
   var copyStatus = document.getElementById('copy-status');
   var permitted = cards.map(function (card) { return card.getAttribute('data-map'); });
 
+  function requested() {
+    return new URLSearchParams(window.location.search).get('map') || '';
+  }
   function selected() {
-    var value = new URLSearchParams(window.location.search).get('map');
+    var value = requested();
     return permitted.indexOf(value) !== -1 ? value : '';
   }
   function render(moveFocus) {
     var value = selected();
+    var missing = requested() && !value ? requested() : '';
     cards.forEach(function (card) {
       var isHeld = card.getAttribute('data-map') === value;
       card.classList.toggle('held', isHeld);
@@ -126,9 +134,30 @@
       note.textContent = '';
       heldActions.hidden = true;
       copyStatus.textContent = '';
-      document.title = 'Archive Maps · so1omon.net';
+      unavailableNote.hidden = !missing;
+      if (missing) {
+        unavailableNote.textContent = '“' + missing + '” is not a map currently carried by this guide. The six available views remain below; clear this unavailable destination without changing the guide.';
+        var release = document.createElement('button');
+        release.className = 'hold';
+        release.type = 'button';
+        release.textContent = 'release unavailable map';
+        release.addEventListener('click', function () {
+          var params = new URLSearchParams(window.location.search);
+          params.delete('map');
+          var query = params.toString();
+          history.pushState({}, '', window.location.pathname + (query ? '?' + query : ''));
+          render(false);
+        });
+        unavailableNote.appendChild(document.createTextNode(' '));
+        unavailableNote.appendChild(release);
+        document.title = 'Unavailable map: ' + missing + ' · so1omon.net';
+      } else {
+        document.title = 'Archive Maps · so1omon.net';
+      }
       return;
     }
+    unavailableNote.hidden = true;
+    unavailableNote.textContent = '';
     var card = document.querySelector('[data-map="' + value + '"]');
     var title = card.querySelector('h2').textContent;
     note.textContent = title + ' is held as this guide\'s current map. Its normal link still opens the map itself.';
