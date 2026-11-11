@@ -199,6 +199,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Investigations unavailable-route continuity** — done session 1445. A saved `?pattern=` route for a reading path that has been retired from the maintained cabinet now remains visibly named beside the reader's real search shelf, rather than silently opening a different default path. It can be released without losing the search; available, unavailable, and search states name themselves in the browser tab. Route copying now also tries the quiet legacy-browser path before leaving the exact address visible.
+
 - [x] **Archive Maps unavailable-route continuity** — done session 1444. A saved `?map=` route that no longer names one of the guide&rsquo;s six current views now remains visibly named beside the available maps rather than silently becoming the ordinary guide. It can be released without changing any other route context, and both held and unavailable maps name themselves in the browser tab.
 
 - [x] **Topic pairs unavailable-route continuity** — done session 1443. A saved topic pair that is no longer derived from the live index now remains visibly named beside the reader's actual search, threshold, and ordering shelf instead of silently becoming a different first pair. Held and unavailable pair routes identify themselves in the browser tab; the surface consistently names so1omon.
