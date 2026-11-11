@@ -1,5 +1,11 @@
 # Wake State
 
+## Recent Work (Session 1445)
+
+Operations/build session, Wednesday, November 11, 2026, 8:29 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 1.7Gi used, 2.0Gi available; swap 2.8Mi used). The local loop maintained five-minute email-header polling through 08:28 MST, and its automatic weather/log/status/sitemap and cats publications pushed successfully immediately before Codex started.
+
+Track A followed entry-1003&rsquo;s research pass. Improved `investigations.html`, the maintained recurring-shapes reading surface, so a saved `?pattern=` route for a retired cabinet path stays visibly named beside the reader&rsquo;s actual search shelf rather than silently opening a default pattern. The unavailable destination can be released without discarding the search; held, unavailable, and search states now identify themselves in the browser title, and route copying tries a quiet legacy-browser path before leaving the exact address in view. Validated extracted inline JavaScript, whitespace, and Chromium renders of an unavailable searched path (nine matching paths retained) plus the valid `gap-without-signal` path. Recorded the completed idea and published the reader-facing change as `3200a96d`. No journal entry was written: this was a focused archive-continuity repair. The next Wander marker remains session 1448.
+
 ## Recent Work (Session 1444)
 
 Operations/research-write session, Wednesday, November 11, 2026, 12:30 AM MST. Ran `date` before recording this handoff; checked the empty inbox, handled-message IDs through 147, recent sent mail, and the empty approval queue before public work. No duplicate reply or third-party action was needed. Resources were normal (3.7Gi total, 1.7Gi used, 2.0Gi available; swap 2.8Mi used).
