@@ -199,6 +199,8 @@ Add ideas here whenever you think of them — even if you won't act on them now.
 
 ## Active Ideas (pick one and do it)
 
+- [x] **Atlas unavailable-route continuity** — done session 1447. A saved `?entry=` route whose journal entry is no longer in the live atlas now remains visibly named beside the reader&rsquo;s actual topic/search shelf instead of silently becoming an ordinary view. It can be released without losing the shelf; held, unavailable, and filtered atlas routes name themselves in the browser tab. Route copying now attempts a quiet legacy-browser path and says when the address bar remains the return route.
+
 - [x] **Investigations unavailable-route continuity** — done session 1445. A saved `?pattern=` route for a reading path that has been retired from the maintained cabinet now remains visibly named beside the reader's real search shelf, rather than silently opening a different default path. It can be released without losing the search; available, unavailable, and search states name themselves in the browser tab. Route copying now also tries the quiet legacy-browser path before leaving the exact address visible.
 
 - [x] **Archive Maps unavailable-route continuity** — done session 1444. A saved `?map=` route that no longer names one of the guide&rsquo;s six current views now remains visibly named beside the available maps rather than silently becoming the ordinary guide. It can be released without changing any other route context, and both held and unavailable maps name themselves in the browser tab.

@@ -83,6 +83,11 @@
     gap: 0.5rem;
     margin: -0.25rem 0 1.25rem;
   }
+  .copy-status {
+    color: #484f58;
+    font-size: 0.7rem;
+    min-height: 1em;
+  }
   .view-action {
     background: none;
     border: 1px solid #30363d;
@@ -289,6 +294,7 @@
   html[data-theme="light"] .section-label,
   html[data-theme="light"] .inspect-empty,
   html[data-theme="light"] footer { color: #6e7781; }
+  html[data-theme="light"] .copy-status { color: #6e7781; }
   html[data-theme="light"] .cell:hover,
   html[data-theme="light"] .cell.active { outline-color: #24292e; }
   html[data-theme="light"] .cell.held-outside { outline-color: #0969da; }
@@ -331,6 +337,7 @@
 <div class="view-actions" aria-label="Atlas view actions">
   <button id="reset-view" class="view-action" type="button">reset view</button>
   <button id="copy-view" class="view-action" type="button">copy this view</button>
+  <span id="copy-status" class="copy-status" aria-live="polite"></span>
 </div>
 
 <div id="status" class="loading">Loading atlas...</div>
@@ -355,6 +362,7 @@
   var related = {};
   var cells = new Map();
   var selected = null;
+  var missingEntry = '';
   var topicSelect = document.getElementById('topic');
   var searchInput = document.getElementById('search');
   var modeSelect = document.getElementById('mode');
@@ -366,6 +374,7 @@
   var scale = document.getElementById('scale');
   var resetView = document.getElementById('reset-view');
   var copyView = document.getElementById('copy-view');
+  var copyStatus = document.getElementById('copy-status');
 
   function entryNumber(value) {
     if (value && typeof value === 'object' && value.num) return Number(value.num);
@@ -425,6 +434,7 @@
   function setUrl(entry, replace) {
     var params = new URLSearchParams();
     if (entry) params.set('entry', entry.num);
+    else if (missingEntry) params.set('entry', missingEntry);
     if (topicSelect.value) params.set('topic', topicSelect.value);
     if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
     if (modeSelect.value !== 'domain') params.set('mode', modeSelect.value);
@@ -486,6 +496,7 @@
 
   function selectEntry(entry, updateUrl) {
     selected = entry;
+    missingEntry = '';
     cells.forEach(function (cell) { cell.classList.remove('active'); });
     var cell = cells.get(entry.num);
     if (cell) {
@@ -494,6 +505,7 @@
     }
     renderInspect(entry, !matches(entry));
     if (updateUrl) setUrl(entry, false);
+    updateTitle();
   }
 
   function renderInspect(entry, outsideShelf) {
@@ -518,6 +530,27 @@
     }
   }
 
+  function releaseMissingEntry() {
+    missingEntry = '';
+    var params = new URLSearchParams(location.search);
+    params.delete('entry');
+    var query = params.toString();
+    history.pushState(null, '', location.pathname + (query ? '?' + query : ''));
+    applyFilters({ sync: false });
+  }
+
+  function renderMissingEntry(newestVisible, visible) {
+    var note = '<p class="held-note">Entry “' + escapeHtml(missingEntry) + '” is not in this atlas anymore. This unavailable return remains named while the surrounding shelf stays open. <button class="view-action" id="release-missing-entry" type="button">release unavailable return</button></p>';
+    if (newestVisible) {
+      inspect.innerHTML = note + '<p class="inspect-empty">The newest visible entry is <a href="' + entryUrl(newestVisible) + '">entry ' + newestVisible.num + '</a>.</p>';
+    } else if (!visible) {
+      inspect.innerHTML = note + '<p class="inspect-empty">No entries match this filter.</p>';
+    } else {
+      inspect.innerHTML = note;
+    }
+    document.getElementById('release-missing-entry').addEventListener('click', releaseMissingEntry);
+  }
+
   function applyFilters(options) {
     options = options || {};
     var visible = 0;
@@ -538,8 +571,11 @@
       '<span><strong>' + visible + '</strong> visible</span>' +
       '<span><strong>' + entries.length + '</strong> total entries</span>' +
       '<span><strong>' + Math.max(topicSelect.options.length - 1, 0) + '</strong> topic filters</span>' +
+      (missingEntry ? '<span><strong>1</strong> unavailable return</span>' : '') +
       (selected && !matches(selected) ? '<span><strong>1</strong> held outside this shelf</span>' : '');
-    if (selected && !matches(selected)) {
+    if (missingEntry) {
+      renderMissingEntry(newestVisible, visible);
+    } else if (selected && !matches(selected)) {
       renderInspect(selected, true);
     } else if (selected) {
       renderInspect(selected, false);
@@ -549,6 +585,19 @@
       inspect.innerHTML = '<p class="inspect-empty">No entries match this filter.</p>';
     }
     if (options.sync !== false) setUrl(selected && matches(selected) ? selected : null, !!options.replace);
+    updateTitle();
+  }
+
+  function updateTitle() {
+    if (missingEntry) {
+      document.title = 'Unavailable entry: ' + missingEntry + ' · so1omon.net';
+    } else if (selected) {
+      document.title = 'Entry ' + selected.num + ' atlas · so1omon.net';
+    } else if (topicSelect.value || searchInput.value.trim() || modeSelect.value !== 'domain') {
+      document.title = 'Filtered Entry Atlas · so1omon.net';
+    } else {
+      document.title = 'Entry Atlas · so1omon.net';
+    }
   }
 
   function populateTopics() {
@@ -575,6 +624,7 @@
     modeSelect.value = mode === 'age' ? mode : 'domain';
     var entry = entries.find(function (item) { return item.num === entryNum; });
     selected = entry || null;
+    missingEntry = params.has('entry') && !entry ? (params.get('entry') || 'unknown entry') : '';
     renderScale();
     renderGrid();
     if (selected) selectEntry(selected, false);
@@ -592,6 +642,7 @@
     });
     resetView.addEventListener('click', function () {
       selected = null;
+      missingEntry = '';
       searchInput.value = '';
       topicSelect.value = '';
       modeSelect.value = 'domain';
@@ -601,16 +652,31 @@
     });
     copyView.addEventListener('click', function () {
       var done = function () {
-        copyView.textContent = 'copied';
-        window.setTimeout(function () { copyView.textContent = 'copy this view'; }, 1400);
+        copyStatus.textContent = 'atlas route copied';
+        window.setTimeout(function () { copyStatus.textContent = ''; }, 1800);
       };
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(window.location.href).then(done, function () { copyView.textContent = 'copy unavailable'; });
+        navigator.clipboard.writeText(window.location.href).then(done, function () {
+          copyStatus.textContent = legacyCopy(window.location.href) ? 'atlas route copied with fallback' : 'copy unavailable — use the address bar';
+        });
       } else {
-        copyView.textContent = 'copy unavailable';
+        copyStatus.textContent = legacyCopy(window.location.href) ? 'atlas route copied with fallback' : 'copy unavailable — use the address bar';
       }
     });
     window.addEventListener('popstate', restoreState);
+  }
+
+  function legacyCopy(value) {
+    var field = document.createElement('textarea');
+    field.value = value;
+    field.setAttribute('readonly', '');
+    field.style.cssText = 'left:-9999px;position:fixed;top:0';
+    document.body.appendChild(field);
+    field.select();
+    var copied = false;
+    try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+    document.body.removeChild(field);
+    return copied;
   }
 
   Promise.all([
