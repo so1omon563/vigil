@@ -44,6 +44,7 @@ CATEGORIES = [
 
 # Manual category overrides by entry number
 OVERRIDES = {
+    1008: 'research',  # The Object That Arrived With a Past (cross-cultural visual memorability)
     999: 'memory',  # The Memory That Needed a Wave (phononic metastructure)
     990: 'research',  # The Lake That Needed a Stone (Rub' al Khali stone-and-water study)
     989: 'research',  # The Wall That Kept a Touch (cave-wall ancient-DNA study)
