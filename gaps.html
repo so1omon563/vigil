@@ -232,6 +232,18 @@
   .focus-navigation { display: inline-flex; gap: 0.45rem; flex-wrap: wrap; margin-left: 0.2rem; }
   .focus-navigation button { margin-left: 0; }
   .focus-navigation button:disabled { cursor: default; opacity: 0.48; }
+  .unavailable-note {
+    display: none;
+    margin: -0.2rem 0 1rem;
+    padding: 0.8rem 1rem;
+    border: 1px dashed #6e7681;
+    border-radius: 3px;
+    color: #8b949e;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+  .unavailable-note.visible { display: block; }
+  .unavailable-note code { color: #c9d1d9; }
 
   /* Light mode */
   html[data-theme="light"] body { background: #ffffff; color: #24292e; }
@@ -258,6 +270,8 @@
   html[data-theme="light"] .gap-action { color: #57606a; border-color: #d0d7de; }
   html[data-theme="light"] .gap-action:hover { color: #0366d6; border-color: #0366d6; }
   html[data-theme="light"] .empty-state { background: #fff; border-color: #d0d7de; color: #57606a; }
+  html[data-theme="light"] .unavailable-note { border-color: #8c959f; color: #57606a; }
+  html[data-theme="light"] .unavailable-note code { color: #24292e; }
 </style>
 <script src="nav.js" defer></script>
 </head>
@@ -311,6 +325,7 @@
 </div>
 
 <p class="focus-note" id="focus-note" aria-live="polite"><span id="focus-copy">One named uncertainty is in view.</span><span class="focus-navigation" id="focus-navigation"></span><button class="gap-action" id="show-all" type="button">return to this shelf</button></p>
+<p class="unavailable-note" id="unavailable-note" aria-live="polite">The saved question <code id="unavailable-gap-id"></code> is no longer in this maintained cabinet. The shelf below is still your current view. <button class="gap-action" id="release-unavailable" type="button">release this missing question</button></p>
 <div id="gaps-container"></div>
 <div class="empty-state" id="empty-state">No open questions match this view. Try a different term or reset the filters.</div>
 
@@ -327,6 +342,7 @@ let journalEntries = [];
 let currentFilter = 'all';
 let currentQuery = '';
 let currentGapId = '';
+let unavailableGapId = '';
 let landOnFocusedGap = false;
 
 function escapeHtml(value) {
@@ -359,6 +375,7 @@ function syncUrl(replace) {
   if (currentQuery.trim()) url.searchParams.set('q', currentQuery.trim());
   else url.searchParams.delete('q');
   if (validGapId(currentGapId)) url.searchParams.set('gap', currentGapId);
+  else if (unavailableGapId) url.searchParams.set('gap', unavailableGapId);
   else url.searchParams.delete('gap');
   window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
 }
@@ -424,6 +441,7 @@ function render() {
   container.innerHTML = '';
   const filtered = filteredGaps();
   const focusedGap = validGapId(currentGapId) ? allGaps.find(g => g.id === currentGapId) : null;
+  const hasUnavailableGap = !!unavailableGapId && !focusedGap;
   const focusIsInShelf = !!focusedGap && filtered.some(g => g.id === focusedGap.id);
   const visibleGaps = focusedGap ? [focusedGap] : filtered;
   const ordered = [...visibleGaps].sort((a, b) => Number(b.entry) - Number(a.entry));
@@ -445,6 +463,7 @@ function render() {
     card.setAttribute('aria-labelledby', `gap-title-${g.id}`);
     card.querySelector('[data-gap-id]').addEventListener('click', event => {
       currentGapId = event.currentTarget.dataset.gapId;
+      unavailableGapId = '';
       landOnFocusedGap = true;
       syncUrl(false);
       render();
@@ -453,6 +472,9 @@ function render() {
   });
   document.getElementById('empty-state').classList.toggle('visible', filtered.length === 0 && !focusedGap);
   document.getElementById('focus-note').classList.toggle('visible', !!focusedGap);
+  const unavailableNote = document.getElementById('unavailable-note');
+  unavailableNote.classList.toggle('visible', hasUnavailableGap);
+  document.getElementById('unavailable-gap-id').textContent = unavailableGapId;
   const focusCopy = document.getElementById('focus-copy');
   if (focusCopy) {
     focusCopy.textContent = focusedGap && !focusIsInShelf
@@ -461,8 +483,8 @@ function render() {
   }
   renderFocusNavigation(focusedGap, filtered);
   renderFilters();
-  updateCount(focusedGap, focusIsInShelf);
-  updateDocumentTitle(focusedGap);
+  updateCount(focusedGap, focusIsInShelf, hasUnavailableGap);
+  updateDocumentTitle(focusedGap, hasUnavailableGap);
   if (focusedGap && landOnFocusedGap) {
     landOnFocusedGap = false;
     window.requestAnimationFrame(() => {
@@ -494,6 +516,7 @@ function renderFocusNavigation(focusedGap, shelf) {
       button.title = gap.title;
       button.addEventListener('click', () => {
         currentGapId = gap.id;
+        unavailableGapId = '';
         landOnFocusedGap = true;
         syncUrl(false);
         render();
@@ -503,23 +526,23 @@ function renderFocusNavigation(focusedGap, shelf) {
   });
 }
 
-function updateCount(focusedGap, focusIsInShelf) {
+function updateCount(focusedGap, focusIsInShelf, hasUnavailableGap) {
   const total = allGaps.length;
   const visible = filteredGaps().length;
   document.getElementById('count-note').textContent =
     focusedGap ? (focusIsInShelf
       ? `1 held question · ${visible} in this shelf`
       : `1 held question outside this shelf · ${visible} shown`) :
+      hasUnavailableGap ? `${visible} of ${total} shown · saved question unavailable` :
       (currentFilter === 'all' && !currentQuery.trim()) ? `${total} open questions` : `${visible} of ${total} shown`;
   document.getElementById('gap-meta').textContent =
     `${total} unresolved questions across ${new Set(allGaps.map(g => g.entry)).size} journal entries`;
 }
 
-function updateDocumentTitle(focusedGap) {
-  const requestedGap = new URLSearchParams(window.location.search).get('gap');
+function updateDocumentTitle(focusedGap, hasUnavailableGap) {
   if (focusedGap) {
     document.title = `${focusedGap.title} · Open Questions · so1omon.net`;
-  } else if (requestedGap) {
+  } else if (hasUnavailableGap) {
     document.title = 'Unavailable question · Open Questions · so1omon.net';
   } else {
     document.title = 'Open Questions · so1omon.net';
@@ -605,6 +628,7 @@ document.getElementById('hold-visible').addEventListener('click', event => {
   const alternatives = candidates.filter(g => g.id !== currentGapId);
   const pool = alternatives.length ? alternatives : candidates;
   currentGapId = pool[Math.floor(Math.random() * pool.length)].id;
+  unavailableGapId = '';
   landOnFocusedGap = true;
   syncUrl(false);
   render();
@@ -615,6 +639,7 @@ document.getElementById('reset-view').addEventListener('click', () => {
   currentFilter = 'all';
   currentQuery = '';
   currentGapId = '';
+  unavailableGapId = '';
   document.getElementById('gap-search').value = '';
   syncUrl(false);
   render();
@@ -624,6 +649,13 @@ document.getElementById('show-all').addEventListener('click', () => {
   currentGapId = '';
   syncUrl(false);
   render();
+});
+
+document.getElementById('release-unavailable').addEventListener('click', () => {
+  unavailableGapId = '';
+  syncUrl(false);
+  render();
+  announceAction('The unavailable saved question was released; the current shelf remains.');
 });
 
 document.getElementById('share-view').addEventListener('click', async event => {
@@ -643,7 +675,9 @@ window.addEventListener('popstate', () => {
   const requested = params.get('type');
   currentFilter = validFilter(requested) ? requested : 'all';
   currentQuery = params.get('q') || '';
-  currentGapId = validGapId(params.get('gap')) ? params.get('gap') : '';
+  const requestedGap = params.get('gap') || '';
+  currentGapId = validGapId(requestedGap) ? requestedGap : '';
+  unavailableGapId = requestedGap && !currentGapId ? requestedGap : '';
   landOnFocusedGap = !!currentGapId;
   document.getElementById('gap-search').value = currentQuery;
   render();
@@ -657,7 +691,9 @@ Promise.all([fetch('gaps.json').then(r => r.json()), fetch('journal-index.json')
     const requested = params.get('type');
     currentFilter = validFilter(requested) ? requested : 'all';
     currentQuery = params.get('q') || '';
-    currentGapId = validGapId(params.get('gap')) ? params.get('gap') : '';
+    const requestedGap = params.get('gap') || '';
+    currentGapId = validGapId(requestedGap) ? requestedGap : '';
+    unavailableGapId = requestedGap && !currentGapId ? requestedGap : '';
     landOnFocusedGap = !!currentGapId;
     document.getElementById('gap-search').value = currentQuery;
     renderLastLeft();
