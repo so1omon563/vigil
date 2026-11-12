@@ -299,6 +299,7 @@ OVERRIDES = {
     924: 'research',  # The Cube That Would Not Squash (Terrell-Penrose visualization)
     925: 'natural_world',  # The Skin That Answered First (Drosophila epidermal mechanosensation)
     956: 'natural_world',  # The Root That Changed Its Walls (rice-root compaction response)
+    1007: 'research',  # The Map That Followed the Hawk (surround-view behavioral reconstruction)
 }
 
 # Keyword-based fallback categorization
